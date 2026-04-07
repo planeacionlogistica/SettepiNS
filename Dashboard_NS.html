@@ -132,6 +132,11 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .modal-foot{padding:.7rem 1.25rem;border-top:1px solid var(--border);font-size:.72rem;color:var(--muted);text-align:right;}
 .row-clickable{cursor:pointer;}
 .row-clickable .td-cli{color:var(--navy);text-decoration:underline dotted;}
+.row-ruta-clickable{cursor:pointer;}
+.row-ruta-clickable:hover{background:#f0f4ff !important;}
+.row-ruta-clickable .td-ruta{color:var(--navy);text-decoration:underline dotted;}
+.badge-tarde{display:inline-flex;align-items:center;gap:.3rem;background:#fff5f5;color:#c53030;border-radius:20px;padding:.18rem .6rem;font-size:.72rem;font-weight:700;}
+.badge-tiempo{display:inline-flex;align-items:center;gap:.3rem;background:#f0fff4;color:#276749;border-radius:20px;padding:.18rem .6rem;font-size:.72rem;font-weight:700;}
 .filter-toggle-btn{display:none;width:100%;background:var(--navy2);color:var(--white);border:none;border-radius:8px;padding:.65rem 1rem;font-size:.82rem;font-weight:600;font-family:"Inter",sans-serif;cursor:pointer;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
 .filter-toggle-btn span{font-size:.75rem;opacity:.6}
 .sidebar.collapsed .fg,.sidebar.collapsed .btn-reset,.sidebar.collapsed .sb-title{display:none}
@@ -364,6 +369,33 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
     </div>
   </main>
+</div>
+
+<div class="modal-overlay" id="drillDetailModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box" style="max-width:860px">
+    <div class="modal-head">
+      <div><h3 id="drillDetailTitle">Detalle de Viajes</h3><span id="drillDetailSub"></span></div>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <button id="drillDetailBack" onclick="document.getElementById('drillDetailModal').classList.remove('open')"
+          style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
+                 border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
+                 font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">← Volver</button>
+        <button class="modal-close" onclick="document.getElementById('drillDetailModal').classList.remove('open')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <table class="modal-table">
+        <thead><tr>
+          <th>Fecha</th>
+          <th style="text-align:left">Unidad</th>
+          <th style="text-align:left">Operador</th>
+          <th>Estado</th>
+        </tr></thead>
+        <tbody id="drillDetailBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot" id="drillDetailFoot"></div>
+  </div>
 </div>
 
 <div class="modal-overlay" id="drillModal" onclick="closeDrill(event)">
@@ -911,8 +943,10 @@ function renderDrill(clienteK,tbl){
     const color=colorFn(r.pct);
     const barW=Math.min(100,r.pct).toFixed(1);
     const bg=i%2===0?'#ffffff':'#f7f9ff';
-    return `<tr style="background:${bg}">
-      <td class="td-ruta">${r.k}</td>
+    const rutaEsc=r.k.replace(/'/g,"\\'");
+    const tblEsc=tbl;
+    return `<tr class="row-ruta-clickable" style="background:${bg}" onclick="openDrillDetail('${rutaEsc}','${clienteK.replace(/'/g,"\\'")}','${tblEsc}')">
+      <td class="td-ruta">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td>
       <td>${N(r.t)}</td>
       <td style="color:${r.l>0?'#d97706':'#16a34a'};font-weight:600">${N(r.l)}</td>
       <td><div class="pct-cell">
@@ -924,7 +958,52 @@ function renderDrill(clienteK,tbl){
   document.getElementById('drillFoot').textContent=`Total: ${N(totT)} viajes · ${N(totL)} ${lateLbl.toLowerCase()} · ${pctG.toFixed(1)}% cumplimiento`;
 }
 function closeDrill(e){ if(e.target===document.getElementById('drillModal')) document.getElementById('drillModal').classList.remove('open'); }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.getElementById('drillModal').classList.remove('open'); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ document.getElementById('drillModal').classList.remove('open'); document.getElementById('drillDetailModal').classList.remove('open'); } });
+
+function openDrillDetail(rutaK, clienteK, tbl){
+  const isLlegadas = tbl==='lcli';
+  const lateField  = isLlegadas ? C.llegada : C.retardo;
+  const lateLbl    = isLlegadas ? 'Llegada tarde' : 'Inicio tarde';
+
+  const rows = filterRows().filter(r =>
+    (r[C.cliente]||'').trim()===clienteK &&
+    (r['des']||'Sin ruta').trim()===rutaK
+  );
+
+  // ordenar por fecha
+  const sorted = [...rows].sort((a,b)=> getFecha(a).localeCompare(getFecha(b)));
+
+  const totT  = sorted.length;
+  const totL  = sorted.filter(r=> countLate(r[lateField])===1).length;
+  const pctG  = totT>0 ? ((totT-totL)/totT*100).toFixed(1) : '–';
+
+  document.getElementById('drillDetailTitle').textContent = `${clienteK} · ${rutaK}`;
+  document.getElementById('drillDetailSub').textContent   = `${lateLbl} · ${totT} viajes · ${totL} tarde · ${pctG}% cumplimiento`;
+
+  document.getElementById('drillDetailBody').innerHTML = sorted.map((r,i)=>{
+    const tarde  = countLate(r[lateField])===1;
+    const fecha  = getFecha(r);
+    const dt     = new Date(fecha+'T12:00:00');
+    const fechaFmt = isNaN(dt)?fecha:dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
+    const unidad = (r['car']||'–').trim();
+    const driver = (r['driver']||'–').trim();
+    const bg     = i%2===0?'#ffffff':'#f7f9ff';
+    const badge  = tarde
+      ? '<span class="badge-tarde">❌ '+lateLbl+'</span>'
+      : '<span class="badge-tiempo">✅ A tiempo</span>';
+    return `<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
+      <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${fechaFmt}</td>
+      <td style="text-align:left;font-weight:600">${unidad}</td>
+      <td style="text-align:left">${driver}</td>
+      <td style="text-align:right">${badge}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="4" class="table-empty">Sin viajes registrados</td></tr>';
+
+  document.getElementById('drillDetailFoot').textContent =
+    `Total: ${totT} viajes · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
+
+  document.getElementById('drillDetailModal').classList.add('open');
+}
 
 function toggleDropdown(id){
   const d=document.getElementById(id);
