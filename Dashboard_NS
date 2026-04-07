@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Nivel de Servicio | Traxión</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+nav{background:#1f2937;padding:15px 30px;display:flex;gap:25px;align-items:center;
+    box-shadow:0 2px 8px rgba(0,0,0,0.3);position:sticky;top:0;z-index:300;flex-wrap:wrap;}
+nav>a{color:#e5e7eb;text-decoration:none;font-weight:600;padding:8px 16px;border-radius:8px;transition:all .3s;white-space:nowrap;}
+nav>a:first-child{color:#84cc16;font-weight:800;font-size:18px;}
+nav>a:hover{background:#374151;}
+.dropdown{position:relative;display:inline-block;}
+.dropdown-toggle{color:#e5e7eb;text-decoration:none;font-weight:600;padding:8px 16px;border-radius:8px;
+    transition:all .3s;cursor:pointer;display:flex;align-items:center;gap:6px;
+    background:transparent;border:none;font-size:14px;font-family:inherit;}
+.dropdown-toggle:hover{background:#374151;}
+.dropdown-arrow{font-size:12px;transition:transform .3s;}
+.dropdown.open .dropdown-arrow{transform:rotate(180deg);}
+.dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#374151;min-width:220px;
+    border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);margin-top:8px;z-index:1000;overflow:hidden;}
+.dropdown.open .dropdown-menu{display:block;}
+.dropdown-menu a{display:block;padding:12px 20px;color:#e5e7eb;text-decoration:none;font-weight:600;transition:all .3s;}
+.dropdown-menu a:hover{background:#4b5563;padding-left:25px;}
+.dropdown-menu a.active{background:#84cc16;color:#1f2937;}
+:root{
+  --navy:#1a2236;--navy2:#222d42;--navy3:#2c3a55;
+  --green:#7ed321;--green2:#5cb800;--green3:#a8e05f;
+  --white:#ffffff;--bg:#f0f2f7;--border:#dde3f0;
+  --text:#1a2236;--muted:#6b7a99;--red:#e53e3e;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;min-height:100vh}
+.layout{display:flex;align-items:flex-start;min-height:calc(100vh - 58px)}
+.sidebar{width:220px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);
+  padding:1.1rem .95rem;display:flex;flex-direction:column;gap:1rem;
+  position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
+.sb-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+.fg{display:flex;flex-direction:column;gap:.28rem}
+.fg label{font-size:.7rem;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.fg select,.fg input[type=date]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;
+  color:var(--text);padding:.38rem .5rem;font-size:.78rem;font-family:"Inter",sans-serif;
+  appearance:none;cursor:pointer;outline:none;transition:border-color .15s;}
+.fg select:focus,.fg input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(126,211,33,.15)}
+.date-row{display:grid;grid-template-columns:1fr 1fr;gap:.3rem}
+.btn-reset{width:100%;background:transparent;border:1px solid var(--border);border-radius:6px;
+  color:var(--muted);padding:.4rem;font-size:.74rem;font-family:"Inter",sans-serif;
+  font-weight:500;cursor:pointer;transition:all .15s;}
+.btn-reset:hover{border-color:var(--green);color:var(--green);background:rgba(126,211,33,.06)}
+.main{flex:1;padding:1.35rem 1.5rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.kpi{background:var(--white);border-radius:12px;padding:1.1rem 1.25rem;position:relative;overflow:hidden;
+  box-shadow:0 2px 10px rgba(26,34,54,.07);border-top:4px solid var(--kc,var(--green));transition:transform .15s,box-shadow .2s;}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,34,54,.12)}
+.kpi::after{content:"";position:absolute;bottom:-18px;right:-18px;width:80px;height:80px;border-radius:50%;background:var(--kc,var(--green));opacity:.06}
+.kpi-icon{font-size:1.3rem;margin-bottom:.4rem}
+.kpi-val{font-size:2rem;font-weight:700;color:var(--kc,var(--green));line-height:1;letter-spacing:-.02em}
+.kpi-lbl{font-size:.68rem;font-weight:600;color:var(--muted);margin-top:.3rem;text-transform:uppercase;letter-spacing:.05em;line-height:1.4}
+.chart-card{background:var(--white);border-radius:12px;padding:1.1rem 1.35rem;
+  box-shadow:0 2px 10px rgba(26,34,54,.07);display:flex;flex-direction:column;gap:.7rem;}
+.chart-hdr{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
+.chart-title{font-size:.95rem;font-weight:700;color:var(--text)}
+.chart-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem}
+.chart-legend{display:flex;gap:1rem;align-items:center;flex-shrink:0}
+.leg{display:flex;align-items:center;gap:.35rem;font-size:.72rem;font-weight:500;color:var(--muted)}
+.leg-sq{width:10px;height:10px;border-radius:2px}
+.leg-line{width:18px;height:2.5px;border-radius:1px}
+.chart-wrap{position:relative;height:252px}
+.tables-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;}
+.table-card{background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);overflow:hidden;}
+.table-hdr{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);}
+.table-hdr-title{font-size:.9rem;font-weight:700;color:var(--text)}
+.table-hdr-icon{font-size:.9rem;margin-right:.35rem}
+.table-hdr-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem}
+.table-count{font-size:.72rem;color:var(--muted);background:var(--bg);border-radius:20px;padding:.2rem .65rem;white-space:nowrap}
+.data-table{width:100%;border-collapse:collapse}
+.data-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.7rem;font-weight:600;
+  letter-spacing:.06em;text-transform:uppercase;padding:.6rem 1rem;text-align:left;white-space:nowrap;}
+.data-table thead th:nth-child(n+3){text-align:right}
+.data-table tbody tr{border-bottom:1px solid var(--border);transition:background .12s}
+.data-table tbody tr:last-child{border-bottom:none}
+.data-table tbody tr:hover{background:#f7f9ff}
+.data-table tbody td{padding:.55rem 1rem;font-size:.8rem;color:var(--text)}
+.data-table tbody td:nth-child(n+3){text-align:right;font-variant-numeric:tabular-nums}
+.td-cli{font-weight:600}.td-num{color:var(--navy)}.td-late{color:var(--red);font-weight:600}
+.pct-cell{display:flex;align-items:center;justify-content:flex-end;gap:.55rem}
+.pct-bar-wrap{width:70px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;flex-shrink:0}
+.pct-bar{height:100%;border-radius:3px;transition:width .4s}
+.pct-val{font-weight:700;font-size:.8rem;min-width:42px;text-align:right}
+.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:.65rem;font-weight:700;flex-shrink:0;}
+.table-empty{text-align:center;padding:2rem 1rem;color:var(--muted);font-size:.82rem}
+.section-end{margin-bottom:1.5rem}
+.th-inner{display:flex;align-items:center;justify-content:space-between;gap:.3rem}
+.th-inner span{flex:1}
+.sort-btn{background:none;border:none;cursor:pointer;padding:0 3px;color:rgba(255,255,255,.4);font-size:.7rem;line-height:1;transition:color .15s;}
+.sort-btn:hover{color:rgba(255,255,255,.9)}
+.btn-capture{display:flex;align-items:center;gap:.3rem;background:transparent;border:1px solid var(--border);border-radius:6px;
+  color:var(--muted);padding:.28rem .65rem;font-size:.7rem;font-family:'Inter',sans-serif;
+  font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-capture:hover{border-color:var(--green);color:var(--green);background:rgba(126,211,33,.06)}
+.table-hdr-actions{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+.tab-bar{display:flex;gap:0;border-bottom:2px solid var(--border);background:var(--white);padding:0 1.5rem;margin-bottom:1.1rem;}
+.tab-btn{padding:.65rem 1.4rem;font-size:.82rem;font-weight:600;color:var(--muted);background:transparent;border:none;
+  border-bottom:3px solid transparent;margin-bottom:-2px;cursor:pointer;transition:all .15s;letter-spacing:.01em;display:flex;align-items:center;gap:.45rem;}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--navy);border-bottom-color:var(--green)}
+.tab-panel{display:none;flex-direction:column;gap:1.1rem}
+.tab-panel.active{display:flex}
+.err{background:#fff5f5;border-left:4px solid var(--red);border-radius:0 8px 8px 0;padding:.75rem 1rem;font-size:.8rem;color:#c53030;display:flex;align-items:flex-start;gap:.5rem}
+.err.hidden{display:none}
+.loading-overlay{position:fixed;inset:0;z-index:999;background:#f0f2f7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;transition:opacity .4s ease;}
+.loading-overlay.hidden{opacity:0;pointer-events:none;}
+.loading-logo{font-size:1.1rem;font-weight:800;color:#1a2236;letter-spacing:.02em;display:flex;align-items:center;gap:.5rem;}
+.loading-logo span{color:#7ed321;}
+.loading-box{background:#fff;border-radius:16px;padding:2.2rem 3rem;box-shadow:0 4px 24px rgba(26,34,54,.1);display:flex;flex-direction:column;align-items:center;gap:1.1rem;min-width:280px;text-align:center;}
+.loading-spinner{width:48px;height:48px;border-radius:50%;border:4px solid #dde3f0;border-top-color:#7ed321;animation:spin .75s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-title{font-size:.95rem;font-weight:700;color:#1a2236;}
+.loading-sub{font-size:.78rem;color:#6b7a99;line-height:1.5;}
+.loading-bar-track{width:100%;height:5px;background:#dde3f0;border-radius:3px;overflow:hidden;}
+.loading-bar-fill{height:100%;width:0%;background:#7ed321;border-radius:3px;animation:loadbar 20s ease-out forwards;}
+@keyframes loadbar{0%{width:0%}40%{width:60%}80%{width:85%}100%{width:95%}}
+.mini-modal{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.35);
+  backdrop-filter:blur(2px);align-items:center;justify-content:center;}
+.mini-modal.open{display:flex;}
+.mini-modal-box{background:#fff;border-radius:12px;padding:1.5rem 2rem;
+  box-shadow:0 8px 32px rgba(0,0,0,.2);text-align:center;min-width:200px;}
+.mini-spinner{width:32px;height:32px;border-radius:50%;border:3px solid #dde3f0;
+  border-top-color:#7ed321;animation:spin .75s linear infinite;margin:0 auto .75rem;}
+.mini-msg{font-size:.88rem;font-weight:600;color:#1a2236;}
+.chart-group-btns{display:flex;gap:2px;background:var(--bg);border-radius:7px;padding:2px;}
+.grp-btn{background:transparent;border:none;cursor:pointer;padding:.22rem .55rem;font-size:.72rem;font-weight:600;
+  font-family:"Inter",sans-serif;color:var(--muted);border-radius:5px;transition:all .15s;white-space:nowrap;}
+.grp-btn:hover{color:var(--text);background:rgba(0,0,0,.06);}
+.grp-btn.active{background:var(--white);color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,.12);}
+.modal-overlay{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:1px solid var(--border);background:var(--navy2);}
+.modal-head h3{font-size:.92rem;font-weight:700;color:#fff;}
+.modal-head span{font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.1rem;}
+.modal-close{background:none;border:none;color:rgba(255,255,255,.6);font-size:1.2rem;cursor:pointer;padding:.2rem .4rem;border-radius:4px;transition:color .15s;line-height:1;}
+.modal-close:hover{color:#fff;}
+.modal-body{overflow-y:auto;padding:0;}
+.modal-table{width:100%;border-collapse:collapse;}
+.modal-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.68rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.55rem .9rem;text-align:left;white-space:nowrap;position:sticky;top:0;}
+.modal-table thead th:nth-child(n+2){text-align:right;}
+.modal-table tbody tr{border-bottom:1px solid var(--border);}
+.modal-table tbody tr:last-child{border-bottom:none;}
+.modal-table tbody tr:hover{background:#f7f9ff;}
+.modal-table tbody td{padding:.5rem .9rem;font-size:.78rem;color:var(--text);}
+.modal-table tbody td:nth-child(n+2){text-align:right;font-variant-numeric:tabular-nums;}
+.td-ruta{font-weight:600;color:var(--navy);}
+.modal-foot{padding:.7rem 1.25rem;border-top:1px solid var(--border);font-size:.72rem;color:var(--muted);text-align:right;}
+.row-clickable{cursor:pointer;}
+.row-clickable .td-cli{color:var(--navy);text-decoration:underline dotted;}
+.filter-toggle-btn{display:none;width:100%;background:var(--navy2);color:var(--white);border:none;border-radius:8px;padding:.65rem 1rem;font-size:.82rem;font-weight:600;font-family:"Inter",sans-serif;cursor:pointer;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
+.filter-toggle-btn span{font-size:.75rem;opacity:.6}
+.sidebar.collapsed .fg,.sidebar.collapsed .btn-reset,.sidebar.collapsed .sb-title{display:none}
+.sidebar.collapsed{padding:.5rem .95rem}
+@media(max-width:768px){
+  nav{padding:10px 16px;gap:10px;}
+  nav>a:first-child{font-size:15px;}
+  .dropdown-toggle{padding:6px 10px;font-size:13px;}
+  .layout{flex-direction:column;}
+  .sidebar{width:100%;height:auto;position:relative;top:0;border-right:none;border-bottom:1px solid var(--border);padding:.75rem 1rem;gap:.75rem;overflow:visible;}
+  .filter-toggle-btn{display:flex;}
+  .sidebar-filters{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
+  .sidebar-filters .date-row{grid-column:1/-1;}
+  .sidebar-filters .btn-reset{grid-column:1/-1;}
+  .main{padding:.85rem .75rem;gap:.85rem;}
+  .kpi-grid{grid-template-columns:repeat(3,1fr);gap:.5rem;}
+  .kpi{padding:.75rem .85rem;}
+  .kpi-val{font-size:1.5rem;}
+  .kpi-lbl{font-size:.6rem;}
+  .kpi-icon{font-size:1.1rem;margin-bottom:.2rem;}
+  .chart-wrap{height:200px;}
+  .chart-hdr{flex-direction:column;gap:.3rem;}
+  .chart-legend{flex-wrap:wrap;gap:.5rem;}
+  .tables-grid{grid-template-columns:1fr;}
+  .tab-bar{padding:0 .75rem;}
+  .tab-btn{padding:.55rem .9rem;font-size:.78rem;}
+  .data-table thead th{padding:.5rem .6rem;font-size:.65rem;}
+  .data-table tbody td{padding:.45rem .6rem;font-size:.75rem;}
+  .table-hdr{padding:.65rem .85rem;flex-wrap:wrap;gap:.4rem;}
+  .table-hdr-actions{width:100%;justify-content:space-between;}
+  .pct-bar-wrap{width:45px;}
+  .btn-capture{font-size:.65rem;padding:.22rem .5rem;}
+}
+@media(max-width:480px){
+  .kpi-grid{grid-template-columns:1fr;}
+  .kpi{padding:.85rem 1rem;}
+  .kpi-val{font-size:1.8rem;}
+  nav>a:first-child{font-size:14px;}
+  .dropdown-toggle{font-size:12px;padding:5px 8px;}
+  .chart-wrap{height:180px;}
+  .main{padding:.65rem .6rem;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">🚛 TRAXIÓN</a>
+  <div class="dropdown" id="dropdownLogistica">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownLogistica')">
+      📦 Logística <span class="dropdown-arrow">▼</span>
+    </button>
+    <div class="dropdown-menu">
+      <a href="dashboard_NS.html" class="active">📈 Nivel de Servicio</a>
+      <a href="dashboard_kilometros.html">📊 Kilómetros</a>
+      <a href="dashboard_flota.html">🚗 Flota</a>
+      <a href="dashboard_kpis.html">🎯 KPIs</a>
+    </div>
+  </div>
+</nav>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-logo">🚛 <span>TRAXIÓN</span></div>
+  <div class="loading-box">
+    <div class="loading-spinner"></div>
+    <div class="loading-title">Cargando información...</div>
+    <div class="loading-sub" id="loadingMsg">Conectando con Google Sheets<br>Esto puede tardar unos segundos</div>
+    <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+  </div>
+</div>
+
+<div class="mini-modal" id="miniModal">
+  <div class="mini-modal-box">
+    <div class="mini-spinner"></div>
+    <div class="mini-msg" id="miniModalMsg">Cargando...</div>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <button class="filter-toggle-btn" onclick="toggleSidebar()">
+      🔽 Filtros <span id="filterToggleLabel">Mostrar</span>
+    </button>
+    <div class="sb-title">Filtros</div>
+    <div class="sidebar-filters">
+      <div class="fg"><label>Unidad de Negocio</label>
+        <select id="fUdn" onchange="onFilterChange('fUdn')"><option value="">Todas</option></select></div>
+      <div class="fg"><label>Mes</label>
+        <select id="fMes" onchange="onFilterChange('fMes')"><option value="">Todos</option></select></div>
+      <div class="fg"><label>Semana</label>
+        <select id="fSem" onchange="onFilterChange('fSem')"><option value="">Todas</option></select></div>
+      <div class="fg"><label>Cliente / Grupo</label>
+        <select id="fCli" onchange="onFilterChange('fCli')"><option value="">Todos</option></select></div>
+      <div class="fg"><label>Gerente</label>
+        <select id="fGer" onchange="onFilterChange('fGer')"><option value="">Todos</option></select></div>
+      <div class="fg"><label>Jefe</label>
+        <select id="fJef" onchange="onFilterChange('fJef')"><option value="">Todos</option></select></div>
+      <div class="fg"><label>Rango de fechas</label>
+        <div class="date-row">
+          <input type="date" id="fFi" onchange="onFilterChange('fFi')" title="Desde">
+          <input type="date" id="fFf" onchange="onFilterChange('fFf')" title="Hasta">
+        </div>
+      </div>
+      <button class="btn-reset" onclick="resetFilters()">↺ Limpiar filtros</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="err hidden" id="errBanner" style="margin-bottom:.8rem">⚠️ <span id="errMsg"></span></div>
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('inicios')">🚀 Inicios</button>
+      <button class="tab-btn" onclick="switchTab('llegadas')">🏁 Llegadas</button>
+    </div>
+
+    <div class="tab-panel active" id="panel-inicios">
+      <div class="kpi-grid">
+        <div class="kpi" style="--kc:#1a2236"><div class="kpi-icon">🚛</div><div class="kpi-val" id="kTotal">–</div><div class="kpi-lbl">Total Viajes</div></div>
+        <div class="kpi" style="--kc:#d97706"><div class="kpi-icon">⏰</div><div class="kpi-val" id="kTarde">–</div><div class="kpi-lbl">Inicios Tarde</div></div>
+        <div class="kpi" style="--kc:#7ed321"><div class="kpi-icon">📊</div><div class="kpi-val" id="kPct">–</div><div class="kpi-lbl">% Cumplimiento</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr">
+          <div><div class="chart-title" id="chartTitle">Inicios Tarde por Día</div><div class="chart-sub">Gris oscuro = viajes a tiempo · Naranja = inicios tarde · Línea = % cumplimiento (eje derecho)</div></div>
+          <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+            <div class="chart-group-btns" id="grp-ini">
+              <button class="grp-btn active" onclick="setGroup('ini','dia')">Día</button>
+              <button class="grp-btn" onclick="setGroup('ini','semana')">Sem</button>
+              <button class="grp-btn" onclick="setGroup('ini','mes')">Mes</button>
+              <button class="grp-btn" onclick="setGroup('ini','año')">Año</button>
+            </div>
+            <div class="chart-legend">
+              <div class="leg"><div class="leg-sq" style="background:#4a4a4a"></div>En tiempo</div>
+              <div class="leg"><div class="leg-sq" style="background:#e8a055"></div>Inicios tarde</div>
+              <div class="leg"><div class="leg-line" style="background:#2a2a2a"></div>% Cumplimiento</div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-ini"></canvas></div>
+      </div>
+      <div class="table-card" id="card-cli">
+        <div class="table-hdr">
+          <div><div class="table-hdr-title"><span class="table-hdr-icon">🏢</span><span id="tCliTitle">Resumen por Cliente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
+          <div class="table-hdr-actions"><span class="table-count" id="tCliCount">0 clientes</span><button class="btn-capture" onclick="captureTable('card-cli','Inicios_Clientes')">📷 Capturar</button></div>
+        </div>
+        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+          <th style="width:44px">#</th><th>Cliente / Grupo</th><th>Total Viajes</th><th>Inicios Tarde</th>
+          <th style="cursor:pointer" onclick="sortTable('cli')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-cli" style="pointer-events:none">↓</button></div></th>
+        </tr></thead><tbody id="tCliBody"></tbody></table></div>
+      </div>
+      <div class="tables-grid section-end">
+        <div class="table-card" id="card-ger">
+          <div class="table-hdr">
+            <div><div class="table-hdr-title"><span class="table-hdr-icon">👔</span><span id="tGerTitle">Resumen por Gerente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
+            <div class="table-hdr-actions"><span class="table-count" id="tGerCount">0 gerentes</span><button class="btn-capture" onclick="captureTable('card-ger','Inicios_Gerentes')">📷 Capturar</button></div>
+          </div>
+          <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+            <th style="width:44px">#</th><th>Gerente</th><th>Total Viajes</th><th>Inicios Tarde</th>
+            <th style="cursor:pointer" onclick="sortTable('ger')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-ger" style="pointer-events:none">↓</button></div></th>
+          </tr></thead><tbody id="tGerBody"></tbody></table></div>
+        </div>
+        <div class="table-card" id="card-jef">
+          <div class="table-hdr">
+            <div><div class="table-hdr-title"><span class="table-hdr-icon">🗂️</span><span id="tJefTitle">Resumen por Jefe</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
+            <div class="table-hdr-actions"><span class="table-count" id="tJefCount">0 jefes</span><button class="btn-capture" onclick="captureTable('card-jef','Inicios_Jefes')">📷 Capturar</button></div>
+          </div>
+          <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+            <th style="width:44px">#</th><th>Jefe</th><th>Total Viajes</th><th>Inicios Tarde</th>
+            <th style="cursor:pointer" onclick="sortTable('jef')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-jef" style="pointer-events:none">↓</button></div></th>
+          </tr></thead><tbody id="tJefBody"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="panel-llegadas">
+      <div class="kpi-grid">
+        <div class="kpi" style="--kc:#1a2236"><div class="kpi-icon">🚛</div><div class="kpi-val" id="lkTotal">–</div><div class="kpi-lbl">Total Viajes</div></div>
+        <div class="kpi" style="--kc:#e53e3e"><div class="kpi-icon">🏁</div><div class="kpi-val" id="lkTarde">–</div><div class="kpi-lbl">Llegadas Tarde</div></div>
+        <div class="kpi" style="--kc:#7ed321"><div class="kpi-icon">📊</div><div class="kpi-val" id="lkPct">–</div><div class="kpi-lbl">% Cumplimiento</div></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr">
+          <div><div class="chart-title" id="lChartTitle">Llegadas Tarde por Día</div><div class="chart-sub">Gris oscuro = viajes a tiempo · Naranja = llegadas tarde · Línea = % cumplimiento (eje derecho)</div></div>
+          <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+            <div class="chart-group-btns" id="grp-lle">
+              <button class="grp-btn active" onclick="setGroup('lle','dia')">Día</button>
+              <button class="grp-btn" onclick="setGroup('lle','semana')">Sem</button>
+              <button class="grp-btn" onclick="setGroup('lle','mes')">Mes</button>
+              <button class="grp-btn" onclick="setGroup('lle','año')">Año</button>
+            </div>
+            <div class="chart-legend">
+              <div class="leg"><div class="leg-sq" style="background:#4a4a4a"></div>En tiempo</div>
+              <div class="leg"><div class="leg-sq" style="background:#e8a055"></div>Llegadas tarde</div>
+              <div class="leg"><div class="leg-line" style="background:#2a2a2a"></div>% Cumplimiento</div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-wrap"><canvas id="chart-lle"></canvas></div>
+      </div>
+      <div class="table-card" id="lcard-cli">
+        <div class="table-hdr">
+          <div><div class="table-hdr-title"><span class="table-hdr-icon">🏢</span><span id="ltCliTitle">Resumen por Cliente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
+          <div class="table-hdr-actions"><span class="table-count" id="ltCliCount">0 clientes</span><button class="btn-capture" onclick="captureTable('lcard-cli','Llegadas_Clientes')">📷 Capturar</button></div>
+        </div>
+        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+          <th style="width:44px">#</th><th>Cliente / Grupo</th><th>Total Viajes</th><th>Llegadas Tarde</th>
+          <th style="cursor:pointer" onclick="sortTable('lcli')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-lcli" style="pointer-events:none">↓</button></div></th>
+        </tr></thead><tbody id="ltCliBody"></tbody></table></div>
+      </div>
+      <div class="tables-grid section-end">
+        <div class="table-card" id="lcard-ger">
+          <div class="table-hdr">
+            <div><div class="table-hdr-title"><span class="table-hdr-icon">👔</span><span id="ltGerTitle">Resumen por Gerente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
+            <div class="table-hdr-actions"><span class="table-count" id="ltGerCount">0 gerentes</span><button class="btn-capture" onclick="captureTable('lcard-ger','Llegadas_Gerentes')">📷 Capturar</button></div>
+          </div>
+          <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+            <th style="width:44px">#</th><th>Gerente</th><th>Total Viajes</th><th>Llegadas Tarde</th>
+            <th style="cursor:pointer" onclick="sortTable('lger')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-lger" style="pointer-events:none">↓</button></div></th>
+          </tr></thead><tbody id="ltGerBody"></tbody></table></div>
+        </div>
+        <div class="table-card" id="lcard-jef">
+          <div class="table-hdr">
+            <div><div class="table-hdr-title"><span class="table-hdr-icon">🗂️</span><span id="ltJefTitle">Resumen por Jefe</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
+            <div class="table-hdr-actions"><span class="table-count" id="ltJefCount">0 jefes</span><button class="btn-capture" onclick="captureTable('lcard-jef','Llegadas_Jefes')">📷 Capturar</button></div>
+          </div>
+          <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+            <th style="width:44px">#</th><th>Jefe</th><th>Total Viajes</th><th>Llegadas Tarde</th>
+            <th style="cursor:pointer" onclick="sortTable('ljef')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-ljef" style="pointer-events:none">↓</button></div></th>
+          </tr></thead><tbody id="ltJefBody"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" id="drillModal" onclick="closeDrill(event)">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div><h3 id="drillTitle">Detalle por Ruta</h3><span id="drillSub"></span></div>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <button id="drillSortBtn" onclick="toggleDrillSort()"
+          style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
+                 border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
+                 font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">↑ Menor → Mayor</button>
+        <button class="modal-close" onclick="document.getElementById('drillModal').classList.remove('open')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <table class="modal-table">
+        <thead><tr><th>Ruta / Descripción</th><th>Total Viajes</th><th>Tarde</th><th>% Cumplimiento</th></tr></thead>
+        <tbody id="drillBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot" id="drillFoot"></div>
+  </div>
+</div>
+
+<script>
+const SHEET_ID = '1l3QYg7N050BScrtNhKkHQ-hHNDgaK9Prw95Dzb2-DRE';
+const GID      = '1297993336';
+const CHUNK    = 35000;
+
+const C = {
+  fecha:'start_date', semana:'Semana', udn:'business_unit',
+  cliente:'group', gerente:'Gerente', jefe:'Jefe',
+  retardo:'Retardos', llegada:'Llegadas', viajes:'Cantidad de viajes',
+};
+
+let DATA         = [];
+let loadedMonths = new Set();
+let myChartIni   = null;
+let myChartLle   = null;
+
+function showMini(msg){ document.getElementById('miniModalMsg').textContent=msg||'Cargando...'; document.getElementById('miniModal').classList.add('open'); }
+function hideMini(){ document.getElementById('miniModal').classList.remove('open'); }
+
+function norm(s){
+  if(!s) return '';
+  s=String(s).trim();
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  // DD/MM/YYYY o D/M/YYYY
+  const p=s.split('/');
+  if(p.length===3){
+    if(p[2].length===4) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+    if(p[0].length===4) return `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
+  }
+  return s;
+}
+
+function getFecha(r){
+  const y=r['Año']?String(r['Año']).trim():'';
+  const m=r['Mes']?String(r['Mes']).trim():'';
+  const d=r['Dia']?String(r['Dia']).trim():'';
+  if(y&&m&&d&&!isNaN(y)&&!isNaN(m)&&!isNaN(d))
+    return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  return norm(r[C.fecha]);
+}
+
+function normMonth(f){ return f?f.slice(0,7):''; }
+const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+function mesLabel(ym){
+  if(!ym) return '';
+  const [y,m]=ym.split('-');
+  return (MESES[parseInt(m,10)-1]||m)+' '+y;
+}
+function getCurrentMonth(){
+  const n=new Date();
+  return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
+}
+
+function parseCSVLine(line){
+  const cols=[];let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}
+    else cur+=ch;
+  }
+  cols.push(cur.trim());
+  return cols;
+}
+
+function parseCSV(text){
+  const lines=text.trim().split(/\r?\n/);
+  if(lines.length<2) return [];
+  const hdrs=parseCSVLine(lines[0]);
+  if(!hdrs.includes(C.udn)){
+    const found=hdrs.find(h=>h==='business_unit'||h.toLowerCase().includes('business')||
+      h.toLowerCase().includes('unidad')||h.toLowerCase().includes('udn')||h.toLowerCase().includes('negocio'));
+    if(found) C.udn=found;
+  }
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim()) continue;
+    const cols=parseCSVLine(lines[i]);
+    const obj={};
+    hdrs.forEach((h,idx)=>{obj[h]=cols[idx]!==undefined?cols[idx]:'';});
+    if(hdrs.some(h=>obj[h]&&obj[h].trim()!=='')) rows.push(obj);
+  }
+  return rows;
+}
+
+function csvUrl(offset){
+  const tq=encodeURIComponent(`SELECT * LIMIT ${CHUNK} OFFSET ${offset}`);
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}&tq=${tq}`;
+}
+
+// ── CARGA PRINCIPAL ──────────────────────────────────────────────────────────
+// Ya no hace SELECT L previo. Carga directo, muestra rápido, sigue en background.
+window.addEventListener('DOMContentLoaded', loadSheet);
+
+async function loadSheet(){
+  const overlay=document.getElementById('loadingOverlay');
+  const loadMsg=document.getElementById('loadingMsg');
+  const banner =document.getElementById('errBanner');
+  const errMsg =document.getElementById('errMsg');
+  try{
+    loadMsg.innerHTML='Cargando datos...<br>Por favor espera';
+
+    const res=await fetch(csvUrl(0));
+    if(!res.ok) throw new Error('HTTP '+res.status+'. Verifica que el Sheet sea público (Compartir → Cualquier persona con el enlace).');
+
+    const firstRows=parseCSV(await res.text());
+    if(!firstRows.length) throw new Error('Sin filas válidas. Abre F12 → Console para ver el detalle.');
+
+    DATA=[...firstRows];
+    firstRows.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
+
+    if(banner) banner.classList.add('hidden');
+    if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',450); }
+
+    fillSelects();
+
+    // Pre-seleccionar mes actual si existe
+    const mesActual=getCurrentMonth();
+    const selMes=document.getElementById('fMes');
+    if(loadedMonths.has(mesActual)){ selMes.value=mesActual; cascadeSelects(); }
+
+    draw();
+
+    // Cargar el resto en background si el primer chunk llegó lleno
+    if(firstRows.length>=CHUNK){
+      let offset=CHUNK;
+      while(true){
+        const r2=await fetch(csvUrl(offset));
+        if(!r2.ok) break;
+        const more=parseCSV(await r2.text());
+        if(!more.length) break;
+        more.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
+        DATA.push(...more);
+        updateMesSelect();
+        if(more.length<CHUNK) break;
+        offset+=CHUNK;
+      }
+      fillSelects();
+      draw();
+    }
+
+  }catch(e){
+    console.error(e);
+    if(overlay) overlay.style.display='none';
+    if(banner&&errMsg){ errMsg.textContent=e.message; banner.classList.remove('hidden'); }
+  }
+}
+
+function updateMesSelect(){
+  const selM=document.getElementById('fMes');
+  const curVal=selM.value;
+  const meses=[...loadedMonths].sort((a,b)=>b.localeCompare(a));
+  selM.innerHTML='<option value="">Todos</option>';
+  meses.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=mesLabel(v); selM.appendChild(o); });
+  if(curVal&&loadedMonths.has(curVal)) selM.value=curVal;
+}
+
+function fillSelects(){
+  updateMesSelect();
+  fill('fSem',uniq(DATA.map(r=>r[C.semana])));
+  fill('fUdn',uniq(DATA.map(r=>r[C.udn])));
+  cascadeSelects();
+}
+
+function cascadeSelects(){
+  const f=getF();
+  const base=DATA.filter(r=>{
+    if(f.udn&&r[C.udn]!==f.udn) return false;
+    if(f.mes&&normMonth(getFecha(r))!==f.mes) return false;
+    if(f.sem&&r[C.semana]!==f.sem) return false;
+    return true;
+  });
+  fill('fCli',uniq(base.map(r=>r[C.cliente])));
+  const bG=f.cli?base.filter(r=>r[C.cliente]===f.cli):base;
+  fill('fGer',uniq(bG.map(r=>r[C.gerente])));
+  const bJ=f.ger?bG.filter(r=>r[C.gerente]===f.ger):bG;
+  fill('fJef',uniq(bJ.map(r=>r[C.jefe])));
+}
+
+function onFilterChange(changedId){
+  const f=getF();
+  if(['fUdn','fMes','fSem'].includes(changedId)){
+    cascadeSelects();
+  }else if(changedId==='fCli'){
+    const base=DATA.filter(r=>{
+      if(f.udn&&r[C.udn]!==f.udn) return false;
+      if(f.mes&&normMonth(getFecha(r))!==f.mes) return false;
+      if(f.sem&&r[C.semana]!==f.sem) return false;
+      if(f.cli&&r[C.cliente]!==f.cli) return false;
+      return true;
+    });
+    fill('fGer',uniq(base.map(r=>r[C.gerente])));
+    fill('fJef',uniq(base.map(r=>r[C.jefe])));
+  }else if(changedId==='fGer'){
+    const base=DATA.filter(r=>{
+      if(f.udn&&r[C.udn]!==f.udn) return false;
+      if(f.mes&&normMonth(getFecha(r))!==f.mes) return false;
+      if(f.sem&&r[C.semana]!==f.sem) return false;
+      if(f.cli&&r[C.cliente]!==f.cli) return false;
+      if(f.ger&&r[C.gerente]!==f.ger) return false;
+      return true;
+    });
+    fill('fJef',uniq(base.map(r=>r[C.jefe])));
+  }
+  draw();
+}
+
+const uniq=arr=>[...new Set(arr.filter(v=>v&&v.trim()))].sort();
+const N=n=>n.toLocaleString('es-MX');
+function pctColor(p){ return p>=90?'#16a34a':'#e53e3e'; }
+function pctColorLlegadas(p){ return p>=98?'#16a34a':'#e53e3e'; }
+function countLate(v){ const n=parseInt(v)||0; return n<0?1:n; }
+
+function fill(id,vals){
+  const sel=document.getElementById(id); if(!sel) return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Todos</option>';
+  vals.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
+  if(vals.includes(cur)) sel.value=cur;
+}
+
+function getF(){
+  return{
+    mes:document.getElementById('fMes').value,
+    sem:document.getElementById('fSem').value,
+    udn:document.getElementById('fUdn').value,
+    cli:document.getElementById('fCli').value,
+    ger:document.getElementById('fGer').value,
+    jef:document.getElementById('fJef').value,
+    fi:document.getElementById('fFi').value,
+    ff:document.getElementById('fFf').value,
+  };
+}
+
+function resetFilters(){
+  ['fMes','fSem','fUdn','fCli','fGer','fJef'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fFi').value='';
+  document.getElementById('fFf').value='';
+  fillSelects();
+  draw();
+}
+
+function filterRows(){
+  const f=getF();
+  return DATA.filter(r=>{
+    if(f.mes&&normMonth(getFecha(r))!==f.mes) return false;
+    if(f.sem&&r[C.semana]!==f.sem) return false;
+    if(f.udn&&r[C.udn]!==f.udn) return false;
+    if(f.cli&&r[C.cliente]!==f.cli) return false;
+    if(f.ger&&r[C.gerente]!==f.ger) return false;
+    if(f.jef&&r[C.jefe]!==f.jef) return false;
+    const d=getFecha(r);
+    if(f.fi&&d<f.fi) return false;
+    if(f.ff&&d>f.ff) return false;
+    return true;
+  });
+}
+
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===(tab==='inicios'?0:1)));
+  document.getElementById('panel-inicios').classList.toggle('active',tab==='inicios');
+  document.getElementById('panel-llegadas').classList.toggle('active',tab==='llegadas');
+}
+
+const sortState={cli:{col:3,dir:-1},ger:{col:3,dir:-1},jef:{col:3,dir:-1},lcli:{col:3,dir:-1},lger:{col:3,dir:-1},ljef:{col:3,dir:-1}};
+const tableData={cli:[],ger:[],jef:[],lcli:[],lger:[],ljef:[]};
+const TABLE_BODY={cli:'tCliBody',ger:'tGerBody',jef:'tJefBody',lcli:'ltCliBody',lger:'ltGerBody',ljef:'ltJefBody'};
+const TABLE_CNT={cli:'tCliCount',ger:'tGerCount',jef:'tJefCount',lcli:'ltCliCount',lger:'ltGerCount',ljef:'ltJefCount'};
+const TABLE_WORD={cli:'cliente',ger:'gerente',jef:'jefe',lcli:'cliente',lger:'gerente',ljef:'jefe'};
+
+function sortTable(tbl){
+  sortState[tbl].dir*=-1;
+  renderTable(tbl);
+  const btn=document.getElementById('sort-'+tbl);
+  if(btn) btn.textContent=sortState[tbl].dir===-1?'↓':'↑';
+}
+
+function renderTable(tbl){
+  const isL=tbl.startsWith('l');
+  const colorFn=isL?pctColorLlegadas:pctColor;
+  const rows=[...tableData[tbl]].sort((a,b)=>(a.pct-b.pct)*sortState[tbl].dir);
+  const bodyId=TABLE_BODY[tbl],countId=TABLE_CNT[tbl],word=TABLE_WORD[tbl];
+  const badges=['#f59e0b','#9ca3af','#b45309'];
+  document.getElementById(countId).textContent=rows.length+(rows.length===1?' '+word:' '+word+'s');
+  if(!rows.length){ document.getElementById(bodyId).innerHTML='<tr><td colspan="5" class="table-empty">Sin resultados</td></tr>'; return; }
+  document.getElementById(bodyId).innerHTML=rows.map((row,i)=>{
+    const pctFmt=row.pct.toFixed(1)+'%';
+    const color=colorFn(row.pct);
+    const barW=Math.min(100,row.pct).toFixed(1);
+    const bg=i<3?badges[i]:'#e5e7eb';
+    const fg=i<3?'#fff':'#6b7a99';
+    const isCliTable=(tbl==='cli'||tbl==='lcli');
+    const clickAttr=isCliTable?`onclick="openDrill('${row.k.replace(/'/g,"\\'")}','${tbl}')" class="row-clickable"`:'';
+    return `<tr ${clickAttr}>
+      <td style="width:44px"><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td>
+      <td class="td-cli" title="${row.k}">${row.k}${isCliTable?' <span style="font-size:.6rem;color:var(--muted)">▶</span>':''}</td>
+      <td class="td-num">${N(row.t)}</td>
+      <td class="td-late">${N(row.l)}</td>
+      <td><div class="pct-cell">
+        <div class="pct-bar-wrap"><div class="pct-bar" style="width:${barW}%;background:${color}"></div></div>
+        <span class="pct-val" style="color:${color}">${pctFmt}</span>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function buildTable(rows,field,tbl,lateField){
+  const byKey={};
+  rows.forEach(r=>{
+    const k=(r[field]||'').trim()||'(Sin asignar)';
+    if(!byKey[k]) byKey[k]={t:0,l:0};
+    byKey[k].t+=parseInt(r[C.viajes])||1;
+    byKey[k].l+=countLate(r[lateField]);
+  });
+  tableData[tbl]=Object.entries(byKey).map(([k,d])=>({k,t:d.t,l:d.l,pct:d.t>0?(d.t-d.l)/d.t*100:0}));
+  renderTable(tbl);
+}
+
+const chartGroup={ini:'dia',lle:'dia'};
+
+function setGroup(chart,group){
+  chartGroup[chart]=group;
+  document.querySelectorAll(`#grp-${chart} .grp-btn`).forEach(b=>{
+    b.classList.toggle('active',b.textContent.toLowerCase().startsWith(
+      group==='dia'?'d':group==='semana'?'s':group==='mes'?'m':'a'));
+  });
+  const rows=filterRows();
+  if(chart==='ini') myChartIni=buildChart('chart-ini',rows,C.retardo,'Inicios tarde',myChartIni,'ini');
+  else              myChartLle=buildChart('chart-lle',rows,C.llegada,'Llegadas tarde',myChartLle,'lle');
+}
+
+function getGroupKey(r,group){
+  const f=getFecha(r); if(!f) return '?';
+  if(group==='dia') return f;
+  if(group==='semana') return r[C.semana]||f.slice(0,7);
+  if(group==='mes') return f.slice(0,7);
+  if(group==='año') return f.slice(0,4);
+  return f;
+}
+
+function formatGroupLabel(key,group){
+  if(group==='dia'){
+    const dt=new Date(key+'T12:00:00');
+    if(isNaN(dt.getTime())) return key;
+    return dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short'});
+  }
+  if(group==='mes'){
+    const[y,m]=key.split('-');
+    return (MESES[parseInt(m,10)-1]||m)+' '+y;
+  }
+  return key;
+}
+
+function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
+  const group=chartGroup[chartId||'ini'];
+  const by={};
+  rows.forEach(r=>{
+    const key=getGroupKey(r,group);
+    if(!key||key==='?') return;
+    if(!by[key]) by[key]={t:0,l:0};
+    by[key].t+=parseInt(r[C.viajes])||1;
+    by[key].l+=countLate(r[lateField]);
+  });
+  const keys=Object.keys(by).sort((a,b)=>{
+    if(group==='semana') return (parseInt(a)||0)-(parseInt(b)||0);
+    return a.localeCompare(b);
+  });
+  const tots=keys.map(k=>by[k].t);
+  const lates=keys.map(k=>by[k].l);
+  const pcts=keys.map(k=>by[k].t>0?+((by[k].t-by[k].l)/by[k].t*100).toFixed(1):0);
+  const labels=keys.map(k=>formatGroupLabel(k,group));
+  if(existing) existing.destroy();
+  const ctx=document.getElementById(canvasId).getContext('2d');
+  return new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets:[
+      {label:'En tiempo',data:tots.map((t,i)=>t-lates[i]),backgroundColor:'#4a4a4a',stack:'s',order:2,
+       borderRadius:{topLeft:0,topRight:0,bottomLeft:4,bottomRight:4},barPercentage:.6},
+      {label:lateLbl,data:lates,backgroundColor:'#e8a055',stack:'s',order:2,
+       borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},barPercentage:.6},
+      {label:'% Cumplimiento',data:pcts,type:'line',yAxisID:'yP',order:1,
+       borderColor:'#2a2a2a',backgroundColor:'rgba(42,42,42,.07)',
+       borderWidth:2.5,pointBackgroundColor:'#2a2a2a',pointBorderColor:'#fff',
+       pointBorderWidth:2,pointRadius:5,pointHoverRadius:7,tension:.3,fill:true},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#1a2236',borderColor:'#7ed321',borderWidth:1,
+          titleColor:'#fff',bodyColor:'rgba(255,255,255,.65)',padding:12,
+          callbacks:{label(c){
+            return c.dataset.label==='% Cumplimiento'
+              ?'  % Cumpl.: '+c.raw+'%'
+              :'  '+c.dataset.label+': '+c.raw.toLocaleString('es-MX');
+          }}
+        }
+      },
+      scales:{
+        x:{stacked:true,ticks:{color:'#6b7a99',font:{size:10,family:'Inter'}},grid:{color:'rgba(0,0,0,.05)'}},
+        y:{stacked:true,ticks:{color:'#6b7a99',font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},
+        yP:{position:'right',ticks:{color:'#2a2a2a',font:{size:10},callback:v=>v+'%'},grid:{display:false}},
+      }
+    },
+    plugins:[{id:'lbl',afterDatasetsDraw(chart){
+      const c2=chart.ctx;
+      const li=chart.data.datasets.findIndex(d=>d.label==='% Cumplimiento');
+      chart.getDatasetMeta(li).data.forEach((pt,i)=>{
+        const v=chart.data.datasets[li].data[i]; if(v==null) return;
+        c2.save();c2.fillStyle='#2a2a2a';c2.font='bold 10px Inter';
+        c2.textAlign='center';c2.fillText(v+'%',pt.x,pt.y-10);c2.restore();
+      });
+      [lateLbl,'En tiempo'].forEach((lbl,idx)=>{
+        const bi=chart.data.datasets.findIndex(d=>d.label===lbl);
+        chart.getDatasetMeta(bi).data.forEach((bar,i)=>{
+          const v=chart.data.datasets[bi].data[i]; if(!v||bar.height<14) return;
+          c2.save();c2.fillStyle=idx===0?'#1a1a1a':'#ffffff';c2.font='bold 10px Inter';
+          c2.textAlign='center';c2.textBaseline='middle';
+          c2.fillText(v.toLocaleString('es-MX'),bar.x,bar.y+bar.height/2);c2.restore();
+        });
+      });
+    }}]
+  });
+}
+
+function draw(){
+  if(!DATA.length) return;
+  const rows=filterRows(),f=getF();
+  const parts=[];
+  if(f.mes) parts.push(mesLabel(f.mes));
+  if(f.sem) parts.push('Sem '+f.sem);
+  if(f.udn) parts.push(f.udn);
+  if(f.cli) parts.push(f.cli);
+  if(f.ger) parts.push('Ger: '+f.ger);
+  if(f.jef) parts.push('Jefe: '+f.jef);
+  const sfx=parts.length?' – '+parts.join(' · '):'';
+
+  const totT=rows.reduce((s,r)=>s+(parseInt(r[C.viajes])||1),0);
+  const totI=rows.reduce((s,r)=>s+countLate(r[C.retardo]),0);
+  const totLL=rows.reduce((s,r)=>s+countLate(r[C.llegada]),0);
+
+  document.getElementById('kTotal').textContent=N(totT);
+  document.getElementById('kTarde').textContent=N(totI);
+  document.getElementById('lkTotal').textContent=N(totT);
+  document.getElementById('lkTarde').textContent=N(totLL);
+
+  const pI=totT>0?(totT-totI)/totT*100:0;
+  const pL=totT>0?(totT-totLL)/totT*100:0;
+  const kp=document.getElementById('kPct');
+  kp.textContent=totT>0?pI.toFixed(1)+'%':'–'; kp.style.color=pctColor(pI);
+  const lp=document.getElementById('lkPct');
+  lp.textContent=totT>0?pL.toFixed(1)+'%':'–'; lp.style.color=pctColorLlegadas(pL);
+
+  ['chartTitle','tCliTitle','tGerTitle','tJefTitle'].forEach((id,i)=>
+    document.getElementById(id).textContent=['Inicios Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe'][i]+sfx);
+  ['lChartTitle','ltCliTitle','ltGerTitle','ltJefTitle'].forEach((id,i)=>
+    document.getElementById(id).textContent=['Llegadas Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe'][i]+sfx);
+
+  myChartIni=buildChart('chart-ini',rows,C.retardo,'Inicios tarde',myChartIni,'ini');
+  myChartLle=buildChart('chart-lle',rows,C.llegada,'Llegadas tarde',myChartLle,'lle');
+  buildTable(rows,C.cliente,'cli',C.retardo);
+  buildTable(rows,C.gerente,'ger',C.retardo);
+  buildTable(rows,C.jefe,'jef',C.retardo);
+  buildTable(rows,C.cliente,'lcli',C.llegada);
+  buildTable(rows,C.gerente,'lger',C.llegada);
+  buildTable(rows,C.jefe,'ljef',C.llegada);
+}
+
+async function captureTable(cardId,label){
+  const card=document.getElementById(cardId); if(!card) return;
+  try{
+    const canvas=await html2canvas(card,{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false});
+    const link=document.createElement('a');
+    link.download=`Traxion_${label}_${new Date().toISOString().slice(0,10)}.png`;
+    link.href=canvas.toDataURL('image/png'); link.click();
+  }catch(err){ alert('Error al capturar: '+err.message); }
+}
+
+let drillSortDir=1;
+let lastDrillArgs=null;
+
+function openDrill(clienteK,tbl){
+  drillSortDir=1;
+  lastDrillArgs=[clienteK,tbl];
+  renderDrill(clienteK,tbl);
+  document.getElementById('drillModal').classList.add('open');
+}
+function toggleDrillSort(){
+  drillSortDir*=-1;
+  document.getElementById('drillSortBtn').textContent=drillSortDir===1?'↑ Menor → Mayor':'↓ Mayor → Menor';
+  if(lastDrillArgs) renderDrill(...lastDrillArgs);
+}
+function renderDrill(clienteK,tbl){
+  const isLlegadas=tbl==='lcli';
+  const lateField=isLlegadas?C.llegada:C.retardo;
+  const lateLbl=isLlegadas?'Llegadas Tarde':'Inicios Tarde';
+  const colorFn=isLlegadas?pctColorLlegadas:pctColor;
+  const rows=filterRows().filter(r=>(r[C.cliente]||'').trim()===clienteK);
+  const byRuta={};
+  rows.forEach(r=>{
+    const ruta=(r['des']||'Sin ruta').trim()||'Sin ruta';
+    if(!byRuta[ruta]) byRuta[ruta]={t:0,l:0};
+    byRuta[ruta].t+=parseInt(r[C.viajes])||1;
+    byRuta[ruta].l+=countLate(r[lateField]);
+  });
+  const sorted=Object.entries(byRuta)
+    .map(([k,d])=>({k,t:d.t,l:d.l,pct:d.t>0?(d.t-d.l)/d.t*100:0}))
+    .sort((a,b)=>(a.pct-b.pct)*drillSortDir);
+  const totT=sorted.reduce((s,r)=>s+r.t,0);
+  const totL=sorted.reduce((s,r)=>s+r.l,0);
+  const pctG=totT>0?(totT-totL)/totT*100:0;
+  document.getElementById('drillTitle').textContent=clienteK;
+  document.getElementById('drillSub').textContent=`${lateLbl} · ${sorted.length} rutas · ${N(totT)} viajes · ${pctG.toFixed(1)}% cumplimiento`;
+  document.getElementById('drillSortBtn').textContent=drillSortDir===1?'↑ Menor → Mayor':'↓ Mayor → Menor';
+  document.getElementById('drillBody').innerHTML=sorted.map((r,i)=>{
+    const color=colorFn(r.pct);
+    const barW=Math.min(100,r.pct).toFixed(1);
+    const bg=i%2===0?'#ffffff':'#f7f9ff';
+    return `<tr style="background:${bg}">
+      <td class="td-ruta">${r.k}</td>
+      <td>${N(r.t)}</td>
+      <td style="color:${r.l>0?'#d97706':'#16a34a'};font-weight:600">${N(r.l)}</td>
+      <td><div class="pct-cell">
+        <div class="pct-bar-wrap"><div class="pct-bar" style="width:${barW}%;background:${color}"></div></div>
+        <span class="pct-val" style="color:${color}">${r.pct.toFixed(1)}%</span>
+      </div></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('drillFoot').textContent=`Total: ${N(totT)} viajes · ${N(totL)} ${lateLbl.toLowerCase()} · ${pctG.toFixed(1)}% cumplimiento`;
+}
+function closeDrill(e){ if(e.target===document.getElementById('drillModal')) document.getElementById('drillModal').classList.remove('open'); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.getElementById('drillModal').classList.remove('open'); });
+
+function toggleDropdown(id){
+  const d=document.getElementById(id);
+  document.querySelectorAll('.dropdown').forEach(x=>{if(x.id!==id) x.classList.remove('open');});
+  d.classList.toggle('open');
+}
+document.addEventListener('click',function(e){
+  if(!e.target.closest('.dropdown')) document.querySelectorAll('.dropdown').forEach(d=>d.classList.remove('open'));
+});
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  const isCollapsed=sb.classList.toggle('collapsed');
+  const btn=sb.querySelector('.filter-toggle-btn');
+  btn.innerHTML=(isCollapsed?'▶':'🔽')+' Filtros <span>'+(isCollapsed?'Mostrar':'Ocultar')+'</span>';
+}
+if(window.innerWidth<=768){
+  document.addEventListener('DOMContentLoaded',()=>{
+    const sb=document.getElementById('sidebar');
+    if(sb) sb.classList.add('collapsed');
+  });
+}
+</script>
+</body>
+</html>
