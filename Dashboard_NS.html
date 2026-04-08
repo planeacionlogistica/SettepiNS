@@ -111,8 +111,15 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .grp-btn{background:transparent;border:none;cursor:pointer;padding:.22rem .55rem;font-size:.72rem;font-weight:600;font-family:"Inter",sans-serif;color:var(--muted);border-radius:5px;transition:all .15s;white-space:nowrap;}
 .grp-btn:hover{color:var(--text);background:rgba(0,0,0,.06);}
 .grp-btn.active{background:var(--white);color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,.12);}
-.modal-overlay{display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:1rem;}
+
+/* ── MODALES ─────────────────────────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:1rem;}
 .modal-overlay.open{display:flex;}
+/* Nivel 1 – rutas */
+#drillModal{z-index:810;}
+/* Nivel 2 – detalle viajes: ENCIMA del modal de rutas */
+#drillDetailModal{z-index:820;}
+
 .modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
 .modal-head{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:1px solid var(--border);background:var(--navy2);}
 .modal-head h3{font-size:.92rem;font-weight:700;color:#fff;}
@@ -137,6 +144,10 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .row-ruta-clickable .td-ruta{color:var(--navy);text-decoration:underline dotted;}
 .badge-tarde{display:inline-flex;align-items:center;gap:.3rem;background:#fff5f5;color:#c53030;border-radius:20px;padding:.18rem .6rem;font-size:.72rem;font-weight:700;}
 .badge-tiempo{display:inline-flex;align-items:center;gap:.3rem;background:#f0fff4;color:#276749;border-radius:20px;padding:.18rem .6rem;font-size:.72rem;font-weight:700;}
+/* minutos con color */
+.min-pos{color:#c53030;font-weight:700;}   /* positivo = tarde = rojo */
+.min-neg{color:#16a34a;font-weight:700;}   /* negativo = adelantado = verde */
+.min-cero{color:#6b7a99;font-weight:600;}
 .filter-toggle-btn{display:none;width:100%;background:var(--navy2);color:var(--white);border:none;border-radius:8px;padding:.65rem 1rem;font-size:.82rem;font-weight:600;font-family:"Inter",sans-serif;cursor:pointer;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
 .filter-toggle-btn span{font-size:.75rem;opacity:.6}
 .sidebar.collapsed .fg,.sidebar.collapsed .btn-reset,.sidebar.collapsed .sb-title{display:none}
@@ -177,7 +188,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   nav>a:first-child{font-size:14px;}
   .dropdown-toggle{font-size:12px;padding:5px 8px;}
   .chart-wrap{height:180px;}
-  .main{padding:.65rem .6rem;}
+  .main{padding:.65rem .6em;}
 }
 </style>
 </head>
@@ -371,12 +382,13 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   </main>
 </div>
 
+<!-- ══ MODAL NIVEL 2: detalle por viaje — z-index 820 (encima del modal de rutas) ══ -->
 <div class="modal-overlay" id="drillDetailModal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal-box" style="max-width:860px">
+  <div class="modal-box" style="max-width:900px">
     <div class="modal-head">
       <div><h3 id="drillDetailTitle">Detalle de Viajes</h3><span id="drillDetailSub"></span></div>
       <div style="display:flex;align-items:center;gap:.6rem">
-        <button id="drillDetailBack" onclick="document.getElementById('drillDetailModal').classList.remove('open')"
+        <button onclick="document.getElementById('drillDetailModal').classList.remove('open')"
           style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
                  border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
                  font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">← Volver</button>
@@ -389,6 +401,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <th>Fecha</th>
           <th style="text-align:left">Unidad</th>
           <th style="text-align:left">Operador</th>
+          <th>Minutos</th>
           <th>Estado</th>
         </tr></thead>
         <tbody id="drillDetailBody"></tbody>
@@ -398,8 +411,9 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   </div>
 </div>
 
+<!-- ══ MODAL NIVEL 1: detalle por ruta — z-index 810 ══ -->
 <div class="modal-overlay" id="drillModal" onclick="closeDrill(event)">
-  <div class="modal-box">
+  <div class="modal-box" style="max-width:800px">
     <div class="modal-head">
       <div><h3 id="drillTitle">Detalle por Ruta</h3><span id="drillSub"></span></div>
       <div style="display:flex;align-items:center;gap:.6rem">
@@ -412,7 +426,13 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     </div>
     <div class="modal-body">
       <table class="modal-table">
-        <thead><tr><th>Ruta / Descripción</th><th>Total Viajes</th><th>Tarde</th><th>% Cumplimiento</th></tr></thead>
+        <thead><tr>
+          <th>Ruta / Descripción</th>
+          <th>Total Viajes</th>
+          <th>Tarde</th>
+          <th>Prom. Minutos</th>
+          <th>% Cumplimiento</th>
+        </tr></thead>
         <tbody id="drillBody"></tbody>
       </table>
     </div>
@@ -421,12 +441,10 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 </div>
 
 <script>
-// ── CAMBIO 1: nueva Sheet ID y nombre de hoja ────────────────────────────────
 const SHEET_ID   = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const SHEET_NAME = 'NS';
 const CHUNK      = 35000;
 
-// ── CAMBIO 2: columnas AV / AW / BA ─────────────────────────────────────────
 const C = {
   fecha:   'start_date',
   semana:  'Semana',
@@ -437,15 +455,14 @@ const C = {
   retardo: 'Inicios_Tarde',
   viajes:  'Cantidad de viajes',
   llegada: 'Llegadas_Tarde',
+  minIni:  'Minutos de Retraso',  // col AQ
+  minLle:  'Minutos llegadas',    // col AZ
 };
 
 let DATA         = [];
 let loadedMonths = new Set();
 let myChartIni   = null;
 let myChartLle   = null;
-
-function showMini(msg){ document.getElementById('miniModalMsg').textContent=msg||'Cargando...'; document.getElementById('miniModal').classList.add('open'); }
-function hideMini(){ document.getElementById('miniModal').classList.remove('open'); }
 
 function norm(s){
   if(!s) return '';
@@ -458,7 +475,6 @@ function norm(s){
   }
   return s;
 }
-
 function getFecha(r){
   const y=r['Año']?String(r['Año']).trim():'';
   const m=r['Mes']?String(r['Mes']).trim():'';
@@ -467,7 +483,6 @@ function getFecha(r){
     return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
   return norm(r[C.fecha]);
 }
-
 function normMonth(f){ return f?f.slice(0,7):''; }
 const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 function mesLabel(ym){
@@ -491,7 +506,6 @@ function parseCSVLine(line){
   cols.push(cur.trim());
   return cols;
 }
-
 function parseCSV(text){
   const lines=text.trim().split(/\r?\n/);
   if(lines.length<2) return [];
@@ -511,11 +525,22 @@ function parseCSV(text){
   }
   return rows;
 }
-
-// ── CAMBIO 3: URL usa &sheet= en lugar de &gid= ──────────────────────────────
 function csvUrl(offset){
   const tq=encodeURIComponent(`SELECT * LIMIT ${CHUNK} OFFSET ${offset}`);
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
+}
+
+// ── helpers minutos ──────────────────────────────────────────────────────────
+function parseMin(v){
+  if(v===undefined||v===null||String(v).trim()==='') return null;
+  const n=parseFloat(String(v).replace(',','.'));
+  return isNaN(n)?null:n;
+}
+function minCell(val, decimals=1){
+  if(val===null) return '<span style="color:#9ca3af;font-size:.7rem">–</span>';
+  const cls = val>0?'min-pos':val<0?'min-neg':'min-cero';
+  const sign= val>0?'+':'';
+  return `<span class="${cls}">${sign}${val.toFixed(decimals)} min</span>`;
 }
 
 window.addEventListener('DOMContentLoaded', loadSheet);
@@ -571,14 +596,12 @@ function updateMesSelect(){
   meses.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=mesLabel(v); selM.appendChild(o); });
   if(curVal&&loadedMonths.has(curVal)) selM.value=curVal;
 }
-
 function fillSelects(){
   updateMesSelect();
   fill('fSem',uniq(DATA.map(r=>r[C.semana])));
   fill('fUdn',uniq(DATA.map(r=>r[C.udn])));
   cascadeSelects();
 }
-
 function cascadeSelects(){
   const f=getF();
   const base=DATA.filter(r=>{
@@ -593,7 +616,6 @@ function cascadeSelects(){
   const bJ=f.ger?bG.filter(r=>r[C.gerente]===f.ger):bG;
   fill('fJef',uniq(bJ.map(r=>r[C.jefe])));
 }
-
 function onFilterChange(changedId){
   const f=getF();
   if(['fUdn','fMes','fSem'].includes(changedId)){
@@ -626,15 +648,8 @@ const uniq=arr=>[...new Set(arr.filter(v=>v&&v.trim()))].sort();
 const N=n=>n.toLocaleString('es-MX');
 function pctColor(p){ return p>=90?'#16a34a':'#e53e3e'; }
 function pctColorLlegadas(p){ return p>=98?'#16a34a':'#e53e3e'; }
-
-// ── CAMBIO 4: countLate cuenta 1s; countViajes suma AW ───────────────────────
-function countLate(v){
-  return String(v||'').trim()==='1' ? 1 : 0;
-}
-function countViajes(v){
-  const n=parseInt(v)||0;
-  return n>0?n:1;
-}
+function countLate(v){ return String(v||'').trim()==='1'?1:0; }
+function countViajes(v){ const n=parseInt(v)||0; return n>0?n:1; }
 
 function fill(id,vals){
   const sel=document.getElementById(id); if(!sel) return;
@@ -643,7 +658,6 @@ function fill(id,vals){
   vals.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
   if(vals.includes(cur)) sel.value=cur;
 }
-
 function getF(){
   return{
     mes:document.getElementById('fMes').value,
@@ -656,7 +670,6 @@ function getF(){
     ff:document.getElementById('fFf').value,
   };
 }
-
 function resetFilters(){
   ['fMes','fSem','fUdn','fCli','fGer','fJef'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fFi').value='';
@@ -664,7 +677,6 @@ function resetFilters(){
   fillSelects();
   draw();
 }
-
 function filterRows(){
   const f=getF();
   return DATA.filter(r=>{
@@ -680,7 +692,6 @@ function filterRows(){
     return true;
   });
 }
-
 function switchTab(tab){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===(tab==='inicios'?0:1)));
   document.getElementById('panel-inicios').classList.toggle('active',tab==='inicios');
@@ -699,7 +710,6 @@ function sortTable(tbl){
   const btn=document.getElementById('sort-'+tbl);
   if(btn) btn.textContent=sortState[tbl].dir===-1?'↓':'↑';
 }
-
 function renderTable(tbl){
   const isL=tbl.startsWith('l');
   const colorFn=isL?pctColorLlegadas:pctColor;
@@ -728,7 +738,6 @@ function renderTable(tbl){
     </tr>`;
   }).join('');
 }
-
 function buildTable(rows,field,tbl,lateField){
   const byKey={};
   rows.forEach(r=>{
@@ -742,7 +751,6 @@ function buildTable(rows,field,tbl,lateField){
 }
 
 const chartGroup={ini:'dia',lle:'dia'};
-
 function setGroup(chart,group){
   chartGroup[chart]=group;
   document.querySelectorAll(`#grp-${chart} .grp-btn`).forEach(b=>{
@@ -753,7 +761,6 @@ function setGroup(chart,group){
   if(chart==='ini') myChartIni=buildChart('chart-ini',rows,C.retardo,'Inicios tarde',myChartIni,'ini');
   else              myChartLle=buildChart('chart-lle',rows,C.llegada,'Llegadas tarde',myChartLle,'lle');
 }
-
 function getGroupKey(r,group){
   const f=getFecha(r); if(!f) return '?';
   if(group==='dia') return f;
@@ -762,7 +769,6 @@ function getGroupKey(r,group){
   if(group==='año') return f.slice(0,4);
   return f;
 }
-
 function formatGroupLabel(key,group){
   if(group==='dia'){
     const dt=new Date(key+'T12:00:00');
@@ -775,7 +781,6 @@ function formatGroupLabel(key,group){
   }
   return key;
 }
-
 function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
   const group=chartGroup[chartId||'ini'];
   const by={};
@@ -917,38 +922,53 @@ function toggleDrillSort(){
   document.getElementById('drillSortBtn').textContent=drillSortDir===1?'↑ Menor → Mayor':'↓ Mayor → Menor';
   if(lastDrillArgs) renderDrill(...lastDrillArgs);
 }
+
+// ── MODAL NIVEL 1: rutas + columna Prom. Minutos ────────────────────────────
 function renderDrill(clienteK,tbl){
-  const isLlegadas=tbl==='lcli';
-  const lateField=isLlegadas?C.llegada:C.retardo;
-  const lateLbl=isLlegadas?'Llegadas Tarde':'Inicios Tarde';
-  const colorFn=isLlegadas?pctColorLlegadas:pctColor;
-  const rows=filterRows().filter(r=>(r[C.cliente]||'').trim()===clienteK);
+  const isLlegadas = tbl==='lcli';
+  const lateField  = isLlegadas ? C.llegada : C.retardo;
+  const minField   = isLlegadas ? C.minLle  : C.minIni;
+  const lateLbl    = isLlegadas ? 'Llegadas Tarde' : 'Inicios Tarde';
+  const colorFn    = isLlegadas ? pctColorLlegadas : pctColor;
+  const rows = filterRows().filter(r=>(r[C.cliente]||'').trim()===clienteK);
+
   const byRuta={};
   rows.forEach(r=>{
     const ruta=(r['des']||'Sin ruta').trim()||'Sin ruta';
-    if(!byRuta[ruta]) byRuta[ruta]={t:0,l:0};
+    if(!byRuta[ruta]) byRuta[ruta]={t:0,l:0,sumMin:0,cntMin:0};
     byRuta[ruta].t+=countViajes(r[C.viajes]);
     byRuta[ruta].l+=countLate(r[lateField]);
+    const m=parseMin(r[minField]);
+    if(m!==null){ byRuta[ruta].sumMin+=m; byRuta[ruta].cntMin++; }
   });
+
   const sorted=Object.entries(byRuta)
-    .map(([k,d])=>({k,t:d.t,l:d.l,pct:d.t>0?(d.t-d.l)/d.t*100:0}))
+    .map(([k,d])=>({
+      k, t:d.t, l:d.l,
+      pct:d.t>0?(d.t-d.l)/d.t*100:0,
+      avgMin:d.cntMin>0?d.sumMin/d.cntMin:null,
+    }))
     .sort((a,b)=>(a.pct-b.pct)*drillSortDir);
+
   const totT=sorted.reduce((s,r)=>s+r.t,0);
   const totL=sorted.reduce((s,r)=>s+r.l,0);
   const pctG=totT>0?(totT-totL)/totT*100:0;
+
   document.getElementById('drillTitle').textContent=clienteK;
   document.getElementById('drillSub').textContent=`${lateLbl} · ${sorted.length} rutas · ${N(totT)} viajes · ${pctG.toFixed(1)}% cumplimiento`;
   document.getElementById('drillSortBtn').textContent=drillSortDir===1?'↑ Menor → Mayor':'↓ Mayor → Menor';
+
   document.getElementById('drillBody').innerHTML=sorted.map((r,i)=>{
     const color=colorFn(r.pct);
     const barW=Math.min(100,r.pct).toFixed(1);
     const bg=i%2===0?'#ffffff':'#f7f9ff';
     const rutaEsc=r.k.replace(/'/g,"\\'");
-    const tblEsc=tbl;
-    return `<tr class="row-ruta-clickable" style="background:${bg}" onclick="openDrillDetail('${rutaEsc}','${clienteK.replace(/'/g,"\\'")}','${tblEsc}')">
+    const cliEsc=clienteK.replace(/'/g,"\\'");
+    return `<tr class="row-ruta-clickable" style="background:${bg}" onclick="openDrillDetail('${rutaEsc}','${cliEsc}','${tbl}')">
       <td class="td-ruta">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td>
       <td>${N(r.t)}</td>
       <td style="color:${r.l>0?'#d97706':'#16a34a'};font-weight:600">${N(r.l)}</td>
+      <td>${minCell(r.avgMin)}</td>
       <td><div class="pct-cell">
         <div class="pct-bar-wrap"><div class="pct-bar" style="width:${barW}%;background:${color}"></div></div>
         <span class="pct-val" style="color:${color}">${r.pct.toFixed(1)}%</span>
@@ -957,49 +977,60 @@ function renderDrill(clienteK,tbl){
   }).join('');
   document.getElementById('drillFoot').textContent=`Total: ${N(totT)} viajes · ${N(totL)} ${lateLbl.toLowerCase()} · ${pctG.toFixed(1)}% cumplimiento`;
 }
-function closeDrill(e){ if(e.target===document.getElementById('drillModal')) document.getElementById('drillModal').classList.remove('open'); }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ document.getElementById('drillModal').classList.remove('open'); document.getElementById('drillDetailModal').classList.remove('open'); } });
 
+function closeDrill(e){ if(e.target===document.getElementById('drillModal')) document.getElementById('drillModal').classList.remove('open'); }
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    // cierra de adentro hacia afuera
+    const d2=document.getElementById('drillDetailModal');
+    if(d2.classList.contains('open')){ d2.classList.remove('open'); return; }
+    document.getElementById('drillModal').classList.remove('open');
+  }
+});
+
+// ── MODAL NIVEL 2: detalle por viaje + columna minutos ──────────────────────
 function openDrillDetail(rutaK, clienteK, tbl){
   const isLlegadas = tbl==='lcli';
   const lateField  = isLlegadas ? C.llegada : C.retardo;
+  const minField   = isLlegadas ? C.minLle  : C.minIni;
   const lateLbl    = isLlegadas ? 'Llegada tarde' : 'Inicio tarde';
 
-  const rows = filterRows().filter(r =>
+  const rows = filterRows().filter(r=>
     (r[C.cliente]||'').trim()===clienteK &&
     (r['des']||'Sin ruta').trim()===rutaK
   );
+  const sorted=[...rows].sort((a,b)=>getFecha(a).localeCompare(getFecha(b)));
 
-  // ordenar por fecha
-  const sorted = [...rows].sort((a,b)=> getFecha(a).localeCompare(getFecha(b)));
+  const totT=sorted.length;
+  const totL=sorted.filter(r=>countLate(r[lateField])===1).length;
+  const pctG=totT>0?((totT-totL)/totT*100).toFixed(1):'–';
 
-  const totT  = sorted.length;
-  const totL  = sorted.filter(r=> countLate(r[lateField])===1).length;
-  const pctG  = totT>0 ? ((totT-totL)/totT*100).toFixed(1) : '–';
+  document.getElementById('drillDetailTitle').textContent=`${clienteK} · ${rutaK}`;
+  document.getElementById('drillDetailSub').textContent=`${lateLbl} · ${totT} viajes · ${totL} tarde · ${pctG}% cumplimiento`;
 
-  document.getElementById('drillDetailTitle').textContent = `${clienteK} · ${rutaK}`;
-  document.getElementById('drillDetailSub').textContent   = `${lateLbl} · ${totT} viajes · ${totL} tarde · ${pctG}% cumplimiento`;
-
-  document.getElementById('drillDetailBody').innerHTML = sorted.map((r,i)=>{
-    const tarde  = countLate(r[lateField])===1;
-    const fecha  = getFecha(r);
-    const dt     = new Date(fecha+'T12:00:00');
+  document.getElementById('drillDetailBody').innerHTML=sorted.map((r,i)=>{
+    const tarde    = countLate(r[lateField])===1;
+    const fecha    = getFecha(r);
+    const dt       = new Date(fecha+'T12:00:00');
     const fechaFmt = isNaN(dt)?fecha:dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
-    const unidad = (r['car']||'–').trim();
-    const driver = (r['driver']||'–').trim();
-    const bg     = i%2===0?'#ffffff':'#f7f9ff';
-    const badge  = tarde
+    const unidad   = (r['car']||'–').trim();
+    const driver   = (r['driver']||'–').trim();
+    const bg       = i%2===0?'#ffffff':'#f7f9ff';
+    const badge    = tarde
       ? '<span class="badge-tarde">❌ '+lateLbl+'</span>'
       : '<span class="badge-tiempo">✅ A tiempo</span>';
+    const minVal   = parseMin(r[minField]);
     return `<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${fechaFmt}</td>
       <td style="text-align:left;font-weight:600">${unidad}</td>
       <td style="text-align:left">${driver}</td>
+      <td style="text-align:right">${minCell(minVal,0)}</td>
       <td style="text-align:right">${badge}</td>
     </tr>`;
-  }).join('') || '<tr><td colspan="4" class="table-empty">Sin viajes registrados</td></tr>';
+  }).join('')||'<tr><td colspan="5" class="table-empty">Sin viajes registrados</td></tr>';
 
-  document.getElementById('drillDetailFoot').textContent =
+  document.getElementById('drillDetailFoot').textContent=
     `Total: ${totT} viajes · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
 
   document.getElementById('drillDetailModal').classList.add('open');
