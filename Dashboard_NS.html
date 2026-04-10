@@ -55,13 +55,19 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .btn-reset{width:100%;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:.4rem;font-size:.74rem;font-family:"Inter",sans-serif;font-weight:500;cursor:pointer;transition:all .15s;}
 .btn-reset:hover{border-color:var(--green);color:var(--green);background:rgba(126,211,33,.06)}
 .main{flex:1;padding:1.35rem 1.5rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0}
-.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
 .kpi{background:var(--white);border-radius:12px;padding:1.1rem 1.25rem;position:relative;overflow:hidden;box-shadow:0 2px 10px rgba(26,34,54,.07);border-top:4px solid var(--kc,var(--green));transition:transform .15s,box-shadow .2s;}
 .kpi:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,34,54,.12)}
 .kpi::after{content:"";position:absolute;bottom:-18px;right:-18px;width:80px;height:80px;border-radius:50%;background:var(--kc,var(--green));opacity:.06}
 .kpi-icon{font-size:1.3rem;margin-bottom:.4rem}
 .kpi-val{font-size:2rem;font-weight:700;color:var(--kc,var(--green));line-height:1;letter-spacing:-.02em}
 .kpi-lbl{font-size:.68rem;font-weight:600;color:var(--muted);margin-top:.3rem;text-transform:uppercase;letter-spacing:.05em;line-height:1.4}
+/* clickable KPI */
+.kpi-clickable{cursor:pointer;user-select:none;}
+.kpi-clickable:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(26,34,54,.16);}
+.kpi-clickable.kpi-active{outline:3px solid var(--kc,var(--green));outline-offset:2px;box-shadow:0 0 0 6px rgba(126,211,33,.15);}
+.kpi-hint{font-size:.6rem;color:var(--muted);margin-top:.4rem;opacity:.7;letter-spacing:.03em;}
+.kpi-active .kpi-hint{color:var(--kc,var(--green));opacity:1;font-weight:600;}
 .chart-card{background:var(--white);border-radius:12px;padding:1.1rem 1.35rem;box-shadow:0 2px 10px rgba(26,34,54,.07);display:flex;flex-direction:column;gap:.7rem;}
 .chart-hdr{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
 .chart-title{font-size:.95rem;font-weight:700;color:var(--text)}
@@ -178,7 +184,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   .sidebar-filters .date-row{grid-column:1/-1;}
   .sidebar-filters .btn-reset{grid-column:1/-1;}
   .main{padding:.85rem .75rem;gap:.85rem;}
-  .kpi-grid{grid-template-columns:repeat(3,1fr);gap:.5rem;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:.5rem;}
   .kpi{padding:.75rem .85rem;}
   .kpi-val{font-size:1.5rem;}
   .kpi-lbl{font-size:.6rem;}
@@ -337,17 +343,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
       </div>
 
-      <!-- Inicios / Llegadas tarde -->
-      <div class="fg">
-        <label>Estado de viaje</label>
-        <div class="sc-wrap" id="sc-estado">
-          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-            id="sc-estado-input" oninput="scFilter('estado')" onfocus="scOpen('estado')" onkeydown="scKey(event,'estado')" readonly style="cursor:pointer">
-          <span class="sc-arrow">▼</span>
-          <div class="sc-dropdown" id="sc-estado-dd"></div>
-        </div>
-      </div>
-
       <!-- Rango de fechas -->
       <div class="fg" style="grid-column:1/-1">
         <label>Rango de fechas</label>
@@ -375,10 +370,27 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     </div>
 
     <div class="tab-panel active" id="panel-inicios">
-      <div class="kpi-grid">
-        <div class="kpi" style="--kc:#1a2236"><div class="kpi-icon">🚛</div><div class="kpi-val" id="kTotal">–</div><div class="kpi-lbl">Total Viajes</div></div>
-        <div class="kpi" style="--kc:#d97706"><div class="kpi-icon">⏰</div><div class="kpi-val" id="kTarde">–</div><div class="kpi-lbl">Inicios Tarde</div></div>
-        <div class="kpi" style="--kc:#7ed321"><div class="kpi-icon">📊</div><div class="kpi-val" id="kPct">–</div><div class="kpi-lbl">% Cumplimiento</div></div>
+      <div class="kpi-grid" id="kpi-ini">
+        <div class="kpi kpi-clickable" style="--kc:#1a2236" id="kpi-ini-total" onclick="toggleKpiFilter('ini','total')">
+          <div class="kpi-icon">🚛</div><div class="kpi-val" id="kTotal">–</div>
+          <div class="kpi-lbl">Total Viajes</div>
+          <div class="kpi-hint">Ver todos</div>
+        </div>
+        <div class="kpi kpi-clickable" style="--kc:#d97706" id="kpi-ini-tarde" onclick="toggleKpiFilter('ini','ini_tarde')">
+          <div class="kpi-icon">⏰</div><div class="kpi-val" id="kTarde">–</div>
+          <div class="kpi-lbl">Inicios Tarde</div>
+          <div class="kpi-hint">Filtrar</div>
+        </div>
+        <div class="kpi kpi-clickable" style="--kc:#e53e3e" id="kpi-ini-ambos" onclick="toggleKpiFilter('ini','ambos')">
+          <div class="kpi-icon">⚠️</div><div class="kpi-val" id="kAmbos">–</div>
+          <div class="kpi-lbl">Inicio Y Llegada Tarde</div>
+          <div class="kpi-hint">Filtrar</div>
+        </div>
+        <div class="kpi kpi-clickable" style="--kc:#7ed321" id="kpi-ini-pct" onclick="toggleKpiFilter('ini','total')">
+          <div class="kpi-icon">📊</div><div class="kpi-val" id="kPct">–</div>
+          <div class="kpi-lbl">% Cumplimiento</div>
+          <div class="kpi-hint">Ver todos</div>
+        </div>
       </div>
       <div class="chart-card">
         <div class="chart-hdr">
@@ -434,10 +446,27 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     </div>
 
     <div class="tab-panel" id="panel-llegadas">
-      <div class="kpi-grid">
-        <div class="kpi" style="--kc:#1a2236"><div class="kpi-icon">🚛</div><div class="kpi-val" id="lkTotal">–</div><div class="kpi-lbl">Total Viajes</div></div>
-        <div class="kpi" style="--kc:#e53e3e"><div class="kpi-icon">🏁</div><div class="kpi-val" id="lkTarde">–</div><div class="kpi-lbl">Llegadas Tarde</div></div>
-        <div class="kpi" style="--kc:#7ed321"><div class="kpi-icon">📊</div><div class="kpi-val" id="lkPct">–</div><div class="kpi-lbl">% Cumplimiento</div></div>
+      <div class="kpi-grid" id="kpi-lle">
+        <div class="kpi kpi-clickable" style="--kc:#1a2236" id="kpi-lle-total" onclick="toggleKpiFilter('lle','total')">
+          <div class="kpi-icon">🚛</div><div class="kpi-val" id="lkTotal">–</div>
+          <div class="kpi-lbl">Total Viajes</div>
+          <div class="kpi-hint">Ver todos</div>
+        </div>
+        <div class="kpi kpi-clickable" style="--kc:#e53e3e" id="kpi-lle-tarde" onclick="toggleKpiFilter('lle','lle_tarde')">
+          <div class="kpi-icon">🏁</div><div class="kpi-val" id="lkTarde">–</div>
+          <div class="kpi-lbl">Llegadas Tarde</div>
+          <div class="kpi-hint">Filtrar</div>
+        </div>
+        <div class="kpi kpi-clickable" style="--kc:#e53e3e" id="kpi-lle-ambos" onclick="toggleKpiFilter('lle','ambos')">
+          <div class="kpi-icon">⚠️</div><div class="kpi-val" id="lkAmbos">–</div>
+          <div class="kpi-lbl">Inicio Y Llegada Tarde</div>
+          <div class="kpi-hint">Filtrar</div>
+        </div>
+        <div class="kpi kpi-clickable" style="--kc:#7ed321" id="kpi-lle-pct" onclick="toggleKpiFilter('lle','total')">
+          <div class="kpi-icon">📊</div><div class="kpi-val" id="lkPct">–</div>
+          <div class="kpi-lbl">% Cumplimiento</div>
+          <div class="kpi-hint">Ver todos</div>
+        </div>
       </div>
       <div class="chart-card">
         <div class="chart-hdr">
@@ -579,16 +608,44 @@ let myChartIni   = null;
 let myChartLle   = null;
 
 // ══ SEARCHABLE COMBO STATE ══
-const SC_VALS    = { udn:[], mes:[], sem:[], cli:[], ger:[], jef:[], ope:[], car:[], estado:[] };
-const SC_SEL     = { udn:'', mes:'', sem:'', cli:'', ger:'', jef:'', ope:'', car:'', estado:'' };
-const SC_FOCUS   = { udn:-1, mes:-1, sem:-1, cli:-1, ger:-1, jef:-1, ope:-1, car:-1, estado:-1 };
+const SC_VALS    = { udn:[], mes:[], sem:[], cli:[], ger:[], jef:[], ope:[], car:[] };
+const SC_SEL     = { udn:'', mes:'', sem:'', cli:'', ger:'', jef:'', ope:'', car:'' };
+const SC_FOCUS   = { udn:-1, mes:-1, sem:-1, cli:-1, ger:-1, jef:-1, ope:-1, car:-1 };
 
-const ESTADO_OPTS = [
-  { val:'', lbl:'Todos' },
-  { val:'ini_tarde', lbl:'⏰ Inicio tarde' },
-  { val:'lle_tarde', lbl:'🏁 Llegada tarde' },
-  { val:'ambos', lbl:'⚠️ Inicio Y Llegada tarde' },
-];
+// ══ KPI FILTER STATE ══
+// val: '' | 'ini_tarde' | 'lle_tarde' | 'ambos'
+const kpiFilter = { ini: '', lle: '' };
+
+function toggleKpiFilter(panel, val){
+  // 'total' or same val = clear
+  const cur = kpiFilter[panel];
+  kpiFilter[panel] = (val==='total'||val===cur) ? '' : val;
+  updateKpiActive(panel);
+  draw();
+}
+function updateKpiActive(panel){
+  const v = kpiFilter[panel];
+  const prefix = panel==='ini' ? 'kpi-ini' : 'kpi-lle';
+  ['total','tarde','ambos','pct'].forEach(k=>{
+    const el=document.getElementById(prefix+'-'+k);
+    if(!el) return;
+    el.classList.remove('kpi-active');
+  });
+  if(v==='ini_tarde')  document.getElementById(prefix+'-tarde')?.classList.add('kpi-active');
+  if(v==='lle_tarde')  document.getElementById(prefix+'-tarde')?.classList.add('kpi-active');
+  if(v==='ambos')      document.getElementById(prefix+'-ambos')?.classList.add('kpi-active');
+  // hints
+  const hints = { total:'Ver todos', ini_tarde:'✔ Filtrando', lle_tarde:'✔ Filtrando', ambos:'✔ Filtrando' };
+  ['total','tarde','ambos','pct'].forEach(k=>{
+    const el=document.getElementById(prefix+'-'+k);
+    if(el){ const h=el.querySelector('.kpi-hint'); if(h) h.textContent=el.classList.contains('kpi-active')?'✔ Filtrando · clic para quitar':'Filtrar'; }
+  });
+  // restore total/pct hint always
+  ['total','pct'].forEach(k=>{
+    const el=document.getElementById(prefix+'-'+k);
+    if(el){ const h=el.querySelector('.kpi-hint'); if(h) h.textContent='Ver todos'; }
+  });
+}
 
 function norm(s){
   if(!s) return '';
@@ -855,7 +912,6 @@ function getF(){
     jef:   SC_SEL.jef,
     ope:   SC_SEL.ope,
     car:   SC_SEL.car,
-    estado:SC_SEL.estado,
     fi:    document.getElementById('fFi').value,
     ff:    document.getElementById('fFf').value,
   };
@@ -864,11 +920,16 @@ function resetFilters(){
   Object.keys(SC_SEL).forEach(k=>scSetVal(k,'',''));
   document.getElementById('fFi').value='';
   document.getElementById('fFf').value='';
+  kpiFilter.ini=''; kpiFilter.lle='';
+  updateKpiActive('ini'); updateKpiActive('lle');
   fillAllSelects();
   draw();
 }
-function filterRows(){
+function filterRows(panelHint){
   const f=getF();
+  // Determine which kpiFilter applies based on active tab or panelHint
+  const activePanel = panelHint || (document.getElementById('panel-inicios').classList.contains('active') ? 'ini' : 'lle');
+  const estado = kpiFilter[activePanel];
   return DATA.filter(r=>{
     if(f.mes&&normMonth(getFecha(r))!==f.mes) return false;
     if(f.sem&&r[C.semana]!==f.sem) return false;
@@ -878,10 +939,10 @@ function filterRows(){
     if(f.jef&&r[C.jefe]!==f.jef) return false;
     if(f.ope&&(r[C.driver]||'').trim()!==f.ope) return false;
     if(f.car&&(r[C.car]||'').trim()!==f.car) return false;
-    // Estado filter
-    if(f.estado==='ini_tarde' && countLate(r[C.retardo])!==1) return false;
-    if(f.estado==='lle_tarde' && countLate(r[C.llegada])!==1) return false;
-    if(f.estado==='ambos' && !(countLate(r[C.retardo])===1 && countLate(r[C.llegada])===1)) return false;
+    // KPI estado filter
+    if(estado==='ini_tarde' && countLate(r[C.retardo])!==1) return false;
+    if(estado==='lle_tarde' && countLate(r[C.llegada])!==1) return false;
+    if(estado==='ambos' && !(countLate(r[C.retardo])===1 && countLate(r[C.llegada])===1)) return false;
     const d=getFecha(r);
     if(f.fi&&d<f.fi) return false;
     if(f.ff&&d>f.ff) return false;
@@ -1053,7 +1114,7 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
 
 function draw(){
   if(!DATA.length) return;
-  const rows=filterRows(),f=getF();
+  const f=getF();
   const parts=[];
   if(f.mes) parts.push(mesLabel(f.mes));
   if(f.sem) parts.push('Sem '+f.sem);
@@ -1063,41 +1124,60 @@ function draw(){
   if(f.jef) parts.push('Jefe: '+f.jef);
   if(f.ope) parts.push('Op: '+f.ope);
   if(f.car) parts.push('Car: '+f.car);
-  if(f.estado){
-    const lbl=ESTADO_OPTS.find(o=>o.val===f.estado)?.lbl||f.estado;
-    parts.push(lbl);
-  }
   const sfx=parts.length?' – '+parts.join(' · '):'';
 
-  const totT=rows.reduce((s,r)=>s+countViajes(r[C.viajes]),0);
-  const totI=rows.reduce((s,r)=>s+countLate(r[C.retardo]),0);
-  const totLL=rows.reduce((s,r)=>s+countLate(r[C.llegada]),0);
+  // Base rows (no kpiFilter) for KPI card counts
+  const baseRows = filterRows('ini').concat(); // will recalc per panel below
+  // Rows for each panel (respects kpiFilter)
+  const rowsIni = filterRows('ini');
+  const rowsLle = filterRows('lle');
 
-  document.getElementById('kTotal').textContent=N(totT);
-  document.getElementById('kTarde').textContent=N(totI);
-  document.getElementById('lkTotal').textContent=N(totT);
-  document.getElementById('lkTarde').textContent=N(totLL);
+  // KPI totals use BASE (no kpi filter) for the card numbers so they always show real totals
+  // But when a filter is active, totals reflect filtered set = rows for that panel
+  const allBase = (() => {
+    // rows without any kpiFilter
+    const saved={ini:kpiFilter.ini, lle:kpiFilter.lle};
+    kpiFilter.ini=''; kpiFilter.lle='';
+    const r = filterRows('ini');
+    kpiFilter.ini=saved.ini; kpiFilter.lle=saved.lle;
+    return r;
+  })();
 
-  const pI=totT>0?(totT-totI)/totT*100:0;
-  const pL=totT>0?(totT-totLL)/totT*100:0;
+  const totAll   = allBase.reduce((s,r)=>s+countViajes(r[C.viajes]),0);
+  const totIniT  = allBase.reduce((s,r)=>s+countLate(r[C.retardo]),0);
+  const totLleT  = allBase.reduce((s,r)=>s+countLate(r[C.llegada]),0);
+  const totAmbos = allBase.filter(r=>countLate(r[C.retardo])===1&&countLate(r[C.llegada])===1)
+                          .reduce((s,r)=>s+countViajes(r[C.viajes]),0);
+
+  const pI = totAll>0?(totAll-totIniT)/totAll*100:0;
+  const pL = totAll>0?(totAll-totLleT)/totAll*100:0;
+
+  document.getElementById('kTotal').textContent=N(totAll);
+  document.getElementById('kTarde').textContent=N(totIniT);
+  document.getElementById('kAmbos').textContent=N(totAmbos);
   const kp=document.getElementById('kPct');
-  kp.textContent=totT>0?pI.toFixed(1)+'%':'–'; kp.style.color=pctColor(pI);
+  kp.textContent=totAll>0?pI.toFixed(1)+'%':'–'; kp.style.color=pctColor(pI);
+
+  document.getElementById('lkTotal').textContent=N(totAll);
+  document.getElementById('lkTarde').textContent=N(totLleT);
+  document.getElementById('lkAmbos').textContent=N(totAmbos);
   const lp=document.getElementById('lkPct');
-  lp.textContent=totT>0?pL.toFixed(1)+'%':'–'; lp.style.color=pctColorLlegadas(pL);
+  lp.textContent=totAll>0?pL.toFixed(1)+'%':'–'; lp.style.color=pctColorLlegadas(pL);
 
   ['chartTitle','tCliTitle','tGerTitle','tJefTitle'].forEach((id,i)=>
     document.getElementById(id).textContent=['Inicios Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe'][i]+sfx);
   ['lChartTitle','ltCliTitle','ltGerTitle','ltJefTitle'].forEach((id,i)=>
     document.getElementById(id).textContent=['Llegadas Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe'][i]+sfx);
 
-  myChartIni=buildChart('chart-ini',rows,C.retardo,'Inicios tarde',myChartIni,'ini');
-  myChartLle=buildChart('chart-lle',rows,C.llegada,'Llegadas tarde',myChartLle,'lle');
-  buildTable(rows,C.cliente,'cli',C.retardo);
-  buildTable(rows,C.gerente,'ger',C.retardo);
-  buildTable(rows,C.jefe,'jef',C.retardo);
-  buildTable(rows,C.cliente,'lcli',C.llegada);
-  buildTable(rows,C.gerente,'lger',C.llegada);
-  buildTable(rows,C.jefe,'ljef',C.llegada);
+  // Charts and tables use the panel-specific filtered rows
+  myChartIni=buildChart('chart-ini',rowsIni,C.retardo,'Inicios tarde',myChartIni,'ini');
+  myChartLle=buildChart('chart-lle',rowsLle,C.llegada,'Llegadas tarde',myChartLle,'lle');
+  buildTable(rowsIni,C.cliente,'cli',C.retardo);
+  buildTable(rowsIni,C.gerente,'ger',C.retardo);
+  buildTable(rowsIni,C.jefe,'jef',C.retardo);
+  buildTable(rowsLle,C.cliente,'lcli',C.llegada);
+  buildTable(rowsLle,C.gerente,'lger',C.llegada);
+  buildTable(rowsLle,C.jefe,'ljef',C.llegada);
 }
 
 async function captureTable(cardId,label){
@@ -1131,7 +1211,7 @@ function renderDrill(clienteK,tbl){
   const minField   = isLlegadas ? C.minLle  : C.minIni;
   const lateLbl    = isLlegadas ? 'Llegadas Tarde' : 'Inicios Tarde';
   const colorFn    = isLlegadas ? pctColorLlegadas : pctColor;
-  const rows = filterRows().filter(r=>(r[C.cliente]||'').trim()===clienteK);
+  const rows = filterRows(isLlegadas?'lle':'ini').filter(r=>(r[C.cliente]||'').trim()===clienteK);
 
   const byRuta={};
   rows.forEach(r=>{
@@ -1194,7 +1274,7 @@ function openDrillDetail(rutaK, clienteK, tbl){
   const lateField  = isLlegadas ? C.llegada : C.retardo;
   const lateLbl    = isLlegadas ? 'Llegada tarde' : 'Inicio tarde';
 
-  const rows = filterRows().filter(r=>
+  const rows = filterRows(isLlegadas?'lle':'ini').filter(r=>
     (r[C.cliente]||'').trim()===clienteK &&
     (r['des']||'Sin ruta').trim()===rutaK
   );
@@ -1253,10 +1333,10 @@ if(window.innerWidth<=768){
   });
 }
 
-// Init estado dropdown options on load
+// Init KPI active states on load
 document.addEventListener('DOMContentLoaded',()=>{
-  // Pre-populate estado dropdown
-  SC_VALS.estado = ESTADO_OPTS.map(o=>o.val);
+  updateKpiActive('ini');
+  updateKpiActive('lle');
 });
 </script>
 </body>
