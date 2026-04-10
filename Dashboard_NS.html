@@ -32,8 +32,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .fg label{font-size:.7rem;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
 .fg select,.fg input[type=date]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.38rem .5rem;font-size:.78rem;font-family:"Inter",sans-serif;appearance:none;cursor:pointer;outline:none;transition:border-color .15s;}
 .fg select:focus,.fg input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(126,211,33,.15)}
-
-/* ── Searchable combo ── */
 .sc-wrap{position:relative;width:100%;}
 .sc-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.38rem 1.6rem .38rem .5rem;font-size:.78rem;font-family:"Inter",sans-serif;outline:none;transition:border-color .15s;cursor:text;}
 .sc-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(126,211,33,.15);}
@@ -46,12 +44,9 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .sc-opt.selected{background:rgba(126,211,33,.12);font-weight:600;color:var(--navy);}
 .sc-opt.sc-none{color:var(--muted);font-style:italic;cursor:default;}
 .sc-opt.sc-none:hover{background:transparent;}
-
-/* ── Date range fix ── */
 .date-row{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;align-items:end;}
 .date-row .fg{gap:.2rem;}
 .date-row input[type=date]{font-size:.72rem;padding:.35rem .4rem;}
-
 .btn-reset{width:100%;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:.4rem;font-size:.74rem;font-family:"Inter",sans-serif;font-weight:500;cursor:pointer;transition:all .15s;}
 .btn-reset:hover{border-color:var(--green);color:var(--green);background:rgba(126,211,33,.06)}
 .main{flex:1;padding:1.35rem 1.5rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0}
@@ -62,7 +57,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .kpi-icon{font-size:1.3rem;margin-bottom:.4rem}
 .kpi-val{font-size:2rem;font-weight:700;color:var(--kc,var(--green));line-height:1;letter-spacing:-.02em}
 .kpi-lbl{font-size:.68rem;font-weight:600;color:var(--muted);margin-top:.3rem;text-transform:uppercase;letter-spacing:.05em;line-height:1.4}
-/* clickable KPI */
 .kpi-clickable{cursor:pointer;user-select:none;}
 .kpi-clickable:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(26,34,54,.16);}
 .kpi-clickable.kpi-active{outline:3px solid var(--kc,var(--green));outline-offset:2px;box-shadow:0 0 0 6px rgba(126,211,33,.15);}
@@ -169,10 +163,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .filter-toggle-btn span{font-size:.75rem;opacity:.6}
 .sidebar.collapsed .fg,.sidebar.collapsed .btn-reset,.sidebar.collapsed .sb-title{display:none}
 .sidebar.collapsed{padding:.5rem .95rem}
-
-/* Active filter badge */
 .filter-active-badge{display:inline-block;background:var(--green);color:var(--navy);font-size:.58rem;font-weight:700;padding:.1rem .35rem;border-radius:8px;margin-left:.3rem;vertical-align:middle;}
-
 @media(max-width:768px){
   nav{padding:10px 16px;gap:10px;}
   nav>a:first-child{font-size:15px;}
@@ -255,7 +246,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     <div class="sb-title">Filtros</div>
     <div class="sidebar-filters">
 
-      <!-- Unidad de Negocio -->
       <div class="fg">
         <label>Unidad de Negocio</label>
         <div class="sc-wrap" id="sc-udn">
@@ -266,7 +256,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
       </div>
 
-      <!-- Mes -->
       <div class="fg">
         <label>Mes</label>
         <div class="sc-wrap" id="sc-mes">
@@ -277,7 +266,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
       </div>
 
-      <!-- Semana -->
       <div class="fg">
         <label>Semana</label>
         <div class="sc-wrap" id="sc-sem">
@@ -288,7 +276,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
       </div>
 
-      <!-- Cliente / Grupo -->
       <div class="fg">
         <label>Cliente / Grupo</label>
         <div class="sc-wrap" id="sc-cli">
@@ -299,7 +286,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
       </div>
 
-      <!-- Gerente -->
       <div class="fg">
         <label>Gerente</label>
         <div class="sc-wrap" id="sc-ger">
@@ -310,7 +296,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
       </div>
 
-      <!-- Jefe -->
       <div class="fg">
         <label>Jefe</label>
         <div class="sc-wrap" id="sc-jef">
@@ -321,7 +306,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
       </div>
 
-      <!-- Operador -->
       <div class="fg">
         <label>Operador</label>
         <div class="sc-wrap" id="sc-ope">
@@ -332,7 +316,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
       </div>
 
-      <!-- Carro / Unidad -->
       <div class="fg">
         <label>Carro / Unidad</label>
         <div class="sc-wrap" id="sc-car">
@@ -343,7 +326,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
       </div>
 
-      <!-- Rango de fechas -->
       <div class="fg" style="grid-column:1/-1">
         <label>Rango de fechas</label>
         <div class="date-row">
@@ -394,7 +376,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
       <div class="chart-card">
         <div class="chart-hdr">
-          <div><div class="chart-title" id="chartTitle">Inicios Tarde por Día</div><div class="chart-sub">⬛ En tiempo · 🟠 Inicia tarde pero llega bien · 🔴 Inicia Y llega tarde · Línea = % cumplimiento</div></div>
+          <div><div class="chart-title" id="chartTitle">Inicios Tarde por Día</div><div class="chart-sub">⬛ En tiempo · 🟠 Inicia tarde pero llega bien · 🔴 Inicia Y llega tarde · Línea = % cumplimiento · Barras en % de viajes del día</div></div>
           <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
             <div class="chart-group-btns" id="grp-ini">
               <button class="grp-btn active" onclick="setGroup('ini','dia')">Día</button>
@@ -471,7 +453,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
       <div class="chart-card">
         <div class="chart-hdr">
-          <div><div class="chart-title" id="lChartTitle">Llegadas Tarde por Día</div><div class="chart-sub">⬛ En tiempo · 🟠 Llega tarde pero salió bien · 🔴 Llega Y salió tarde · Línea = % cumplimiento</div></div>
+          <div><div class="chart-title" id="lChartTitle">Llegadas Tarde por Día</div><div class="chart-sub">⬛ En tiempo · 🟠 Llega tarde pero salió bien · 🔴 Llega Y salió tarde · Línea = % cumplimiento · Barras en % de viajes del día</div></div>
           <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
             <div class="chart-group-btns" id="grp-lle">
               <button class="grp-btn active" onclick="setGroup('lle','dia')">Día</button>
@@ -525,7 +507,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   </main>
 </div>
 
-<!-- ══ MODAL NIVEL 2: detalle por viaje ══ -->
+<!-- MODAL NIVEL 2 -->
 <div class="modal-overlay" id="drillDetailModal" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="modal-box" style="max-width:900px">
     <div class="modal-head">
@@ -554,7 +536,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   </div>
 </div>
 
-<!-- ══ MODAL NIVEL 1: detalle por ruta ══ -->
+<!-- MODAL NIVEL 1 -->
 <div class="modal-overlay" id="drillModal" onclick="closeDrill(event)">
   <div class="modal-box" style="max-width:800px">
     <div class="modal-head">
@@ -609,17 +591,13 @@ let loadedMonths = new Set();
 let myChartIni   = null;
 let myChartLle   = null;
 
-// ══ SEARCHABLE COMBO STATE ══
 const SC_VALS    = { udn:[], mes:[], sem:[], cli:[], ger:[], jef:[], ope:[], car:[] };
 const SC_SEL     = { udn:'', mes:'', sem:'', cli:'', ger:'', jef:'', ope:'', car:'' };
 const SC_FOCUS   = { udn:-1, mes:-1, sem:-1, cli:-1, ger:-1, jef:-1, ope:-1, car:-1 };
 
-// ══ KPI FILTER STATE ══
-// val: '' | 'ini_tarde' | 'lle_tarde' | 'ambos'
 const kpiFilter = { ini: '', lle: '' };
 
 function toggleKpiFilter(panel, val){
-  // 'total' or same val = clear
   const cur = kpiFilter[panel];
   kpiFilter[panel] = (val==='total'||val===cur) ? '' : val;
   updateKpiActive(panel);
@@ -636,13 +614,10 @@ function updateKpiActive(panel){
   if(v==='ini_tarde')  document.getElementById(prefix+'-tarde')?.classList.add('kpi-active');
   if(v==='lle_tarde')  document.getElementById(prefix+'-tarde')?.classList.add('kpi-active');
   if(v==='ambos')      document.getElementById(prefix+'-ambos')?.classList.add('kpi-active');
-  // hints
-  const hints = { total:'Ver todos', ini_tarde:'✔ Filtrando', lle_tarde:'✔ Filtrando', ambos:'✔ Filtrando' };
   ['total','tarde','ambos','pct'].forEach(k=>{
     const el=document.getElementById(prefix+'-'+k);
     if(el){ const h=el.querySelector('.kpi-hint'); if(h) h.textContent=el.classList.contains('kpi-active')?'✔ Filtrando · clic para quitar':'Filtrar'; }
   });
-  // restore total/pct hint always
   ['total','pct'].forEach(k=>{
     const el=document.getElementById(prefix+'-'+k);
     if(el){ const h=el.querySelector('.kpi-hint'); if(h) h.textContent='Ver todos'; }
@@ -773,27 +748,16 @@ async function loadSheet(){
   }
 }
 
-// ══ SEARCHABLE COMBO ENGINE ══
 function scRenderDD(key){
   const dd=document.getElementById('sc-'+key+'-dd');
   const inputEl=document.getElementById('sc-'+key+'-input');
   const q=(inputEl.value||'').toLowerCase();
   let opts=SC_VALS[key];
-  if(key==='estado'){
-    opts=ESTADO_OPTS.map(o=>({val:o.val,lbl:o.lbl}));
-  }
-  const filtered = key==='estado'
-    ? opts.filter(o=>o.lbl.toLowerCase().includes(q))
-    : opts.filter(v=>v.toLowerCase().includes(q));
+  const filtered = opts.filter(v=>v.toLowerCase().includes(q));
   SC_FOCUS[key]=-1;
-  if(key==='estado'){
-    dd.innerHTML=filtered.map((o,i)=>`<div class="sc-opt${SC_SEL[key]===o.val?' selected':''}" data-val="${o.val}" data-lbl="${o.lbl}" onmousedown="scSelect(event,'${key}')">${o.lbl}</div>`).join('')
-      || '<div class="sc-opt sc-none">Sin resultados</div>';
-  } else {
-    const allOpt=`<div class="sc-opt${SC_SEL[key]===''?' selected':''}" data-val="" data-lbl="Todos" onmousedown="scSelect(event,'${key}')">Todos</div>`;
-    dd.innerHTML=allOpt+filtered.map(v=>`<div class="sc-opt${SC_SEL[key]===v?' selected':''}" data-val="${v}" data-lbl="${v}" onmousedown="scSelect(event,'${key}')">${v}</div>`).join('')
-      || '<div class="sc-opt sc-none">Sin resultados</div>';
-  }
+  const allOpt=`<div class="sc-opt${SC_SEL[key]===''?' selected':''}" data-val="" data-lbl="Todos" onmousedown="scSelect(event,'${key}')">Todos</div>`;
+  dd.innerHTML=allOpt+filtered.map(v=>`<div class="sc-opt${SC_SEL[key]===v?' selected':''}" data-val="${v}" data-lbl="${v}" onmousedown="scSelect(event,'${key}')">${v}</div>`).join('')
+    || '<div class="sc-opt sc-none">Sin resultados</div>';
 }
 function scOpen(key){
   document.querySelectorAll('.sc-wrap.open').forEach(el=>{ if(el.id!=='sc-'+key) el.classList.remove('open'); });
@@ -811,7 +775,6 @@ function scSelect(e,key){
   const lbl=el.getAttribute('data-lbl');
   scSetVal(key,val,lbl);
   document.getElementById('sc-'+key).classList.remove('open');
-  // cascade
   const topKeys=['udn','mes','sem'];
   if(topKeys.includes(key)||key==='cli'||key==='ger'){
     cascadeSelects();
@@ -821,7 +784,7 @@ function scSelect(e,key){
 function scSetVal(key,val,lbl){
   SC_SEL[key]=val;
   const inp=document.getElementById('sc-'+key+'-input');
-  inp.value= val===''?(key==='sem'?'':key==='estado'?'':''):lbl;
+  inp.value= val===''?'':lbl;
   if(val==='') inp.value='';
 }
 function scKey(e,key){
@@ -852,7 +815,7 @@ document.addEventListener('click',function(e){
 function fillAllSelects(){
   SC_VALS.udn = uniq(DATA.map(r=>r[C.udn]));
   const meses=[...loadedMonths].sort((a,b)=>b.localeCompare(a));
-  SC_VALS.mes = meses; // raw ym values; labels handled in render
+  SC_VALS.mes = meses;
   SC_VALS.sem = uniq(DATA.map(r=>r[C.semana]));
   SC_VALS.ope = uniq(DATA.map(r=>r[C.driver]||''));
   SC_VALS.car = uniq(DATA.map(r=>r[C.car]||''));
@@ -872,11 +835,10 @@ function cascadeSelects(){
   SC_VALS.ger = uniq(bG.map(r=>r[C.gerente]));
   const bJ=f.ger?bG.filter(r=>r[C.gerente]===f.ger):bG;
   SC_VALS.jef = uniq(bJ.map(r=>r[C.jefe]));
-  // Rebuild mes labels map for the renderer
   SC_VALS.mes = [...loadedMonths].sort((a,b)=>b.localeCompare(a));
 }
 
-// Override scRenderDD for mes to show labels
+// Override for mes labels
 const _origRender=scRenderDD;
 window.scRenderDD=function(key){
   if(key==='mes'){
@@ -893,9 +855,7 @@ window.scRenderDD=function(key){
   _origRender(key);
 };
 
-function onFilterChange(changedId){
-  draw();
-}
+function onFilterChange(changedId){ draw(); }
 
 const uniq=arr=>[...new Set(arr.filter(v=>v&&v.trim()))].sort();
 const N=n=>n.toLocaleString('es-MX');
@@ -929,7 +889,6 @@ function resetFilters(){
 }
 function filterRows(panelHint){
   const f=getF();
-  // Determine which kpiFilter applies based on active tab or panelHint
   const activePanel = panelHint || (document.getElementById('panel-inicios').classList.contains('active') ? 'ini' : 'lle');
   const estado = kpiFilter[activePanel];
   return DATA.filter(r=>{
@@ -941,7 +900,6 @@ function filterRows(panelHint){
     if(f.jef&&r[C.jefe]!==f.jef) return false;
     if(f.ope&&(r[C.driver]||'').trim()!==f.ope) return false;
     if(f.car&&(r[C.car]||'').trim()!==f.car) return false;
-    // KPI estado filter
     if(estado==='ini_tarde' && countLate(r[C.retardo])!==1) return false;
     if(estado==='lle_tarde' && countLate(r[C.llegada])!==1) return false;
     if(estado==='ambos' && !(countLate(r[C.retardo])===1 && countLate(r[C.llegada])===1)) return false;
@@ -1040,6 +998,11 @@ function formatGroupLabel(key,group){
   }
   return key;
 }
+
+// ══════════════════════════════════════════════════
+// buildChart — BARRAS 100% APILADAS EN PORCENTAJE
+// Tooltip muestra valores absolutos + % del segmento
+// ══════════════════════════════════════════════════
 function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
   const isIni = chartId==='ini';
   const group=chartGroup[chartId||'ini'];
@@ -1052,11 +1015,9 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
     const iniTarde  = countLate(r[C.retardo])===1;
     const lleTarde  = countLate(r[C.llegada])===1;
     if(isIni){
-      // Inicios tab: naranja = inicia tarde pero llega bien, rojo = ambos tarde
       if(iniTarde && lleTarde)  by[key].lAmbos++;
       else if(iniTarde)         by[key].lSolo++;
     } else {
-      // Llegadas tab: naranja = llega tarde pero salió bien, rojo = ambos tarde
       if(lleTarde && iniTarde)  by[key].lAmbos++;
       else if(lleTarde)         by[key].lSolo++;
     }
@@ -1065,12 +1026,21 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
     if(group==='semana') return (parseInt(a)||0)-(parseInt(b)||0);
     return a.localeCompare(b);
   });
+
+  // Valores absolutos (para tooltip y etiquetas)
   const tots   = keys.map(k=>by[k].t);
-  const solos  = keys.map(k=>by[k].lSolo);   // naranja
-  const ambos  = keys.map(k=>by[k].lAmbos);  // rojo
-  const lates  = keys.map((k,i)=>solos[i]+ambos[i]);
+  const solos  = keys.map(k=>by[k].lSolo);
+  const ambos  = keys.map(k=>by[k].lAmbos);
+  const entiem = keys.map((k,i)=>tots[i]-solos[i]-ambos[i]);
+
+  // % cumplimiento para la línea
   const pcts   = keys.map(k=>by[k].t>0?+((by[k].t-by[k].lSolo-by[k].lAmbos)/by[k].t*100).toFixed(1):0);
   const labels = keys.map(k=>formatGroupLabel(k,group));
+
+  // Convertir a % para barras 100% apiladas
+  const entiemPct = keys.map((k,i)=>tots[i]>0?+(entiem[i]/tots[i]*100).toFixed(2):0);
+  const solosPct  = keys.map((k,i)=>tots[i]>0?+(solos[i]/tots[i]*100).toFixed(2):0);
+  const ambosPct  = keys.map((k,i)=>tots[i]>0?+(ambos[i]/tots[i]*100).toFixed(2):0);
 
   const soloLbl  = isIni ? 'Inicia tarde · llega bien' : 'Llega tarde · salió bien';
   const ambosLbl = isIni ? 'Inicia Y llega tarde'      : 'Llega Y salió tarde';
@@ -1080,22 +1050,18 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
   return new Chart(ctx,{
     type:'bar',
     data:{labels,datasets:[
-      // 1. En tiempo (gris oscuro, base)
       {label:'En tiempo',
-       data:tots.map((t,i)=>t-solos[i]-ambos[i]),
+       data:entiemPct, _raw:entiem, _tots:tots,
        backgroundColor:'#4a4a4a',stack:'s',order:2,
        borderRadius:{topLeft:0,topRight:0,bottomLeft:4,bottomRight:4},barPercentage:.6},
-      // 2. Tarde pero se recupera (naranja)
       {label:soloLbl,
-       data:solos,
+       data:solosPct, _raw:solos, _tots:tots,
        backgroundColor:'#e8a055',stack:'s',order:2,
        borderRadius:{topLeft:0,topRight:0,bottomLeft:0,bottomRight:0},barPercentage:.6},
-      // 3. Tarde Y llega tarde (rojo, tope de la barra)
       {label:ambosLbl,
-       data:ambos,
+       data:ambosPct, _raw:ambos, _tots:tots,
        backgroundColor:'#dc2626',stack:'s',order:2,
        borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},barPercentage:.6},
-      // 4. Línea % cumplimiento
       {label:'% Cumplimiento',data:pcts,type:'line',yAxisID:'yP',order:1,
        borderColor:'#2a2a2a',backgroundColor:'rgba(42,42,42,.07)',
        borderWidth:2.5,pointBackgroundColor:'#2a2a2a',pointBorderColor:'#fff',
@@ -1110,41 +1076,64 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
           backgroundColor:'#1a2236',borderColor:'#7ed321',borderWidth:1,
           titleColor:'#fff',bodyColor:'rgba(255,255,255,.65)',padding:12,
           callbacks:{
+            // Título: fecha + total viajes del día
+            title(items){
+              const i=items[0];
+              const totArr=i.dataset._tots;
+              const tot=totArr?totArr[i.dataIndex]:null;
+              return i.label+(tot!=null?' · '+tot.toLocaleString('es-MX')+' viajes':'');
+            },
             label(c){
               if(c.dataset.label==='% Cumplimiento') return '  % Cumpl.: '+c.raw+'%';
-              if(!c.raw) return null;
-              return '  '+c.dataset.label+': '+c.raw.toLocaleString('es-MX');
+              const rawArr=c.dataset._raw;
+              const rawVal=rawArr?rawArr[c.dataIndex]:null;
+              if(rawVal===null||rawVal===0) return null;
+              const pctVal=c.raw>0?' ('+c.raw.toFixed(1)+'%)':'';
+              return '  '+c.dataset.label+': '+rawVal.toLocaleString('es-MX')+pctVal;
             }
           }
         }
       },
       scales:{
-        x:{stacked:true,ticks:{color:'#6b7a99',font:{size:10,family:'Inter'}},grid:{color:'rgba(0,0,0,.05)'}},
-        y:{stacked:true,ticks:{color:'#6b7a99',font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},
-        yP:{position:'right',ticks:{color:'#2a2a2a',font:{size:10},callback:v=>v+'%'},grid:{display:false}},
+        x:{stacked:true,
+           ticks:{color:'#6b7a99',font:{size:10,family:'Inter'}},
+           grid:{color:'rgba(0,0,0,.05)'}},
+        y:{stacked:true,
+           min:0, max:100,
+           ticks:{color:'#6b7a99',font:{size:10},callback:v=>v+'%'},
+           grid:{color:'rgba(0,0,0,.05)'}},
+        yP:{position:'right',
+            min:80, max:100,
+            ticks:{color:'#2a2a2a',font:{size:10},callback:v=>v+'%'},
+            grid:{display:false}},
       }
     },
     plugins:[{id:'lbl',afterDatasetsDraw(chart){
       const c2=chart.ctx;
-      // % encima de la línea
+
+      // Etiquetas sobre la línea de % cumplimiento
       const li=chart.data.datasets.findIndex(d=>d.label==='% Cumplimiento');
       chart.getDatasetMeta(li).data.forEach((pt,i)=>{
         const v=chart.data.datasets[li].data[i]; if(v==null) return;
         c2.save();c2.fillStyle='#2a2a2a';c2.font='bold 10px Inter';
         c2.textAlign='center';c2.fillText(v+'%',pt.x,pt.y-10);c2.restore();
       });
-      // Etiquetas dentro de cada segmento
-      [ambosLbl, soloLbl, 'En tiempo'].forEach((lbl,idx)=>{
+
+      // Etiquetas dentro de segmentos (valor absoluto)
+      [ambosLbl, soloLbl, 'En tiempo'].forEach((lbl)=>{
         const bi=chart.data.datasets.findIndex(d=>d.label===lbl);
         if(bi<0) return;
+        const rawArr=chart.data.datasets[bi]._raw;
         chart.getDatasetMeta(bi).data.forEach((bar,i)=>{
-          const v=chart.data.datasets[bi].data[i]; if(!v||bar.height<14) return;
+          const pv=chart.data.datasets[bi].data[i];
+          const rv=rawArr?rawArr[i]:0;
+          // Solo mostrar si el segmento es visible (>2%) y hay valor
+          if(!pv||pv<2||bar.height<14||!rv) return;
           c2.save();
-          // En tiempo = blanco, naranja = oscuro, rojo = blanco
-          c2.fillStyle=idx===2?'#ffffff':idx===1?'#1a1a1a':'#ffffff';
+          c2.fillStyle=lbl==='En tiempo'?'#ffffff':lbl===soloLbl?'#1a1a1a':'#ffffff';
           c2.font='bold 10px Inter';
           c2.textAlign='center';c2.textBaseline='middle';
-          c2.fillText(v.toLocaleString('es-MX'),bar.x,bar.y+bar.height/2);
+          c2.fillText(rv.toLocaleString('es-MX'), bar.x, bar.y+bar.height/2);
           c2.restore();
         });
       });
@@ -1166,22 +1155,16 @@ function draw(){
   if(f.car) parts.push('Car: '+f.car);
   const sfx=parts.length?' – '+parts.join(' · '):'';
 
-  // Base rows (no kpiFilter) for KPI card counts
-  const baseRows = filterRows('ini').concat(); // will recalc per panel below
-  // Rows for each panel (respects kpiFilter)
-  const rowsIni = filterRows('ini');
-  const rowsLle = filterRows('lle');
-
-  // KPI totals use BASE (no kpi filter) for the card numbers so they always show real totals
-  // But when a filter is active, totals reflect filtered set = rows for that panel
   const allBase = (() => {
-    // rows without any kpiFilter
     const saved={ini:kpiFilter.ini, lle:kpiFilter.lle};
     kpiFilter.ini=''; kpiFilter.lle='';
     const r = filterRows('ini');
     kpiFilter.ini=saved.ini; kpiFilter.lle=saved.lle;
     return r;
   })();
+
+  const rowsIni = filterRows('ini');
+  const rowsLle = filterRows('lle');
 
   const totAll   = allBase.reduce((s,r)=>s+countViajes(r[C.viajes]),0);
   const totIniT  = allBase.reduce((s,r)=>s+countLate(r[C.retardo]),0);
@@ -1209,7 +1192,6 @@ function draw(){
   ['lChartTitle','ltCliTitle','ltGerTitle','ltJefTitle'].forEach((id,i)=>
     document.getElementById(id).textContent=['Llegadas Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe'][i]+sfx);
 
-  // Charts and tables use the panel-specific filtered rows
   myChartIni=buildChart('chart-ini',rowsIni,C.retardo,'Inicios tarde',myChartIni,'ini');
   myChartLle=buildChart('chart-lle',rowsLle,C.llegada,'Llegadas tarde',myChartLle,'lle');
   buildTable(rowsIni,C.cliente,'cli',C.retardo);
@@ -1373,7 +1355,6 @@ if(window.innerWidth<=768){
   });
 }
 
-// Init KPI active states on load
 document.addEventListener('DOMContentLoaded',()=>{
   updateKpiActive('ini');
   updateKpiActive('lle');
