@@ -111,15 +111,10 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .grp-btn{background:transparent;border:none;cursor:pointer;padding:.22rem .55rem;font-size:.72rem;font-weight:600;font-family:"Inter",sans-serif;color:var(--muted);border-radius:5px;transition:all .15s;white-space:nowrap;}
 .grp-btn:hover{color:var(--text);background:rgba(0,0,0,.06);}
 .grp-btn.active{background:var(--white);color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,.12);}
-
-/* ── MODALES ─────────────────────────────────────────────────── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:1rem;}
 .modal-overlay.open{display:flex;}
-/* Nivel 1 – rutas */
 #drillModal{z-index:810;}
-/* Nivel 2 – detalle viajes: ENCIMA del modal de rutas */
 #drillDetailModal{z-index:820;}
-
 .modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
 .modal-head{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:1px solid var(--border);background:var(--navy2);}
 .modal-head h3{font-size:.92rem;font-weight:700;color:#fff;}
@@ -142,11 +137,8 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .row-ruta-clickable{cursor:pointer;}
 .row-ruta-clickable:hover{background:#f0f4ff !important;}
 .row-ruta-clickable .td-ruta{color:var(--navy);text-decoration:underline dotted;}
-.badge-tarde{display:inline-flex;align-items:center;gap:.3rem;background:#fff5f5;color:#c53030;border-radius:20px;padding:.18rem .6rem;font-size:.72rem;font-weight:700;}
-.badge-tiempo{display:inline-flex;align-items:center;gap:.3rem;background:#f0fff4;color:#276749;border-radius:20px;padding:.18rem .6rem;font-size:.72rem;font-weight:700;}
-/* minutos con color */
-.min-pos{color:#c53030;font-weight:700;}   /* positivo = tarde = rojo */
-.min-neg{color:#16a34a;font-weight:700;}   /* negativo = adelantado = verde */
+.min-pos{color:#c53030;font-weight:700;}
+.min-neg{color:#16a34a;font-weight:700;}
 .min-cero{color:#6b7a99;font-weight:600;}
 .filter-toggle-btn{display:none;width:100%;background:var(--navy2);color:var(--white);border:none;border-radius:8px;padding:.65rem 1rem;font-size:.82rem;font-weight:600;font-family:"Inter",sans-serif;cursor:pointer;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
 .filter-toggle-btn span{font-size:.75rem;opacity:.6}
@@ -382,7 +374,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   </main>
 </div>
 
-<!-- ══ MODAL NIVEL 2: detalle por viaje — z-index 820 (encima del modal de rutas) ══ -->
+<!-- ══ MODAL NIVEL 2: detalle por viaje ══ -->
 <div class="modal-overlay" id="drillDetailModal" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="modal-box" style="max-width:900px">
     <div class="modal-head">
@@ -401,8 +393,8 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <th>Fecha</th>
           <th style="text-align:left">Unidad</th>
           <th style="text-align:left">Operador</th>
-          <th>Minutos</th>
-          <th>Estado</th>
+          <th>Min Inicio</th>
+          <th>Min Llegada</th>
         </tr></thead>
         <tbody id="drillDetailBody"></tbody>
       </table>
@@ -411,7 +403,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   </div>
 </div>
 
-<!-- ══ MODAL NIVEL 1: detalle por ruta — z-index 810 ══ -->
+<!-- ══ MODAL NIVEL 1: detalle por ruta ══ -->
 <div class="modal-overlay" id="drillModal" onclick="closeDrill(event)">
   <div class="modal-box" style="max-width:800px">
     <div class="modal-head">
@@ -455,8 +447,8 @@ const C = {
   retardo: 'Inicios_Tarde',
   viajes:  'Cantidad de viajes',
   llegada: 'Llegadas_Tarde',
-  minIni:  'Minutos de Retraso',  // col AQ
-  minLle:  'Minutos llegadas',    // col AZ
+  minIni:  'Minutos de Retraso',
+  minLle:  'Minutos llegadas',
 };
 
 let DATA         = [];
@@ -530,7 +522,6 @@ function csvUrl(offset){
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
 }
 
-// ── helpers minutos ──────────────────────────────────────────────────────────
 function parseMin(v){
   if(v===undefined||v===null||String(v).trim()==='') return null;
   const n=parseFloat(String(v).replace(',','.'));
@@ -923,7 +914,6 @@ function toggleDrillSort(){
   if(lastDrillArgs) renderDrill(...lastDrillArgs);
 }
 
-// ── MODAL NIVEL 1: rutas + columna Prom. Minutos ────────────────────────────
 function renderDrill(clienteK,tbl){
   const isLlegadas = tbl==='lcli';
   const lateField  = isLlegadas ? C.llegada : C.retardo;
@@ -982,18 +972,16 @@ function closeDrill(e){ if(e.target===document.getElementById('drillModal')) doc
 
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
-    // cierra de adentro hacia afuera
     const d2=document.getElementById('drillDetailModal');
     if(d2.classList.contains('open')){ d2.classList.remove('open'); return; }
     document.getElementById('drillModal').classList.remove('open');
   }
 });
 
-// ── MODAL NIVEL 2: detalle por viaje + columna minutos ──────────────────────
+// ── MODAL NIVEL 2: Min Inicio + Min Llegada ──────────────────────────────────
 function openDrillDetail(rutaK, clienteK, tbl){
   const isLlegadas = tbl==='lcli';
   const lateField  = isLlegadas ? C.llegada : C.retardo;
-  const minField   = isLlegadas ? C.minLle  : C.minIni;
   const lateLbl    = isLlegadas ? 'Llegada tarde' : 'Inicio tarde';
 
   const rows = filterRows().filter(r=>
@@ -1017,16 +1005,14 @@ function openDrillDetail(rutaK, clienteK, tbl){
     const unidad   = (r['car']||'–').trim();
     const driver   = (r['driver']||'–').trim();
     const bg       = i%2===0?'#ffffff':'#f7f9ff';
-    const badge    = tarde
-      ? '<span class="badge-tarde">❌ '+lateLbl+'</span>'
-      : '<span class="badge-tiempo">✅ A tiempo</span>';
-    const minVal   = parseMin(r[minField]);
+    const minIni   = parseMin(r[C.minIni]);
+    const minLle   = parseMin(r[C.minLle]);
     return `<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${fechaFmt}</td>
       <td style="text-align:left;font-weight:600">${unidad}</td>
       <td style="text-align:left">${driver}</td>
-      <td style="text-align:right">${minCell(minVal,0)}</td>
-      <td style="text-align:right">${badge}</td>
+      <td style="text-align:right">${minCell(minIni,0)}</td>
+      <td style="text-align:right">${minCell(minLle,0)}</td>
     </tr>`;
   }).join('')||'<tr><td colspan="5" class="table-empty">Sin viajes registrados</td></tr>';
 
