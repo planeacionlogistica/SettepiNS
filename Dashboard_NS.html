@@ -26,29 +26,29 @@ nav>a:hover{background:#374151;}
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;min-height:100vh}
 .layout{display:flex;align-items:flex-start;min-height:calc(100vh - 58px)}
-.sidebar{width:220px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);padding:1.1rem .95rem;display:flex;flex-direction:column;gap:1rem;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
+.sidebar{width:240px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);padding:1.1rem .95rem;display:flex;flex-direction:column;gap:.85rem;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
 .sb-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:.5rem;border-bottom:1px solid var(--border)}
 .fg{display:flex;flex-direction:column;gap:.28rem}
-.fg label{font-size:.7rem;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.fg label{font-size:.68rem;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
 .fg select,.fg input[type=date]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.38rem .5rem;font-size:.78rem;font-family:"Inter",sans-serif;appearance:none;cursor:pointer;outline:none;transition:border-color .15s;}
 .fg select:focus,.fg input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(126,211,33,.15)}
 .sc-wrap{position:relative;width:100%;}
-.sc-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.38rem 1.6rem .38rem .5rem;font-size:.78rem;font-family:"Inter",sans-serif;outline:none;transition:border-color .15s;cursor:text;}
-.sc-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(126,211,33,.15);}
-.sc-arrow{position:absolute;right:.45rem;top:50%;transform:translateY(-50%);font-size:.6rem;color:var(--muted);pointer-events:none;transition:transform .15s;}
+.sc-input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:7px;color:var(--text);padding:.42rem 1.8rem .42rem .6rem;font-size:.78rem;font-family:"Inter",sans-serif;outline:none;transition:border-color .15s,box-shadow .15s;cursor:text;}
+.sc-input:focus,.sc-wrap.open .sc-input{border-color:var(--green);box-shadow:0 0 0 3px rgba(126,211,33,.13);}
+.sc-arrow{position:absolute;right:.5rem;top:50%;transform:translateY(-50%);font-size:.58rem;color:var(--muted);pointer-events:none;transition:transform .15s;}
 .sc-wrap.open .sc-arrow{transform:translateY(-50%) rotate(180deg);}
-.sc-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--white);border:1px solid var(--border);border-radius:8px;box-shadow:0 6px 18px rgba(26,34,54,.13);z-index:500;max-height:190px;overflow-y:auto;padding:3px 0;}
+.sc-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--white);border:1.5px solid var(--green);border-radius:8px;box-shadow:0 6px 18px rgba(26,34,54,.15);z-index:500;max-height:190px;overflow-y:auto;padding:3px 0;}
 .sc-wrap.open .sc-dropdown{display:block;}
-.sc-opt{padding:.38rem .65rem;font-size:.78rem;font-family:"Inter",sans-serif;color:var(--text);cursor:pointer;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sc-opt{padding:.4rem .7rem;font-size:.78rem;font-family:"Inter",sans-serif;color:var(--text);cursor:pointer;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .sc-opt:hover,.sc-opt.focused{background:#f0f4ff;}
-.sc-opt.selected{background:rgba(126,211,33,.12);font-weight:600;color:var(--navy);}
+.sc-opt.selected{background:rgba(126,211,33,.15);font-weight:700;color:var(--navy);}
 .sc-opt.sc-none{color:var(--muted);font-style:italic;cursor:default;}
 .sc-opt.sc-none:hover{background:transparent;}
 .date-row{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;align-items:end;}
 .date-row .fg{gap:.2rem;}
 .date-row input[type=date]{font-size:.72rem;padding:.35rem .4rem;}
-.btn-reset{width:100%;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:.4rem;font-size:.74rem;font-family:"Inter",sans-serif;font-weight:500;cursor:pointer;transition:all .15s;}
-.btn-reset:hover{border-color:var(--green);color:var(--green);background:rgba(126,211,33,.06)}
+.btn-reset{width:100%;background:transparent;border:1.5px solid var(--border);border-radius:7px;color:var(--muted);padding:.45rem;font-size:.75rem;font-family:"Inter",sans-serif;font-weight:600;cursor:pointer;transition:all .15s;margin-top:.2rem;}
+.btn-reset:hover{border-color:var(--red);color:var(--red);background:rgba(229,62,62,.06)}
 .main{flex:1;padding:1.35rem 1.5rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
 .kpi{background:var(--white);border-radius:12px;padding:1.1rem 1.25rem;position:relative;overflow:hidden;box-shadow:0 2px 10px rgba(26,34,54,.07);border-top:4px solid var(--kc,var(--green));transition:transform .15s,box-shadow .2s;}
@@ -93,7 +93,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .pct-val{font-weight:700;font-size:.8rem;min-width:42px;text-align:right}
 .rank-badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:.65rem;font-weight:700;flex-shrink:0;}
 .table-empty{text-align:center;padding:2rem 1rem;color:var(--muted);font-size:.82rem}
-.section-end{margin-bottom:1.5rem}
+.section-end{margin-bottom:.5rem}
 .th-inner{display:flex;align-items:center;justify-content:space-between;gap:.3rem}
 .th-inner span{flex:1}
 .sort-btn{background:none;border:none;cursor:pointer;padding:0 3px;color:rgba(255,255,255,.4);font-size:.7rem;line-height:1;transition:color .15s;}
@@ -164,6 +164,10 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .sidebar.collapsed .fg,.sidebar.collapsed .btn-reset,.sidebar.collapsed .sb-title{display:none}
 .sidebar.collapsed{padding:.5rem .95rem}
 .filter-active-badge{display:inline-block;background:var(--green);color:var(--navy);font-size:.58rem;font-weight:700;padding:.1rem .35rem;border-radius:8px;margin-left:.3rem;vertical-align:middle;}
+/* Sidebar filters grid */
+.sidebar-filters{display:flex;flex-direction:column;gap:.7rem;}
+/* pct-late column: show % instead of number */
+.td-pct-late{color:var(--red);font-weight:700;font-size:.8rem;}
 @media(max-width:768px){
   nav{padding:10px 16px;gap:10px;}
   nav>a:first-child{font-size:15px;}
@@ -249,7 +253,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       <div class="fg">
         <label>Unidad de Negocio</label>
         <div class="sc-wrap" id="sc-udn">
-          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+          <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
             id="sc-udn-input" oninput="scFilter('udn')" onfocus="scOpen('udn')" onkeydown="scKey(event,'udn')">
           <span class="sc-arrow">▼</span>
           <div class="sc-dropdown" id="sc-udn-dd"></div>
@@ -307,6 +311,26 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
 
       <div class="fg">
+        <label>Coordinador</label>
+        <div class="sc-wrap" id="sc-coord">
+          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+            id="sc-coord-input" oninput="scFilter('coord')" onfocus="scOpen('coord')" onkeydown="scKey(event,'coord')">
+          <span class="sc-arrow">▼</span>
+          <div class="sc-dropdown" id="sc-coord-dd"></div>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Turno</label>
+        <div class="sc-wrap" id="sc-turno">
+          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+            id="sc-turno-input" oninput="scFilter('turno')" onfocus="scOpen('turno')" onkeydown="scKey(event,'turno')">
+          <span class="sc-arrow">▼</span>
+          <div class="sc-dropdown" id="sc-turno-dd"></div>
+        </div>
+      </div>
+
+      <div class="fg">
         <label>Operador</label>
         <div class="sc-wrap" id="sc-ope">
           <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
@@ -326,7 +350,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
       </div>
 
-      <div class="fg" style="grid-column:1/-1">
+      <div class="fg">
         <label>Rango de fechas</label>
         <div class="date-row">
           <div class="fg">
@@ -351,6 +375,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       <button class="tab-btn" onclick="switchTab('llegadas')">🏁 Llegadas</button>
     </div>
 
+    <!-- ═══════════════════ PANEL INICIOS ═══════════════════ -->
     <div class="tab-panel active" id="panel-inicios">
       <div class="kpi-grid" id="kpi-ini">
         <div class="kpi kpi-clickable" style="--kc:#1a2236" id="kpi-ini-total" onclick="toggleKpiFilter('ini','total')">
@@ -394,40 +419,58 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
         <div class="chart-wrap"><canvas id="chart-ini"></canvas></div>
       </div>
+
+      <!-- Tabla Cliente -->
       <div class="table-card" id="card-cli">
         <div class="table-hdr">
           <div><div class="table-hdr-title"><span class="table-hdr-icon">🏢</span><span id="tCliTitle">Resumen por Cliente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
           <div class="table-hdr-actions"><span class="table-count" id="tCliCount">0 clientes</span><button class="btn-capture" onclick="captureTable('card-cli','Inicios_Clientes')">📷 Capturar</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:44px">#</th><th>Cliente / Grupo</th><th>Total Viajes</th><th>Inicios Tarde</th>
+          <th style="width:44px">#</th><th>Cliente / Grupo</th><th>Total</th><th>% Tarde</th>
           <th style="cursor:pointer" onclick="sortTable('cli')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-cli" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tCliBody"></tbody></table></div>
       </div>
-      <div class="tables-grid section-end">
+
+      <div class="tables-grid">
+        <!-- Tabla Gerente -->
         <div class="table-card" id="card-ger">
           <div class="table-hdr">
             <div><div class="table-hdr-title"><span class="table-hdr-icon">👔</span><span id="tGerTitle">Resumen por Gerente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
             <div class="table-hdr-actions"><span class="table-count" id="tGerCount">0 gerentes</span><button class="btn-capture" onclick="captureTable('card-ger','Inicios_Gerentes')">📷 Capturar</button></div>
           </div>
           <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-            <th style="width:44px">#</th><th>Gerente</th><th>Total Viajes</th><th>Inicios Tarde</th>
+            <th style="width:44px">#</th><th>Gerente</th><th>Total</th><th>% Tarde</th>
             <th style="cursor:pointer" onclick="sortTable('ger')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-ger" style="pointer-events:none">↓</button></div></th>
           </tr></thead><tbody id="tGerBody"></tbody></table></div>
         </div>
+        <!-- Tabla Jefe -->
         <div class="table-card" id="card-jef">
           <div class="table-hdr">
             <div><div class="table-hdr-title"><span class="table-hdr-icon">🗂️</span><span id="tJefTitle">Resumen por Jefe</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
             <div class="table-hdr-actions"><span class="table-count" id="tJefCount">0 jefes</span><button class="btn-capture" onclick="captureTable('card-jef','Inicios_Jefes')">📷 Capturar</button></div>
           </div>
           <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-            <th style="width:44px">#</th><th>Jefe</th><th>Total Viajes</th><th>Inicios Tarde</th>
+            <th style="width:44px">#</th><th>Jefe</th><th>Total</th><th>% Tarde</th>
             <th style="cursor:pointer" onclick="sortTable('jef')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-jef" style="pointer-events:none">↓</button></div></th>
           </tr></thead><tbody id="tJefBody"></tbody></table></div>
         </div>
       </div>
+
+      <!-- Tabla Coordinador -->
+      <div class="table-card section-end" id="card-coord">
+        <div class="table-hdr">
+          <div><div class="table-hdr-title"><span class="table-hdr-icon">🧑‍💼</span><span id="tCoordTitle">Resumen por Coordinador</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
+          <div class="table-hdr-actions"><span class="table-count" id="tCoordCount">0 coordinadores</span><button class="btn-capture" onclick="captureTable('card-coord','Inicios_Coordinadores')">📷 Capturar</button></div>
+        </div>
+        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+          <th style="width:44px">#</th><th>Coordinador</th><th>Total</th><th>% Tarde</th>
+          <th style="cursor:pointer" onclick="sortTable('coord')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-coord" style="pointer-events:none">↓</button></div></th>
+        </tr></thead><tbody id="tCoordBody"></tbody></table></div>
+      </div>
     </div>
 
+    <!-- ═══════════════════ PANEL LLEGADAS ═══════════════════ -->
     <div class="tab-panel" id="panel-llegadas">
       <div class="kpi-grid" id="kpi-lle">
         <div class="kpi kpi-clickable" style="--kc:#1a2236" id="kpi-lle-total" onclick="toggleKpiFilter('lle','total')">
@@ -471,37 +514,54 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
         <div class="chart-wrap"><canvas id="chart-lle"></canvas></div>
       </div>
+
+      <!-- Tabla Cliente Llegadas -->
       <div class="table-card" id="lcard-cli">
         <div class="table-hdr">
           <div><div class="table-hdr-title"><span class="table-hdr-icon">🏢</span><span id="ltCliTitle">Resumen por Cliente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
           <div class="table-hdr-actions"><span class="table-count" id="ltCliCount">0 clientes</span><button class="btn-capture" onclick="captureTable('lcard-cli','Llegadas_Clientes')">📷 Capturar</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:44px">#</th><th>Cliente / Grupo</th><th>Total Viajes</th><th>Llegadas Tarde</th>
+          <th style="width:44px">#</th><th>Cliente / Grupo</th><th>Total</th><th>% Tarde</th>
           <th style="cursor:pointer" onclick="sortTable('lcli')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-lcli" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltCliBody"></tbody></table></div>
       </div>
-      <div class="tables-grid section-end">
+
+      <div class="tables-grid">
+        <!-- Tabla Gerente Llegadas -->
         <div class="table-card" id="lcard-ger">
           <div class="table-hdr">
             <div><div class="table-hdr-title"><span class="table-hdr-icon">👔</span><span id="ltGerTitle">Resumen por Gerente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
             <div class="table-hdr-actions"><span class="table-count" id="ltGerCount">0 gerentes</span><button class="btn-capture" onclick="captureTable('lcard-ger','Llegadas_Gerentes')">📷 Capturar</button></div>
           </div>
           <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-            <th style="width:44px">#</th><th>Gerente</th><th>Total Viajes</th><th>Llegadas Tarde</th>
+            <th style="width:44px">#</th><th>Gerente</th><th>Total</th><th>% Tarde</th>
             <th style="cursor:pointer" onclick="sortTable('lger')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-lger" style="pointer-events:none">↓</button></div></th>
           </tr></thead><tbody id="ltGerBody"></tbody></table></div>
         </div>
+        <!-- Tabla Jefe Llegadas -->
         <div class="table-card" id="lcard-jef">
           <div class="table-hdr">
             <div><div class="table-hdr-title"><span class="table-hdr-icon">🗂️</span><span id="ltJefTitle">Resumen por Jefe</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
             <div class="table-hdr-actions"><span class="table-count" id="ltJefCount">0 jefes</span><button class="btn-capture" onclick="captureTable('lcard-jef','Llegadas_Jefes')">📷 Capturar</button></div>
           </div>
           <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-            <th style="width:44px">#</th><th>Jefe</th><th>Total Viajes</th><th>Llegadas Tarde</th>
+            <th style="width:44px">#</th><th>Jefe</th><th>Total</th><th>% Tarde</th>
             <th style="cursor:pointer" onclick="sortTable('ljef')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-ljef" style="pointer-events:none">↓</button></div></th>
           </tr></thead><tbody id="ltJefBody"></tbody></table></div>
         </div>
+      </div>
+
+      <!-- Tabla Coordinador Llegadas -->
+      <div class="table-card section-end" id="lcard-coord">
+        <div class="table-hdr">
+          <div><div class="table-hdr-title"><span class="table-hdr-icon">🧑‍💼</span><span id="ltCoordTitle">Resumen por Coordinador</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
+          <div class="table-hdr-actions"><span class="table-count" id="ltCoordCount">0 coordinadores</span><button class="btn-capture" onclick="captureTable('lcard-coord','Llegadas_Coordinadores')">📷 Capturar</button></div>
+        </div>
+        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+          <th style="width:44px">#</th><th>Coordinador</th><th>Total</th><th>% Tarde</th>
+          <th style="cursor:pointer" onclick="sortTable('lcoord')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-lcoord" style="pointer-events:none">↓</button></div></th>
+        </tr></thead><tbody id="ltCoordBody"></tbody></table></div>
       </div>
     </div>
   </main>
@@ -570,6 +630,7 @@ const SHEET_ID   = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const SHEET_NAME = 'NS';
 const CHUNK      = 35000;
 
+// ── Nombres de columnas ──────────────────────────────────────────
 const C = {
   fecha:   'start_date',
   semana:  'Semana',
@@ -577,6 +638,8 @@ const C = {
   cliente: 'group',
   gerente: 'Gerente',
   jefe:    'Jefe',
+  coord:   'Coordinador',   // columna Coordinador en el sheet
+  turno:   'Turno',         // columna Turno en el sheet
   retardo: 'Inicios_Tarde',
   viajes:  'Cantidad de viajes',
   llegada: 'Llegadas_Tarde',
@@ -591,12 +654,15 @@ let loadedMonths = new Set();
 let myChartIni   = null;
 let myChartLle   = null;
 
-const SC_VALS    = { udn:[], mes:[], sem:[], cli:[], ger:[], jef:[], ope:[], car:[] };
-const SC_SEL     = { udn:'', mes:'', sem:'', cli:'', ger:'', jef:'', ope:'', car:'' };
-const SC_FOCUS   = { udn:-1, mes:-1, sem:-1, cli:-1, ger:-1, jef:-1, ope:-1, car:-1 };
+// Todos los filtros de tipo searchable-combo
+const SC_KEYS = ['udn','mes','sem','cli','ger','jef','coord','turno','ope','car'];
+const SC_VALS  = Object.fromEntries(SC_KEYS.map(k=>[k,[]]));
+const SC_SEL   = Object.fromEntries(SC_KEYS.map(k=>[k,'']));
+const SC_FOCUS = Object.fromEntries(SC_KEYS.map(k=>[k,-1]));
 
 const kpiFilter = { ini: '', lle: '' };
 
+// ── KPI click filter ────────────────────────────────────────────
 function toggleKpiFilter(panel, val){
   const cur = kpiFilter[panel];
   kpiFilter[panel] = (val==='total'||val===cur) ? '' : val;
@@ -624,6 +690,7 @@ function updateKpiActive(panel){
   });
 }
 
+// ── Date helpers ─────────────────────────────────────────────────
 function norm(s){
   if(!s) return '';
   s=String(s).trim();
@@ -655,6 +722,7 @@ function getCurrentMonth(){
   return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
 }
 
+// ── CSV parser ──────────────────────────────────────────────────
 function parseCSVLine(line){
   const cols=[];let cur='',inQ=false;
   for(let i=0;i<line.length;i++){
@@ -670,10 +738,21 @@ function parseCSV(text){
   const lines=text.trim().split(/\r?\n/);
   if(lines.length<2) return [];
   const hdrs=parseCSVLine(lines[0]);
+  // auto-detect business_unit column
   if(!hdrs.includes(C.udn)){
     const found=hdrs.find(h=>h==='business_unit'||h.toLowerCase().includes('business')||
       h.toLowerCase().includes('unidad')||h.toLowerCase().includes('udn')||h.toLowerCase().includes('negocio'));
     if(found) C.udn=found;
+  }
+  // auto-detect Coordinador column (flexible naming)
+  if(!hdrs.includes(C.coord)){
+    const found=hdrs.find(h=>h.toLowerCase().includes('coordinador')||h.toLowerCase().includes('coord'));
+    if(found) C.coord=found;
+  }
+  // auto-detect Turno column
+  if(!hdrs.includes(C.turno)){
+    const found=hdrs.find(h=>h.toLowerCase().includes('turno'));
+    if(found) C.turno=found;
   }
   const rows=[];
   for(let i=1;i<lines.length;i++){
@@ -690,6 +769,7 @@ function csvUrl(offset){
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
 }
 
+// ── Minute helpers ──────────────────────────────────────────────
 function parseMin(v){
   if(v===undefined||v===null||String(v).trim()==='') return null;
   const n=parseFloat(String(v).replace(',','.'));
@@ -702,6 +782,7 @@ function minCell(val, decimals=1){
   return `<span class="${cls}">${sign}${val.toFixed(decimals)} min</span>`;
 }
 
+// ── Load ─────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', loadSheet);
 
 async function loadSheet(){
@@ -748,16 +829,29 @@ async function loadSheet(){
   }
 }
 
+// ── Searchable combo ─────────────────────────────────────────────
 function scRenderDD(key){
+  if(key==='mes'){
+    const dd=document.getElementById('sc-mes-dd');
+    const q=(document.getElementById('sc-mes-input').value||'').toLowerCase();
+    const filtered=SC_VALS.mes.filter(ym=>mesLabel(ym).toLowerCase().includes(q)||ym.includes(q));
+    SC_FOCUS.mes=-1;
+    const allOpt=`<div class="sc-opt${SC_SEL.mes===''?' selected':''}" data-val="" data-lbl="Todos" onmousedown="scSelect(event,'mes')">Todos</div>`;
+    dd.innerHTML=allOpt+(filtered.length
+      ? filtered.map(ym=>`<div class="sc-opt${SC_SEL.mes===ym?' selected':''}" data-val="${ym}" data-lbl="${mesLabel(ym)}" onmousedown="scSelect(event,'mes')">${mesLabel(ym)}</div>`).join('')
+      : '<div class="sc-opt sc-none">Sin resultados</div>');
+    return;
+  }
   const dd=document.getElementById('sc-'+key+'-dd');
   const inputEl=document.getElementById('sc-'+key+'-input');
   const q=(inputEl.value||'').toLowerCase();
-  let opts=SC_VALS[key];
-  const filtered = opts.filter(v=>v.toLowerCase().includes(q));
+  const filtered = SC_VALS[key].filter(v=>v.toLowerCase().includes(q));
   SC_FOCUS[key]=-1;
-  const allOpt=`<div class="sc-opt${SC_SEL[key]===''?' selected':''}" data-val="" data-lbl="Todos" onmousedown="scSelect(event,'${key}')">Todos</div>`;
-  dd.innerHTML=allOpt+filtered.map(v=>`<div class="sc-opt${SC_SEL[key]===v?' selected':''}" data-val="${v}" data-lbl="${v}" onmousedown="scSelect(event,'${key}')">${v}</div>`).join('')
-    || '<div class="sc-opt sc-none">Sin resultados</div>';
+  const placeholder = key==='sem'?'Todas':'Todos';
+  const allOpt=`<div class="sc-opt${SC_SEL[key]===''?' selected':''}" data-val="" data-lbl="${placeholder}" onmousedown="scSelect(event,'${key}')">${placeholder}</div>`;
+  dd.innerHTML=allOpt+(filtered.length
+    ? filtered.map(v=>`<div class="sc-opt${SC_SEL[key]===v?' selected':''}" data-val="${v}" data-lbl="${v}" onmousedown="scSelect(event,'${key}')">${v}</div>`).join('')
+    : '<div class="sc-opt sc-none">Sin resultados</div>');
 }
 function scOpen(key){
   document.querySelectorAll('.sc-wrap.open').forEach(el=>{ if(el.id!=='sc-'+key) el.classList.remove('open'); });
@@ -775,8 +869,7 @@ function scSelect(e,key){
   const lbl=el.getAttribute('data-lbl');
   scSetVal(key,val,lbl);
   document.getElementById('sc-'+key).classList.remove('open');
-  const topKeys=['udn','mes','sem'];
-  if(topKeys.includes(key)||key==='cli'||key==='ger'){
+  if(['udn','mes','sem','cli','ger','jef','coord','turno'].includes(key)){
     cascadeSelects();
   }
   draw();
@@ -784,8 +877,7 @@ function scSelect(e,key){
 function scSetVal(key,val,lbl){
   SC_SEL[key]=val;
   const inp=document.getElementById('sc-'+key+'-input');
-  inp.value= val===''?'':lbl;
-  if(val==='') inp.value='';
+  inp.value = val==='' ? '' : lbl;
 }
 function scKey(e,key){
   const dd=document.getElementById('sc-'+key+'-dd');
@@ -812,50 +904,39 @@ document.addEventListener('click',function(e){
     document.querySelectorAll('.sc-wrap.open').forEach(el=>el.classList.remove('open'));
 });
 
+// ── Fill selects ─────────────────────────────────────────────────
 function fillAllSelects(){
-  SC_VALS.udn = uniq(DATA.map(r=>r[C.udn]));
-  const meses=[...loadedMonths].sort((a,b)=>b.localeCompare(a));
-  SC_VALS.mes = meses;
-  SC_VALS.sem = uniq(DATA.map(r=>r[C.semana]));
-  SC_VALS.ope = uniq(DATA.map(r=>r[C.driver]||''));
-  SC_VALS.car = uniq(DATA.map(r=>r[C.car]||''));
+  SC_VALS.udn   = uniq(DATA.map(r=>r[C.udn]||''));
+  SC_VALS.mes   = [...loadedMonths].sort((a,b)=>b.localeCompare(a));
+  SC_VALS.sem   = uniq(DATA.map(r=>r[C.semana]||''));
+  SC_VALS.ope   = uniq(DATA.map(r=>r[C.driver]||''));
+  SC_VALS.car   = uniq(DATA.map(r=>r[C.car]||''));
+  SC_VALS.turno = uniq(DATA.map(r=>r[C.turno]||''));
   cascadeSelects();
 }
 
 function cascadeSelects(){
   const f=getF();
+  // base: udn + mes + sem + turno filter
   const base=DATA.filter(r=>{
     if(f.udn&&r[C.udn]!==f.udn) return false;
     if(f.mes&&normMonth(getFecha(r))!==f.mes) return false;
     if(f.sem&&r[C.semana]!==f.sem) return false;
+    if(f.turno&&(r[C.turno]||'').trim()!==f.turno) return false;
     return true;
   });
-  SC_VALS.cli = uniq(base.map(r=>r[C.cliente]));
-  const bG=f.cli?base.filter(r=>r[C.cliente]===f.cli):base;
-  SC_VALS.ger = uniq(bG.map(r=>r[C.gerente]));
-  const bJ=f.ger?bG.filter(r=>r[C.gerente]===f.ger):bG;
-  SC_VALS.jef = uniq(bJ.map(r=>r[C.jefe]));
-  SC_VALS.mes = [...loadedMonths].sort((a,b)=>b.localeCompare(a));
+  SC_VALS.cli   = uniq(base.map(r=>r[C.cliente]||''));
+  const bG = f.cli ? base.filter(r=>r[C.cliente]===f.cli) : base;
+  SC_VALS.ger   = uniq(bG.map(r=>r[C.gerente]||''));
+  const bJ = f.ger ? bG.filter(r=>r[C.gerente]===f.ger) : bG;
+  SC_VALS.jef   = uniq(bJ.map(r=>r[C.jefe]||''));
+  const bC = f.jef ? bJ.filter(r=>r[C.jefe]===f.jef) : bJ;
+  SC_VALS.coord = uniq(bC.map(r=>(r[C.coord]||'').trim()));
+  SC_VALS.turno = uniq(DATA.map(r=>(r[C.turno]||'').trim()));
+  SC_VALS.mes   = [...loadedMonths].sort((a,b)=>b.localeCompare(a));
 }
 
-// Override for mes labels
-const _origRender=scRenderDD;
-window.scRenderDD=function(key){
-  if(key==='mes'){
-    const dd=document.getElementById('sc-mes-dd');
-    const q=(document.getElementById('sc-mes-input').value||'').toLowerCase();
-    const filtered=SC_VALS.mes.filter(ym=>mesLabel(ym).toLowerCase().includes(q)||ym.includes(q));
-    SC_FOCUS.mes=-1;
-    const allOpt=`<div class="sc-opt${SC_SEL.mes===''?' selected':''}" data-val="" data-lbl="Todos" onmousedown="scSelect(event,'mes')">Todos</div>`;
-    dd.innerHTML=allOpt+filtered.map(ym=>`<div class="sc-opt${SC_SEL.mes===ym?' selected':''}" data-val="${ym}" data-lbl="${mesLabel(ym)}" onmousedown="scSelect(event,'mes')">${mesLabel(ym)}</div>`).join('')
-      || '<div class="sc-opt sc-none">Sin resultados</div>';
-    document.getElementById('sc-mes').classList.add('open');
-    return;
-  }
-  _origRender(key);
-};
-
-function onFilterChange(changedId){ draw(); }
+function onFilterChange(){ draw(); }
 
 const uniq=arr=>[...new Set(arr.filter(v=>v&&v.trim()))].sort();
 const N=n=>n.toLocaleString('es-MX');
@@ -872,14 +953,17 @@ function getF(){
     cli:   SC_SEL.cli,
     ger:   SC_SEL.ger,
     jef:   SC_SEL.jef,
+    coord: SC_SEL.coord,
+    turno: SC_SEL.turno,
     ope:   SC_SEL.ope,
     car:   SC_SEL.car,
     fi:    document.getElementById('fFi').value,
     ff:    document.getElementById('fFf').value,
   };
 }
+
 function resetFilters(){
-  Object.keys(SC_SEL).forEach(k=>scSetVal(k,'',''));
+  SC_KEYS.forEach(k=>scSetVal(k,'',''));
   document.getElementById('fFi').value='';
   document.getElementById('fFf').value='';
   kpiFilter.ini=''; kpiFilter.lle='';
@@ -887,6 +971,7 @@ function resetFilters(){
   fillAllSelects();
   draw();
 }
+
 function filterRows(panelHint){
   const f=getF();
   const activePanel = panelHint || (document.getElementById('panel-inicios').classList.contains('active') ? 'ini' : 'lle');
@@ -898,6 +983,8 @@ function filterRows(panelHint){
     if(f.cli&&r[C.cliente]!==f.cli) return false;
     if(f.ger&&r[C.gerente]!==f.ger) return false;
     if(f.jef&&r[C.jefe]!==f.jef) return false;
+    if(f.coord&&(r[C.coord]||'').trim()!==f.coord) return false;
+    if(f.turno&&(r[C.turno]||'').trim()!==f.turno) return false;
     if(f.ope&&(r[C.driver]||'').trim()!==f.ope) return false;
     if(f.car&&(r[C.car]||'').trim()!==f.car) return false;
     if(estado==='ini_tarde' && countLate(r[C.retardo])!==1) return false;
@@ -909,17 +996,34 @@ function filterRows(panelHint){
     return true;
   });
 }
+
 function switchTab(tab){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===(tab==='inicios'?0:1)));
   document.getElementById('panel-inicios').classList.toggle('active',tab==='inicios');
   document.getElementById('panel-llegadas').classList.toggle('active',tab==='llegadas');
 }
 
-const sortState={cli:{col:3,dir:-1},ger:{col:3,dir:-1},jef:{col:3,dir:-1},lcli:{col:3,dir:-1},lger:{col:3,dir:-1},ljef:{col:3,dir:-1}};
-const tableData={cli:[],ger:[],jef:[],lcli:[],lger:[],ljef:[]};
-const TABLE_BODY={cli:'tCliBody',ger:'tGerBody',jef:'tJefBody',lcli:'ltCliBody',lger:'ltGerBody',ljef:'ltJefBody'};
-const TABLE_CNT={cli:'tCliCount',ger:'tGerCount',jef:'tJefCount',lcli:'ltCliCount',lger:'ltGerCount',ljef:'ltJefCount'};
-const TABLE_WORD={cli:'cliente',ger:'gerente',jef:'jefe',lcli:'cliente',lger:'gerente',ljef:'jefe'};
+// ── Tables ───────────────────────────────────────────────────────
+const sortState={
+  cli:{col:3,dir:-1},ger:{col:3,dir:-1},jef:{col:3,dir:-1},coord:{col:3,dir:-1},
+  lcli:{col:3,dir:-1},lger:{col:3,dir:-1},ljef:{col:3,dir:-1},lcoord:{col:3,dir:-1}
+};
+const tableData={
+  cli:[],ger:[],jef:[],coord:[],
+  lcli:[],lger:[],ljef:[],lcoord:[]
+};
+const TABLE_BODY={
+  cli:'tCliBody',ger:'tGerBody',jef:'tJefBody',coord:'tCoordBody',
+  lcli:'ltCliBody',lger:'ltGerBody',ljef:'ltJefBody',lcoord:'ltCoordBody'
+};
+const TABLE_CNT={
+  cli:'tCliCount',ger:'tGerCount',jef:'tJefCount',coord:'tCoordCount',
+  lcli:'ltCliCount',lger:'ltGerCount',ljef:'ltJefCount',lcoord:'ltCoordCount'
+};
+const TABLE_WORD={
+  cli:'cliente',ger:'gerente',jef:'jefe',coord:'coordinador',
+  lcli:'cliente',lger:'gerente',ljef:'jefe',lcoord:'coordinador'
+};
 
 function sortTable(tbl){
   sortState[tbl].dir*=-1;
@@ -927,6 +1031,7 @@ function sortTable(tbl){
   const btn=document.getElementById('sort-'+tbl);
   if(btn) btn.textContent=sortState[tbl].dir===-1?'↓':'↑';
 }
+
 function renderTable(tbl){
   const isL=tbl.startsWith('l');
   const colorFn=isL?pctColorLlegadas:pctColor;
@@ -935,19 +1040,24 @@ function renderTable(tbl){
   const badges=['#f59e0b','#9ca3af','#b45309'];
   document.getElementById(countId).textContent=rows.length+(rows.length===1?' '+word:' '+word+'s');
   if(!rows.length){ document.getElementById(bodyId).innerHTML='<tr><td colspan="5" class="table-empty">Sin resultados</td></tr>'; return; }
+
   document.getElementById(bodyId).innerHTML=rows.map((row,i)=>{
-    const pctFmt=row.pct.toFixed(1)+'%';
-    const color=colorFn(row.pct);
-    const barW=Math.min(100,row.pct).toFixed(1);
-    const bg=i<3?badges[i]:'#e5e7eb';
-    const fg=i<3?'#fff':'#6b7a99';
-    const isCliTable=(tbl==='cli'||tbl==='lcli');
-    const clickAttr=isCliTable?`onclick="openDrill('${row.k.replace(/'/g,"\\'")}','${tbl}')" class="row-clickable"`:'';
+    const pctFmt    = row.pct.toFixed(1)+'%';
+    const pctLate   = row.t>0 ? (row.l/row.t*100).toFixed(1)+'%' : '0.0%';
+    const color     = colorFn(row.pct);
+    const lateColor = row.l>0 ? '#e53e3e' : '#16a34a';
+    const barW      = Math.min(100,row.pct).toFixed(1);
+    const bg        = i<3 ? badges[i] : '#e5e7eb';
+    const fg        = i<3 ? '#fff'    : '#6b7a99';
+    const isCliTable = (tbl==='cli'||tbl==='lcli');
+    const clickAttr  = isCliTable
+      ? `onclick="openDrill('${row.k.replace(/'/g,"\\'")}','${tbl}')" class="row-clickable"`
+      : '';
     return `<tr ${clickAttr}>
       <td style="width:44px"><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td>
       <td class="td-cli" title="${row.k}">${row.k}${isCliTable?' <span style="font-size:.6rem;color:var(--muted)">▶</span>':''}</td>
       <td class="td-num">${N(row.t)}</td>
-      <td class="td-late">${N(row.l)}</td>
+      <td class="td-pct-late" style="color:${lateColor}">${pctLate}</td>
       <td><div class="pct-cell">
         <div class="pct-bar-wrap"><div class="pct-bar" style="width:${barW}%;background:${color}"></div></div>
         <span class="pct-val" style="color:${color}">${pctFmt}</span>
@@ -955,7 +1065,8 @@ function renderTable(tbl){
     </tr>`;
   }).join('');
 }
-function buildTable(rows,field,tbl,lateField){
+
+function buildTable(rows, field, tbl, lateField){
   const byKey={};
   rows.forEach(r=>{
     const k=(r[field]||'').trim()||'(Sin asignar)';
@@ -967,6 +1078,7 @@ function buildTable(rows,field,tbl,lateField){
   renderTable(tbl);
 }
 
+// ── Chart ────────────────────────────────────────────────────────
 const chartGroup={ini:'dia',lle:'dia'};
 function setGroup(chart,group){
   chartGroup[chart]=group;
@@ -999,10 +1111,6 @@ function formatGroupLabel(key,group){
   return key;
 }
 
-// ══════════════════════════════════════════════════
-// buildChart — BARRAS 100% APILADAS EN PORCENTAJE
-// Tooltip muestra valores absolutos + % del segmento
-// ══════════════════════════════════════════════════
 function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
   const isIni = chartId==='ini';
   const group=chartGroup[chartId||'ini'];
@@ -1027,17 +1135,13 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
     return a.localeCompare(b);
   });
 
-  // Valores absolutos (para tooltip y etiquetas)
   const tots   = keys.map(k=>by[k].t);
   const solos  = keys.map(k=>by[k].lSolo);
   const ambos  = keys.map(k=>by[k].lAmbos);
   const entiem = keys.map((k,i)=>tots[i]-solos[i]-ambos[i]);
-
-  // % cumplimiento para la línea
   const pcts   = keys.map(k=>by[k].t>0?+((by[k].t-by[k].lSolo-by[k].lAmbos)/by[k].t*100).toFixed(1):0);
   const labels = keys.map(k=>formatGroupLabel(k,group));
 
-  // Convertir a % para barras 100% apiladas
   const entiemPct = keys.map((k,i)=>tots[i]>0?+(entiem[i]/tots[i]*100).toFixed(2):0);
   const solosPct  = keys.map((k,i)=>tots[i]>0?+(solos[i]/tots[i]*100).toFixed(2):0);
   const ambosPct  = keys.map((k,i)=>tots[i]>0?+(ambos[i]/tots[i]*100).toFixed(2):0);
@@ -1076,7 +1180,6 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
           backgroundColor:'#1a2236',borderColor:'#7ed321',borderWidth:1,
           titleColor:'#fff',bodyColor:'rgba(255,255,255,.65)',padding:12,
           callbacks:{
-            // Título: fecha + total viajes del día
             title(items){
               const i=items[0];
               const totArr=i.dataset._tots;
@@ -1098,28 +1201,22 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
         x:{stacked:true,
            ticks:{color:'#6b7a99',font:{size:10,family:'Inter'}},
            grid:{color:'rgba(0,0,0,.05)'}},
-        y:{stacked:true,
-           min:0, max:100,
+        y:{stacked:true,min:0,max:100,
            ticks:{color:'#6b7a99',font:{size:10},callback:v=>v+'%'},
            grid:{color:'rgba(0,0,0,.05)'}},
-        yP:{position:'right',
-            min:80, max:100,
+        yP:{position:'right',min:80,max:100,
             ticks:{color:'#2a2a2a',font:{size:10},callback:v=>v+'%'},
             grid:{display:false}},
       }
     },
     plugins:[{id:'lbl',afterDatasetsDraw(chart){
       const c2=chart.ctx;
-
-      // Etiquetas sobre la línea de % cumplimiento
       const li=chart.data.datasets.findIndex(d=>d.label==='% Cumplimiento');
       chart.getDatasetMeta(li).data.forEach((pt,i)=>{
         const v=chart.data.datasets[li].data[i]; if(v==null) return;
         c2.save();c2.fillStyle='#2a2a2a';c2.font='bold 10px Inter';
         c2.textAlign='center';c2.fillText(v+'%',pt.x,pt.y-10);c2.restore();
       });
-
-      // Etiquetas dentro de segmentos (valor absoluto)
       [ambosLbl, soloLbl, 'En tiempo'].forEach((lbl)=>{
         const bi=chart.data.datasets.findIndex(d=>d.label===lbl);
         if(bi<0) return;
@@ -1127,7 +1224,6 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
         chart.getDatasetMeta(bi).data.forEach((bar,i)=>{
           const pv=chart.data.datasets[bi].data[i];
           const rv=rawArr?rawArr[i]:0;
-          // Solo mostrar si el segmento es visible (>2%) y hay valor
           if(!pv||pv<2||bar.height<14||!rv) return;
           c2.save();
           c2.fillStyle=lbl==='En tiempo'?'#ffffff':lbl===soloLbl?'#1a1a1a':'#ffffff';
@@ -1141,24 +1237,28 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
   });
 }
 
+// ── Main draw ────────────────────────────────────────────────────
 function draw(){
   if(!DATA.length) return;
   const f=getF();
   const parts=[];
-  if(f.mes) parts.push(mesLabel(f.mes));
-  if(f.sem) parts.push('Sem '+f.sem);
-  if(f.udn) parts.push(f.udn);
-  if(f.cli) parts.push(f.cli);
-  if(f.ger) parts.push('Ger: '+f.ger);
-  if(f.jef) parts.push('Jefe: '+f.jef);
-  if(f.ope) parts.push('Op: '+f.ope);
-  if(f.car) parts.push('Car: '+f.car);
+  if(f.mes)   parts.push(mesLabel(f.mes));
+  if(f.sem)   parts.push('Sem '+f.sem);
+  if(f.udn)   parts.push(f.udn);
+  if(f.cli)   parts.push(f.cli);
+  if(f.ger)   parts.push('Ger: '+f.ger);
+  if(f.jef)   parts.push('Jefe: '+f.jef);
+  if(f.coord) parts.push('Coord: '+f.coord);
+  if(f.turno) parts.push('Turno: '+f.turno);
+  if(f.ope)   parts.push('Op: '+f.ope);
+  if(f.car)   parts.push('Car: '+f.car);
   const sfx=parts.length?' – '+parts.join(' · '):'';
 
+  // KPI base sin filtro de estado
   const allBase = (() => {
-    const saved={ini:kpiFilter.ini, lle:kpiFilter.lle};
+    const saved={ini:kpiFilter.ini,lle:kpiFilter.lle};
     kpiFilter.ini=''; kpiFilter.lle='';
-    const r = filterRows('ini');
+    const r=filterRows('ini');
     kpiFilter.ini=saved.ini; kpiFilter.lle=saved.lle;
     return r;
   })();
@@ -1187,21 +1287,26 @@ function draw(){
   const lp=document.getElementById('lkPct');
   lp.textContent=totAll>0?pL.toFixed(1)+'%':'–'; lp.style.color=pctColorLlegadas(pL);
 
-  ['chartTitle','tCliTitle','tGerTitle','tJefTitle'].forEach((id,i)=>
-    document.getElementById(id).textContent=['Inicios Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe'][i]+sfx);
-  ['lChartTitle','ltCliTitle','ltGerTitle','ltJefTitle'].forEach((id,i)=>
-    document.getElementById(id).textContent=['Llegadas Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe'][i]+sfx);
+  ['chartTitle','tCliTitle','tGerTitle','tJefTitle','tCoordTitle'].forEach((id,i)=>
+    document.getElementById(id).textContent=['Inicios Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe','Resumen por Coordinador'][i]+sfx);
+  ['lChartTitle','ltCliTitle','ltGerTitle','ltJefTitle','ltCoordTitle'].forEach((id,i)=>
+    document.getElementById(id).textContent=['Llegadas Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe','Resumen por Coordinador'][i]+sfx);
 
   myChartIni=buildChart('chart-ini',rowsIni,C.retardo,'Inicios tarde',myChartIni,'ini');
   myChartLle=buildChart('chart-lle',rowsLle,C.llegada,'Llegadas tarde',myChartLle,'lle');
+
   buildTable(rowsIni,C.cliente,'cli',C.retardo);
   buildTable(rowsIni,C.gerente,'ger',C.retardo);
   buildTable(rowsIni,C.jefe,'jef',C.retardo);
+  buildTable(rowsIni,C.coord,'coord',C.retardo);
+
   buildTable(rowsLle,C.cliente,'lcli',C.llegada);
   buildTable(rowsLle,C.gerente,'lger',C.llegada);
   buildTable(rowsLle,C.jefe,'ljef',C.llegada);
+  buildTable(rowsLle,C.coord,'lcoord',C.llegada);
 }
 
+// ── Capture ──────────────────────────────────────────────────────
 async function captureTable(cardId,label){
   const card=document.getElementById(cardId); if(!card) return;
   try{
@@ -1212,6 +1317,7 @@ async function captureTable(cardId,label){
   }catch(err){ alert('Error al capturar: '+err.message); }
 }
 
+// ── Drill modal ──────────────────────────────────────────────────
 let drillSortDir=1;
 let lastDrillArgs=null;
 
@@ -1246,11 +1352,7 @@ function renderDrill(clienteK,tbl){
   });
 
   const sorted=Object.entries(byRuta)
-    .map(([k,d])=>({
-      k, t:d.t, l:d.l,
-      pct:d.t>0?(d.t-d.l)/d.t*100:0,
-      avgMin:d.cntMin>0?d.sumMin/d.cntMin:null,
-    }))
+    .map(([k,d])=>({k,t:d.t,l:d.l,pct:d.t>0?(d.t-d.l)/d.t*100:0,avgMin:d.cntMin>0?d.sumMin/d.cntMin:null}))
     .sort((a,b)=>(a.pct-b.pct)*drillSortDir);
 
   const totT=sorted.reduce((s,r)=>s+r.t,0);
@@ -1334,6 +1436,7 @@ function openDrillDetail(rutaK, clienteK, tbl){
   document.getElementById('drillDetailModal').classList.add('open');
 }
 
+// ── Nav & sidebar ────────────────────────────────────────────────
 function toggleDropdown(id){
   const d=document.getElementById(id);
   document.querySelectorAll('.dropdown').forEach(x=>{if(x.id!==id) x.classList.remove('open');});
