@@ -369,12 +369,12 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   <main class="main">
     <div class="err hidden" id="errBanner" style="margin-bottom:.8rem">⚠️ <span id="errMsg"></span></div>
     <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('inicios')">🚀 Inicios</button>
-      <button class="tab-btn" onclick="switchTab('llegadas')">🏁 Llegadas</button>
+      <button class="tab-btn active" onclick="switchTab('llegadas')">↓ Llegadas</button>
+      <button class="tab-btn" onclick="switchTab('inicios')">↑ Inicios</button>
     </div>
 
     <!-- ═══════════════════ PANEL INICIOS ═══════════════════ -->
-    <div class="tab-panel active" id="panel-inicios">
+    <div class="tab-panel" id="panel-inicios">
       <div class="kpi-grid" id="kpi-ini">
         <div class="kpi kpi-clickable" style="--kc:#1a2236" id="kpi-ini-total" onclick="toggleKpiFilter('ini','total')">
           <div class="kpi-icon">🚛</div><div class="kpi-val" id="kTotal">–</div>
@@ -399,7 +399,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
       <div class="chart-card">
         <div class="chart-hdr">
-          <div><div class="chart-title" id="chartTitle">Inicios Tarde por Día</div><div class="chart-sub">⬛ En tiempo · 🟠 Inicia tarde pero llega bien · 🔴 Inicia Y llega tarde · Línea = % cumplimiento · Barras en % de viajes del día</div></div>
+          <div><div class="chart-title" id="chartTitle">Inicios Tarde por Día</div><div class="chart-sub">⬛ En tiempo (inició en tiempo · o inició tarde pero llegó bien) · 🔴 Inició tarde Y llegó tarde · Barras en % de viajes del día</div></div>
           <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
             <div class="chart-group-btns" id="grp-ini">
               <button class="grp-btn active" onclick="setGroup('ini','dia')">Día</button>
@@ -409,9 +409,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             </div>
             <div class="chart-legend">
               <div class="leg"><div class="leg-sq" style="background:#4a4a4a"></div>En tiempo</div>
-              <div class="leg"><div class="leg-sq" style="background:#e8a055"></div>Inicia tarde · llega bien</div>
-              <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Inicia Y llega tarde</div>
-              <div class="leg"><div class="leg-line" style="background:#2a2a2a"></div>% Cumplimiento</div>
+              <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Inició Y llegó tarde</div>
             </div>
           </div>
         </div>
@@ -466,7 +464,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     </div>
 
     <!-- ═══════════════════ PANEL LLEGADAS ═══════════════════ -->
-    <div class="tab-panel" id="panel-llegadas">
+    <div class="tab-panel active" id="panel-llegadas">
       <div class="kpi-grid" id="kpi-lle">
         <div class="kpi kpi-clickable" style="--kc:#1a2236" id="kpi-lle-total" onclick="toggleKpiFilter('lle','total')">
           <div class="kpi-icon">🚛</div><div class="kpi-val" id="lkTotal">–</div>
@@ -491,7 +489,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
       <div class="chart-card">
         <div class="chart-hdr">
-          <div><div class="chart-title" id="lChartTitle">Llegadas Tarde por Día</div><div class="chart-sub">⬛ En tiempo · 🟠 Llega tarde pero salió bien · 🔴 Llega Y salió tarde · Línea = % cumplimiento · Barras en % de viajes del día</div></div>
+          <div><div class="chart-title" id="lChartTitle">Llegadas Tarde por Día</div><div class="chart-sub">⬛ Llegó en tiempo (sin importar si inició tarde) · 🔴 Llegó tarde · Barras en % de viajes del día</div></div>
           <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
             <div class="chart-group-btns" id="grp-lle">
               <button class="grp-btn active" onclick="setGroup('lle','dia')">Día</button>
@@ -501,9 +499,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             </div>
             <div class="chart-legend">
               <div class="leg"><div class="leg-sq" style="background:#4a4a4a"></div>En tiempo</div>
-              <div class="leg"><div class="leg-sq" style="background:#e8a055"></div>Llega tarde · salió bien</div>
-              <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Llega Y salió tarde</div>
-              <div class="leg"><div class="leg-line" style="background:#2a2a2a"></div>% Cumplimiento</div>
+              <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Llegó tarde</div>
             </div>
           </div>
         </div>
@@ -960,7 +956,7 @@ function resetFilters(){
 
 function filterRows(panelHint){
   const f=getF();
-  const activePanel = panelHint || (document.getElementById('panel-inicios').classList.contains('active') ? 'ini' : 'lle');
+  const activePanel = panelHint || (document.getElementById('panel-llegadas').classList.contains('active') ? 'lle' : 'ini');
   const estado = kpiFilter[activePanel];
   return DATA.filter(r=>{
     if(f.mes&&normMonth(getFecha(r))!==f.mes) return false;
@@ -984,7 +980,7 @@ function filterRows(panelHint){
 }
 
 function switchTab(tab){
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===(tab==='inicios'?0:1)));
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===(tab==='llegadas'?0:1)));
   document.getElementById('panel-inicios').classList.toggle('active',tab==='inicios');
   document.getElementById('panel-llegadas').classList.toggle('active',tab==='llegadas');
 }
@@ -1098,88 +1094,75 @@ function formatGroupLabel(key,group){
 
 function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
   const isIni = chartId==='ini';
-  const group=chartGroup[chartId||'ini'];
-  const by={};
+  const group = chartGroup[chartId||'ini'];
+  const by = {};
+
   rows.forEach(r=>{
-    const key=getGroupKey(r,group);
+    const key = getGroupKey(r,group);
     if(!key||key==='?') return;
-    if(!by[key]) by[key]={t:0,lSolo:0,lAmbos:0};
-    by[key].t+=countViajes(r[C.viajes]);
-    const iniTarde  = countLate(r[C.retardo])===1;
-    const lleTarde  = countLate(r[C.llegada])===1;
-    if(isIni){
-      if(iniTarde && lleTarde)  by[key].lAmbos++;
-      else if(iniTarde)         by[key].lSolo++;
-    } else {
-      if(lleTarde && iniTarde)  by[key].lAmbos++;
-      else if(lleTarde)         by[key].lSolo++;
-    }
+    if(!by[key]) by[key]={t:0,l:0};
+    by[key].t += countViajes(r[C.viajes]);
+    // INICIOS:  rojo = inició tarde Y llegó tarde (doble falla)
+    //           gris = inició en tiempo  O  inició tarde pero llegó bien
+    // LLEGADAS: rojo = llegó tarde (sin importar si inició tarde o no)
+    //           gris = llegó en tiempo
+    const isLate = isIni
+      ? (countLate(r[C.retardo])===1 && countLate(r[C.llegada])===1)
+      : countLate(r[C.llegada])===1;
+    if(isLate) by[key].l++;
   });
-  const keys=Object.keys(by).sort((a,b)=>{
+
+  const keys = Object.keys(by).sort((a,b)=>{
     if(group==='semana') return (parseInt(a)||0)-(parseInt(b)||0);
     return a.localeCompare(b);
   });
 
-  const tots   = keys.map(k=>by[k].t);
-  const solos  = keys.map(k=>by[k].lSolo);
-  const ambos  = keys.map(k=>by[k].lAmbos);
-  const entiem = keys.map((k,i)=>tots[i]-solos[i]-ambos[i]);
-  const pcts   = keys.map(k=>by[k].t>0?+((by[k].t-by[k].lSolo-by[k].lAmbos)/by[k].t*100).toFixed(1):0);
-  const labels = keys.map(k=>formatGroupLabel(k,group));
+  const tots    = keys.map(k=>by[k].t);
+  const lates   = keys.map(k=>by[k].l);
+  const entiem  = keys.map((k,i)=>tots[i]-lates[i]);
+  const labels  = keys.map(k=>formatGroupLabel(k,group));
 
   const entiemPct = keys.map((k,i)=>tots[i]>0?+(entiem[i]/tots[i]*100).toFixed(2):0);
-  const solosPct  = keys.map((k,i)=>tots[i]>0?+(solos[i]/tots[i]*100).toFixed(2):0);
-  const ambosPct  = keys.map((k,i)=>tots[i]>0?+(ambos[i]/tots[i]*100).toFixed(2):0);
+  const latePct   = keys.map((k,i)=>tots[i]>0?+(lates[i]/tots[i]*100).toFixed(2):0);
 
-  const soloLbl  = isIni ? 'Inicia tarde · llega bien' : 'Llega tarde · salió bien';
-  const ambosLbl = isIni ? 'Inicia Y llega tarde'      : 'Llega Y salió tarde';
+  const tardeLbl = isIni ? 'Inicia Y llega tarde' : 'Llega tarde';
 
   if(existing) existing.destroy();
-  const ctx=document.getElementById(canvasId).getContext('2d');
+  const ctx = document.getElementById(canvasId).getContext('2d');
   return new Chart(ctx,{
     type:'bar',
     data:{labels,datasets:[
       {label:'En tiempo',
        data:entiemPct, _raw:entiem, _pct:entiemPct, _tots:tots,
-       backgroundColor:'#4a4a4a',stack:'s',order:2,
-       borderRadius:{topLeft:0,topRight:0,bottomLeft:4,bottomRight:4},barPercentage:.6},
-      {label:soloLbl,
-       data:solosPct, _raw:solos, _pct:solosPct, _tots:tots,
-       /* ── CAMBIO: naranja más oscuro para mejor contraste ── */
-       backgroundColor:'#d4750a',stack:'s',order:2,
-       borderRadius:{topLeft:0,topRight:0,bottomLeft:0,bottomRight:0},barPercentage:.6},
-      {label:ambosLbl,
-       data:ambosPct, _raw:ambos, _pct:ambosPct, _tots:tots,
-       /* ── CAMBIO: rojo más vivo y saturado ── */
-       backgroundColor:'#cc0000',stack:'s',order:2,
-       borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},barPercentage:.6},
-      {label:'% Cumplimiento',data:pcts,type:'line',yAxisID:'yP',order:1,
-       borderColor:'#2a2a2a',backgroundColor:'rgba(42,42,42,.07)',
-       borderWidth:2.5,pointBackgroundColor:'#2a2a2a',pointBorderColor:'#fff',
-       pointBorderWidth:2,pointRadius:5,pointHoverRadius:7,tension:.3,fill:true},
+       backgroundColor:'#4a4a4a', stack:'s', order:1,
+       borderRadius:{topLeft:0,topRight:0,bottomLeft:4,bottomRight:4},
+       barPercentage:.65},
+      {label:tardeLbl,
+       data:latePct, _raw:lates, _pct:latePct, _tots:tots,
+       backgroundColor:'#cc0000', stack:'s', order:1,
+       borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},
+       barPercentage:.65},
     ]},
     options:{
-      responsive:true,maintainAspectRatio:false,
+      responsive:true, maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{display:false},
         tooltip:{
-          backgroundColor:'#1a2236',borderColor:'#7ed321',borderWidth:1,
-          titleColor:'#fff',bodyColor:'rgba(255,255,255,.65)',padding:12,
+          backgroundColor:'#1a2236', borderColor:'#7ed321', borderWidth:1,
+          titleColor:'#fff', bodyColor:'rgba(255,255,255,.75)', padding:12,
           callbacks:{
             title(items){
               const i=items[0];
-              const totArr=i.dataset._tots;
-              const tot=totArr?totArr[i.dataIndex]:null;
+              const tot=i.dataset._tots?i.dataset._tots[i.dataIndex]:null;
               return i.label+(tot!=null?' · '+tot.toLocaleString('es-MX')+' viajes':'');
             },
             label(c){
-              if(c.dataset.label==='% Cumplimiento') return '  % Cumpl.: '+c.raw+'%';
               const rawArr=c.dataset._raw;
               const rawVal=rawArr?rawArr[c.dataIndex]:null;
-              if(rawVal===null||rawVal===0) return null;
-              const pctVal=c.raw>0?' ('+c.raw.toFixed(1)+'%)':'';
-              return '  '+c.dataset.label+': '+rawVal.toLocaleString('es-MX')+pctVal;
+              if(rawVal===null) return null;
+              const pctStr=c.raw>0?' ('+c.raw.toFixed(1)+'%)':'';
+              return '  '+c.dataset.label+': '+rawVal.toLocaleString('es-MX')+pctStr;
             }
           }
         }
@@ -1188,63 +1171,38 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
         x:{stacked:true,
            ticks:{color:'#6b7a99',font:{size:10,family:'Inter'}},
            grid:{color:'rgba(0,0,0,.05)'}},
-        y:{stacked:true,min:0,max:100,
+        y:{stacked:true, min:0, max:100,
            ticks:{color:'#6b7a99',font:{size:10},callback:v=>v+'%'},
            grid:{color:'rgba(0,0,0,.05)'}},
-        yP:{position:'right',min:80,max:100,
-            ticks:{color:'#2a2a2a',font:{size:10},callback:v=>v+'%'},
-            grid:{display:false}},
       }
     },
     plugins:[{id:'lbl',afterDatasetsDraw(chart){
-      const c2=chart.ctx;
-      const li=chart.data.datasets.findIndex(d=>d.label==='% Cumplimiento');
+      const c2 = chart.ctx;
 
-      // ── Etiquetas línea cumplimiento ──
-      chart.getDatasetMeta(li).data.forEach((pt,i)=>{
-        const v=chart.data.datasets[li].data[i]; if(v==null) return;
-        c2.save();c2.fillStyle='#2a2a2a';c2.font='bold 10px Inter';
-        c2.textAlign='center';c2.fillText(v+'%',pt.x,pt.y-10);c2.restore();
-      });
-
-      // ── CAMBIO: Etiquetas de los 3 segmentos ──
-      // Orden: primero los 2 pequeños (ambos y solo) para que se lean,
-      // luego "En tiempo" que es el grande.
-      const segmentos = [
-        { lbl: ambosLbl, txtColor: '#ffffff' },  // rojo → texto blanco
-        { lbl: soloLbl,  txtColor: '#ffffff' },  // naranja oscuro → texto blanco
-        { lbl: 'En tiempo', txtColor: '#ffffff'} // gris oscuro → texto blanco
-      ];
-
-      segmentos.forEach(({ lbl, txtColor }) => {
-        const bi = chart.data.datasets.findIndex(d => d.label === lbl);
-        if(bi < 0) return;
+      // ── Etiquetas en ambos segmentos ──
+      [{lbl:'En tiempo',clr:'#ffffff'},{lbl:tardeLbl,clr:'#ffffff'}].forEach(({lbl,clr})=>{
+        const bi = chart.data.datasets.findIndex(d=>d.label===lbl);
+        if(bi<0) return;
         const pctArr = chart.data.datasets[bi]._pct;
         const rawArr = chart.data.datasets[bi]._raw;
-
-        chart.getDatasetMeta(bi).data.forEach((bar, i) => {
-          const pv     = chart.data.datasets[bi].data[i]; // % del segmento en la barra
-          const pctVal = pctArr ? pctArr[i] : 0;
-          const rawVal = rawArr ? rawArr[i] : 0;
-          if(!pv || !pctVal || rawVal === 0) return;
-
+        chart.getDatasetMeta(bi).data.forEach((bar,i)=>{
+          const pv     = chart.data.datasets[bi].data[i];
+          const pctVal = pctArr?pctArr[i]:0;
+          const rawVal = rawArr?rawArr[i]:0;
+          if(!pv||!pctVal||rawVal===0) return;
           c2.save();
-          c2.textAlign = 'center';
-          c2.textBaseline = 'middle';
-
-          if(bar.height >= 13) {
-            // Segmento suficientemente alto → etiqueta dentro
-            c2.fillStyle = txtColor;
-            c2.font = 'bold 10px Inter';
-            c2.fillText(pctVal.toFixed(1) + '%', bar.x, bar.y + bar.height / 2);
-          } else if(pv >= 1) {
-            // Segmento muy delgado pero visible → etiqueta pequeña encima
-            c2.fillStyle = lbl === ambosLbl ? '#cc0000'
-                         : lbl === soloLbl  ? '#d4750a'
-                         : '#4a4a4a';
-            c2.font = 'bold 9px Inter';
-            c2.textBaseline = 'bottom';
-            c2.fillText(pctVal.toFixed(1) + '%', bar.x, bar.y - 1);
+          c2.textAlign='center';
+          if(bar.height>=13){
+            c2.fillStyle=clr;
+            c2.font='bold 10px Inter';
+            c2.textBaseline='middle';
+            c2.fillText(pctVal.toFixed(1)+'%', bar.x, bar.y+bar.height/2);
+          } else if(pv>=0.5){
+            // segmento muy delgado: etiqueta fuera arriba, con color del segmento
+            c2.fillStyle = lbl==='En tiempo'?'#4a4a4a':'#cc0000';
+            c2.font='bold 9px Inter';
+            c2.textBaseline='bottom';
+            c2.fillText(pctVal.toFixed(1)+'%', bar.x, bar.y-2);
           }
           c2.restore();
         });
