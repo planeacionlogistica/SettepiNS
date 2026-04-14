@@ -44,9 +44,10 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .sc-opt.selected{background:rgba(126,211,33,.15);font-weight:700;color:var(--navy);}
 .sc-opt.sc-none{color:var(--muted);font-style:italic;cursor:default;}
 .sc-opt.sc-none:hover{background:transparent;}
-.date-row{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;align-items:end;}
-.date-row .fg{gap:.2rem;}
-.date-row input[type=date]{font-size:.72rem;padding:.35rem .4rem;}
+/* FIX: date-row - columnas correctas con overflow visible */
+.date-row{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;align-items:end;width:100%;}
+.date-row .fg{gap:.2rem;min-width:0;}
+.date-row input[type=date]{font-size:.7rem;padding:.32rem .28rem;min-width:0;width:100%;}
 .btn-reset{width:100%;background:transparent;border:1.5px solid var(--border);border-radius:7px;color:var(--muted);padding:.45rem;font-size:.75rem;font-family:"Inter",sans-serif;font-weight:600;cursor:pointer;transition:all .15s;margin-top:.2rem;}
 .btn-reset:hover{border-color:var(--red);color:var(--red);background:rgba(229,62,62,.06)}
 .main{flex:1;padding:1.35rem 1.5rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0}
@@ -164,9 +165,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .sidebar.collapsed .fg,.sidebar.collapsed .btn-reset,.sidebar.collapsed .sb-title{display:none}
 .sidebar.collapsed{padding:.5rem .95rem}
 .filter-active-badge{display:inline-block;background:var(--green);color:var(--navy);font-size:.58rem;font-weight:700;padding:.1rem .35rem;border-radius:8px;margin-left:.3rem;vertical-align:middle;}
-/* Sidebar filters grid */
 .sidebar-filters{display:flex;flex-direction:column;gap:.7rem;}
-/* pct-late column: show % instead of number */
 .td-pct-late{color:var(--red);font-weight:700;font-size:.8rem;}
 @media(max-width:768px){
   nav{padding:10px 16px;gap:10px;}
@@ -630,7 +629,6 @@ const SHEET_ID   = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const SHEET_NAME = 'NS';
 const CHUNK      = 35000;
 
-// ── Nombres de columnas ──────────────────────────────────────────
 const C = {
   fecha:   'start_date',
   semana:  'Semana',
@@ -638,8 +636,8 @@ const C = {
   cliente: 'group',
   gerente: 'Gerente',
   jefe:    'Jefe',
-  coord:   'Coordinador',   // columna Coordinador en el sheet
-  turno:   'Turno',         // columna Turno en el sheet
+  coord:   'Coordinador',
+  turno:   'Turno',
   retardo: 'Inicios_Tarde',
   viajes:  'Cantidad de viajes',
   llegada: 'Llegadas_Tarde',
@@ -654,7 +652,6 @@ let loadedMonths = new Set();
 let myChartIni   = null;
 let myChartLle   = null;
 
-// Todos los filtros de tipo searchable-combo
 const SC_KEYS = ['udn','mes','sem','cli','ger','jef','coord','turno','ope','car'];
 const SC_VALS  = Object.fromEntries(SC_KEYS.map(k=>[k,[]]));
 const SC_SEL   = Object.fromEntries(SC_KEYS.map(k=>[k,'']));
@@ -738,18 +735,15 @@ function parseCSV(text){
   const lines=text.trim().split(/\r?\n/);
   if(lines.length<2) return [];
   const hdrs=parseCSVLine(lines[0]);
-  // auto-detect business_unit column
   if(!hdrs.includes(C.udn)){
     const found=hdrs.find(h=>h==='business_unit'||h.toLowerCase().includes('business')||
       h.toLowerCase().includes('unidad')||h.toLowerCase().includes('udn')||h.toLowerCase().includes('negocio'));
     if(found) C.udn=found;
   }
-  // auto-detect Coordinador column (flexible naming)
   if(!hdrs.includes(C.coord)){
     const found=hdrs.find(h=>h.toLowerCase().includes('coordinador')||h.toLowerCase().includes('coord'));
     if(found) C.coord=found;
   }
-  // auto-detect Turno column
   if(!hdrs.includes(C.turno)){
     const found=hdrs.find(h=>h.toLowerCase().includes('turno'));
     if(found) C.turno=found;
@@ -856,6 +850,8 @@ function scRenderDD(key){
 function scOpen(key){
   document.querySelectorAll('.sc-wrap.open').forEach(el=>{ if(el.id!=='sc-'+key) el.classList.remove('open'); });
   document.getElementById('sc-'+key).classList.add('open');
+  // Recalcular opciones antes de abrir
+  cascadeSelects();
   scRenderDD(key);
 }
 function scFilter(key){
@@ -869,9 +865,7 @@ function scSelect(e,key){
   const lbl=el.getAttribute('data-lbl');
   scSetVal(key,val,lbl);
   document.getElementById('sc-'+key).classList.remove('open');
-  if(['udn','mes','sem','cli','ger','jef','coord','turno'].includes(key)){
-    cascadeSelects();
-  }
+  cascadeSelects();
   draw();
 }
 function scSetVal(key,val,lbl){
@@ -906,34 +900,62 @@ document.addEventListener('click',function(e){
 
 // ── Fill selects ─────────────────────────────────────────────────
 function fillAllSelects(){
+  // Estos siempre se llenan con TODOS los datos (sin filtrar)
   SC_VALS.udn   = uniq(DATA.map(r=>r[C.udn]||''));
   SC_VALS.mes   = [...loadedMonths].sort((a,b)=>b.localeCompare(a));
   SC_VALS.sem   = uniq(DATA.map(r=>r[C.semana]||''));
+  SC_VALS.turno = uniq(DATA.map(r=>(r[C.turno]||'').trim()));
   SC_VALS.ope   = uniq(DATA.map(r=>r[C.driver]||''));
   SC_VALS.car   = uniq(DATA.map(r=>r[C.car]||''));
-  SC_VALS.turno = uniq(DATA.map(r=>r[C.turno]||''));
   cascadeSelects();
 }
 
+// ── FIX: Cascade correcto ────────────────────────────────────────
+// La cascada aplica los filtros activos de arriba hacia abajo,
+// pero SIEMPRE muestra opciones basadas en los filtros YA aplicados
+// (no borra opciones que ya están seleccionadas).
 function cascadeSelects(){
-  const f=getF();
-  // base: udn + mes + sem + turno filter
-  const base=DATA.filter(r=>{
-    if(f.udn&&r[C.udn]!==f.udn) return false;
-    if(f.mes&&normMonth(getFecha(r))!==f.mes) return false;
-    if(f.sem&&r[C.semana]!==f.sem) return false;
-    if(f.turno&&(r[C.turno]||'').trim()!==f.turno) return false;
+  const f = getF();
+
+  // Base: aplicar udn + mes + sem + turno + ope + car
+  const base = DATA.filter(r => {
+    if(f.udn   && r[C.udn]                    !== f.udn)   return false;
+    if(f.mes   && normMonth(getFecha(r))       !== f.mes)   return false;
+    if(f.sem   && r[C.semana]                  !== f.sem)   return false;
+    if(f.turno && (r[C.turno]||'').trim()      !== f.turno) return false;
+    if(f.ope   && (r[C.driver]||'').trim()     !== f.ope)   return false;
+    if(f.car   && (r[C.car]||'').trim()        !== f.car)   return false;
     return true;
   });
-  SC_VALS.cli   = uniq(base.map(r=>r[C.cliente]||''));
-  const bG = f.cli ? base.filter(r=>r[C.cliente]===f.cli) : base;
-  SC_VALS.ger   = uniq(bG.map(r=>r[C.gerente]||''));
-  const bJ = f.ger ? bG.filter(r=>r[C.gerente]===f.ger) : bG;
-  SC_VALS.jef   = uniq(bJ.map(r=>r[C.jefe]||''));
-  const bC = f.jef ? bJ.filter(r=>r[C.jefe]===f.jef) : bJ;
-  SC_VALS.coord = uniq(bC.map(r=>(r[C.coord]||'').trim()));
-  SC_VALS.turno = uniq(DATA.map(r=>(r[C.turno]||'').trim()));
-  SC_VALS.mes   = [...loadedMonths].sort((a,b)=>b.localeCompare(a));
+
+  // Cliente: opciones visibles según base (sin filtro de cliente aplicado)
+  SC_VALS.cli = uniq(base.map(r => r[C.cliente]||''));
+
+  // Si hay cliente seleccionado, filtrar hacia abajo; si no, usar base completa
+  const baseCli = f.cli ? base.filter(r => r[C.cliente] === f.cli) : base;
+
+  SC_VALS.ger = uniq(baseCli.map(r => r[C.gerente]||''));
+
+  const baseGer = f.ger ? baseCli.filter(r => r[C.gerente] === f.ger) : baseCli;
+
+  SC_VALS.jef = uniq(baseGer.map(r => r[C.jefe]||''));
+
+  const baseJef = f.jef ? baseGer.filter(r => r[C.jefe] === f.jef) : baseGer;
+
+  SC_VALS.coord = uniq(baseJef.map(r => (r[C.coord]||'').trim()));
+
+  // Turno, ope y car: siempre se recalculan desde base (independientes de la jerarquía cli→ger→jef→coord)
+  SC_VALS.turno = uniq(base.map(r => (r[C.turno]||'').trim()));
+  SC_VALS.ope   = uniq(base.map(r => (r[C.driver]||'').trim()));
+  SC_VALS.car   = uniq(base.map(r => (r[C.car]||'').trim()));
+
+  // Semanas: basado en udn + mes
+  const baseSem = DATA.filter(r => {
+    if(f.udn && r[C.udn] !== f.udn) return false;
+    if(f.mes && normMonth(getFecha(r)) !== f.mes) return false;
+    return true;
+  });
+  SC_VALS.sem = uniq(baseSem.map(r => r[C.semana]||''));
 }
 
 function onFilterChange(){ draw(); }
@@ -1155,15 +1177,15 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
     type:'bar',
     data:{labels,datasets:[
       {label:'En tiempo',
-       data:entiemPct, _raw:entiem, _tots:tots,
+       data:entiemPct, _raw:entiem, _pct:entiemPct, _tots:tots,
        backgroundColor:'#4a4a4a',stack:'s',order:2,
        borderRadius:{topLeft:0,topRight:0,bottomLeft:4,bottomRight:4},barPercentage:.6},
       {label:soloLbl,
-       data:solosPct, _raw:solos, _tots:tots,
+       data:solosPct, _raw:solos, _pct:solosPct, _tots:tots,
        backgroundColor:'#e8a055',stack:'s',order:2,
        borderRadius:{topLeft:0,topRight:0,bottomLeft:0,bottomRight:0},barPercentage:.6},
       {label:ambosLbl,
-       data:ambosPct, _raw:ambos, _tots:tots,
+       data:ambosPct, _raw:ambos, _pct:ambosPct, _tots:tots,
        backgroundColor:'#dc2626',stack:'s',order:2,
        borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},barPercentage:.6},
       {label:'% Cumplimiento',data:pcts,type:'line',yAxisID:'yP',order:1,
@@ -1212,24 +1234,27 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
     plugins:[{id:'lbl',afterDatasetsDraw(chart){
       const c2=chart.ctx;
       const li=chart.data.datasets.findIndex(d=>d.label==='% Cumplimiento');
+      // ── Etiquetas de la línea de cumplimiento ──
       chart.getDatasetMeta(li).data.forEach((pt,i)=>{
         const v=chart.data.datasets[li].data[i]; if(v==null) return;
         c2.save();c2.fillStyle='#2a2a2a';c2.font='bold 10px Inter';
         c2.textAlign='center';c2.fillText(v+'%',pt.x,pt.y-10);c2.restore();
       });
+      // ── FIX: Etiquetas de barras en % (no número absoluto) ──
       [ambosLbl, soloLbl, 'En tiempo'].forEach((lbl)=>{
         const bi=chart.data.datasets.findIndex(d=>d.label===lbl);
         if(bi<0) return;
-        const rawArr=chart.data.datasets[bi]._raw;
+        const pctArr=chart.data.datasets[bi]._pct; // usar _pct en lugar de _raw
         chart.getDatasetMeta(bi).data.forEach((bar,i)=>{
-          const pv=chart.data.datasets[bi].data[i];
-          const rv=rawArr?rawArr[i]:0;
-          if(!pv||pv<2||bar.height<14||!rv) return;
+          const pv=chart.data.datasets[bi].data[i]; // % del segmento
+          const pctVal=pctArr?pctArr[i]:0;
+          if(!pv||pv<4||bar.height<14||!pctVal) return; // umbral mínimo 4% para mostrar label
           c2.save();
           c2.fillStyle=lbl==='En tiempo'?'#ffffff':lbl===soloLbl?'#1a1a1a':'#ffffff';
           c2.font='bold 10px Inter';
           c2.textAlign='center';c2.textBaseline='middle';
-          c2.fillText(rv.toLocaleString('es-MX'), bar.x, bar.y+bar.height/2);
+          // Mostrar porcentaje con 1 decimal
+          c2.fillText(pctVal.toFixed(1)+'%', bar.x, bar.y+bar.height/2);
           c2.restore();
         });
       });
@@ -1254,7 +1279,6 @@ function draw(){
   if(f.car)   parts.push('Car: '+f.car);
   const sfx=parts.length?' – '+parts.join(' · '):'';
 
-  // KPI base sin filtro de estado
   const allBase = (() => {
     const saved={ini:kpiFilter.ini,lle:kpiFilter.lle};
     kpiFilter.ini=''; kpiFilter.lle='';
@@ -1465,3 +1489,4 @@ document.addEventListener('DOMContentLoaded',()=>{
 </script>
 </body>
 </html>
+  
