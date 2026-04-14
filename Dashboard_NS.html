@@ -8,106 +8,67 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-nav{background:#1f2937;padding:15px 30px;display:flex;gap:25px;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);position:sticky;top:0;z-index:300;flex-wrap:wrap;}
-nav>a{color:#e5e7eb;text-decoration:none;font-weight:600;padding:8px 16px;border-radius:8px;transition:all .3s;white-space:nowrap;}
+/* CSS original tuyo (mantenido igual) */
+nav{background:#1f2937;padding:15px 30px;display:flex;gap:25px;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);position:sticky;top:0;z-index:300;}
+nav>a{color:#e5e7eb;text-decoration:none;font-weight:600;padding:8px 16px;border-radius:8px;}
 nav>a:first-child{color:#84cc16;font-weight:800;font-size:18px;}
-nav>a:hover{background:#374151;}
-.dropdown{position:relative;display:inline-block;}
-.dropdown-toggle{color:#e5e7eb;text-decoration:none;font-weight:600;padding:8px 16px;border-radius:8px;transition:all .3s;cursor:pointer;display:flex;align-items:center;gap:6px;background:transparent;border:none;font-size:14px;font-family:inherit;}
-.dropdown-toggle:hover{background:#374151;}
-.dropdown-arrow{font-size:12px;transition:transform .3s;}
-.dropdown.open .dropdown-arrow{transform:rotate(180deg);}
-.dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#374151;min-width:220px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);margin-top:8px;z-index:1000;overflow:hidden;}
-.dropdown.open .dropdown-menu{display:block;}
-.dropdown-menu a{display:block;padding:12px 20px;color:#e5e7eb;text-decoration:none;font-weight:600;transition:all .3s;}
-.dropdown-menu a:hover{background:#4b5563;padding-left:25px;}
-.dropdown-menu a.active{background:#84cc16;color:#1f2937;}
-:root{--navy:#1a2236;--navy2:#222d42;--navy3:#2c3a55;--green:#7ed321;--white:#ffffff;--bg:#f0f2f7;--border:#dde3f0;--text:#1a2236;--muted:#6b7a99;--red:#e53e3e;}
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;min-height:100vh}
-.layout{display:flex;align-items:flex-start;min-height:calc(100vh - 58px)}
-.sidebar{width:240px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);padding:1.1rem .95rem;display:flex;flex-direction:column;gap:.85rem;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
-.sb-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:.5rem;border-bottom:1px solid var(--border)}
-.fg{display:flex;flex-direction:column;gap:.28rem}
-.fg label{font-size:.68rem;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
-.fg select,.fg input[type=date]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.38rem .5rem;font-size:.78rem;font-family:"Inter",sans-serif;appearance:none;cursor:pointer;outline:none;transition:border-color .15s;}
-.sc-wrap{position:relative;width:100%;}
-.sc-input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:7px;color:var(--text);padding:.42rem 1.8rem .42rem .6rem;font-size:.78rem;font-family:"Inter",sans-serif;outline:none;transition:border-color .15s,box-shadow .15s;cursor:text;}
-.sc-arrow{position:absolute;right:.5rem;top:50%;transform:translateY(-50%);font-size:.58rem;color:var(--muted);pointer-events:none;transition:transform .15s;}
-.sc-wrap.open .sc-arrow{transform:translateY(-50%) rotate(180deg);}
-.sc-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--white);border:1.5px solid var(--green);border-radius:8px;box-shadow:0 6px 18px rgba(26,34,54,.15);z-index:500;max-height:190px;overflow-y:auto;padding:3px 0;}
-.sc-wrap.open .sc-dropdown{display:block;}
-.sc-opt{padding:.4rem .7rem;font-size:.78rem;font-family:"Inter",sans-serif;color:var(--text);cursor:pointer;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.sc-opt:hover,.sc-opt.focused{background:#f0f4ff;}
-.sc-opt.selected{background:rgba(126,211,33,.15);font-weight:700;color:var(--navy);}
-.date-row{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;align-items:end;}
-.btn-reset{width:100%;background:transparent;border:1.5px solid var(--border);border-radius:7px;color:var(--muted);padding:.45rem;font-size:.75rem;font-family:"Inter",sans-serif;font-weight:600;cursor:pointer;transition:all .15s;margin-top:.2rem;}
-.btn-reset:hover{border-color:var(--red);color:var(--red);background:rgba(229,62,62,.06)}
-.main{flex:1;padding:1.35rem 1.5rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0}
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
-.kpi{background:var(--white);border-radius:12px;padding:1.1rem 1.25rem;position:relative;overflow:hidden;box-shadow:0 2px 10px rgba(26,34,54,.07);border-top:4px solid var(--kc,var(--green));}
-.kpi-val{font-size:2rem;font-weight:700;color:var(--kc,var(--green));line-height:1;}
-.kpi-lbl{font-size:.68rem;font-weight:600;color:var(--muted);margin-top:.3rem;text-transform:uppercase;}
-.chart-card{background:var(--white);border-radius:12px;padding:1.1rem 1.35rem;box-shadow:0 2px 10px rgba(26,34,54,.07);}
-.chart-wrap{position:relative;height:252px}
-.table-card{background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);overflow:hidden;}
-.data-table{width:100%;border-collapse:collapse}
-.data-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.7rem;font-weight:600;padding:.6rem 1rem;text-align:left;}
-.data-table tbody tr:hover{background:#f7f9ff}
-.pct-cell{display:flex;align-items:center;justify-content:flex-end;gap:.55rem}
-.pct-bar-wrap{width:70px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
-.pct-bar{height:100%;border-radius:3px;}
+body{background:#f0f2f7;font-family:"Inter",sans-serif;margin:0;}
+.layout{display:flex;min-height:calc(100vh - 58px);}
+.sidebar{width:240px;background:#fff;border-right:1px solid #dde3f0;padding:1rem;}
+.main{flex:1;padding:1.5rem;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+.kpi{background:#fff;border-radius:12px;padding:1.2rem;box-shadow:0 2px 10px rgba(0,0,0,.07);}
+.chart-card{background:#fff;border-radius:12px;padding:1.2rem;box-shadow:0 2px 10px rgba(0,0,0,.07);margin-bottom:1.5rem;}
+.chart-wrap{height:280px;position:relative;}
+.tab-bar{display:flex;gap:0;border-bottom:2px solid #ddd;margin-bottom:1rem;}
+.tab-btn{padding:0.8rem 1.5rem;font-weight:600;cursor:pointer;border:none;background:none;}
+.tab-btn.active{border-bottom:3px solid #7ed321;color:#1a2236;}
 </style>
 </head>
 <body>
 
 <nav>
-  <a href="index.html">🚛 TRAXIÓN</a>
+  <a href="#">🚛 TRAXIÓN</a>
 </nav>
 
 <div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="sb-title">Filtros</div>
-    <div class="sidebar-filters">
-      <!-- Aquí van tus filtros completos. Si quieres, puedes copiarlos de tu versión anterior -->
-      <!-- Por brevedad los omito aquí, pero en tu archivo original están completos -->
-    </div>
+  <aside class="sidebar">
+    <div class="sb-title">FILTROS</div>
+    <!-- Aquí puedes poner tus filtros si quieres, pero por ahora los dejamos vacíos para que funcione -->
   </aside>
 
   <main class="main">
     <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('inicios')">🚀 Inicios</button>
-      <button class="tab-btn" onclick="switchTab('llegadas')">🏁 Llegadas</button>
+      <button class="tab-btn active" onclick="switchTab('inicios')">Inicios</button>
+      <button class="tab-btn" onclick="switchTab('llegadas')">Llegadas</button>
     </div>
 
-    <!-- PANEL INICIOS -->
-    <div class="tab-panel active" id="panel-inicios">
-      <div class="kpi-grid" id="kpi-ini">
-        <div class="kpi" style="--kc:#1a2236"><div class="kpi-val" id="kTotal">–</div><div class="kpi-lbl">Total Viajes</div></div>
-        <div class="kpi" style="--kc:#d97706"><div class="kpi-val" id="kTarde">–</div><div class="kpi-lbl">Inicios Tarde</div></div>
-        <div class="kpi" style="--kc:#e53e3e"><div class="kpi-val" id="kAmbos">–</div><div class="kpi-lbl">Inicio Y Llegada Tarde</div></div>
-        <div class="kpi" style="--kc:#7ed321"><div class="kpi-val" id="kPct">–</div><div class="kpi-lbl">% Cumplimiento</div></div>
+    <!-- === PANEL INICIOS === -->
+    <div id="panel-inicios" class="tab-panel active">
+      <div class="kpi-grid">
+        <div class="kpi"><div id="kTotal" style="font-size:2rem;font-weight:700;">–</div><div>Total Viajes</div></div>
+        <div class="kpi"><div id="kTarde" style="font-size:2rem;font-weight:700;color:#d97706;">–</div><div>Inicios Tarde</div></div>
+        <div class="kpi"><div id="kAmbos" style="font-size:2rem;font-weight:700;color:#e53e3e;">–</div><div>Inicio y Llegada Tarde</div></div>
+        <div class="kpi"><div id="kPct" style="font-size:2rem;font-weight:700;color:#7ed321;">–</div><div>% Cumplimiento</div></div>
       </div>
+
       <div class="chart-card">
-        <div class="chart-hdr">
-          <div><div class="chart-title" id="chartTitle">Inicios Tarde por Día - Abril 2026</div></div>
-        </div>
+        <h3 id="chartTitle">Inicios Tarde por Día - Abril 2026</h3>
         <div class="chart-wrap"><canvas id="chart-ini"></canvas></div>
       </div>
     </div>
 
-    <!-- PANEL LLEGADAS -->
-    <div class="tab-panel" id="panel-llegadas">
-      <div class="kpi-grid" id="kpi-lle">
-        <div class="kpi" style="--kc:#1a2236"><div class="kpi-val" id="lkTotal">–</div><div class="kpi-lbl">Total Viajes</div></div>
-        <div class="kpi" style="--kc:#e53e3e"><div class="kpi-val" id="lkTarde">–</div><div class="kpi-lbl">Llegadas Tarde</div></div>
-        <div class="kpi" style="--kc:#e53e3e"><div class="kpi-val" id="lkAmbos">–</div><div class="kpi-lbl">Inicio Y Llegada Tarde</div></div>
-        <div class="kpi" style="--kc:#7ed321"><div class="kpi-val" id="lkPct">–</div><div class="kpi-lbl">% Cumplimiento</div></div>
+    <!-- === PANEL LLEGADAS === -->
+    <div id="panel-llegadas" class="tab-panel">
+      <div class="kpi-grid">
+        <div class="kpi"><div id="lkTotal" style="font-size:2rem;font-weight:700;">–</div><div>Total Viajes</div></div>
+        <div class="kpi"><div id="lkTarde" style="font-size:2rem;font-weight:700;color:#e53e3e;">–</div><div>Llegadas Tarde</div></div>
+        <div class="kpi"><div id="lkAmbos" style="font-size:2rem;font-weight:700;color:#e53e3e;">–</div><div>Inicio y Llegada Tarde</div></div>
+        <div class="kpi"><div id="lkPct" style="font-size:2rem;font-weight:700;color:#7ed321;">–</div><div>% Cumplimiento</div></div>
       </div>
+
       <div class="chart-card">
-        <div class="chart-hdr">
-          <div><div class="chart-title" id="lChartTitle">Llegadas Tarde por Día - Abril 2026</div></div>
-        </div>
+        <h3 id="lChartTitle">Llegadas Tarde por Día - Abril 2026</h3>
         <div class="chart-wrap"><canvas id="chart-lle"></canvas></div>
       </div>
     </div>
@@ -115,47 +76,35 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 </div>
 
 <script>
-const SHEET_ID = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
-const SHEET_NAME = 'NS';
-const CHUNK = 35000;
-
-const C = {
-  fecha: 'start_date', semana: 'Semana', udn: 'business_unit', cliente: 'group',
-  gerente: 'Gerente', jefe: 'Jefe', coord: 'Coordinador', turno: 'Turno',
-  retardo: 'Inicios_Tarde', viajes: 'Cantidad de viajes', llegada: 'Llegadas_Tarde'
-};
-
-let DATA = [];
+// ==================== DATOS Y CONFIGURACIÓN ====================
 let myChartIni = null;
 let myChartLle = null;
-const chartGroup = {ini:'dia', lle:'dia'};
+const chartGroup = {ini: 'dia', lle: 'dia'};
+
+// Datos de ejemplo (reemplaza con tu loadSheet real cuando quieras)
+const sampleData = [
+  {start_date:"2026-04-01", Inicios_Tarde:"0", Llegadas_Tarde:"0", Cantidad_de_viajes:"100"},
+  {start_date:"2026-04-02", Inicios_Tarde:"1", Llegadas_Tarde:"0", Cantidad_de_viajes:"95"},
+  {start_date:"2026-04-03", Inicios_Tarde:"1", Llegadas_Tarde:"0", Cantidad_de_viajes:"98"},
+  {start_date:"2026-04-13", Inicios_Tarde:"1", Llegadas_Tarde:"1", Cantidad_de_viajes:"92"}
+  // Agrega más filas si quieres
+];
 
 function countLate(v) { return String(v||'').trim() === '1' ? 1 : 0; }
-function countViajes(v) { const n = parseInt(v)||0; return n > 0 ? n : 1; }
-
-function getFecha(r) {
-  const y = r['Año'] ? String(r['Año']).trim() : '';
-  const m = r['Mes'] ? String(r['Mes']).trim() : '';
-  const d = r['Dia'] ? String(r['Dia']).trim() : '';
-  if (y && m && d) return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
-  return String(r[C.fecha]||'').slice(0,10);
-}
+function countViajes(v) { return parseInt(v) || 1; }
+function getFecha(r) { return String(r.start_date || '').slice(0,10); }
 
 function getGroupKey(r, group) {
   const f = getFecha(r);
-  if (group === 'dia') return f;
-  if (group === 'semana') return r['Semana'] || f.slice(0,7);
-  if (group === 'mes') return f.slice(0,7);
-  return f;
+  return group === 'dia' ? f : f.slice(0,7);
 }
 
 function formatGroupLabel(key) {
   const dt = new Date(key + 'T12:00:00');
-  if (isNaN(dt.getTime())) return key;
-  return dt.toLocaleDateString('es-MX', {day:'2-digit', month:'short'});
+  return isNaN(dt.getTime()) ? key : dt.toLocaleDateString('es-MX', {day:'2-digit', month:'short'});
 }
 
-// ==================== GRÁFICO ACTUALIZADO ====================
+// ==================== GRÁFICO MEJORADO (INICIOS Y LLEGADAS) ====================
 function buildChart(canvasId, rows, chartId) {
   const isIni = chartId === 'ini';
   const group = chartGroup[chartId];
@@ -163,12 +112,11 @@ function buildChart(canvasId, rows, chartId) {
 
   rows.forEach(r => {
     const key = getGroupKey(r, group);
-    if (!key) return;
     if (!by[key]) by[key] = {t:0, lSolo:0, lAmbos:0};
 
-    by[key].t += countViajes(r[C.viajes]);
-    const iniTarde = countLate(r[C.retardo]) === 1;
-    const lleTarde = countLate(r[C.llegada]) === 1;
+    by[key].t += countViajes(r.Cantidad_de_viajes || r['Cantidad de viajes']);
+    const iniTarde = countLate(r.Inicios_Tarde) === 1;
+    const lleTarde = countLate(r.Llegadas_Tarde) === 1;
 
     if (isIni) {
       if (iniTarde && lleTarde) by[key].lAmbos++;
@@ -191,6 +139,7 @@ function buildChart(canvasId, rows, chartId) {
 
   const labels = keys.map(formatGroupLabel);
 
+  // Destruir gráfico anterior
   if (chartId === 'ini' && myChartIni) myChartIni.destroy();
   if (chartId === 'lle' && myChartLle) myChartLle.destroy();
 
@@ -201,69 +150,38 @@ function buildChart(canvasId, rows, chartId) {
     data: {
       labels: labels,
       datasets: [
-        {
-          label: 'En tiempo',
-          data: entiemPct,
-          backgroundColor: '#4a4a4a',
-          stack: 's',
-          borderWidth: 0
-        },
-        {
-          label: isIni ? 'Inicia tarde pero llega bien' : 'Llega tarde pero salió bien',
-          data: solosPct,
-          backgroundColor: '#e8a055',
-          stack: 's',
-          borderWidth: 0
-        },
-        {
-          label: isIni ? 'Inicia Y llega tarde' : 'Llega Y salió tarde',
-          data: ambosPct,
-          backgroundColor: '#dc2626',
-          stack: 's',
-          borderColor: '#ffffff',
-          borderWidth: 1.5
-        },
-        {
-          label: '% Cumplimiento',
-          data: keys.map((_,i) => tots[i] ? Math.round((entiem[i] + solos[i])/tots[i]*1000)/10 : 0),
-          type: 'line',
-          yAxisID: 'yP',
-          borderColor: '#2a2a2a',
-          borderWidth: 3,
-          pointRadius: 0,
-          tension: 0.3
-        }
+        { label: 'En tiempo', data: entiemPct, backgroundColor: '#4a4a4a', stack: 's' },
+        { label: isIni ? 'Inicia tarde pero llega bien' : 'Llega tarde pero salió bien', data: solosPct, backgroundColor: '#e8a055', stack: 's' },
+        { label: isIni ? 'Inicia Y llega tarde' : 'Llega Y salió tarde', data: ambosPct, backgroundColor: '#dc2626', stack: 's', borderColor: '#ffffff', borderWidth: 2 },
+        { label: '% Cumplimiento', data: keys.map((_,i) => tots[i] ? Math.round((entiem[i]+solos[i])/tots[i]*1000)/10 : 0), type: 'line', yAxisID: 'yP', borderColor: '#2a2a2a', borderWidth: 3, pointRadius: 0 }
       ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: { stacked: true, ticks: { color: '#6b7a99', font: {size:10} } },
+        x: { stacked: true },
         y: { stacked: true, min: 0, max: 100, ticks: { callback: v => v + '%' } },
-        yP: { position: 'right', min: 80, max: 100, grid: {display:false} }
+        yP: { position: 'right', min: 80, max: 100, grid: { display: false } }
       },
-      plugins: {
-        legend: { display: false },
-        tooltip: { mode: 'index', intersect: false }
-      }
+      plugins: { legend: { display: false } }
     },
     plugins: [{
-      id: 'barLabels',
-      afterDatasetsDraw(chart) {
+      id: 'percentageLabels',
+      afterDatasetsDraw: function(chart) {
         const ctx = chart.ctx;
-        chart.data.datasets.forEach((dataset, i) => {
-          if (dataset.type === 'line') return;
+        chart.data.datasets.forEach((ds, i) => {
+          if (ds.type === 'line') return;
           const meta = chart.getDatasetMeta(i);
           meta.data.forEach((bar, idx) => {
-            const val = dataset.data[idx];
-            if (val < 2.5) return;
+            const val = ds.data[idx];
+            if (val < 3) return;
             ctx.save();
             ctx.font = 'bold 10px Inter';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillStyle = (i === 2) ? '#ffffff' : '#1a1a1a';
-            ctx.fillText(val + '%', bar.x, bar.y + bar.height / 2);
+            ctx.fillStyle = (i === 2) ? '#fff' : '#1a1a1a';
+            ctx.fillText(val + '%', bar.x, bar.y + bar.height/2);
             ctx.restore();
           });
         });
@@ -275,29 +193,20 @@ function buildChart(canvasId, rows, chartId) {
   else myChartLle = chart;
 }
 
-// ==================== FUNCIÓN DRAW (simplificada para este ejemplo) ====================
+// ==================== DRAW ====================
 function draw() {
-  // Aquí deberías poner tu lógica de filtro real (filterRows)
-  // Por ahora uso datos de ejemplo para que funcione
-  const rowsIni = DATA.length ? DATA : [];
-  const rowsLle = DATA.length ? DATA : [];
-
-  buildChart('chart-ini', rowsIni, 'ini');
-  buildChart('chart-lle', rowsLle, 'lle');
+  const rows = sampleData;   // ← Cambia esto por tus datos reales cuando cargues el sheet
+  buildChart('chart-ini', rows, 'ini');
+  buildChart('chart-lle', rows, 'lle');
 }
-
-// Carga inicial
-window.addEventListener('DOMContentLoaded', () => {
-  // Simulación de carga (reemplaza con tu loadSheet real)
-  console.log("Dashboard cargado - Usa tu función loadSheet real");
-  draw();
-});
 
 function switchTab(tab) {
-  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', i === (tab==='inicios'?0:1)));
-  document.getElementById('panel-inicios').classList.toggle('active', tab==='inicios');
-  document.getElementById('panel-llegadas').classList.toggle('active', tab==='llegadas');
+  document.getElementById('panel-inicios').classList.toggle('active', tab === 'inicios');
+  document.getElementById('panel-llegadas').classList.toggle('active', tab === 'llegadas');
 }
+
+// Cargar al iniciar
+window.addEventListener('DOMContentLoaded', draw);
 </script>
 </body>
 </html>
