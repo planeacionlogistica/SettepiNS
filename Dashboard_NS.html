@@ -44,7 +44,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .sc-opt.selected{background:rgba(126,211,33,.15);font-weight:700;color:var(--navy);}
 .sc-opt.sc-none{color:var(--muted);font-style:italic;cursor:default;}
 .sc-opt.sc-none:hover{background:transparent;}
-/* FIX: date-row - columnas correctas con overflow visible */
 .date-row{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;align-items:end;width:100%;}
 .date-row .fg{gap:.2rem;min-width:0;}
 .date-row input[type=date]{font-size:.7rem;padding:.32rem .28rem;min-width:0;width:100%;}
@@ -411,7 +410,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             <div class="chart-legend">
               <div class="leg"><div class="leg-sq" style="background:#4a4a4a"></div>En tiempo</div>
               <div class="leg"><div class="leg-sq" style="background:#e8a055"></div>Inicia tarde · llega bien</div>
-              <div class="leg"><div class="leg-sq" style="background:#dc2626"></div>Inicia Y llega tarde</div>
+              <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Inicia Y llega tarde</div>
               <div class="leg"><div class="leg-line" style="background:#2a2a2a"></div>% Cumplimiento</div>
             </div>
           </div>
@@ -432,7 +431,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
 
       <div class="tables-grid">
-        <!-- Tabla Gerente -->
         <div class="table-card" id="card-ger">
           <div class="table-hdr">
             <div><div class="table-hdr-title"><span class="table-hdr-icon">👔</span><span id="tGerTitle">Resumen por Gerente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
@@ -443,7 +441,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             <th style="cursor:pointer" onclick="sortTable('ger')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-ger" style="pointer-events:none">↓</button></div></th>
           </tr></thead><tbody id="tGerBody"></tbody></table></div>
         </div>
-        <!-- Tabla Jefe -->
         <div class="table-card" id="card-jef">
           <div class="table-hdr">
             <div><div class="table-hdr-title"><span class="table-hdr-icon">🗂️</span><span id="tJefTitle">Resumen por Jefe</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
@@ -456,7 +453,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
       </div>
 
-      <!-- Tabla Coordinador -->
       <div class="table-card section-end" id="card-coord">
         <div class="table-hdr">
           <div><div class="table-hdr-title"><span class="table-hdr-icon">🧑‍💼</span><span id="tCoordTitle">Resumen por Coordinador</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
@@ -506,7 +502,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             <div class="chart-legend">
               <div class="leg"><div class="leg-sq" style="background:#4a4a4a"></div>En tiempo</div>
               <div class="leg"><div class="leg-sq" style="background:#e8a055"></div>Llega tarde · salió bien</div>
-              <div class="leg"><div class="leg-sq" style="background:#dc2626"></div>Llega Y salió tarde</div>
+              <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Llega Y salió tarde</div>
               <div class="leg"><div class="leg-line" style="background:#2a2a2a"></div>% Cumplimiento</div>
             </div>
           </div>
@@ -514,7 +510,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         <div class="chart-wrap"><canvas id="chart-lle"></canvas></div>
       </div>
 
-      <!-- Tabla Cliente Llegadas -->
       <div class="table-card" id="lcard-cli">
         <div class="table-hdr">
           <div><div class="table-hdr-title"><span class="table-hdr-icon">🏢</span><span id="ltCliTitle">Resumen por Cliente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
@@ -527,7 +522,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
 
       <div class="tables-grid">
-        <!-- Tabla Gerente Llegadas -->
         <div class="table-card" id="lcard-ger">
           <div class="table-hdr">
             <div><div class="table-hdr-title"><span class="table-hdr-icon">👔</span><span id="ltGerTitle">Resumen por Gerente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
@@ -538,7 +532,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             <th style="cursor:pointer" onclick="sortTable('lger')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-lger" style="pointer-events:none">↓</button></div></th>
           </tr></thead><tbody id="ltGerBody"></tbody></table></div>
         </div>
-        <!-- Tabla Jefe Llegadas -->
         <div class="table-card" id="lcard-jef">
           <div class="table-hdr">
             <div><div class="table-hdr-title"><span class="table-hdr-icon">🗂️</span><span id="ltJefTitle">Resumen por Jefe</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
@@ -551,7 +544,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
       </div>
 
-      <!-- Tabla Coordinador Llegadas -->
       <div class="table-card section-end" id="lcard-coord">
         <div class="table-hdr">
           <div><div class="table-hdr-title"><span class="table-hdr-icon">🧑‍💼</span><span id="ltCoordTitle">Resumen por Coordinador</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
@@ -659,7 +651,6 @@ const SC_FOCUS = Object.fromEntries(SC_KEYS.map(k=>[k,-1]));
 
 const kpiFilter = { ini: '', lle: '' };
 
-// ── KPI click filter ────────────────────────────────────────────
 function toggleKpiFilter(panel, val){
   const cur = kpiFilter[panel];
   kpiFilter[panel] = (val==='total'||val===cur) ? '' : val;
@@ -687,7 +678,6 @@ function updateKpiActive(panel){
   });
 }
 
-// ── Date helpers ─────────────────────────────────────────────────
 function norm(s){
   if(!s) return '';
   s=String(s).trim();
@@ -719,7 +709,6 @@ function getCurrentMonth(){
   return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
 }
 
-// ── CSV parser ──────────────────────────────────────────────────
 function parseCSVLine(line){
   const cols=[];let cur='',inQ=false;
   for(let i=0;i<line.length;i++){
@@ -763,7 +752,6 @@ function csvUrl(offset){
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
 }
 
-// ── Minute helpers ──────────────────────────────────────────────
 function parseMin(v){
   if(v===undefined||v===null||String(v).trim()==='') return null;
   const n=parseFloat(String(v).replace(',','.'));
@@ -776,7 +764,6 @@ function minCell(val, decimals=1){
   return `<span class="${cls}">${sign}${val.toFixed(decimals)} min</span>`;
 }
 
-// ── Load ─────────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', loadSheet);
 
 async function loadSheet(){
@@ -823,7 +810,6 @@ async function loadSheet(){
   }
 }
 
-// ── Searchable combo ─────────────────────────────────────────────
 function scRenderDD(key){
   if(key==='mes'){
     const dd=document.getElementById('sc-mes-dd');
@@ -850,7 +836,6 @@ function scRenderDD(key){
 function scOpen(key){
   document.querySelectorAll('.sc-wrap.open').forEach(el=>{ if(el.id!=='sc-'+key) el.classList.remove('open'); });
   document.getElementById('sc-'+key).classList.add('open');
-  // Recalcular opciones antes de abrir
   cascadeSelects();
   scRenderDD(key);
 }
@@ -898,9 +883,7 @@ document.addEventListener('click',function(e){
     document.querySelectorAll('.sc-wrap.open').forEach(el=>el.classList.remove('open'));
 });
 
-// ── Fill selects ─────────────────────────────────────────────────
 function fillAllSelects(){
-  // Estos siempre se llenan con TODOS los datos (sin filtrar)
   SC_VALS.udn   = uniq(DATA.map(r=>r[C.udn]||''));
   SC_VALS.mes   = [...loadedMonths].sort((a,b)=>b.localeCompare(a));
   SC_VALS.sem   = uniq(DATA.map(r=>r[C.semana]||''));
@@ -910,14 +893,8 @@ function fillAllSelects(){
   cascadeSelects();
 }
 
-// ── FIX: Cascade correcto ────────────────────────────────────────
-// La cascada aplica los filtros activos de arriba hacia abajo,
-// pero SIEMPRE muestra opciones basadas en los filtros YA aplicados
-// (no borra opciones que ya están seleccionadas).
 function cascadeSelects(){
   const f = getF();
-
-  // Base: aplicar udn + mes + sem + turno + ope + car
   const base = DATA.filter(r => {
     if(f.udn   && r[C.udn]                    !== f.udn)   return false;
     if(f.mes   && normMonth(getFecha(r))       !== f.mes)   return false;
@@ -927,29 +904,16 @@ function cascadeSelects(){
     if(f.car   && (r[C.car]||'').trim()        !== f.car)   return false;
     return true;
   });
-
-  // Cliente: opciones visibles según base (sin filtro de cliente aplicado)
   SC_VALS.cli = uniq(base.map(r => r[C.cliente]||''));
-
-  // Si hay cliente seleccionado, filtrar hacia abajo; si no, usar base completa
   const baseCli = f.cli ? base.filter(r => r[C.cliente] === f.cli) : base;
-
   SC_VALS.ger = uniq(baseCli.map(r => r[C.gerente]||''));
-
   const baseGer = f.ger ? baseCli.filter(r => r[C.gerente] === f.ger) : baseCli;
-
   SC_VALS.jef = uniq(baseGer.map(r => r[C.jefe]||''));
-
   const baseJef = f.jef ? baseGer.filter(r => r[C.jefe] === f.jef) : baseGer;
-
   SC_VALS.coord = uniq(baseJef.map(r => (r[C.coord]||'').trim()));
-
-  // Turno, ope y car: siempre se recalculan desde base (independientes de la jerarquía cli→ger→jef→coord)
   SC_VALS.turno = uniq(base.map(r => (r[C.turno]||'').trim()));
   SC_VALS.ope   = uniq(base.map(r => (r[C.driver]||'').trim()));
   SC_VALS.car   = uniq(base.map(r => (r[C.car]||'').trim()));
-
-  // Semanas: basado en udn + mes
   const baseSem = DATA.filter(r => {
     if(f.udn && r[C.udn] !== f.udn) return false;
     if(f.mes && normMonth(getFecha(r)) !== f.mes) return false;
@@ -1025,7 +989,6 @@ function switchTab(tab){
   document.getElementById('panel-llegadas').classList.toggle('active',tab==='llegadas');
 }
 
-// ── Tables ───────────────────────────────────────────────────────
 const sortState={
   cli:{col:3,dir:-1},ger:{col:3,dir:-1},jef:{col:3,dir:-1},coord:{col:3,dir:-1},
   lcli:{col:3,dir:-1},lger:{col:3,dir:-1},ljef:{col:3,dir:-1},lcoord:{col:3,dir:-1}
@@ -1182,11 +1145,13 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
        borderRadius:{topLeft:0,topRight:0,bottomLeft:4,bottomRight:4},barPercentage:.6},
       {label:soloLbl,
        data:solosPct, _raw:solos, _pct:solosPct, _tots:tots,
-       backgroundColor:'#e8a055',stack:'s',order:2,
+       /* ── CAMBIO: naranja más oscuro para mejor contraste ── */
+       backgroundColor:'#d4750a',stack:'s',order:2,
        borderRadius:{topLeft:0,topRight:0,bottomLeft:0,bottomRight:0},barPercentage:.6},
       {label:ambosLbl,
        data:ambosPct, _raw:ambos, _pct:ambosPct, _tots:tots,
-       backgroundColor:'#dc2626',stack:'s',order:2,
+       /* ── CAMBIO: rojo más vivo y saturado ── */
+       backgroundColor:'#cc0000',stack:'s',order:2,
        borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},barPercentage:.6},
       {label:'% Cumplimiento',data:pcts,type:'line',yAxisID:'yP',order:1,
        borderColor:'#2a2a2a',backgroundColor:'rgba(42,42,42,.07)',
@@ -1234,27 +1199,53 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
     plugins:[{id:'lbl',afterDatasetsDraw(chart){
       const c2=chart.ctx;
       const li=chart.data.datasets.findIndex(d=>d.label==='% Cumplimiento');
-      // ── Etiquetas de la línea de cumplimiento ──
+
+      // ── Etiquetas línea cumplimiento ──
       chart.getDatasetMeta(li).data.forEach((pt,i)=>{
         const v=chart.data.datasets[li].data[i]; if(v==null) return;
         c2.save();c2.fillStyle='#2a2a2a';c2.font='bold 10px Inter';
         c2.textAlign='center';c2.fillText(v+'%',pt.x,pt.y-10);c2.restore();
       });
-      // ── FIX: Etiquetas de barras en % (no número absoluto) ──
-      [ambosLbl, soloLbl, 'En tiempo'].forEach((lbl)=>{
-        const bi=chart.data.datasets.findIndex(d=>d.label===lbl);
-        if(bi<0) return;
-        const pctArr=chart.data.datasets[bi]._pct; // usar _pct en lugar de _raw
-        chart.getDatasetMeta(bi).data.forEach((bar,i)=>{
-          const pv=chart.data.datasets[bi].data[i]; // % del segmento
-          const pctVal=pctArr?pctArr[i]:0;
-          if(!pv||pv<4||bar.height<14||!pctVal) return; // umbral mínimo 4% para mostrar label
+
+      // ── CAMBIO: Etiquetas de los 3 segmentos ──
+      // Orden: primero los 2 pequeños (ambos y solo) para que se lean,
+      // luego "En tiempo" que es el grande.
+      const segmentos = [
+        { lbl: ambosLbl, txtColor: '#ffffff' },  // rojo → texto blanco
+        { lbl: soloLbl,  txtColor: '#ffffff' },  // naranja oscuro → texto blanco
+        { lbl: 'En tiempo', txtColor: '#ffffff'} // gris oscuro → texto blanco
+      ];
+
+      segmentos.forEach(({ lbl, txtColor }) => {
+        const bi = chart.data.datasets.findIndex(d => d.label === lbl);
+        if(bi < 0) return;
+        const pctArr = chart.data.datasets[bi]._pct;
+        const rawArr = chart.data.datasets[bi]._raw;
+
+        chart.getDatasetMeta(bi).data.forEach((bar, i) => {
+          const pv     = chart.data.datasets[bi].data[i]; // % del segmento en la barra
+          const pctVal = pctArr ? pctArr[i] : 0;
+          const rawVal = rawArr ? rawArr[i] : 0;
+          if(!pv || !pctVal || rawVal === 0) return;
+
           c2.save();
-          c2.fillStyle=lbl==='En tiempo'?'#ffffff':lbl===soloLbl?'#1a1a1a':'#ffffff';
-          c2.font='bold 10px Inter';
-          c2.textAlign='center';c2.textBaseline='middle';
-          // Mostrar porcentaje con 1 decimal
-          c2.fillText(pctVal.toFixed(1)+'%', bar.x, bar.y+bar.height/2);
+          c2.textAlign = 'center';
+          c2.textBaseline = 'middle';
+
+          if(bar.height >= 13) {
+            // Segmento suficientemente alto → etiqueta dentro
+            c2.fillStyle = txtColor;
+            c2.font = 'bold 10px Inter';
+            c2.fillText(pctVal.toFixed(1) + '%', bar.x, bar.y + bar.height / 2);
+          } else if(pv >= 1) {
+            // Segmento muy delgado pero visible → etiqueta pequeña encima
+            c2.fillStyle = lbl === ambosLbl ? '#cc0000'
+                         : lbl === soloLbl  ? '#d4750a'
+                         : '#4a4a4a';
+            c2.font = 'bold 9px Inter';
+            c2.textBaseline = 'bottom';
+            c2.fillText(pctVal.toFixed(1) + '%', bar.x, bar.y - 1);
+          }
           c2.restore();
         });
       });
