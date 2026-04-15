@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Nivel de Servicio | Traxión</title>
+<title>Dashboard NS2 | Traxión</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -213,6 +213,17 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 
 <nav>
   <a href="index.html">TRAXIÓN</a>
+  <div class="dropdown" id="dropdownLogistica">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownLogistica')">
+      Logística <span class="dropdown-arrow">▼</span>
+    </button>
+    <div class="dropdown-menu">
+      <a href="dashboard_NS.html" class="active">Nivel de Servicio</a>
+      <a href="dashboard_kilometros.html">Kilómetros</a>
+      <a href="dashboard_flota.html">Flota</a>
+      <a href="dashboard_kpis.html">KPIs</a>
+    </div>
+  </div>
 </nav>
 
 <div class="loading-overlay" id="loadingOverlay">
@@ -393,8 +404,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </tr></thead><tbody id="tCliBody"></tbody></table></div>
       </div>
 
-      <div class="tables-grid">
-        <div class="table-card" id="card-ger">
+      <div class="table-card" id="card-ger">
           <div class="table-hdr">
             <div><div class="table-hdr-title"><span class="table-hdr-icon">👔</span><span id="tGerTitle">Resumen por Gerente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
             <div class="table-hdr-actions"><span class="table-count" id="tGerCount">0 gerentes</span><button class="btn-capture" onclick="exportXLSX('ger','Inicios_Gerentes')">⬇ Excel</button></div>
@@ -403,6 +413,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             <th style="width:34px">#</th><th>Gerente</th><th>Total</th><th>En Tiempo</th><th>Inició tarde, llegó bien</th><th>Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ger" style="pointer-events:none">↓</button></div></th>
           </tr></thead><tbody id="tGerBody"></tbody></table></div>
         </div>
+
         <div class="table-card" id="card-jef">
           <div class="table-hdr">
             <div><div class="table-hdr-title"><span class="table-hdr-icon">🗂️</span><span id="tJefTitle">Resumen por Jefe</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
@@ -412,7 +423,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             <th style="width:34px">#</th><th>Jefe</th><th>Total</th><th>En Tiempo</th><th>Inició tarde, llegó bien</th><th>Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('jef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-jef" style="pointer-events:none">↓</button></div></th>
           </tr></thead><tbody id="tJefBody"></tbody></table></div>
         </div>
-      </div>
 
       <div class="table-card section-end" id="card-coord">
         <div class="table-hdr">
@@ -481,8 +491,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </tr></thead><tbody id="ltCliBody"></tbody></table></div>
       </div>
 
-      <div class="tables-grid">
-        <div class="table-card" id="lcard-ger">
+      <div class="table-card" id="lcard-ger">
           <div class="table-hdr">
             <div><div class="table-hdr-title"><span class="table-hdr-icon">👔</span><span id="ltGerTitle">Resumen por Gerente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
             <div class="table-hdr-actions"><span class="table-count" id="ltGerCount">0 gerentes</span><button class="btn-capture" onclick="exportXLSX('lger','Llegadas_Gerentes')">⬇ Excel</button></div>
@@ -491,6 +500,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             <th style="width:34px">#</th><th>Gerente</th><th>Total</th><th>En Tiempo</th><th>Salió bien, llegó tarde</th><th>Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lger" style="pointer-events:none">↓</button></div></th>
           </tr></thead><tbody id="ltGerBody"></tbody></table></div>
         </div>
+
         <div class="table-card" id="lcard-jef">
           <div class="table-hdr">
             <div><div class="table-hdr-title"><span class="table-hdr-icon">🗂️</span><span id="ltJefTitle">Resumen por Jefe</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
@@ -500,7 +510,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             <th style="width:34px">#</th><th>Jefe</th><th>Total</th><th>En Tiempo</th><th>Salió bien, llegó tarde</th><th>Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ljef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ljef" style="pointer-events:none">↓</button></div></th>
           </tr></thead><tbody id="ltJefBody"></tbody></table></div>
         </div>
-      </div>
 
       <div class="table-card section-end" id="lcard-coord">
         <div class="table-hdr">
@@ -574,8 +583,8 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 </div>
 
 <script>
-const SHEET_ID   = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
-const SHEET_NAME = 'NS';
+const SHEET_ID   = '1l3QYg7N050BScrtNhKkHQ-hHNDgaK9Prw95Dzb2-DRE';
+const GID        = '1297993336';
 const CHUNK      = 35000;
 
 const C = {
@@ -708,7 +717,7 @@ function parseCSV(text){
 }
 function csvUrl(offset){
   const tq=encodeURIComponent(`SELECT * LIMIT ${CHUNK} OFFSET ${offset}`);
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}&tq=${tq}`;
 }
 
 function parseMin(v){
