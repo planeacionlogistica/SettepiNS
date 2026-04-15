@@ -401,12 +401,12 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         <div class="chart-hdr">
           <div>
             <div class="chart-title" id="chartTitle">Inicios Tarde por Día</div>
-            <div class="chart-sub">⬛ En tiempo · 🟠 Inició tarde llegó bien · 🔴 Inició Y llegó tarde · — · Meta ≥98% · ✓ Días que cumplen</div>
             <div class="chart-legend" style="margin-top:.4rem">
               <div class="leg"><div class="leg-sq" style="background:#3f3f3f"></div>En tiempo</div>
               <div class="leg"><div class="leg-sq" style="background:#e07010"></div>Inició tarde, llegó bien</div>
               <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Inició Y llegó tarde</div>
-              <div class="leg" style="color:#16a34a;font-weight:700">✓ Cumple meta (≥98%)</div>
+              <div class="leg"><div style="width:8px;height:8px;border-radius:50%;background:rgba(22,163,74,.75);display:inline-block;margin-right:4px"></div>Cumple ≥98%</div>
+              <div class="leg"><div style="width:8px;height:8px;border-radius:50%;background:rgba(204,0,0,.65);display:inline-block;margin-right:4px"></div>No cumple</div>
             </div>
           </div>
           <div class="chart-group-btns" id="grp-ini" style="align-self:flex-start">
@@ -494,12 +494,12 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         <div class="chart-hdr">
           <div>
             <div class="chart-title" id="lChartTitle">Llegadas Tarde por Día</div>
-            <div class="chart-sub">⬛ En tiempo · 🟠 Salió bien, llegó tarde · 🔴 Salió Y llegó tarde · — · Meta ≥98% · ✓ Días que cumplen</div>
             <div class="chart-legend" style="margin-top:.4rem">
               <div class="leg"><div class="leg-sq" style="background:#3f3f3f"></div>En tiempo</div>
               <div class="leg"><div class="leg-sq" style="background:#e07010"></div>Salió bien, llegó tarde</div>
               <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Salió Y llegó tarde</div>
-              <div class="leg" style="color:#16a34a;font-weight:700">✓ Cumple meta (≥98%)</div>
+              <div class="leg"><div style="width:8px;height:8px;border-radius:50%;background:rgba(22,163,74,.75);display:inline-block;margin-right:4px"></div>Cumple ≥98%</div>
+              <div class="leg"><div style="width:8px;height:8px;border-radius:50%;background:rgba(204,0,0,.65);display:inline-block;margin-right:4px"></div>No cumple</div>
             </div>
           </div>
           <div class="chart-group-btns" id="grp-lle" style="align-self:flex-start">
@@ -1160,11 +1160,11 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
       {label:ambosLbl,
        data:ambosPct, _raw:ambos, _pct:ambosPct, _tots:tots,
        backgroundColor:'#cc0000', stack:'s', order:2,
-       borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0}, barPercentage:.88},
+       borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0}, barPercentage:.94},
     ]},
     options:{
       responsive:true, maintainAspectRatio:false,
-      layout:{ padding:{ top:0 } },
+      layout:{ padding:{ top:16 } },
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{display:false},
