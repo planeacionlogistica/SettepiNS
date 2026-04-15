@@ -399,20 +399,21 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
       <div class="chart-card">
         <div class="chart-hdr">
-          <div><div class="chart-title" id="chartTitle">Inicios Tarde por Día</div><div class="chart-sub">⬛ En tiempo · 🟠 Inició tarde, llegó bien · 🔴 Inició Y llegó tarde · Línea verde = % cumplimiento</div></div>
-          <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
-            <div class="chart-group-btns" id="grp-ini">
-              <button class="grp-btn active" onclick="setGroup('ini','dia')">Día</button>
-              <button class="grp-btn" onclick="setGroup('ini','semana')">Sem</button>
-              <button class="grp-btn" onclick="setGroup('ini','mes')">Mes</button>
-              <button class="grp-btn" onclick="setGroup('ini','año')">Año</button>
-            </div>
-            <div class="chart-legend">
+          <div>
+            <div class="chart-title" id="chartTitle">Inicios Tarde por Día</div>
+            <div class="chart-sub">⬛ En tiempo · 🟠 Inició tarde llegó bien · 🔴 Inició Y llegó tarde · — · Meta ≥98% · ✓ Días que cumplen</div>
+            <div class="chart-legend" style="margin-top:.4rem">
               <div class="leg"><div class="leg-sq" style="background:#3f3f3f"></div>En tiempo</div>
               <div class="leg"><div class="leg-sq" style="background:#e07010"></div>Inició tarde, llegó bien</div>
               <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Inició Y llegó tarde</div>
-              <div class="leg"><div style="display:flex;gap:2px;align-items:center"><div class="leg-line" style="background:#4a8a2a;width:10px"></div><div class="leg-line" style="background:#cc2222;width:10px"></div></div>% Cumpl. (verde ≥98% · rojo <div class="leg-line" style="background:#7a9a5a"></div>% Cumplimientolt;98%)</div>
+              <div class="leg" style="color:#16a34a;font-weight:700">✓ Cumple meta (≥98%)</div>
             </div>
+          </div>
+          <div class="chart-group-btns" id="grp-ini" style="align-self:flex-start">
+            <button class="grp-btn active" onclick="setGroup('ini','dia')">Día</button>
+            <button class="grp-btn" onclick="setGroup('ini','semana')">Sem</button>
+            <button class="grp-btn" onclick="setGroup('ini','mes')">Mes</button>
+            <button class="grp-btn" onclick="setGroup('ini','año')">Año</button>
           </div>
         </div>
         <div class="chart-wrap"><canvas id="chart-ini"></canvas></div>
@@ -491,20 +492,21 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
       <div class="chart-card">
         <div class="chart-hdr">
-          <div><div class="chart-title" id="lChartTitle">Llegadas Tarde por Día</div><div class="chart-sub">⬛ En tiempo · 🟠 Salió bien, llegó tarde · 🔴 Salió Y llegó tarde · Línea verde = % cumplimiento</div></div>
-          <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
-            <div class="chart-group-btns" id="grp-lle">
-              <button class="grp-btn active" onclick="setGroup('lle','dia')">Día</button>
-              <button class="grp-btn" onclick="setGroup('lle','semana')">Sem</button>
-              <button class="grp-btn" onclick="setGroup('lle','mes')">Mes</button>
-              <button class="grp-btn" onclick="setGroup('lle','año')">Año</button>
-            </div>
-            <div class="chart-legend">
+          <div>
+            <div class="chart-title" id="lChartTitle">Llegadas Tarde por Día</div>
+            <div class="chart-sub">⬛ En tiempo · 🟠 Salió bien, llegó tarde · 🔴 Salió Y llegó tarde · — · Meta ≥98% · ✓ Días que cumplen</div>
+            <div class="chart-legend" style="margin-top:.4rem">
               <div class="leg"><div class="leg-sq" style="background:#3f3f3f"></div>En tiempo</div>
               <div class="leg"><div class="leg-sq" style="background:#e07010"></div>Salió bien, llegó tarde</div>
               <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Salió Y llegó tarde</div>
-              <div class="leg"><div style="display:flex;gap:2px;align-items:center"><div class="leg-line" style="background:#4a8a2a;width:10px"></div><div class="leg-line" style="background:#cc2222;width:10px"></div></div>% Cumpl. (verde ≥98% · rojo <div class="leg-line" style="background:#7a9a5a"></div>% Cumplimientolt;98%)</div>
+              <div class="leg" style="color:#16a34a;font-weight:700">✓ Cumple meta (≥98%)</div>
             </div>
+          </div>
+          <div class="chart-group-btns" id="grp-lle" style="align-self:flex-start">
+            <button class="grp-btn active" onclick="setGroup('lle','dia')">Día</button>
+            <button class="grp-btn" onclick="setGroup('lle','semana')">Sem</button>
+            <button class="grp-btn" onclick="setGroup('lle','mes')">Mes</button>
+            <button class="grp-btn" onclick="setGroup('lle','año')">Año</button>
           </div>
         </div>
         <div class="chart-wrap"><canvas id="chart-lle"></canvas></div>
@@ -1158,18 +1160,7 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
       {label:ambosLbl,
        data:ambosPct, _raw:ambos, _pct:ambosPct, _tots:tots,
        backgroundColor:'#cc0000', stack:'s', order:2,
-       borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0}, barPercentage:.72},
-      {label:'% Cumplimiento', data:pcts, type:'line', yAxisID:'yP', order:1,
-       segment:{
-         borderColor: ctx => ctx.p0.parsed.y < 98 ? '#cc2222' : '#4a8a2a',
-         backgroundColor: ctx => ctx.p0.parsed.y < 98 ? 'rgba(204,34,34,.07)' : 'rgba(74,138,42,.07)',
-       },
-       borderColor:'#4a8a2a',
-       backgroundColor:'rgba(74,138,42,.07)',
-       borderWidth:2.2, borderDash:[6,3],
-       pointBackgroundColor: ctx => (pcts[ctx.dataIndex]??100) < 98 ? '#cc2222' : '#4a8a2a',
-       pointBorderColor:'#fff',
-       pointBorderWidth:2, pointRadius:5, pointHoverRadius:7, tension:.35, fill:true},
+       borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0}, barPercentage:.88},
     ]},
     options:{
       responsive:true, maintainAspectRatio:false,
@@ -1203,61 +1194,91 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
         y:{stacked:true, min:85, max:100,
            ticks:{color:'#6b7a99',font:{size:10},callback:v=>v+'%'},
            grid:{color:'rgba(0,0,0,.04)'}},
-        yP:{position:'right', min:75, max:100,
-            ticks:{color:'#8aaa6a',font:{size:10},callback:v=>v+'%'},
-            grid:{display:false}},
       }
     },
     plugins:[{id:'lbl', afterDatasetsDraw(chart){
-      const c2   = chart.ctx;
-      const area = chart.chartArea;
+      const c2     = chart.ctx;
+      const area   = chart.chartArea;
       const yScale = chart.scales.y;
+      const META   = 98;
 
-      // ── % "En tiempo" centrado en la zona gris visible ──
-      // La barra gris va de 0 a entiemPct en datos, pero el eje empieza en 85.
-      // Calculamos píxeles manualmente con las escalas.
+      // ── Línea de meta horizontal en 98% ──
+      const metaPx = yScale.getPixelForValue(META);
+      c2.save();
+      c2.strokeStyle = 'rgba(22,163,74,.6)';
+      c2.lineWidth   = 1.5;
+      c2.setLineDash([6,4]);
+      c2.beginPath(); c2.moveTo(area.left, metaPx); c2.lineTo(area.right, metaPx); c2.stroke();
+      c2.setLineDash([]);
+      c2.fillStyle='#16a34a'; c2.font='bold 9px Inter';
+      c2.textAlign='left'; c2.textBaseline='bottom';
+      c2.fillText('Meta 98%', area.left+4, metaPx-3);
+      c2.restore();
+
+      // ── % "En tiempo" centrado en zona gris visible ──
       const eBi = chart.data.datasets.findIndex(d=>d.label==='En tiempo');
       if(eBi>=0){
         chart.getDatasetMeta(eBi).data.forEach((bar,i)=>{
-          const pct = chart.data.datasets[eBi]._pct?.[i];
-          const raw = chart.data.datasets[eBi]._raw?.[i];
-          if(!pct || !raw) return;
-          // píxel del tope del segmento gris (valor entiemPct en escala Y)
+          const pct    = chart.data.datasets[eBi]._pct?.[i];
+          const raw    = chart.data.datasets[eBi]._raw?.[i];
+          if(!pct||!raw) return;
           const topPx    = yScale.getPixelForValue(pct);
-          // píxel del fondo del área visible
           const bottomPx = area.bottom;
-          // centro visual dentro del gris visible
           const centerY  = topPx + (bottomPx - topPx) * 0.55;
-          if(bottomPx - topPx < 18) return; // demasiado delgado
+          if(bottomPx - topPx < 18) return;
           c2.save();
-          c2.font = 'bold 12px Inter';
-          c2.fillStyle = '#ffffff';
-          c2.textAlign = 'center';
-          c2.textBaseline = 'middle';
+          c2.font='bold 12px Inter'; c2.fillStyle='#ffffff';
+          c2.textAlign='center'; c2.textBaseline='middle';
           c2.fillText(pct.toFixed(1)+'%', bar.x, centerY);
           c2.restore();
         });
       }
 
-      // ── % naranja y rojo dentro de su propio segmento ──
-      [
-        { lbl:soloLbl,  clr:'#ffffff', font:'bold 10px Inter', minH:10 },
-        { lbl:ambosLbl, clr:'#ffffff', font:'bold 10px Inter', minH:10 },
-      ].forEach(({lbl, clr, font, minH})=>{
+      // ── % naranja y rojo dentro de su segmento ──
+      [{lbl:soloLbl},{lbl:ambosLbl}].forEach(({lbl})=>{
         const bi = chart.data.datasets.findIndex(d=>d.label===lbl);
         if(bi<0) return;
         chart.getDatasetMeta(bi).data.forEach((bar,i)=>{
           const pct = chart.data.datasets[bi]._pct?.[i];
           const raw = chart.data.datasets[bi]._raw?.[i];
-          if(!pct || !raw || bar.height < minH) return;
+          if(!pct||!raw||bar.height<11) return;
           c2.save();
-          c2.font = font;
-          c2.fillStyle = clr;
-          c2.textAlign = 'center';
-          c2.textBaseline = 'middle';
-          c2.fillText(pct.toFixed(1)+'%', bar.x, bar.y + bar.height/2);
+          c2.font='bold 10px Inter'; c2.fillStyle='#fff';
+          c2.textAlign='center'; c2.textBaseline='middle';
+          c2.fillText(pct.toFixed(1)+'%', bar.x, bar.y+bar.height/2);
           c2.restore();
         });
+      });
+
+      // ── Badge ✓ verde encima de los días que cumplen la meta ──
+      const aBi = chart.data.datasets.findIndex(d=>d.label===ambosLbl);
+      const sBi = chart.data.datasets.findIndex(d=>d.label===soloLbl);
+      if(aBi<0||sBi<0||eBi<0) return;
+
+      chart.getDatasetMeta(aBi).data.forEach((amboBar,i)=>{
+        const ePct = chart.data.datasets[eBi]._pct?.[i] ?? 0;
+        const sPct = chart.data.datasets[sBi]._pct?.[i] ?? 0;
+        const aPct = chart.data.datasets[aBi]._pct?.[i] ?? 0;
+        const cumplimiento = ePct; // en tiempo = cumplimiento sobre total
+        if(cumplimiento < META) return; // no cumple, no badge
+
+        const x      = amboBar.x;
+        // tope real de la barra completa
+        const topVal = ePct + sPct + aPct;
+        const topPx  = yScale.getPixelForValue(topVal) - 12;
+
+        c2.save();
+        // Fondo círculo verde
+        c2.fillStyle = '#16a34a';
+        c2.beginPath(); c2.arc(x, topPx, 9, 0, Math.PI*2); c2.fill();
+        // Borde blanco
+        c2.strokeStyle='#fff'; c2.lineWidth=1.5;
+        c2.stroke();
+        // Checkmark
+        c2.fillStyle='#fff'; c2.font='bold 11px Inter';
+        c2.textAlign='center'; c2.textBaseline='middle';
+        c2.fillText('✓', x, topPx);
+        c2.restore();
       });
     }}]
   });
