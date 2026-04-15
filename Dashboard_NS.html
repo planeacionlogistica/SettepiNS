@@ -209,18 +209,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 <body>
 
 <nav>
-  <a href="index.html">🚛 TRAXIÓN</a>
-  <div class="dropdown" id="dropdownLogistica">
-    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownLogistica')">
-      📦 Logística <span class="dropdown-arrow">▼</span>
-    </button>
-    <div class="dropdown-menu">
-      <a href="dashboard_NS.html" class="active">📈 Nivel de Servicio</a>
-      <a href="dashboard_kilometros.html">📊 Kilómetros</a>
-      <a href="dashboard_flota.html">🚗 Flota</a>
-      <a href="dashboard_kpis.html">🎯 KPIs</a>
-    </div>
-  </div>
+  <a href="index.html">TRAXIÓN</a>
 </nav>
 
 <div class="loading-overlay" id="loadingOverlay">
@@ -377,22 +366,22 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     <div class="tab-panel" id="panel-inicios">
       <div class="kpi-grid" id="kpi-ini">
         <div class="kpi kpi-clickable" style="--kc:#1a2236" id="kpi-ini-total" onclick="toggleKpiFilter('ini','total')">
-          <div class="kpi-icon">🚛</div><div class="kpi-val" id="kTotal">–</div>
+          <div class="kpi-val" id="kTotal">–</div>
           <div class="kpi-lbl">Total Viajes</div>
           <div class="kpi-hint">Ver todos</div>
         </div>
         <div class="kpi kpi-clickable" style="--kc:#d97706" id="kpi-ini-tarde" onclick="toggleKpiFilter('ini','ini_solo')">
-          <div class="kpi-icon">⏰</div><div class="kpi-val" id="kTarde">–</div>
+          <div class="kpi-val" id="kTarde">–</div>
           <div class="kpi-lbl">Inició tarde, llegó bien</div>
           <div class="kpi-hint">Filtrar</div>
         </div>
         <div class="kpi kpi-clickable" style="--kc:#e53e3e" id="kpi-ini-ambos" onclick="toggleKpiFilter('ini','ambos')">
-          <div class="kpi-icon">⚠️</div><div class="kpi-val" id="kAmbos">–</div>
+          <div class="kpi-val" id="kAmbos">–</div>
           <div class="kpi-lbl">Inicio Y Llegada Tarde</div>
           <div class="kpi-hint">Filtrar</div>
         </div>
         <div class="kpi kpi-clickable" style="--kc:#7ed321" id="kpi-ini-pct" onclick="toggleKpiFilter('ini','total')">
-          <div class="kpi-icon">📊</div><div class="kpi-val" id="kPct">–</div>
+          <div class="kpi-val" id="kPct">–</div>
           <div class="kpi-lbl">% Cumplimiento</div>
           <div class="kpi-hint">Ver todos</div>
         </div>
@@ -470,22 +459,22 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     <div class="tab-panel active" id="panel-llegadas">
       <div class="kpi-grid" id="kpi-lle">
         <div class="kpi kpi-clickable" style="--kc:#1a2236" id="kpi-lle-total" onclick="toggleKpiFilter('lle','total')">
-          <div class="kpi-icon">🚛</div><div class="kpi-val" id="lkTotal">–</div>
+          <div class="kpi-val" id="lkTotal">–</div>
           <div class="kpi-lbl">Total Viajes</div>
           <div class="kpi-hint">Ver todos</div>
         </div>
         <div class="kpi kpi-clickable" style="--kc:#d97706" id="kpi-lle-tarde" onclick="toggleKpiFilter('lle','lle_solo')">
-          <div class="kpi-icon">⏰</div><div class="kpi-val" id="lkTarde">–</div>
+          <div class="kpi-val" id="lkTarde">–</div>
           <div class="kpi-lbl">Salió bien, llegó tarde</div>
           <div class="kpi-hint">Filtrar</div>
         </div>
         <div class="kpi kpi-clickable" style="--kc:#e53e3e" id="kpi-lle-ambos" onclick="toggleKpiFilter('lle','ambos')">
-          <div class="kpi-icon">⚠️</div><div class="kpi-val" id="lkAmbos">–</div>
+          <div class="kpi-val" id="lkAmbos">–</div>
           <div class="kpi-lbl">Inicio Y Llegada Tarde</div>
           <div class="kpi-hint">Filtrar</div>
         </div>
         <div class="kpi kpi-clickable" style="--kc:#7ed321" id="kpi-lle-pct" onclick="toggleKpiFilter('lle','total')">
-          <div class="kpi-icon">📊</div><div class="kpi-val" id="lkPct">–</div>
+          <div class="kpi-val" id="lkPct">–</div>
           <div class="kpi-lbl">% Cumplimiento</div>
           <div class="kpi-hint">Ver todos</div>
         </div>
@@ -1191,7 +1180,7 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
         x:{stacked:true,
            ticks:{color:'#6b7a99',font:{size:10,family:'Inter'}},
            grid:{color:'rgba(0,0,0,.04)'}},
-        y:{stacked:true, min:85, max:100,
+        y:{stacked:true, min: isIni ? 0 : 85, max:100,
            ticks:{color:'#6b7a99',font:{size:10},callback:v=>v+'%'},
            grid:{color:'rgba(0,0,0,.04)'}},
       }
