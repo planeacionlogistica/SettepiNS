@@ -70,7 +70,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .leg{display:flex;align-items:center;gap:.35rem;font-size:.72rem;font-weight:500;color:var(--muted)}
 .leg-sq{width:10px;height:10px;border-radius:2px}
 .leg-line{width:18px;height:2.5px;border-radius:1px}
-.chart-wrap{position:relative;height:290px}
+.chart-wrap{position:relative;height:390px}
 .tables-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;}
 .table-card{background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);overflow:hidden;}
 .table-hdr{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);}
@@ -411,7 +411,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
               <div class="leg"><div class="leg-sq" style="background:#3f3f3f"></div>En tiempo</div>
               <div class="leg"><div class="leg-sq" style="background:#e07010"></div>Inició tarde, llegó bien</div>
               <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Inició Y llegó tarde</div>
-              <div class="leg"><div class="leg-line" style="background:#7a9a5a"></div>% Cumplimiento</div>
+              <div class="leg"><div style="display:flex;gap:2px;align-items:center"><div class="leg-line" style="background:#4a8a2a;width:10px"></div><div class="leg-line" style="background:#cc2222;width:10px"></div></div>% Cumpl. (verde ≥98% · rojo <div class="leg-line" style="background:#7a9a5a"></div>% Cumplimientolt;98%)</div>
             </div>
           </div>
         </div>
@@ -503,7 +503,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
               <div class="leg"><div class="leg-sq" style="background:#3f3f3f"></div>En tiempo</div>
               <div class="leg"><div class="leg-sq" style="background:#e07010"></div>Salió bien, llegó tarde</div>
               <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Salió Y llegó tarde</div>
-              <div class="leg"><div class="leg-line" style="background:#7a9a5a"></div>% Cumplimiento</div>
+              <div class="leg"><div style="display:flex;gap:2px;align-items:center"><div class="leg-line" style="background:#4a8a2a;width:10px"></div><div class="leg-line" style="background:#cc2222;width:10px"></div></div>% Cumpl. (verde ≥98% · rojo <div class="leg-line" style="background:#7a9a5a"></div>% Cumplimientolt;98%)</div>
             </div>
           </div>
         </div>
@@ -1160,9 +1160,16 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
        backgroundColor:'#cc0000', stack:'s', order:2,
        borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0}, barPercentage:.72},
       {label:'% Cumplimiento', data:pcts, type:'line', yAxisID:'yP', order:1,
-       borderColor:'#7a9a5a', backgroundColor:'rgba(90,120,50,.04)',
-       borderWidth:1.8, pointBackgroundColor:'#7a9a5a', pointBorderColor:'#fff',
-       pointBorderWidth:1.5, pointRadius:4, pointHoverRadius:6, tension:.35, fill:true},
+       segment:{
+         borderColor: ctx => ctx.p0.parsed.y < 98 ? '#cc2222' : '#4a8a2a',
+         backgroundColor: ctx => ctx.p0.parsed.y < 98 ? 'rgba(204,34,34,.07)' : 'rgba(74,138,42,.07)',
+       },
+       borderColor:'#4a8a2a',
+       backgroundColor:'rgba(74,138,42,.07)',
+       borderWidth:2.2,
+       pointBackgroundColor: ctx => (pcts[ctx.dataIndex]??100) < 98 ? '#cc2222' : '#4a8a2a',
+       pointBorderColor:'#fff',
+       pointBorderWidth:2, pointRadius:5, pointHoverRadius:7, tension:.35, fill:true},
     ]},
     options:{
       responsive:true, maintainAspectRatio:false,
@@ -1210,9 +1217,10 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
       chart.getDatasetMeta(li).data.forEach((pt,i)=>{
         const v=chart.data.datasets[li].data[i]; if(v==null) return;
         c2.save();
-        c2.fillStyle='#4a6030'; c2.font='bold 9px Inter';
+        c2.fillStyle = v < 98 ? '#aa0000' : '#3a6a20';
+        c2.font='bold 9px Inter';
         c2.textAlign='center'; c2.textBaseline='bottom';
-        c2.fillText(v+'%', pt.x, pt.y-5);
+        c2.fillText(v+'%', pt.x, pt.y-6);
         c2.restore();
       });
 
