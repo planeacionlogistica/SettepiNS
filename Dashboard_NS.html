@@ -25,27 +25,24 @@ nav>a:hover{background:#374151;}
 :root{--navy:#1a2236;--navy2:#222d42;--navy3:#2c3a55;--green:#7ed321;--green2:#5cb800;--green3:#a8e05f;--white:#ffffff;--bg:#f0f2f7;--border:#dde3f0;--text:#1a2236;--muted:#6b7a99;--red:#e53e3e;}
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;min-height:100vh}
-.filter-bar{background:var(--white);border-bottom:1px solid var(--border);padding:.5rem 1.5rem;display:flex;gap:.55rem;align-items:flex-end;flex-wrap:wrap;position:sticky;top:58px;z-index:200;box-shadow:0 1px 6px rgba(0,0,0,.06);}
-.filter-bar .fg{flex:1;min-width:100px;max-width:155px;}
-.filter-bar .fg label{font-size:.62rem;}
-.filter-bar .date-pair{display:flex;gap:.35rem;flex:1;min-width:170px;max-width:220px;}
-.filter-bar .date-pair .fg{max-width:none;}
-.filter-bar .btn-reset{flex-shrink:0;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);width:30px;height:30px;font-size:.85rem;cursor:pointer;transition:all .15s;align-self:flex-end;display:flex;align-items:center;justify-content:center;padding:0;}
-.filter-bar .btn-reset:hover{border-color:var(--red);color:var(--red);}
-.layout{min-height:calc(100vh - 58px)}
+.sidebar{width:172px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);padding:.6rem .6rem;display:flex;flex-direction:column;gap:.5rem;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;overflow-x:hidden;}
+.sb-title{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-bottom:.35rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.sb-reset{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.85rem;padding:0;line-height:1;transition:color .15s;}
+.sb-reset:hover{color:var(--red);}
+.layout{display:flex;align-items:flex-start;min-height:calc(100vh - 58px)}
 .sb-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:.5rem;border-bottom:1px solid var(--border)}
-.fg{display:flex;flex-direction:column;gap:.28rem}
-.fg label{font-size:.68rem;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
-.fg select,.fg input[type=date]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.38rem .5rem;font-size:.78rem;font-family:"Inter",sans-serif;appearance:none;cursor:pointer;outline:none;transition:border-color .15s;}
-.fg select:focus,.fg input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(126,211,33,.15)}
+.fg{display:flex;flex-direction:column;gap:.18rem}
+.fg label{font-size:.6rem;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.fg select,.fg input[type=date]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:.28rem .4rem;font-size:.72rem;font-family:"Inter",sans-serif;appearance:none;cursor:pointer;outline:none;transition:border-color .15s;}
+.fg select:focus,.fg input:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(126,211,33,.15)}
 .sc-wrap{position:relative;width:100%;}
-.sc-input{width:100%;background:var(--bg);border:1.5px solid var(--border);border-radius:7px;color:var(--text);padding:.42rem 1.8rem .42rem .6rem;font-size:.78rem;font-family:"Inter",sans-serif;outline:none;transition:border-color .15s,box-shadow .15s;cursor:text;}
-.sc-input:focus,.sc-wrap.open .sc-input{border-color:var(--green);box-shadow:0 0 0 3px rgba(126,211,33,.13);}
-.sc-arrow{position:absolute;right:.5rem;top:50%;transform:translateY(-50%);font-size:.58rem;color:var(--muted);pointer-events:none;transition:transform .15s;}
+.sc-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:.28rem 1.4rem .28rem .4rem;font-size:.72rem;font-family:"Inter",sans-serif;outline:none;transition:border-color .15s;cursor:text;}
+.sc-input:focus,.sc-wrap.open .sc-input{border-color:var(--green);box-shadow:0 0 0 2px rgba(126,211,33,.13);}
+.sc-arrow{position:absolute;right:.38rem;top:50%;transform:translateY(-50%);font-size:.52rem;color:var(--muted);pointer-events:none;transition:transform .15s;}
 .sc-wrap.open .sc-arrow{transform:translateY(-50%) rotate(180deg);}
-.sc-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--white);border:1.5px solid var(--green);border-radius:8px;box-shadow:0 6px 18px rgba(26,34,54,.15);z-index:500;max-height:190px;overflow-y:auto;padding:3px 0;}
+.sc-dropdown{display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--white);border:1.5px solid var(--green);border-radius:6px;box-shadow:0 4px 14px rgba(26,34,54,.15);z-index:500;max-height:170px;overflow-y:auto;padding:2px 0;}
 .sc-wrap.open .sc-dropdown{display:block;}
-.sc-opt{padding:.4rem .7rem;font-size:.78rem;font-family:"Inter",sans-serif;color:var(--text);cursor:pointer;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sc-opt{padding:.32rem .55rem;font-size:.72rem;font-family:"Inter",sans-serif;color:var(--text);cursor:pointer;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .sc-opt:hover,.sc-opt.focused{background:#f0f4ff;}
 .sc-opt.selected{background:rgba(126,211,33,.15);font-weight:700;color:var(--navy);}
 .sc-opt.sc-none{color:var(--muted);font-style:italic;cursor:default;}
@@ -55,7 +52,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .date-row input[type=date]{font-size:.7rem;padding:.32rem .28rem;min-width:0;width:100%;}
 .btn-reset{width:100%;background:transparent;border:1.5px solid var(--border);border-radius:7px;color:var(--muted);padding:.45rem;font-size:.75rem;font-family:"Inter",sans-serif;font-weight:600;cursor:pointer;transition:all .15s;margin-top:.2rem;}
 .btn-reset:hover{border-color:var(--red);color:var(--red);background:rgba(229,62,62,.06)}
-.main{padding:1.1rem 1.5rem;display:flex;flex-direction:column;gap:1.1rem;}
+.main{flex:1;padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0;}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
 .kpi{background:var(--white);border-radius:12px;padding:1.1rem 1.25rem;position:relative;overflow:hidden;box-shadow:0 2px 10px rgba(26,34,54,.07);border-top:4px solid var(--kc,var(--green));transition:transform .15s,box-shadow .2s;}
 .kpi:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,34,54,.12)}
@@ -235,93 +232,103 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   </div>
 </div>
 
-<div class="filter-bar" id="filterBar">
-  <div class="fg">
-    <label>Unidad de Negocio</label>
-    <div class="sc-wrap" id="sc-udn">
-      <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
-        id="sc-udn-input" oninput="scFilter('udn')" onfocus="scOpen('udn')" onkeydown="scKey(event,'udn')">
-      <span class="sc-arrow">▼</span>
-      <div class="sc-dropdown" id="sc-udn-dd"></div>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-title">
+      Filtros
+      <button class="sb-reset" onclick="resetFilters()" title="Limpiar filtros">↺</button>
     </div>
-  </div>
-  <div class="fg">
-    <label>Mes</label>
-    <div class="sc-wrap" id="sc-mes">
-      <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-        id="sc-mes-input" oninput="scFilter('mes')" onfocus="scOpen('mes')" onkeydown="scKey(event,'mes')">
-      <span class="sc-arrow">▼</span>
-      <div class="sc-dropdown" id="sc-mes-dd"></div>
+
+    <div class="fg">
+      <label>UDN</label>
+      <div class="sc-wrap" id="sc-udn">
+        <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
+          id="sc-udn-input" oninput="scFilter('udn')" onfocus="scOpen('udn')" onkeydown="scKey(event,'udn')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-udn-dd"></div>
+      </div>
     </div>
-  </div>
-  <div class="fg">
-    <label>Semana</label>
-    <div class="sc-wrap" id="sc-sem">
-      <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
-        id="sc-sem-input" oninput="scFilter('sem')" onfocus="scOpen('sem')" onkeydown="scKey(event,'sem')">
-      <span class="sc-arrow">▼</span>
-      <div class="sc-dropdown" id="sc-sem-dd"></div>
+
+    <div class="fg">
+      <label>Mes</label>
+      <div class="sc-wrap" id="sc-mes">
+        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+          id="sc-mes-input" oninput="scFilter('mes')" onfocus="scOpen('mes')" onkeydown="scKey(event,'mes')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-mes-dd"></div>
+      </div>
     </div>
-  </div>
-  <div class="fg">
-    <label>Cliente / Grupo</label>
-    <div class="sc-wrap" id="sc-cli">
-      <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-        id="sc-cli-input" oninput="scFilter('cli')" onfocus="scOpen('cli')" onkeydown="scKey(event,'cli')">
-      <span class="sc-arrow">▼</span>
-      <div class="sc-dropdown" id="sc-cli-dd"></div>
+
+    <div class="fg">
+      <label>Semana</label>
+      <div class="sc-wrap" id="sc-sem">
+        <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
+          id="sc-sem-input" oninput="scFilter('sem')" onfocus="scOpen('sem')" onkeydown="scKey(event,'sem')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-sem-dd"></div>
+      </div>
     </div>
-  </div>
-  <div class="fg">
-    <label>Gerente</label>
-    <div class="sc-wrap" id="sc-ger">
-      <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-        id="sc-ger-input" oninput="scFilter('ger')" onfocus="scOpen('ger')" onkeydown="scKey(event,'ger')">
-      <span class="sc-arrow">▼</span>
-      <div class="sc-dropdown" id="sc-ger-dd"></div>
+
+    <div class="fg">
+      <label>Cliente</label>
+      <div class="sc-wrap" id="sc-cli">
+        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+          id="sc-cli-input" oninput="scFilter('cli')" onfocus="scOpen('cli')" onkeydown="scKey(event,'cli')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-cli-dd"></div>
+      </div>
     </div>
-  </div>
-  <div class="fg">
-    <label>Jefe</label>
-    <div class="sc-wrap" id="sc-jef">
-      <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-        id="sc-jef-input" oninput="scFilter('jef')" onfocus="scOpen('jef')" onkeydown="scKey(event,'jef')">
-      <span class="sc-arrow">▼</span>
-      <div class="sc-dropdown" id="sc-jef-dd"></div>
+
+    <div class="fg">
+      <label>Gerente</label>
+      <div class="sc-wrap" id="sc-ger">
+        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+          id="sc-ger-input" oninput="scFilter('ger')" onfocus="scOpen('ger')" onkeydown="scKey(event,'ger')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-ger-dd"></div>
+      </div>
     </div>
-  </div>
-  <div class="fg">
-    <label>Coordinador</label>
-    <div class="sc-wrap" id="sc-coord">
-      <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-        id="sc-coord-input" oninput="scFilter('coord')" onfocus="scOpen('coord')" onkeydown="scKey(event,'coord')">
-      <span class="sc-arrow">▼</span>
-      <div class="sc-dropdown" id="sc-coord-dd"></div>
+
+    <div class="fg">
+      <label>Jefe</label>
+      <div class="sc-wrap" id="sc-jef">
+        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+          id="sc-jef-input" oninput="scFilter('jef')" onfocus="scOpen('jef')" onkeydown="scKey(event,'jef')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-jef-dd"></div>
+      </div>
     </div>
-  </div>
-  <div class="fg">
-    <label>Turno</label>
-    <div class="sc-wrap" id="sc-turno">
-      <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-        id="sc-turno-input" oninput="scFilter('turno')" onfocus="scOpen('turno')" onkeydown="scKey(event,'turno')">
-      <span class="sc-arrow">▼</span>
-      <div class="sc-dropdown" id="sc-turno-dd"></div>
+
+    <div class="fg">
+      <label>Coordinador</label>
+      <div class="sc-wrap" id="sc-coord">
+        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+          id="sc-coord-input" oninput="scFilter('coord')" onfocus="scOpen('coord')" onkeydown="scKey(event,'coord')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-coord-dd"></div>
+      </div>
     </div>
-  </div>
-  <div class="date-pair">
+
+    <div class="fg">
+      <label>Turno</label>
+      <div class="sc-wrap" id="sc-turno">
+        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+          id="sc-turno-input" oninput="scFilter('turno')" onfocus="scOpen('turno')" onkeydown="scKey(event,'turno')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-turno-dd"></div>
+      </div>
+    </div>
+
     <div class="fg">
       <label>Desde</label>
-      <input type="date" id="fFi" onchange="onFilterChange('fFi')" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.37rem .4rem;font-size:.73rem;font-family:'Inter',sans-serif;outline:none;">
+      <input type="date" id="fFi" onchange="onFilterChange('fFi')">
     </div>
     <div class="fg">
       <label>Hasta</label>
-      <input type="date" id="fFf" onchange="onFilterChange('fFf')" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.37rem .4rem;font-size:.73rem;font-family:'Inter',sans-serif;outline:none;">
+      <input type="date" id="fFf" onchange="onFilterChange('fFf')">
     </div>
-  </div>
-  <button class="btn-reset" onclick="resetFilters()" title="Limpiar filtros">↺</button>
-</div>
+  </aside>
 
-<div class="layout">
   <main class="main">
     <div class="err hidden" id="errBanner" style="margin-bottom:.8rem">⚠️ <span id="errMsg"></span></div>
     <div class="tab-bar">
