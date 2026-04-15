@@ -25,8 +25,14 @@ nav>a:hover{background:#374151;}
 :root{--navy:#1a2236;--navy2:#222d42;--navy3:#2c3a55;--green:#7ed321;--green2:#5cb800;--green3:#a8e05f;--white:#ffffff;--bg:#f0f2f7;--border:#dde3f0;--text:#1a2236;--muted:#6b7a99;--red:#e53e3e;}
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;min-height:100vh}
-.layout{display:flex;align-items:flex-start;min-height:calc(100vh - 58px)}
-.sidebar{width:240px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);padding:1.1rem .95rem;display:flex;flex-direction:column;gap:.85rem;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
+.filter-bar{background:var(--white);border-bottom:1px solid var(--border);padding:.5rem 1.5rem;display:flex;gap:.55rem;align-items:flex-end;flex-wrap:wrap;position:sticky;top:58px;z-index:200;box-shadow:0 1px 6px rgba(0,0,0,.06);}
+.filter-bar .fg{flex:1;min-width:100px;max-width:155px;}
+.filter-bar .fg label{font-size:.62rem;}
+.filter-bar .date-pair{display:flex;gap:.35rem;flex:1;min-width:170px;max-width:220px;}
+.filter-bar .date-pair .fg{max-width:none;}
+.filter-bar .btn-reset{flex-shrink:0;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:.38rem .7rem;font-size:.73rem;font-family:"Inter",sans-serif;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .15s;align-self:flex-end;}
+.filter-bar .btn-reset:hover{border-color:var(--red);color:var(--red);}
+.layout{min-height:calc(100vh - 58px)}
 .sb-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:.5rem;border-bottom:1px solid var(--border)}
 .fg{display:flex;flex-direction:column;gap:.28rem}
 .fg label{font-size:.68rem;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
@@ -49,7 +55,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .date-row input[type=date]{font-size:.7rem;padding:.32rem .28rem;min-width:0;width:100%;}
 .btn-reset{width:100%;background:transparent;border:1.5px solid var(--border);border-radius:7px;color:var(--muted);padding:.45rem;font-size:.75rem;font-family:"Inter",sans-serif;font-weight:600;cursor:pointer;transition:all .15s;margin-top:.2rem;}
 .btn-reset:hover{border-color:var(--red);color:var(--red);background:rgba(229,62,62,.06)}
-.main{flex:1;padding:1.35rem 1.5rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0}
+.main{padding:1.1rem 1.5rem;display:flex;flex-direction:column;gap:1.1rem;}
 .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
 .kpi{background:var(--white);border-radius:12px;padding:1.1rem 1.25rem;position:relative;overflow:hidden;box-shadow:0 2px 10px rgba(26,34,54,.07);border-top:4px solid var(--kc,var(--green));transition:transform .15s,box-shadow .2s;}
 .kpi:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,34,54,.12)}
@@ -79,12 +85,12 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .table-hdr-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem}
 .table-count{font-size:.72rem;color:var(--muted);background:var(--bg);border-radius:20px;padding:.2rem .65rem;white-space:nowrap}
 .data-table{width:100%;border-collapse:collapse}
-.data-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.6rem 1rem;text-align:left;white-space:nowrap;}
+.data-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.65rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:.5rem .75rem;text-align:left;white-space:nowrap;}
 .data-table thead th:nth-child(n+3){text-align:right}
 .data-table tbody tr{border-bottom:1px solid var(--border);transition:background .12s}
 .data-table tbody tr:last-child{border-bottom:none}
 .data-table tbody tr:hover{background:#f7f9ff}
-.data-table tbody td{padding:.55rem 1rem;font-size:.8rem;color:var(--text)}
+.data-table tbody td{padding:.42rem .75rem;font-size:.77rem;color:var(--text)}
 .data-table tbody td:nth-child(n+3){text-align:right;font-variant-numeric:tabular-nums}
 .td-cli{font-weight:600}.td-num{color:var(--navy)}.td-late{color:var(--red);font-weight:600}
 .pct-cell{display:flex;align-items:center;justify-content:flex-end;gap:.55rem}
@@ -229,132 +235,93 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   </div>
 </div>
 
-<div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <button class="filter-toggle-btn" onclick="toggleSidebar()">
-      🔽 Filtros <span id="filterToggleLabel">Mostrar</span>
-    </button>
-    <div class="sb-title">Filtros</div>
-    <div class="sidebar-filters">
-
-      <div class="fg">
-        <label>Unidad de Negocio</label>
-        <div class="sc-wrap" id="sc-udn">
-          <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
-            id="sc-udn-input" oninput="scFilter('udn')" onfocus="scOpen('udn')" onkeydown="scKey(event,'udn')">
-          <span class="sc-arrow">▼</span>
-          <div class="sc-dropdown" id="sc-udn-dd"></div>
-        </div>
-      </div>
-
-      <div class="fg">
-        <label>Mes</label>
-        <div class="sc-wrap" id="sc-mes">
-          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-            id="sc-mes-input" oninput="scFilter('mes')" onfocus="scOpen('mes')" onkeydown="scKey(event,'mes')">
-          <span class="sc-arrow">▼</span>
-          <div class="sc-dropdown" id="sc-mes-dd"></div>
-        </div>
-      </div>
-
-      <div class="fg">
-        <label>Semana</label>
-        <div class="sc-wrap" id="sc-sem">
-          <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
-            id="sc-sem-input" oninput="scFilter('sem')" onfocus="scOpen('sem')" onkeydown="scKey(event,'sem')">
-          <span class="sc-arrow">▼</span>
-          <div class="sc-dropdown" id="sc-sem-dd"></div>
-        </div>
-      </div>
-
-      <div class="fg">
-        <label>Cliente / Grupo</label>
-        <div class="sc-wrap" id="sc-cli">
-          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-            id="sc-cli-input" oninput="scFilter('cli')" onfocus="scOpen('cli')" onkeydown="scKey(event,'cli')">
-          <span class="sc-arrow">▼</span>
-          <div class="sc-dropdown" id="sc-cli-dd"></div>
-        </div>
-      </div>
-
-      <div class="fg">
-        <label>Gerente</label>
-        <div class="sc-wrap" id="sc-ger">
-          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-            id="sc-ger-input" oninput="scFilter('ger')" onfocus="scOpen('ger')" onkeydown="scKey(event,'ger')">
-          <span class="sc-arrow">▼</span>
-          <div class="sc-dropdown" id="sc-ger-dd"></div>
-        </div>
-      </div>
-
-      <div class="fg">
-        <label>Jefe</label>
-        <div class="sc-wrap" id="sc-jef">
-          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-            id="sc-jef-input" oninput="scFilter('jef')" onfocus="scOpen('jef')" onkeydown="scKey(event,'jef')">
-          <span class="sc-arrow">▼</span>
-          <div class="sc-dropdown" id="sc-jef-dd"></div>
-        </div>
-      </div>
-
-      <div class="fg">
-        <label>Coordinador</label>
-        <div class="sc-wrap" id="sc-coord">
-          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-            id="sc-coord-input" oninput="scFilter('coord')" onfocus="scOpen('coord')" onkeydown="scKey(event,'coord')">
-          <span class="sc-arrow">▼</span>
-          <div class="sc-dropdown" id="sc-coord-dd"></div>
-        </div>
-      </div>
-
-      <div class="fg">
-        <label>Turno</label>
-        <div class="sc-wrap" id="sc-turno">
-          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-            id="sc-turno-input" oninput="scFilter('turno')" onfocus="scOpen('turno')" onkeydown="scKey(event,'turno')">
-          <span class="sc-arrow">▼</span>
-          <div class="sc-dropdown" id="sc-turno-dd"></div>
-        </div>
-      </div>
-
-      <div class="fg">
-        <label>Operador</label>
-        <div class="sc-wrap" id="sc-ope">
-          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-            id="sc-ope-input" oninput="scFilter('ope')" onfocus="scOpen('ope')" onkeydown="scKey(event,'ope')">
-          <span class="sc-arrow">▼</span>
-          <div class="sc-dropdown" id="sc-ope-dd"></div>
-        </div>
-      </div>
-
-      <div class="fg">
-        <label>Carro / Unidad</label>
-        <div class="sc-wrap" id="sc-car">
-          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-            id="sc-car-input" oninput="scFilter('car')" onfocus="scOpen('car')" onkeydown="scKey(event,'car')">
-          <span class="sc-arrow">▼</span>
-          <div class="sc-dropdown" id="sc-car-dd"></div>
-        </div>
-      </div>
-
-      <div class="fg">
-        <label>Rango de fechas</label>
-        <div class="date-row">
-          <div class="fg">
-            <label style="font-size:.62rem">Desde</label>
-            <input type="date" id="fFi" onchange="onFilterChange('fFi')" title="Desde">
-          </div>
-          <div class="fg">
-            <label style="font-size:.62rem">Hasta</label>
-            <input type="date" id="fFf" onchange="onFilterChange('fFf')" title="Hasta">
-          </div>
-        </div>
-      </div>
-
-      <button class="btn-reset" onclick="resetFilters()">↺ Limpiar filtros</button>
+<div class="filter-bar" id="filterBar">
+  <div class="fg">
+    <label>Unidad de Negocio</label>
+    <div class="sc-wrap" id="sc-udn">
+      <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
+        id="sc-udn-input" oninput="scFilter('udn')" onfocus="scOpen('udn')" onkeydown="scKey(event,'udn')">
+      <span class="sc-arrow">▼</span>
+      <div class="sc-dropdown" id="sc-udn-dd"></div>
     </div>
-  </aside>
+  </div>
+  <div class="fg">
+    <label>Mes</label>
+    <div class="sc-wrap" id="sc-mes">
+      <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+        id="sc-mes-input" oninput="scFilter('mes')" onfocus="scOpen('mes')" onkeydown="scKey(event,'mes')">
+      <span class="sc-arrow">▼</span>
+      <div class="sc-dropdown" id="sc-mes-dd"></div>
+    </div>
+  </div>
+  <div class="fg">
+    <label>Semana</label>
+    <div class="sc-wrap" id="sc-sem">
+      <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
+        id="sc-sem-input" oninput="scFilter('sem')" onfocus="scOpen('sem')" onkeydown="scKey(event,'sem')">
+      <span class="sc-arrow">▼</span>
+      <div class="sc-dropdown" id="sc-sem-dd"></div>
+    </div>
+  </div>
+  <div class="fg">
+    <label>Cliente / Grupo</label>
+    <div class="sc-wrap" id="sc-cli">
+      <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+        id="sc-cli-input" oninput="scFilter('cli')" onfocus="scOpen('cli')" onkeydown="scKey(event,'cli')">
+      <span class="sc-arrow">▼</span>
+      <div class="sc-dropdown" id="sc-cli-dd"></div>
+    </div>
+  </div>
+  <div class="fg">
+    <label>Gerente</label>
+    <div class="sc-wrap" id="sc-ger">
+      <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+        id="sc-ger-input" oninput="scFilter('ger')" onfocus="scOpen('ger')" onkeydown="scKey(event,'ger')">
+      <span class="sc-arrow">▼</span>
+      <div class="sc-dropdown" id="sc-ger-dd"></div>
+    </div>
+  </div>
+  <div class="fg">
+    <label>Jefe</label>
+    <div class="sc-wrap" id="sc-jef">
+      <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+        id="sc-jef-input" oninput="scFilter('jef')" onfocus="scOpen('jef')" onkeydown="scKey(event,'jef')">
+      <span class="sc-arrow">▼</span>
+      <div class="sc-dropdown" id="sc-jef-dd"></div>
+    </div>
+  </div>
+  <div class="fg">
+    <label>Coordinador</label>
+    <div class="sc-wrap" id="sc-coord">
+      <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+        id="sc-coord-input" oninput="scFilter('coord')" onfocus="scOpen('coord')" onkeydown="scKey(event,'coord')">
+      <span class="sc-arrow">▼</span>
+      <div class="sc-dropdown" id="sc-coord-dd"></div>
+    </div>
+  </div>
+  <div class="fg">
+    <label>Turno</label>
+    <div class="sc-wrap" id="sc-turno">
+      <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+        id="sc-turno-input" oninput="scFilter('turno')" onfocus="scOpen('turno')" onkeydown="scKey(event,'turno')">
+      <span class="sc-arrow">▼</span>
+      <div class="sc-dropdown" id="sc-turno-dd"></div>
+    </div>
+  </div>
+  <div class="date-pair">
+    <div class="fg">
+      <label>Desde</label>
+      <input type="date" id="fFi" onchange="onFilterChange('fFi')" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.37rem .4rem;font-size:.73rem;font-family:'Inter',sans-serif;outline:none;">
+    </div>
+    <div class="fg">
+      <label>Hasta</label>
+      <input type="date" id="fFf" onchange="onFilterChange('fFf')" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.37rem .4rem;font-size:.73rem;font-family:'Inter',sans-serif;outline:none;">
+    </div>
+  </div>
+  <button class="btn-reset" onclick="resetFilters()">↺ Limpiar</button>
+</div>
 
+<div class="layout">
   <main class="main">
     <div class="err hidden" id="errBanner" style="margin-bottom:.8rem">⚠️ <span id="errMsg"></span></div>
     <div class="tab-bar">
@@ -415,8 +382,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div class="table-hdr-actions"><span class="table-count" id="tCliCount">0 clientes</span><button class="btn-capture" onclick="captureTable('card-cli','Inicios_Clientes')">📷 Capturar</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:44px">#</th><th>Cliente / Grupo</th><th>Total</th><th>% Tarde</th>
-          <th style="cursor:pointer" onclick="sortTable('cli')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-cli" style="pointer-events:none">↓</button></div></th>
+          <th style="width:34px">#</th><th>Cliente / Grupo</th><th>Total</th><th>En Tiempo</th><th>Inició tarde, llegó bien</th><th>Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('cli')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-cli" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tCliBody"></tbody></table></div>
       </div>
 
@@ -427,8 +393,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             <div class="table-hdr-actions"><span class="table-count" id="tGerCount">0 gerentes</span><button class="btn-capture" onclick="captureTable('card-ger','Inicios_Gerentes')">📷 Capturar</button></div>
           </div>
           <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-            <th style="width:44px">#</th><th>Gerente</th><th>Total</th><th>% Tarde</th>
-            <th style="cursor:pointer" onclick="sortTable('ger')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-ger" style="pointer-events:none">↓</button></div></th>
+            <th style="width:34px">#</th><th>Gerente</th><th>Total</th><th>En Tiempo</th><th>Inició tarde, llegó bien</th><th>Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ger" style="pointer-events:none">↓</button></div></th>
           </tr></thead><tbody id="tGerBody"></tbody></table></div>
         </div>
         <div class="table-card" id="card-jef">
@@ -437,8 +402,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             <div class="table-hdr-actions"><span class="table-count" id="tJefCount">0 jefes</span><button class="btn-capture" onclick="captureTable('card-jef','Inicios_Jefes')">📷 Capturar</button></div>
           </div>
           <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-            <th style="width:44px">#</th><th>Jefe</th><th>Total</th><th>% Tarde</th>
-            <th style="cursor:pointer" onclick="sortTable('jef')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-jef" style="pointer-events:none">↓</button></div></th>
+            <th style="width:34px">#</th><th>Jefe</th><th>Total</th><th>En Tiempo</th><th>Inició tarde, llegó bien</th><th>Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('jef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-jef" style="pointer-events:none">↓</button></div></th>
           </tr></thead><tbody id="tJefBody"></tbody></table></div>
         </div>
       </div>
@@ -449,8 +413,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div class="table-hdr-actions"><span class="table-count" id="tCoordCount">0 coordinadores</span><button class="btn-capture" onclick="captureTable('card-coord','Inicios_Coordinadores')">📷 Capturar</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:44px">#</th><th>Coordinador</th><th>Total</th><th>% Tarde</th>
-          <th style="cursor:pointer" onclick="sortTable('coord')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-coord" style="pointer-events:none">↓</button></div></th>
+          <th style="width:34px">#</th><th>Coordinador</th><th>Total</th><th>En Tiempo</th><th>Inició tarde, llegó bien</th><th>Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('coord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-coord" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tCoordBody"></tbody></table></div>
       </div>
     </div>
@@ -507,8 +470,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div class="table-hdr-actions"><span class="table-count" id="ltCliCount">0 clientes</span><button class="btn-capture" onclick="captureTable('lcard-cli','Llegadas_Clientes')">📷 Capturar</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:44px">#</th><th>Cliente / Grupo</th><th>Total</th><th>% Tarde</th>
-          <th style="cursor:pointer" onclick="sortTable('lcli')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-lcli" style="pointer-events:none">↓</button></div></th>
+          <th style="width:34px">#</th><th>Cliente / Grupo</th><th>Total</th><th>En Tiempo</th><th>Salió bien, llegó tarde</th><th>Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lcli')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lcli" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltCliBody"></tbody></table></div>
       </div>
 
@@ -519,8 +481,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             <div class="table-hdr-actions"><span class="table-count" id="ltGerCount">0 gerentes</span><button class="btn-capture" onclick="captureTable('lcard-ger','Llegadas_Gerentes')">📷 Capturar</button></div>
           </div>
           <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-            <th style="width:44px">#</th><th>Gerente</th><th>Total</th><th>% Tarde</th>
-            <th style="cursor:pointer" onclick="sortTable('lger')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-lger" style="pointer-events:none">↓</button></div></th>
+            <th style="width:34px">#</th><th>Gerente</th><th>Total</th><th>En Tiempo</th><th>Salió bien, llegó tarde</th><th>Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lger" style="pointer-events:none">↓</button></div></th>
           </tr></thead><tbody id="ltGerBody"></tbody></table></div>
         </div>
         <div class="table-card" id="lcard-jef">
@@ -529,8 +490,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             <div class="table-hdr-actions"><span class="table-count" id="ltJefCount">0 jefes</span><button class="btn-capture" onclick="captureTable('lcard-jef','Llegadas_Jefes')">📷 Capturar</button></div>
           </div>
           <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-            <th style="width:44px">#</th><th>Jefe</th><th>Total</th><th>% Tarde</th>
-            <th style="cursor:pointer" onclick="sortTable('ljef')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-ljef" style="pointer-events:none">↓</button></div></th>
+            <th style="width:34px">#</th><th>Jefe</th><th>Total</th><th>En Tiempo</th><th>Salió bien, llegó tarde</th><th>Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ljef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ljef" style="pointer-events:none">↓</button></div></th>
           </tr></thead><tbody id="ltJefBody"></tbody></table></div>
         </div>
       </div>
@@ -541,8 +501,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div class="table-hdr-actions"><span class="table-count" id="ltCoordCount">0 coordinadores</span><button class="btn-capture" onclick="captureTable('lcard-coord','Llegadas_Coordinadores')">📷 Capturar</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:44px">#</th><th>Coordinador</th><th>Total</th><th>% Tarde</th>
-          <th style="cursor:pointer" onclick="sortTable('lcoord')"><div class="th-inner"><span>% Cumplimiento</span><button class="sort-btn" id="sort-lcoord" style="pointer-events:none">↓</button></div></th>
+          <th style="width:34px">#</th><th>Coordinador</th><th>Total</th><th>En Tiempo</th><th>Salió bien, llegó tarde</th><th>Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lcoord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lcoord" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltCoordBody"></tbody></table></div>
       </div>
     </div>
@@ -1013,48 +972,71 @@ function sortTable(tbl){
 }
 
 function renderTable(tbl){
-  const isL=tbl.startsWith('l');
-  const colorFn=isL?pctColorLlegadas:pctColor;
-  const rows=[...tableData[tbl]].sort((a,b)=>(a.pct-b.pct)*sortState[tbl].dir);
-  const bodyId=TABLE_BODY[tbl],countId=TABLE_CNT[tbl],word=TABLE_WORD[tbl];
+  const isL  = tbl.startsWith('l');
+  const isIni = !isL;
+  const colorFn = isL ? pctColorLlegadas : pctColor;
+  const rows = [...tableData[tbl]].sort((a,b)=>(a.pct-b.pct)*sortState[tbl].dir);
+  const bodyId=TABLE_BODY[tbl], countId=TABLE_CNT[tbl], word=TABLE_WORD[tbl];
   const badges=['#f59e0b','#9ca3af','#b45309'];
   document.getElementById(countId).textContent=rows.length+(rows.length===1?' '+word:' '+word+'s');
-  if(!rows.length){ document.getElementById(bodyId).innerHTML='<tr><td colspan="5" class="table-empty">Sin resultados</td></tr>'; return; }
+  if(!rows.length){ document.getElementById(bodyId).innerHTML='<tr><td colspan="9" class="table-empty">Sin resultados</td></tr>'; return; }
+
+  const fmtMin = v => {
+    if(v===null) return '<span style="color:#aaa;font-size:.7rem">–</span>';
+    const clr = v>0?'#c53030':v<0?'#16a34a':'#6b7a99';
+    return `<span style="color:${clr};font-weight:600">${v>0?'+':''}${v.toFixed(1)}</span>`;
+  };
 
   document.getElementById(bodyId).innerHTML=rows.map((row,i)=>{
-    const pctFmt    = row.pct.toFixed(1)+'%';
-    const pctLate   = row.t>0 ? (row.l/row.t*100).toFixed(1)+'%' : '0.0%';
-    const color     = colorFn(row.pct);
-    const lateColor = row.l>0 ? '#e53e3e' : '#16a34a';
-    const barW      = Math.min(100,row.pct).toFixed(1);
-    const bg        = i<3 ? badges[i] : '#e5e7eb';
-    const fg        = i<3 ? '#fff'    : '#6b7a99';
+    const color  = colorFn(row.pct);
+    const pctFmt = row.pct.toFixed(1)+'%';
+    const bg = i<3 ? badges[i] : '#e5e7eb';
+    const fg = i<3 ? '#fff'    : '#6b7a99';
     const isCliTable = (tbl==='cli'||tbl==='lcli');
     const clickAttr  = isCliTable
-      ? `onclick="openDrill('${row.k.replace(/'/g,"\\'")}','${tbl}')" class="row-clickable"`
-      : '';
+      ? `onclick="openDrill('${row.k.replace(/'/g,"\\'")}','${tbl}')" class="row-clickable"` : '';
     return `<tr ${clickAttr}>
-      <td style="width:44px"><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td>
+      <td style="width:34px"><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td>
       <td class="td-cli" title="${row.k}">${row.k}${isCliTable?' <span style="font-size:.6rem;color:var(--muted)">▶</span>':''}</td>
-      <td class="td-num">${N(row.t)}</td>
-      <td class="td-pct-late" style="color:${lateColor}">${pctLate}</td>
-      <td><div class="pct-cell">
-        <div class="pct-bar-wrap"><div class="pct-bar" style="width:${barW}%;background:${color}"></div></div>
-        <span class="pct-val" style="color:${color}">${pctFmt}</span>
-      </div></td>
+      <td style="text-align:right;color:var(--navy);font-variant-numeric:tabular-nums">${N(row.t)}</td>
+      <td style="text-align:right;color:#16a34a;font-weight:600;font-variant-numeric:tabular-nums">${N(row.enT)}</td>
+      <td style="text-align:right;color:#d97706;font-weight:600;font-variant-numeric:tabular-nums">${N(row.lSolo)}</td>
+      <td style="text-align:right;color:#cc0000;font-weight:700;font-variant-numeric:tabular-nums">${N(row.lAmbos)}</td>
+      <td style="text-align:right">${fmtMin(row.avgMI)}</td>
+      <td style="text-align:right">${fmtMin(row.avgML)}</td>
+      <td style="text-align:right;font-weight:700;font-size:.85rem;color:${color}">${pctFmt}</td>
     </tr>`;
   }).join('');
 }
 
-function buildTable(rows, field, tbl, lateField){
+function buildTable(rows, field, tbl, isIniPanel){
   const byKey={};
   rows.forEach(r=>{
     const k=(r[field]||'').trim()||'(Sin asignar)';
-    if(!byKey[k]) byKey[k]={t:0,l:0};
-    byKey[k].t+=countViajes(r[C.viajes]);
-    byKey[k].l+=countLate(r[lateField]);
+    if(!byKey[k]) byKey[k]={t:0,enT:0,lSolo:0,lAmbos:0,sumMI:0,cMI:0,sumML:0,cML:0};
+    byKey[k].t += countViajes(r[C.viajes]);
+    const iniT = countLate(r[C.retardo])===1;
+    const lleT = countLate(r[C.llegada])===1;
+    if(isIniPanel){
+      if(!iniT)       byKey[k].enT++;
+      else if(!lleT)  byKey[k].lSolo++;
+      else            byKey[k].lAmbos++;
+    } else {
+      if(!lleT)       byKey[k].enT++;
+      else if(!iniT)  byKey[k].lSolo++;
+      else            byKey[k].lAmbos++;
+    }
+    const mI = parseMin(r[C.minIni]);
+    const mL = parseMin(r[C.minLle]);
+    if(iniT && mI!==null){ byKey[k].sumMI+=mI; byKey[k].cMI++; }
+    if(lleT && mL!==null){ byKey[k].sumML+=mL; byKey[k].cML++; }
   });
-  tableData[tbl]=Object.entries(byKey).map(([k,d])=>({k,t:d.t,l:d.l,pct:d.t>0?(d.t-d.l)/d.t*100:0}));
+  tableData[tbl]=Object.entries(byKey).map(([k,d])=>({
+    k, t:d.t, enT:d.enT, lSolo:d.lSolo, lAmbos:d.lAmbos,
+    avgMI: d.cMI>0 ? d.sumMI/d.cMI : null,
+    avgML: d.cML>0 ? d.sumML/d.cML : null,
+    pct:   d.t>0 ? d.enT/d.t*100 : 0,
+  }));
   renderTable(tbl);
 }
 
@@ -1311,15 +1293,15 @@ function draw(){
   myChartIni=buildChart('chart-ini',rowsIni,C.retardo,'Inicios tarde',myChartIni,'ini');
   myChartLle=buildChart('chart-lle',rowsLle,C.llegada,'Llegadas tarde',myChartLle,'lle');
 
-  buildTable(rowsIni,C.cliente,'cli',C.retardo);
-  buildTable(rowsIni,C.gerente,'ger',C.retardo);
-  buildTable(rowsIni,C.jefe,'jef',C.retardo);
-  buildTable(rowsIni,C.coord,'coord',C.retardo);
+  buildTable(rowsIni,C.cliente,'cli',true);
+  buildTable(rowsIni,C.gerente,'ger',true);
+  buildTable(rowsIni,C.jefe,'jef',true);
+  buildTable(rowsIni,C.coord,'coord',true);
 
-  buildTable(rowsLle,C.cliente,'lcli',C.llegada);
-  buildTable(rowsLle,C.gerente,'lger',C.llegada);
-  buildTable(rowsLle,C.jefe,'ljef',C.llegada);
-  buildTable(rowsLle,C.coord,'lcoord',C.llegada);
+  buildTable(rowsLle,C.cliente,'lcli',false);
+  buildTable(rowsLle,C.gerente,'lger',false);
+  buildTable(rowsLle,C.jefe,'ljef',false);
+  buildTable(rowsLle,C.coord,'lcoord',false);
 }
 
 // ── Capture ──────────────────────────────────────────────────────
@@ -1444,7 +1426,7 @@ function openDrillDetail(rutaK, clienteK, tbl){
       <td style="text-align:right">${minCell(minIni,0)}</td>
       <td style="text-align:right">${minCell(minLle,0)}</td>
     </tr>`;
-  }).join('')||'<tr><td colspan="5" class="table-empty">Sin viajes registrados</td></tr>';
+  }).join('')||'<tr><td colspan="9" class="table-empty">Sin viajes registrados</td></tr>';
 
   document.getElementById('drillDetailFoot').textContent=
     `Total: ${totT} viajes · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
