@@ -1209,14 +1209,41 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
       }
     },
     plugins:[{id:'lbl', afterDatasetsDraw(chart){
-      const c2 = chart.ctx;
+      const c2   = chart.ctx;
+      const area = chart.chartArea;
+      const yScale = chart.scales.y;
 
-      // ── % dentro de cada segmento en su propio color ──
+      // ── % "En tiempo" centrado en la zona gris visible ──
+      // La barra gris va de 0 a entiemPct en datos, pero el eje empieza en 85.
+      // Calculamos píxeles manualmente con las escalas.
+      const eBi = chart.data.datasets.findIndex(d=>d.label==='En tiempo');
+      if(eBi>=0){
+        chart.getDatasetMeta(eBi).data.forEach((bar,i)=>{
+          const pct = chart.data.datasets[eBi]._pct?.[i];
+          const raw = chart.data.datasets[eBi]._raw?.[i];
+          if(!pct || !raw) return;
+          // píxel del tope del segmento gris (valor entiemPct en escala Y)
+          const topPx    = yScale.getPixelForValue(pct);
+          // píxel del fondo del área visible
+          const bottomPx = area.bottom;
+          // centro visual dentro del gris visible
+          const centerY  = topPx + (bottomPx - topPx) * 0.55;
+          if(bottomPx - topPx < 18) return; // demasiado delgado
+          c2.save();
+          c2.font = 'bold 12px Inter';
+          c2.fillStyle = '#ffffff';
+          c2.textAlign = 'center';
+          c2.textBaseline = 'middle';
+          c2.fillText(pct.toFixed(1)+'%', bar.x, centerY);
+          c2.restore();
+        });
+      }
+
+      // ── % naranja y rojo dentro de su propio segmento ──
       [
-        { lbl:'En tiempo',  clr:'#ffffff', font:'bold 11px Inter', minH:20, pos:0.65 },
-        { lbl:soloLbl,      clr:'#ffffff', font:'bold 10px Inter', minH:10, pos:0.5  },
-        { lbl:ambosLbl,     clr:'#ffffff', font:'bold 10px Inter', minH:10, pos:0.5  },
-      ].forEach(({lbl, clr, font, minH, pos})=>{
+        { lbl:soloLbl,  clr:'#ffffff', font:'bold 10px Inter', minH:10 },
+        { lbl:ambosLbl, clr:'#ffffff', font:'bold 10px Inter', minH:10 },
+      ].forEach(({lbl, clr, font, minH})=>{
         const bi = chart.data.datasets.findIndex(d=>d.label===lbl);
         if(bi<0) return;
         chart.getDatasetMeta(bi).data.forEach((bar,i)=>{
@@ -1228,7 +1255,7 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
           c2.fillStyle = clr;
           c2.textAlign = 'center';
           c2.textBaseline = 'middle';
-          c2.fillText(pct.toFixed(1)+'%', bar.x, bar.y + bar.height * pos);
+          c2.fillText(pct.toFixed(1)+'%', bar.x, bar.y + bar.height/2);
           c2.restore();
         });
       });
