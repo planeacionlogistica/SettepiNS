@@ -70,7 +70,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .leg{display:flex;align-items:center;gap:.35rem;font-size:.72rem;font-weight:500;color:var(--muted)}
 .leg-sq{width:10px;height:10px;border-radius:2px}
 .leg-line{width:18px;height:2.5px;border-radius:1px}
-.chart-wrap{position:relative;height:272px}
+.chart-wrap{position:relative;height:290px}
 .tables-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;}
 .table-card{background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);overflow:hidden;}
 .table-hdr{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);}
@@ -411,11 +411,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
               <div class="leg"><div class="leg-sq" style="background:#3f3f3f"></div>En tiempo</div>
               <div class="leg"><div class="leg-sq" style="background:#e07010"></div>Inició tarde, llegó bien</div>
               <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Inició Y llegó tarde</div>
-              <div class="leg"><div class="leg-line" style="background:#5cb800"></div>% Cumplimiento</div>
-            </div>
-          </div>
-        </div>
-        <div class="chart-wrap"><canvas id="chart-ini"></canvas></div>
+              <div class="leg"><div class="leg-line" style="background:#7a9a5a"></div>% Cumplimiento</div>
       </div>
 
       <!-- Tabla Cliente -->
@@ -503,7 +499,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
               <div class="leg"><div class="leg-sq" style="background:#3f3f3f"></div>En tiempo</div>
               <div class="leg"><div class="leg-sq" style="background:#e07010"></div>Salió bien, llegó tarde</div>
               <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Salió Y llegó tarde</div>
-              <div class="leg"><div class="leg-line" style="background:#5cb800"></div>% Cumplimiento</div>
+              <div class="leg"><div class="leg-line" style="background:#7a9a5a"></div>% Cumplimiento</div>
             </div>
           </div>
         </div>
@@ -1160,9 +1156,9 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
        backgroundColor:'#cc0000', stack:'s', order:2,
        borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0}, barPercentage:.72},
       {label:'% Cumplimiento', data:pcts, type:'line', yAxisID:'yP', order:1,
-       borderColor:'#5cb800', backgroundColor:'rgba(92,184,0,.08)',
-       borderWidth:2.5, pointBackgroundColor:'#5cb800', pointBorderColor:'#fff',
-       pointBorderWidth:2, pointRadius:5, pointHoverRadius:7, tension:.35, fill:true},
+       borderColor:'#7a9a5a', backgroundColor:'rgba(90,120,50,.04)',
+       borderWidth:1.8, pointBackgroundColor:'#7a9a5a', pointBorderColor:'#fff',
+       pointBorderWidth:1.5, pointRadius:4, pointHoverRadius:6, tension:.35, fill:true},
     ]},
     options:{
       responsive:true, maintainAspectRatio:false,
@@ -1170,7 +1166,7 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
       plugins:{
         legend:{display:false},
         tooltip:{
-          backgroundColor:'#1a2236', borderColor:'#5cb800', borderWidth:1,
+          backgroundColor:'#1a2236', borderColor:'#6b7a99', borderWidth:1,
           titleColor:'#fff', bodyColor:'rgba(255,255,255,.75)', padding:12,
           callbacks:{
             title(items){
@@ -1196,54 +1192,85 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
            ticks:{color:'#6b7a99',font:{size:10},callback:v=>v+'%'},
            grid:{color:'rgba(0,0,0,.04)'}},
         yP:{position:'right', min:60, max:100,
-            ticks:{color:'#5cb800',font:{size:10,weight:'bold'},callback:v=>v+'%'},
+            ticks:{color:'#8aaa6a',font:{size:10},callback:v=>v+'%'},
             grid:{display:false}},
       }
     },
     plugins:[{id:'lbl', afterDatasetsDraw(chart){
       const c2 = chart.ctx;
 
-      // ── Línea de cumplimiento: etiquetas encima de cada punto ──
+      // ── Etiqueta % cumplimiento encima de cada punto ──
       const li = chart.data.datasets.findIndex(d=>d.label==='% Cumplimiento');
       chart.getDatasetMeta(li).data.forEach((pt,i)=>{
         const v=chart.data.datasets[li].data[i]; if(v==null) return;
         c2.save();
-        c2.fillStyle='#3a7200'; c2.font='bold 10px Inter';
+        c2.fillStyle='#4a6030'; c2.font='bold 9px Inter';
         c2.textAlign='center'; c2.textBaseline='bottom';
-        c2.fillText(v+'%', pt.x, pt.y-6);
+        c2.fillText(v+'%', pt.x, pt.y-5);
         c2.restore();
       });
 
-      // ── Etiquetas de los 3 segmentos ──
-      [
-        {lbl:ambosLbl, clr:'#ffffff'},  // rojo
-        {lbl:soloLbl,  clr:'#ffffff'},  // naranja
-        {lbl:'En tiempo', clr:'#ffffff'} // gris
-      ].forEach(({lbl,clr})=>{
-        const bi = chart.data.datasets.findIndex(d=>d.label===lbl);
-        if(bi<0) return;
-        const pctArr = chart.data.datasets[bi]._pct;
-        const rawArr = chart.data.datasets[bi]._raw;
-        chart.getDatasetMeta(bi).data.forEach((bar,i)=>{
-          const pv     = chart.data.datasets[bi].data[i];
-          const pctVal = pctArr?pctArr[i]:0;
-          const rawVal = rawArr?rawArr[i]:0;
-          if(!pv||!pctVal||rawVal===0) return;
+      // ── Etiqueta "En tiempo" dentro de la barra grande (gris) ──
+      const eBi = chart.data.datasets.findIndex(d=>d.label==='En tiempo');
+      if(eBi>=0){
+        chart.getDatasetMeta(eBi).data.forEach((bar,i)=>{
+          const pv  = chart.data.datasets[eBi].data[i];
+          const pct = chart.data.datasets[eBi]._pct?.[i];
+          if(!pv||!pct||bar.height<18) return;
           c2.save();
-          c2.textAlign='center';
-          if(bar.height>=13){
-            c2.fillStyle=clr;
-            c2.font='bold 10px Inter';
-            c2.textBaseline='middle';
-            c2.fillText(pctVal.toFixed(1)+'%', bar.x, bar.y+bar.height/2);
-          } else if(pv>=0.5){
-            c2.fillStyle = lbl==='En tiempo'?'#3f3f3f': lbl===soloLbl?'#e07010':'#cc0000';
-            c2.font='bold 8px Inter';
-            c2.textBaseline='bottom';
-            c2.fillText(pctVal.toFixed(1)+'%', bar.x, bar.y-2);
-          }
+          c2.fillStyle='#ffffff'; c2.font='bold 11px Inter';
+          c2.textAlign='center'; c2.textBaseline='middle';
+          c2.fillText(pct.toFixed(1)+'%', bar.x, bar.y+bar.height/2);
           c2.restore();
         });
+      }
+
+      // ── Etiquetas naranja y rojo ENCIMA de las barras (flotando) ──
+      // Buscamos el dataset rojo (ambos = top del stack) para conocer
+      // el tope de cada barra y dibujar los % ahí arriba.
+      const aBi = chart.data.datasets.findIndex(d=>d.label===ambosLbl);
+      const sBi = chart.data.datasets.findIndex(d=>d.label===soloLbl);
+      if(aBi<0||sBi<0) return;
+
+      const ambosMeta = chart.getDatasetMeta(aBi).data;
+      const solosMeta = chart.getDatasetMeta(sBi).data;
+
+      ambosMeta.forEach((amboBar,i)=>{
+        const aP   = chart.data.datasets[aBi]._pct?.[i] ?? 0;
+        const aRaw = chart.data.datasets[aBi]._raw?.[i] ?? 0;
+        const sP   = chart.data.datasets[sBi]._pct?.[i] ?? 0;
+        const sRaw = chart.data.datasets[sBi]._raw?.[i] ?? 0;
+        if(aRaw===0 && sRaw===0) return;
+
+        // El tope del stack completo es el .y del segmento más alto con datos
+        const topY = amboBar.y;
+        c2.save();
+        c2.textAlign='center'; c2.font='bold 10px Inter'; c2.textBaseline='bottom';
+
+        let curY = topY - 3; // empezamos justo arriba de la barra
+
+        // Rojo encima
+        if(aRaw>0 && aP>0){
+          // Fondo pequeño para legibilidad
+          const txt = aP.toFixed(1)+'%';
+          const tw  = c2.measureText(txt).width;
+          c2.fillStyle='rgba(204,0,0,.12)';
+          c2.fillRect(amboBar.x-tw/2-3, curY-12, tw+6, 13);
+          c2.fillStyle='#aa0000'; c2.font='bold 10px Inter';
+          c2.fillText(txt, amboBar.x, curY);
+          curY -= 15;
+        }
+
+        // Naranja debajo del rojo
+        if(sRaw>0 && sP>0){
+          const txt = sP.toFixed(1)+'%';
+          const tw  = c2.measureText(txt).width;
+          c2.fillStyle='rgba(224,112,16,.12)';
+          c2.fillRect(amboBar.x-tw/2-3, curY-12, tw+6, 13);
+          c2.fillStyle='#b85a00'; c2.font='bold 10px Inter';
+          c2.fillText(txt, amboBar.x, curY);
+        }
+        c2.restore();
       });
     }}]
   });
