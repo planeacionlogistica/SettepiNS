@@ -30,7 +30,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .filter-bar .fg label{font-size:.62rem;}
 .filter-bar .date-pair{display:flex;gap:.35rem;flex:1;min-width:170px;max-width:220px;}
 .filter-bar .date-pair .fg{max-width:none;}
-.filter-bar .btn-reset{flex-shrink:0;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:.38rem .7rem;font-size:.73rem;font-family:"Inter",sans-serif;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .15s;align-self:flex-end;}
+.filter-bar .btn-reset{flex-shrink:0;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);width:30px;height:30px;font-size:.85rem;cursor:pointer;transition:all .15s;align-self:flex-end;display:flex;align-items:center;justify-content:center;padding:0;}
 .filter-bar .btn-reset:hover{border-color:var(--red);color:var(--red);}
 .layout{min-height:calc(100vh - 58px)}
 .sb-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:.5rem;border-bottom:1px solid var(--border)}
@@ -318,7 +318,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       <input type="date" id="fFf" onchange="onFilterChange('fFf')" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.37rem .4rem;font-size:.73rem;font-family:'Inter',sans-serif;outline:none;">
     </div>
   </div>
-  <button class="btn-reset" onclick="resetFilters()">↺ Limpiar</button>
+  <button class="btn-reset" onclick="resetFilters()" title="Limpiar filtros">↺</button>
 </div>
 
 <div class="layout">
@@ -788,12 +788,28 @@ function scRenderDD(key){
 function scOpen(key){
   document.querySelectorAll('.sc-wrap.open').forEach(el=>{ if(el.id!=='sc-'+key) el.classList.remove('open'); });
   document.getElementById('sc-'+key).classList.add('open');
+  // Al abrir, limpiar el texto para que muestre todas las opciones
+  const inp = document.getElementById('sc-'+key+'-input');
+  inp.value = '';
   cascadeSelects();
   scRenderDD(key);
 }
 function scFilter(key){
+  // Si había selección, limpiarla mientras escribe
+  if(SC_SEL[key] !== ''){
+    SC_SEL[key] = '';
+    cascadeSelects();
+    draw();
+  }
   document.getElementById('sc-'+key).classList.add('open');
   scRenderDD(key);
+  // Auto-seleccionar si queda exactamente 1 resultado (no "Todos")
+  const dd = document.getElementById('sc-'+key+'-dd');
+  const opts = dd.querySelectorAll('.sc-opt:not(.sc-none)');
+  const realOpts = [...opts].filter(o => o.getAttribute('data-val') !== '');
+  if(realOpts.length === 1){
+    realOpts[0].dispatchEvent(new MouseEvent('mousedown', {bubbles:true}));
+  }
 }
 function scSelect(e,key){
   e.preventDefault();
@@ -809,6 +825,7 @@ function scSetVal(key,val,lbl){
   SC_SEL[key]=val;
   const inp=document.getElementById('sc-'+key+'-input');
   inp.value = val==='' ? '' : lbl;
+  inp.setAttribute('data-selected-lbl', val==='' ? '' : lbl);
 }
 function scKey(e,key){
   const dd=document.getElementById('sc-'+key+'-dd');
@@ -826,13 +843,29 @@ function scKey(e,key){
     opts[SC_FOCUS[key]]?.scrollIntoView({block:'nearest'});
   } else if(e.key==='Enter'){
     if(SC_FOCUS[key]>=0) opts[SC_FOCUS[key]].dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));
+    else {
+      // Sin foco: seleccionar primer resultado real
+      const first = opts.find(o=>o.getAttribute('data-val')!=='');
+      if(first) first.dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));
+    }
   } else if(e.key==='Escape'){
+    // Restaurar texto al valor seleccionado previo
+    const inp = document.getElementById('sc-'+key+'-input');
+    inp.value = inp.getAttribute('data-selected-lbl') || '';
     document.getElementById('sc-'+key).classList.remove('open');
   }
 }
 document.addEventListener('click',function(e){
-  if(!e.target.closest('.sc-wrap'))
-    document.querySelectorAll('.sc-wrap.open').forEach(el=>el.classList.remove('open'));
+  if(!e.target.closest('.sc-wrap')){
+    document.querySelectorAll('.sc-wrap.open').forEach(el=>{
+      el.classList.remove('open');
+      // Restaurar texto al cerrar sin seleccionar
+      const key = el.id.replace('sc-','');
+      const inp = document.getElementById('sc-'+key+'-input');
+      const savedLbl = inp?.getAttribute('data-selected-lbl') || '';
+      if(inp) inp.value = savedLbl;
+    });
+  }
 });
 
 function fillAllSelects(){
@@ -901,7 +934,11 @@ function getF(){
 }
 
 function resetFilters(){
-  SC_KEYS.forEach(k=>scSetVal(k,'',''));
+  SC_KEYS.forEach(k=>{
+    scSetVal(k,'','');
+    const inp=document.getElementById('sc-'+k+'-input');
+    if(inp) inp.setAttribute('data-selected-lbl','');
+  });
   document.getElementById('fFi').value='';
   document.getElementById('fFf').value='';
   kpiFilter.ini=''; kpiFilter.lle='';
