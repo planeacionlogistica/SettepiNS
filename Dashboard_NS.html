@@ -1173,7 +1173,7 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
     ]},
     options:{
       responsive:true, maintainAspectRatio:false,
-      layout:{ padding:{ top:44 } },
+      layout:{ padding:{ top:20 } },
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{display:false},
@@ -1238,8 +1238,8 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
         });
       }
 
-      // ── Rojo y Naranja: zona fija de padding encima del plot ──
-      // Siempre en la misma posición, nunca se solapan con la línea.
+      // ── Rojo y Naranja: dentro de la columna, pegados al tope ──
+      // Se dibujan sobre el fondo gris oscuro → siempre legibles.
       const aBi = chart.data.datasets.findIndex(d=>d.label===ambosLbl);
       const sBi = chart.data.datasets.findIndex(d=>d.label===soloLbl);
       if(aBi<0||sBi<0) return;
@@ -1250,35 +1250,39 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
         const sP   = chart.data.datasets[sBi]._pct?.[i] ?? 0;
         const sRaw = chart.data.datasets[sBi]._raw?.[i] ?? 0;
         if(aRaw===0 && sRaw===0) return;
-        const x = amboBar.x;
+
+        const x    = amboBar.x;
+        // tope de la barra completa = .y del segmento más alto
+        const topY = amboBar.y;
+        const dotR = 4;
+        const dotX = x - 22;
+
         c2.save();
-        c2.textAlign='center'; c2.textBaseline='middle';
-        // Línea separadora tenue
-        c2.strokeStyle='rgba(0,0,0,.07)'; c2.lineWidth=1;
-        c2.beginPath();
-        c2.moveTo(x - amboBar.width/2, area.top - 2);
-        c2.lineTo(x + amboBar.width/2, area.top - 2);
-        c2.stroke();
-        // Fila superior: rojo   (area.top - 30 a area.top - 18)
-        if(aRaw>0 && aP>0){
-          const tw = c2.measureText(aP.toFixed(1)+'%').width + 8;
-          c2.fillStyle='rgba(187,0,0,.1)';
-          c2.beginPath();
-          c2.roundRect(x - tw/2, area.top-38, tw, 15, 3);
-          c2.fill();
-          c2.fillStyle='#aa0000'; c2.font='bold 10px Inter';
-          c2.fillText(aP.toFixed(1)+'%', x, area.top-31);
+        c2.textBaseline = 'middle';
+        c2.textAlign    = 'left';
+        c2.font         = 'bold 11px Inter';
+
+        let row = topY + 14;  // primera fila dentro de la columna
+
+        // ── Rojo ──
+        if(aRaw > 0 && aP > 0){
+          // círculo indicador
+          c2.fillStyle = '#ff4444';
+          c2.beginPath(); c2.arc(dotX, row, dotR, 0, Math.PI*2); c2.fill();
+          // texto blanco
+          c2.fillStyle = '#ffffff';
+          c2.fillText(aP.toFixed(1)+'%', dotX + dotR + 4, row);
+          row += 16;
         }
-        // Fila inferior: naranja (area.top - 16 a area.top - 4)
-        if(sRaw>0 && sP>0){
-          const tw = c2.measureText(sP.toFixed(1)+'%').width + 8;
-          c2.fillStyle='rgba(192,88,0,.1)';
-          c2.beginPath();
-          c2.roundRect(x - tw/2, area.top-20, tw, 15, 3);
-          c2.fill();
-          c2.fillStyle='#b05000'; c2.font='bold 10px Inter';
-          c2.fillText(sP.toFixed(1)+'%', x, area.top-13);
+
+        // ── Naranja ──
+        if(sRaw > 0 && sP > 0){
+          c2.fillStyle = '#ffaa44';
+          c2.beginPath(); c2.arc(dotX, row, dotR, 0, Math.PI*2); c2.fill();
+          c2.fillStyle = '#ffffff';
+          c2.fillText(sP.toFixed(1)+'%', dotX + dotR + 4, row);
         }
+
         c2.restore();
       });
     }}]
