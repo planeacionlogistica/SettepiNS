@@ -1202,19 +1202,6 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
       const yScale = chart.scales.y;
       const META   = 98;
 
-      // ── Línea de meta horizontal en 98% ──
-      const metaPx = yScale.getPixelForValue(META);
-      c2.save();
-      c2.strokeStyle = 'rgba(22,163,74,.6)';
-      c2.lineWidth   = 1.5;
-      c2.setLineDash([6,4]);
-      c2.beginPath(); c2.moveTo(area.left, metaPx); c2.lineTo(area.right, metaPx); c2.stroke();
-      c2.setLineDash([]);
-      c2.fillStyle='#16a34a'; c2.font='bold 9px Inter';
-      c2.textAlign='left'; c2.textBaseline='bottom';
-      c2.fillText('Meta 98%', area.left+4, metaPx-3);
-      c2.restore();
-
       // ── % "En tiempo" centrado en zona gris visible ──
       const eBi = chart.data.datasets.findIndex(d=>d.label==='En tiempo');
       if(eBi>=0){
@@ -1250,7 +1237,7 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
         });
       });
 
-      // ── Badge ✓ verde encima de los días que cumplen la meta ──
+      // ── Punto pequeño verde/rojo encima de cada barra ──
       const aBi = chart.data.datasets.findIndex(d=>d.label===ambosLbl);
       const sBi = chart.data.datasets.findIndex(d=>d.label===soloLbl);
       if(aBi<0||sBi<0||eBi<0) return;
@@ -1259,25 +1246,15 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
         const ePct = chart.data.datasets[eBi]._pct?.[i] ?? 0;
         const sPct = chart.data.datasets[sBi]._pct?.[i] ?? 0;
         const aPct = chart.data.datasets[aBi]._pct?.[i] ?? 0;
-        const cumplimiento = ePct; // en tiempo = cumplimiento sobre total
-        if(cumplimiento < META) return; // no cumple, no badge
+        const cumple = ePct >= META;
 
         const x      = amboBar.x;
-        // tope real de la barra completa
         const topVal = ePct + sPct + aPct;
-        const topPx  = yScale.getPixelForValue(topVal) - 12;
+        const topPx  = yScale.getPixelForValue(topVal) - 8;
 
         c2.save();
-        // Fondo círculo verde
-        c2.fillStyle = '#16a34a';
-        c2.beginPath(); c2.arc(x, topPx, 9, 0, Math.PI*2); c2.fill();
-        // Borde blanco
-        c2.strokeStyle='#fff'; c2.lineWidth=1.5;
-        c2.stroke();
-        // Checkmark
-        c2.fillStyle='#fff'; c2.font='bold 11px Inter';
-        c2.textAlign='center'; c2.textBaseline='middle';
-        c2.fillText('✓', x, topPx);
+        c2.fillStyle = cumple ? 'rgba(22,163,74,.75)' : 'rgba(204,0,0,.65)';
+        c2.beginPath(); c2.arc(x, topPx, 4, 0, Math.PI*2); c2.fill();
         c2.restore();
       });
     }}]
