@@ -1166,6 +1166,7 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
     ]},
     options:{
       responsive:true, maintainAspectRatio:false,
+      layout:{ padding:{ top:44 } },
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{display:false},
@@ -1201,9 +1202,10 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
       }
     },
     plugins:[{id:'lbl', afterDatasetsDraw(chart){
-      const c2 = chart.ctx;
+      const c2   = chart.ctx;
+      const area = chart.chartArea;
 
-      // ── Etiqueta % cumplimiento encima de cada punto ──
+      // ── % cumplimiento junto a cada punto ──
       const li = chart.data.datasets.findIndex(d=>d.label==='% Cumplimiento');
       chart.getDatasetMeta(li).data.forEach((pt,i)=>{
         const v=chart.data.datasets[li].data[i]; if(v==null) return;
@@ -1214,13 +1216,12 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
         c2.restore();
       });
 
-      // ── Etiqueta "En tiempo" dentro de la barra grande (gris) ──
+      // ── En tiempo: % dentro de la barra grande ──
       const eBi = chart.data.datasets.findIndex(d=>d.label==='En tiempo');
       if(eBi>=0){
         chart.getDatasetMeta(eBi).data.forEach((bar,i)=>{
-          const pv  = chart.data.datasets[eBi].data[i];
           const pct = chart.data.datasets[eBi]._pct?.[i];
-          if(!pv||!pct||bar.height<18) return;
+          if(!pct||bar.height<20) return;
           c2.save();
           c2.fillStyle='#ffffff'; c2.font='bold 11px Inter';
           c2.textAlign='center'; c2.textBaseline='middle';
@@ -1229,50 +1230,46 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
         });
       }
 
-      // ── Etiquetas naranja y rojo ENCIMA de las barras (flotando) ──
-      // Buscamos el dataset rojo (ambos = top del stack) para conocer
-      // el tope de cada barra y dibujar los % ahí arriba.
+      // ── Rojo y Naranja: zona fija de padding encima del plot ──
+      // Siempre en la misma posición, nunca se solapan con la línea.
       const aBi = chart.data.datasets.findIndex(d=>d.label===ambosLbl);
       const sBi = chart.data.datasets.findIndex(d=>d.label===soloLbl);
       if(aBi<0||sBi<0) return;
 
-      const ambosMeta = chart.getDatasetMeta(aBi).data;
-      const solosMeta = chart.getDatasetMeta(sBi).data;
-
-      ambosMeta.forEach((amboBar,i)=>{
+      chart.getDatasetMeta(aBi).data.forEach((amboBar,i)=>{
         const aP   = chart.data.datasets[aBi]._pct?.[i] ?? 0;
         const aRaw = chart.data.datasets[aBi]._raw?.[i] ?? 0;
         const sP   = chart.data.datasets[sBi]._pct?.[i] ?? 0;
         const sRaw = chart.data.datasets[sBi]._raw?.[i] ?? 0;
         if(aRaw===0 && sRaw===0) return;
-
-        // El tope del stack completo es el .y del segmento más alto con datos
-        const topY = amboBar.y;
+        const x = amboBar.x;
         c2.save();
-        c2.textAlign='center'; c2.font='bold 10px Inter'; c2.textBaseline='bottom';
-
-        let curY = topY - 3; // empezamos justo arriba de la barra
-
-        // Rojo encima
+        c2.textAlign='center'; c2.textBaseline='middle';
+        // Línea separadora tenue
+        c2.strokeStyle='rgba(0,0,0,.07)'; c2.lineWidth=1;
+        c2.beginPath();
+        c2.moveTo(x - amboBar.width/2, area.top - 2);
+        c2.lineTo(x + amboBar.width/2, area.top - 2);
+        c2.stroke();
+        // Fila superior: rojo   (area.top - 30 a area.top - 18)
         if(aRaw>0 && aP>0){
-          // Fondo pequeño para legibilidad
-          const txt = aP.toFixed(1)+'%';
-          const tw  = c2.measureText(txt).width;
-          c2.fillStyle='rgba(204,0,0,.12)';
-          c2.fillRect(amboBar.x-tw/2-3, curY-12, tw+6, 13);
+          const tw = c2.measureText(aP.toFixed(1)+'%').width + 8;
+          c2.fillStyle='rgba(187,0,0,.1)';
+          c2.beginPath();
+          c2.roundRect(x - tw/2, area.top-38, tw, 15, 3);
+          c2.fill();
           c2.fillStyle='#aa0000'; c2.font='bold 10px Inter';
-          c2.fillText(txt, amboBar.x, curY);
-          curY -= 15;
+          c2.fillText(aP.toFixed(1)+'%', x, area.top-31);
         }
-
-        // Naranja debajo del rojo
+        // Fila inferior: naranja (area.top - 16 a area.top - 4)
         if(sRaw>0 && sP>0){
-          const txt = sP.toFixed(1)+'%';
-          const tw  = c2.measureText(txt).width;
-          c2.fillStyle='rgba(224,112,16,.12)';
-          c2.fillRect(amboBar.x-tw/2-3, curY-12, tw+6, 13);
-          c2.fillStyle='#b85a00'; c2.font='bold 10px Inter';
-          c2.fillText(txt, amboBar.x, curY);
+          const tw = c2.measureText(sP.toFixed(1)+'%').width + 8;
+          c2.fillStyle='rgba(192,88,0,.1)';
+          c2.beginPath();
+          c2.roundRect(x - tw/2, area.top-20, tw, 15, 3);
+          c2.fill();
+          c2.fillStyle='#b05000'; c2.font='bold 10px Inter';
+          c2.fillText(sP.toFixed(1)+'%', x, area.top-13);
         }
         c2.restore();
       });
