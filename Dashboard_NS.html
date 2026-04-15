@@ -583,8 +583,8 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 </div>
 
 <script>
-const SHEET_ID   = '1l3QYg7N050BScrtNhKkHQ-hHNDgaK9Prw95Dzb2-DRE';
-const GID        = '1297993336';
+const SHEET_ID   = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
+const SHEET_NAME = 'NS';
 const CHUNK      = 35000;
 
 const C = {
@@ -717,7 +717,7 @@ function parseCSV(text){
 }
 function csvUrl(offset){
   const tq=encodeURIComponent(`SELECT * LIMIT ${CHUNK} OFFSET ${offset}`);
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}&tq=${tq}`;
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
 }
 
 function parseMin(v){
