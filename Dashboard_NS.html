@@ -72,7 +72,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .leg-line{width:18px;height:2.5px;border-radius:1px}
 .chart-wrap{position:relative;height:390px}
 .tables-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;}
-.table-card{background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);overflow:hidden;}
+.table-card{background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);overflow:visible;}
 .table-hdr{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);}
 .table-hdr-title{font-size:.9rem;font-weight:700;color:var(--text)}
 .table-hdr-icon{font-size:.9rem;margin-right:.35rem}
@@ -136,23 +136,19 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 /* ── Drill modal nivel 1 ── */
 #drillModal{z-index:810;}
 #drillModal .modal-box{max-width:860px;}
+/* Desktop: sin scroll horizontal, columnas se ajustan al contenido */
 #drillModal .modal-body{overflow-x:hidden;}
-#drillModal .modal-table{table-layout:fixed;width:100%;border-collapse:collapse;}
-#drillModal .modal-table th,
-#drillModal .modal-table td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-/* Anchos fijos del modal - suma ~860px menos padding del modal */
-#drillModal .col-ruta  {width:auto;}
-#drillModal .col-srvs  {width:52px;}
-#drillModal .col-enti  {width:66px;}
-#drillModal .col-solo  {width:92px;}
-#drillModal .col-ambos {width:108px;}
-#drillModal .col-ini   {width:62px;}
-#drillModal .col-lle   {width:62px;}
-#drillModal .col-pct   {width:66px;}
-/* Mobile: permitir scroll horizontal en el modal de rutas */
+#drillModal .modal-table{table-layout:auto;width:100%;border-collapse:collapse;}
+/* Todas las columnas salvo la primera → ancho mínimo (se encogen al contenido) */
+#drillModal .modal-table th:not(:first-child),
+#drillModal .modal-table td:not(:first-child){white-space:nowrap;width:1%;}
+/* Primera columna (Ruta) → toma el espacio sobrante */
+#drillModal .modal-table th:first-child,
+#drillModal .modal-table td:first-child{width:auto;min-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* Mobile: scroll horizontal táctil */
 @media(max-width:768px){
-  #drillModal .modal-body{overflow-x:auto;}
-  #drillModal .modal-table{min-width:580px;}
+  #drillModal .modal-body{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  #drillModal .modal-table{min-width:560px;}
 }
 .modal-head{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:1px solid var(--border);background:var(--navy2);}
 .modal-head h3{font-size:.92rem;font-weight:700;color:#fff;}
@@ -221,7 +217,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   .tab-bar{padding:0 .65rem;}
   .tab-btn{padding:.5rem .8rem;font-size:.76rem;}
   /* Table cards: scroll horizontal interno */
-  .table-card{overflow:hidden;width:100%;}
+  .table-card{overflow:visible;width:100%;}
   .table-card>div[style]{max-width:100%;}          /* wrapper overflow-x:auto */
   .table-hdr{padding:.65rem .85rem;flex-wrap:wrap;gap:.4rem;}
   .table-hdr-actions{width:100%;justify-content:space-between;}
@@ -724,16 +720,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     </div>
     <div class="modal-body">
       <table class="modal-table">
-        <colgroup>
-          <col class="col-ruta">
-          <col class="col-srvs">
-          <col class="col-enti">
-          <col class="col-solo">
-          <col class="col-ambos">
-          <col class="col-ini">
-          <col class="col-lle">
-          <col class="col-pct">
-        </colgroup>
         <thead><tr>
           <th>Ruta / Descripción</th>
           <th class="r">Srvs.</th>
