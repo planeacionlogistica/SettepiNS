@@ -390,7 +390,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
         <div class="kpi kpi-clickable" style="--kc:#d97706" id="kpi-ini-tarde" onclick="toggleKpiFilter('ini','ini_solo')">
           <div class="kpi-val" id="kTarde">–</div>
-          <div class="kpi-lbl">Inició tarde, llegó bien</div>
+          <div class="kpi-lbl">Inició tarde, llegó bien<br><span style="font-size:.6rem;opacity:.7">(ini tarde · lle ok)</span></div>
           <div class="kpi-hint">Filtrar</div>
         </div>
         <div class="kpi kpi-clickable" style="--kc:#e53e3e" id="kpi-ini-ambos" onclick="toggleKpiFilter('ini','ambos')">
@@ -410,8 +410,8 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             <div class="chart-title" id="chartTitle">Inicios Tarde por Día</div>
             <div class="chart-legend" style="margin-top:.4rem">
               <div class="leg"><div class="leg-sq" style="background:#3f3f3f"></div>En tiempo</div>
-              <div class="leg"><div class="leg-sq" style="background:#e07010"></div>Inició tarde, llegó bien</div>
-              <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Inició Y llegó tarde</div>
+              <div class="leg"><div class="leg-sq" style="background:#e07010"></div>Inició tarde, llegó bien<br><span style="font-size:.6rem;opacity:.7">(ini tarde · lle ok)</span></div>
+              <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Inició Y llegó tarde<br><span style="font-size:.6rem;opacity:.7">(ini tarde · lle tarde)</span></div>
               <div class="leg"><div style="width:8px;height:8px;border-radius:50%;background:rgba(22,163,74,.75);display:inline-block;margin-right:4px"></div>Cumple ≥98%</div>
               <div class="leg"><div style="width:8px;height:8px;border-radius:50%;background:rgba(204,0,0,.65);display:inline-block;margin-right:4px"></div>No cumple</div>
             </div>
@@ -436,10 +436,10 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <th style="width:34px">#</th>
           <th>Cliente / Grupo</th>
           <th style="text-align:right">Carros</th>
-          <th style="text-align:right">Total</th>
+          <th style="text-align:right">Servicios</th>
           <th style="text-align:right">En Tiempo</th>
-          <th style="text-align:right">Inició tarde, llegó bien</th>
-          <th style="text-align:right">Inició Y llegó tarde</th>
+          <th style="text-align:right">Inició tarde, llegó bien <span style="font-weight:400;opacity:.7">(ini tarde · lle ok)</span></th>
+          <th style="text-align:right">Inició Y llegó tarde <span style="font-weight:400;opacity:.7">(ini tarde · lle tarde)</span></th>
           <th style="text-align:right">Prom. Ini (min)</th>
           <th style="text-align:right">Prom. Lle (min)</th>
           <th style="cursor:pointer" onclick="sortTable('cli')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-cli" style="pointer-events:none">↓</button></div></th>
@@ -452,7 +452,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div class="table-hdr-actions"><span class="table-count" id="tGerCount">0 gerentes</span><button class="btn-capture" onclick="exportXLSX('ger','Inicios_Gerentes')">⬇ Excel</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:34px">#</th><th>Gerente</th><th style="text-align:right">Total</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Inició tarde, llegó bien</th><th style="text-align:right">Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ger" style="pointer-events:none">↓</button></div></th>
+          <th style="width:34px">#</th><th>Gerente</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Inició tarde, llegó bien <span style="font-weight:400;opacity:.7">(ini tarde · lle ok)</span></th><th style="text-align:right">Inició Y llegó tarde <span style="font-weight:400;opacity:.7">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ger" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tGerBody"></tbody></table></div>
       </div>
 
@@ -462,7 +462,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div class="table-hdr-actions"><span class="table-count" id="tJefCount">0 jefes</span><button class="btn-capture" onclick="exportXLSX('jef','Inicios_Jefes')">⬇ Excel</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:34px">#</th><th>Jefe</th><th style="text-align:right">Total</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Inició tarde, llegó bien</th><th style="text-align:right">Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('jef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-jef" style="pointer-events:none">↓</button></div></th>
+          <th style="width:34px">#</th><th>Jefe</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Inició tarde, llegó bien <span style="font-weight:400;opacity:.7">(ini tarde · lle ok)</span></th><th style="text-align:right">Inició Y llegó tarde <span style="font-weight:400;opacity:.7">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('jef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-jef" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tJefBody"></tbody></table></div>
       </div>
 
@@ -472,7 +472,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div class="table-hdr-actions"><span class="table-count" id="tCoordCount">0 coordinadores</span><button class="btn-capture" onclick="exportXLSX('coord','Inicios_Coordinadores')">⬇ Excel</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:34px">#</th><th>Coordinador</th><th style="text-align:right">Total</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Inició tarde, llegó bien</th><th style="text-align:right">Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('coord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-coord" style="pointer-events:none">↓</button></div></th>
+          <th style="width:34px">#</th><th>Coordinador</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Inició tarde, llegó bien <span style="font-weight:400;opacity:.7">(ini tarde · lle ok)</span></th><th style="text-align:right">Inició Y llegó tarde <span style="font-weight:400;opacity:.7">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('coord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-coord" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tCoordBody"></tbody></table></div>
       </div>
     </div><!-- /panel-inicios -->
@@ -487,7 +487,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
         <div class="kpi kpi-clickable" style="--kc:#d97706" id="kpi-lle-tarde" onclick="toggleKpiFilter('lle','lle_solo')">
           <div class="kpi-val" id="lkTarde">–</div>
-          <div class="kpi-lbl">Salió bien, llegó tarde</div>
+          <div class="kpi-lbl">Salió bien, llegó tarde<br><span style="font-size:.6rem;opacity:.7">(ini ok · lle tarde)</span></div>
           <div class="kpi-hint">Filtrar</div>
         </div>
         <div class="kpi kpi-clickable" style="--kc:#e53e3e" id="kpi-lle-ambos" onclick="toggleKpiFilter('lle','ambos')">
@@ -507,8 +507,8 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
             <div class="chart-title" id="lChartTitle">Llegadas Tarde por Día</div>
             <div class="chart-legend" style="margin-top:.4rem">
               <div class="leg"><div class="leg-sq" style="background:#3f3f3f"></div>En tiempo</div>
-              <div class="leg"><div class="leg-sq" style="background:#e07010"></div>Salió bien, llegó tarde</div>
-              <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Salió Y llegó tarde</div>
+              <div class="leg"><div class="leg-sq" style="background:#e07010"></div>Salió bien, llegó tarde<br><span style="font-size:.6rem;opacity:.7">(ini ok · lle tarde)</span></div>
+              <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>Salió Y llegó tarde<br><span style="font-size:.6rem;opacity:.7">(ini tarde · lle tarde)</span></div>
               <div class="leg"><div style="width:8px;height:8px;border-radius:50%;background:rgba(22,163,74,.75);display:inline-block;margin-right:4px"></div>Cumple ≥98%</div>
               <div class="leg"><div style="width:8px;height:8px;border-radius:50%;background:rgba(204,0,0,.65);display:inline-block;margin-right:4px"></div>No cumple</div>
             </div>
@@ -532,10 +532,10 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <th style="width:34px">#</th>
           <th>Cliente / Grupo</th>
           <th style="text-align:right">Carros</th>
-          <th style="text-align:right">Total</th>
+          <th style="text-align:right">Servicios</th>
           <th style="text-align:right">En Tiempo</th>
-          <th style="text-align:right">Salió bien, llegó tarde</th>
-          <th style="text-align:right">Salió Y llegó tarde</th>
+          <th style="text-align:right">Salió bien, llegó tarde <span style="font-weight:400;opacity:.7">(ini ok · lle tarde)</span></th>
+          <th style="text-align:right">Salió Y llegó tarde <span style="font-weight:400;opacity:.7">(ini tarde · lle tarde)</span></th>
           <th style="text-align:right">Prom. Ini (min)</th>
           <th style="text-align:right">Prom. Lle (min)</th>
           <th style="cursor:pointer" onclick="sortTable('lcli')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lcli" style="pointer-events:none">↓</button></div></th>
@@ -548,7 +548,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div class="table-hdr-actions"><span class="table-count" id="ltGerCount">0 gerentes</span><button class="btn-capture" onclick="exportXLSX('lger','Llegadas_Gerentes')">⬇ Excel</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:34px">#</th><th>Gerente</th><th style="text-align:right">Total</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Salió bien, llegó tarde</th><th style="text-align:right">Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lger" style="pointer-events:none">↓</button></div></th>
+          <th style="width:34px">#</th><th>Gerente</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Salió bien, llegó tarde <span style="font-weight:400;opacity:.7">(ini ok · lle tarde)</span></th><th style="text-align:right">Salió Y llegó tarde <span style="font-weight:400;opacity:.7">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lger" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltGerBody"></tbody></table></div>
       </div>
 
@@ -558,7 +558,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div class="table-hdr-actions"><span class="table-count" id="ltJefCount">0 jefes</span><button class="btn-capture" onclick="exportXLSX('ljef','Llegadas_Jefes')">⬇ Excel</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:34px">#</th><th>Jefe</th><th style="text-align:right">Total</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Salió bien, llegó tarde</th><th style="text-align:right">Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ljef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ljef" style="pointer-events:none">↓</button></div></th>
+          <th style="width:34px">#</th><th>Jefe</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Salió bien, llegó tarde <span style="font-weight:400;opacity:.7">(ini ok · lle tarde)</span></th><th style="text-align:right">Salió Y llegó tarde <span style="font-weight:400;opacity:.7">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ljef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ljef" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltJefBody"></tbody></table></div>
       </div>
 
@@ -568,7 +568,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div class="table-hdr-actions"><span class="table-count" id="ltCoordCount">0 coordinadores</span><button class="btn-capture" onclick="exportXLSX('lcoord','Llegadas_Coordinadores')">⬇ Excel</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:34px">#</th><th>Coordinador</th><th style="text-align:right">Total</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Salió bien, llegó tarde</th><th style="text-align:right">Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lcoord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lcoord" style="pointer-events:none">↓</button></div></th>
+          <th style="width:34px">#</th><th>Coordinador</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Salió bien, llegó tarde <span style="font-weight:400;opacity:.7">(ini ok · lle tarde)</span></th><th style="text-align:right">Salió Y llegó tarde <span style="font-weight:400;opacity:.7">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lcoord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lcoord" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltCoordBody"></tbody></table></div>
       </div>
     </div><!-- /panel-llegadas -->
@@ -621,7 +621,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       <table class="modal-table">
         <thead><tr>
           <th>Ruta / Descripción</th>
-          <th class="r">Total</th>
+          <th class="r">Servicios</th>
           <th class="r">En Tiempo</th>
           <th class="r" id="drillSoloHdr">Solo tarde</th>
           <th class="r" id="drillAmbosHdr">Ambos tarde</th>
@@ -1205,8 +1205,13 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
   const entiemPct=keys.map((_,i)=>tots[i]>0?+(entiem[i]/tots[i]*100).toFixed(2):0);
   const solosPct =keys.map((_,i)=>tots[i]>0?+(solos[i]/tots[i]*100).toFixed(2):0);
   const ambosPct =keys.map((_,i)=>tots[i]>0?+(ambos[i]/tots[i]*100).toFixed(2):0);
-  const soloLbl  =isIni?'Inició tarde, llegó bien':'Salió bien, llegó tarde';
-  const ambosLbl =isIni?'Inició Y llegó tarde':'Salió Y llegó tarde';
+  const soloLbl  =isIni?'Inició tarde, llegó bien (ini tarde · lle ok)':'Salió bien, llegó tarde (ini ok · lle tarde)';
+  const ambosLbl =isIni?'Inició Y llegó tarde (ini tarde · lle tarde)':'Salió Y llegó tarde (ini tarde · lle tarde)';
+
+  // Y-axis mínimo dinámico: piso del menor %cumplimiento menos 3pp, redondeado a 5
+  const minPct = entiemPct.length ? Math.min(...entiemPct) : 0;
+  const yMin   = Math.max(0, Math.floor((minPct - 3) / 5) * 5);
+
   if(existing) existing.destroy();
   const ctx=document.getElementById(canvasId).getContext('2d');
   return new Chart(ctx,{
@@ -1239,7 +1244,7 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
       },
       scales:{
         x:{stacked:true,ticks:{color:'#6b7a99',font:{size:10,family:'Inter'}},grid:{color:'rgba(0,0,0,.04)'}},
-        y:{stacked:true,min:isIni?0:85,max:100,ticks:{color:'#6b7a99',font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.04)'}},
+        y:{stacked:true,min:yMin,max:100,ticks:{color:'#6b7a99',font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.04)'}},
       }
     },
     plugins:[{id:'lbl',afterDatasetsDraw(chart){
@@ -1353,12 +1358,12 @@ function exportXLSX(tbl,label){
   const rows=[...tableData[tbl]].sort((a,b)=>(a.pct-b.pct)*sortState[tbl].dir);
   const isIni=!tbl.startsWith('l');
   const isCliTable=(tbl==='cli'||tbl==='lcli');
-  const soloHdr =isIni?'Inició tarde, llegó bien':'Salió bien, llegó tarde';
-  const ambosHdr=isIni?'Inició Y llegó tarde':'Salió Y llegó tarde';
+  const soloHdr =isIni?'Inició tarde, llegó bien (ini tarde · lle ok)':'Salió bien, llegó tarde (ini ok · lle tarde)';
+  const ambosHdr=isIni?'Inició Y llegó tarde (ini tarde · lle tarde)':'Salió Y llegó tarde (ini tarde · lle tarde)';
 
   const headers=['#','Nombre'];
   if(isCliTable) headers.push('Carros');
-  headers.push('Total Viajes','En Tiempo',soloHdr,ambosHdr,'Prom. Inicio (min)','Prom. Llegada (min)','% Cumplimiento');
+  headers.push('Servicios','En Tiempo',soloHdr,ambosHdr,'Prom. Inicio (min)','Prom. Llegada (min)','% Cumplimiento');
 
   const wsData=[
     headers,
@@ -1433,8 +1438,8 @@ function renderDrill(clienteK,tbl){
   const totEnT=sorted.reduce((s,r)=>s+r.enT,0);
   const pctG=totT>0?(totEnT/totT*100):0;
   const lateLbl=isLlegadas?'Llegadas Tarde':'Inicios Tarde';
-  const soloLbl=isLlegadas?'Salió bien, llegó tarde':'Inició tarde, llegó bien';
-  const ambosLbl=isLlegadas?'Salió Y llegó tarde':'Inició Y llegó tarde';
+  const soloLbl=isLlegadas?'Salió bien, llegó tarde (ini ok · lle tarde)':'Inició tarde, llegó bien (ini tarde · lle ok)';
+  const ambosLbl=isLlegadas?'Salió Y llegó tarde (ini tarde · lle tarde)':'Inició Y llegó tarde (ini tarde · lle tarde)';
 
   // Actualizar headers dinámicos
   document.getElementById('drillSoloHdr').textContent=soloLbl;
@@ -1467,7 +1472,7 @@ function renderDrill(clienteK,tbl){
       <td class="r"><span style="color:${color};font-weight:700;font-size:.88rem">${r.pct.toFixed(1)}%</span></td>
     </tr>`;
   }).join('');
-  document.getElementById('drillFoot').textContent=`Total: ${N(totT)} viajes · ${N(totEnT)} en tiempo · ${pctG.toFixed(1)}% cumplimiento`;
+  document.getElementById('drillFoot').textContent=`Servicios: ${N(totT)} viajes · · ${N(totEnT)} en tiempo · ${pctG.toFixed(1)}% cumplimiento`;
 }
 
 function closeDrill(e){ if(e.target===document.getElementById('drillModal')) document.getElementById('drillModal').classList.remove('open'); }
@@ -1518,7 +1523,7 @@ function openDrillDetail(rutaK,clienteK,tbl){
     </tr>`;
   }).join('')||'<tr><td colspan="5" class="table-empty">Sin viajes registrados</td></tr>';
 
-  document.getElementById('drillDetailFoot').textContent=`Total: ${totT} viajes · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
+  document.getElementById('drillDetailFoot').textContent=`Servicios: ${totT} viajes · · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
   document.getElementById('drillDetailModal').classList.add('open');
 }
 
