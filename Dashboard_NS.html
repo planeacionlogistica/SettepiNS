@@ -24,7 +24,7 @@ nav>a:hover{background:#374151;}
 .dropdown-menu a.active{background:#84cc16;color:#1f2937;}
 :root{--navy:#1a2236;--navy2:#222d42;--navy3:#2c3a55;--green:#7ed321;--green2:#5cb800;--green3:#a8e05f;--white:#ffffff;--bg:#f0f2f7;--border:#dde3f0;--text:#1a2236;--muted:#6b7a99;--red:#e53e3e;}
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;min-height:100vh}
+html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;min-height:100vh;overflow-x:hidden;}
 .sidebar{width:172px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);padding:.6rem .6rem;display:flex;flex-direction:column;gap:.5rem;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;overflow-x:hidden;}
 .sb-title{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-bottom:.35rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .sb-reset{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.85rem;padding:0;line-height:1;transition:color .15s;}
@@ -173,46 +173,63 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   nav{padding:10px 16px;gap:10px;}
   nav>a:first-child{font-size:15px;}
   .dropdown-toggle{padding:6px 10px;font-size:13px;}
-  .layout{flex-direction:column;}
-  .sidebar{width:100%;height:auto;position:relative;top:0;border-right:none;border-bottom:1px solid var(--border);padding:.75rem 1rem;gap:.5rem;overflow:visible;}
+  /* Layout columna, todo al 100% del viewport */
+  .layout{flex-direction:column;overflow-x:hidden;width:100%;}
+  .sidebar{width:100%;height:auto;position:relative;top:0;border-right:none;
+           border-bottom:1px solid var(--border);padding:.75rem 1rem;gap:.5rem;overflow:visible;}
   .filter-toggle-btn{display:flex;}
-  /* Grid de 2 cols para los filtros en mobile */
   .sidebar-filters{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
   .sidebar-filters .fg:nth-last-child(1),
   .sidebar-filters .fg:nth-last-child(2),
   .sidebar-filters .btn-reset{grid-column:1/-1;}
-  .main{padding:.85rem .75rem;gap:.85rem;}
-  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:.5rem;}
-  .kpi{padding:.75rem .85rem;}
-  .kpi-val{font-size:1.5rem;}
-  .kpi-lbl{font-size:.6rem;}
-  .kpi-icon{font-size:1.1rem;margin-bottom:.2rem;}
-  .chart-wrap{height:220px;}
+  /* Main: anclado al ancho disponible */
+  .main{padding:.75rem .65rem;gap:.85rem;width:100%;max-width:100%;overflow-x:hidden;box-sizing:border-box;}
+  /* KPIs: 2×2 */
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:.55rem;width:100%;}
+  .kpi{padding:.7rem .85rem;}
+  .kpi-val{font-size:1.45rem;}
+  .kpi-lbl{font-size:.58rem;}
+  .kpi::after{display:none;}          /* quita el círculo decorativo que puede causar overflow */
+  /* Chart */
+  .chart-wrap{height:200px;}
+  .chart-card{padding:.85rem .9rem;}
   .chart-hdr{flex-direction:column;gap:.3rem;}
-  .chart-legend{flex-wrap:wrap;gap:.5rem;}
-  .tables-grid{grid-template-columns:1fr;}
-  .tab-bar{padding:0 .75rem;}
-  .tab-btn{padding:.55rem .9rem;font-size:.78rem;}
-  .data-table{font-size:.72rem;}
-  .data-table thead th{padding:.5rem .5rem;font-size:.6rem;}
-  .data-table tbody td{padding:.42rem .5rem;font-size:.72rem;}
+  .chart-legend{flex-wrap:wrap;gap:.4rem;}
+  .chart-legend .leg{font-size:.65rem;}
+  /* Tabs */
+  .tab-bar{padding:0 .65rem;}
+  .tab-btn{padding:.5rem .8rem;font-size:.76rem;}
+  /* Table cards: scroll horizontal interno */
+  .table-card{overflow:hidden;width:100%;}
+  .table-card>div[style]{max-width:100%;}          /* wrapper overflow-x:auto */
   .table-hdr{padding:.65rem .85rem;flex-wrap:wrap;gap:.4rem;}
   .table-hdr-actions{width:100%;justify-content:space-between;}
-  .pct-bar-wrap{width:40px;}
-  .btn-capture{font-size:.65rem;padding:.22rem .5rem;}
+  .table-hdr-title{font-size:.82rem;}
+  .data-table thead th{padding:.45rem .45rem;font-size:.58rem;white-space:nowrap;}
+  .data-table tbody td{padding:.38rem .45rem;font-size:.7rem;}
+  .pct-bar-wrap{width:36px;}
+  .pct-val{min-width:36px;font-size:.72rem;}
+  .btn-capture{font-size:.62rem;padding:.2rem .45rem;}
+  .rank-badge{width:18px;height:18px;font-size:.58rem;}
   /* Modales full-width */
-  .modal-box{max-width:100% !important;max-height:92vh;border-radius:10px;}
-  .modal-table thead th{padding:.45rem .55rem;font-size:.6rem;}
-  .modal-table tbody td{padding:.42rem .55rem;font-size:.72rem;}
+  .modal-overlay{padding:.4rem;}
+  .modal-box{max-width:100% !important;max-height:94vh;border-radius:10px;}
+  .modal-head{padding:.75rem 1rem;}
+  .modal-head h3{font-size:.82rem;}
+  .modal-table thead th{padding:.42rem .5rem;font-size:.58rem;white-space:nowrap;}
+  .modal-table tbody td{padding:.38rem .5rem;font-size:.7rem;}
 }
 @media(max-width:480px){
-  .kpi-grid{grid-template-columns:1fr 1fr;}
-  .kpi{padding:.75rem .85rem;}
-  .kpi-val{font-size:1.4rem;}
+  .kpi-grid{grid-template-columns:1fr 1fr;gap:.4rem;}
+  .kpi{padding:.65rem .75rem;}
+  .kpi-val{font-size:1.3rem;}
+  .kpi-lbl{font-size:.56rem;}
   nav>a:first-child{font-size:14px;}
   .dropdown-toggle{font-size:12px;padding:5px 8px;}
-  .chart-wrap{height:180px;}
-  .main{padding:.65rem .55rem;}
+  .chart-wrap{height:175px;}
+  .main{padding:.55rem .5rem;}
+  .data-table thead th{font-size:.55rem;padding:.4rem .35rem;}
+  .data-table tbody td{font-size:.67rem;padding:.35rem .35rem;}
 }
 </style>
 </head>
@@ -1375,10 +1392,7 @@ function renderDrill(clienteK,tbl){
       <td class="r" style="color:#cc0000;font-weight:700">${N(r.lAmbos)}</td>
       <td class="r">${fmtMin(r.avgMI)}</td>
       <td class="r">${fmtMin(r.avgML)}</td>
-      <td class="r"><div class="pct-cell">
-        <div class="pct-bar-wrap"><div class="pct-bar" style="width:${barW}%;background:${color}"></div></div>
-        <span class="pct-val" style="color:${color}">${r.pct.toFixed(1)}%</span>
-      </div></td>
+      <td class="r"><span style="color:${color};font-weight:700;font-size:.88rem">${r.pct.toFixed(1)}%</span></td>
     </tr>`;
   }).join('');
   document.getElementById('drillFoot').textContent=`Total: ${N(totT)} viajes · ${N(totEnT)} en tiempo · ${pctG.toFixed(1)}% cumplimiento`;
