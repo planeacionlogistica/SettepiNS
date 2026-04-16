@@ -78,12 +78,12 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .table-hdr-icon{font-size:.9rem;margin-right:.35rem}
 .table-hdr-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem}
 .table-count{font-size:.72rem;color:var(--muted);background:var(--bg);border-radius:20px;padding:.2rem .65rem;white-space:nowrap}
-.data-table{width:100%;border-collapse:collapse}
-.data-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:.38rem .6rem;text-align:left;white-space:nowrap;}
+.data-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+.data-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:.38rem .6rem;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .data-table tbody tr{border-bottom:1px solid var(--border);transition:background .12s}
 .data-table tbody tr:last-child{border-bottom:none}
 .data-table tbody tr:hover{background:#f7f9ff}
-.data-table tbody td{padding:.32rem .6rem;font-size:.74rem;color:var(--text)}
+.data-table tbody td{padding:.32rem .6rem;font-size:.74rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .td-cli{font-weight:600}.td-num{color:var(--navy)}.td-late{color:var(--red);font-weight:600}
 .pct-cell{display:flex;align-items:center;justify-content:flex-end;gap:.55rem}
 .pct-bar-wrap{width:55px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;flex-shrink:0}
@@ -438,7 +438,18 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div><div class="table-hdr-title"><span class="table-hdr-icon">🏢</span><span id="tCliTitle">Resumen por Cliente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
           <div class="table-hdr-actions"><span class="table-count" id="tCliCount">0 clientes</span><button class="btn-capture" onclick="exportXLSX('cli','Inicios_Clientes')">⬇ Excel</button></div>
         </div>
-        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+        <div style="overflow-x:auto"><colgroup>
+  <col style="width:34px">
+  <col style="width:22%">
+  <col style="width:54px">
+  <col style="width:64px">
+  <col style="width:68px">
+  <col style="width:10%">
+  <col style="width:10%">
+  <col style="width:76px">
+  <col style="width:76px">
+  <col style="width:72px">
+</colgroup><table class="data-table"><thead><tr>
           <th style="width:34px">#</th>
           <th>Cliente / Grupo</th>
           <th style="text-align:right">Carros</th>
@@ -457,7 +468,17 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div><div class="table-hdr-title"><span class="table-hdr-icon">👔</span><span id="tGerTitle">Resumen por Gerente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
           <div class="table-hdr-actions"><span class="table-count" id="tGerCount">0 gerentes</span><button class="btn-capture" onclick="exportXLSX('ger','Inicios_Gerentes')">⬇ Excel</button></div>
         </div>
-        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+        <div style="overflow-x:auto"><colgroup>
+  <col style="width:34px">
+  <col style="min-width:100px">
+  <col style="width:64px">
+  <col style="width:68px">
+  <col style="width:10%">
+  <col style="width:10%">
+  <col style="width:76px">
+  <col style="width:76px">
+  <col style="width:72px">
+</colgroup><table class="data-table"><thead><tr>
           <th style="width:34px">#</th><th>Gerente</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle ok)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ger" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tGerBody"></tbody></table></div>
       </div>
@@ -467,7 +488,17 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div><div class="table-hdr-title"><span class="table-hdr-icon">🗂️</span><span id="tJefTitle">Resumen por Jefe</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
           <div class="table-hdr-actions"><span class="table-count" id="tJefCount">0 jefes</span><button class="btn-capture" onclick="exportXLSX('jef','Inicios_Jefes')">⬇ Excel</button></div>
         </div>
-        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+        <div style="overflow-x:auto"><colgroup>
+  <col style="width:34px">
+  <col style="min-width:100px">
+  <col style="width:64px">
+  <col style="width:68px">
+  <col style="width:10%">
+  <col style="width:10%">
+  <col style="width:76px">
+  <col style="width:76px">
+  <col style="width:72px">
+</colgroup><table class="data-table"><thead><tr>
           <th style="width:34px">#</th><th>Jefe</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle ok)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('jef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-jef" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tJefBody"></tbody></table></div>
       </div>
@@ -477,7 +508,17 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div><div class="table-hdr-title"><span class="table-hdr-icon">🧑‍💼</span><span id="tCoordTitle">Resumen por Coordinador</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
           <div class="table-hdr-actions"><span class="table-count" id="tCoordCount">0 coordinadores</span><button class="btn-capture" onclick="exportXLSX('coord','Inicios_Coordinadores')">⬇ Excel</button></div>
         </div>
-        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+        <div style="overflow-x:auto"><colgroup>
+  <col style="width:34px">
+  <col style="min-width:100px">
+  <col style="width:64px">
+  <col style="width:68px">
+  <col style="width:10%">
+  <col style="width:10%">
+  <col style="width:76px">
+  <col style="width:76px">
+  <col style="width:72px">
+</colgroup><table class="data-table"><thead><tr>
           <th style="width:34px">#</th><th>Coordinador</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle ok)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('coord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-coord" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tCoordBody"></tbody></table></div>
       </div>
@@ -534,7 +575,18 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div><div class="table-hdr-title"><span class="table-hdr-icon">🏢</span><span id="ltCliTitle">Resumen por Cliente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
           <div class="table-hdr-actions"><span class="table-count" id="ltCliCount">0 clientes</span><button class="btn-capture" onclick="exportXLSX('lcli','Llegadas_Clientes')">⬇ Excel</button></div>
         </div>
-        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+        <div style="overflow-x:auto"><colgroup>
+  <col style="width:34px">
+  <col style="width:22%">
+  <col style="width:54px">
+  <col style="width:64px">
+  <col style="width:68px">
+  <col style="width:10%">
+  <col style="width:10%">
+  <col style="width:76px">
+  <col style="width:76px">
+  <col style="width:72px">
+</colgroup><table class="data-table"><thead><tr>
           <th style="width:34px">#</th>
           <th>Cliente / Grupo</th>
           <th style="text-align:right">Carros</th>
@@ -553,7 +605,17 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div><div class="table-hdr-title"><span class="table-hdr-icon">👔</span><span id="ltGerTitle">Resumen por Gerente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
           <div class="table-hdr-actions"><span class="table-count" id="ltGerCount">0 gerentes</span><button class="btn-capture" onclick="exportXLSX('lger','Llegadas_Gerentes')">⬇ Excel</button></div>
         </div>
-        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+        <div style="overflow-x:auto"><colgroup>
+  <col style="width:34px">
+  <col style="min-width:100px">
+  <col style="width:64px">
+  <col style="width:68px">
+  <col style="width:10%">
+  <col style="width:10%">
+  <col style="width:76px">
+  <col style="width:76px">
+  <col style="width:72px">
+</colgroup><table class="data-table"><thead><tr>
           <th style="width:34px">#</th><th>Gerente</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini ok · lle tarde)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lger" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltGerBody"></tbody></table></div>
       </div>
@@ -563,7 +625,17 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div><div class="table-hdr-title"><span class="table-hdr-icon">🗂️</span><span id="ltJefTitle">Resumen por Jefe</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
           <div class="table-hdr-actions"><span class="table-count" id="ltJefCount">0 jefes</span><button class="btn-capture" onclick="exportXLSX('ljef','Llegadas_Jefes')">⬇ Excel</button></div>
         </div>
-        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+        <div style="overflow-x:auto"><colgroup>
+  <col style="width:34px">
+  <col style="min-width:100px">
+  <col style="width:64px">
+  <col style="width:68px">
+  <col style="width:10%">
+  <col style="width:10%">
+  <col style="width:76px">
+  <col style="width:76px">
+  <col style="width:72px">
+</colgroup><table class="data-table"><thead><tr>
           <th style="width:34px">#</th><th>Jefe</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini ok · lle tarde)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ljef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ljef" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltJefBody"></tbody></table></div>
       </div>
@@ -573,7 +645,17 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div><div class="table-hdr-title"><span class="table-hdr-icon">🧑‍💼</span><span id="ltCoordTitle">Resumen por Coordinador</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
           <div class="table-hdr-actions"><span class="table-count" id="ltCoordCount">0 coordinadores</span><button class="btn-capture" onclick="exportXLSX('lcoord','Llegadas_Coordinadores')">⬇ Excel</button></div>
         </div>
-        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+        <div style="overflow-x:auto"><colgroup>
+  <col style="width:34px">
+  <col style="min-width:100px">
+  <col style="width:64px">
+  <col style="width:68px">
+  <col style="width:10%">
+  <col style="width:10%">
+  <col style="width:76px">
+  <col style="width:76px">
+  <col style="width:72px">
+</colgroup><table class="data-table"><thead><tr>
           <th style="width:34px">#</th><th>Coordinador</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini ok · lle tarde)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lcoord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lcoord" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltCoordBody"></tbody></table></div>
       </div>
