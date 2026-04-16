@@ -654,6 +654,7 @@ let loadedMonths = new Set();
 let myChartIni   = null;
 let myChartLle   = null;
 let CARROS_MAP   = {};   // { 'CON-CONMET': 49, ... }
+let COORD_RAW    = [];   // [ {cc:'CON-CONMET-F1', co:'EFREN PEREZ CRUZ'}, ... ]
 
 // ── Searchable selects ────────────────────────────────────────────
 const SC_KEYS  = ['udn','mes','sem','cli','ger','jef','coord','turno','ope','car'];
@@ -783,20 +784,83 @@ async function loadInputs(){
     if(!res.ok) return;
     const rows=parseCSV(await res.text());
     rows.forEach(r=>{
-      // Buscar columna CLIENTE (puede variar en mayúsculas)
-      const cliKey=Object.keys(r).find(k=>k.trim().toUpperCase()==='CLIENTE');
-      const carKey=Object.keys(r).find(k=>k.toLowerCase().includes('cantidad')&&k.toLowerCase().includes('carro'));
-      if(!cliKey||!carKey) return;
-      const cli=(r[cliKey]||'').trim();
-      const carros=parseInt(r[carKey])||0;
-      if(cli) CARROS_MAP[cli]=carros||null;
+      const keys=Object.keys(r);
+      // ── Carros ──
+      const cliKey =keys.find(k=>k.trim().toUpperCase()==='CLIENTE');
+      const carKey =keys.find(k=>k.toLowerCase().includes('cantidad')&&k.toLowerCase().includes('carro'));
+      if(cliKey&&carKey){
+        const cli=(r[cliKey]||'').trim();
+        const carros=parseInt(r[carKey])||0;
+        if(cli) CARROS_MAP[cli]=carros||null;
+      }
+      // ── Coordinadores por cliente/ruta ──
+      const ccKey  =keys.find(k=>k.trim().toUpperCase().replace(/\s+/g,'').includes('CLIENTECOOR'));
+      const coKey  =keys.find(k=>k.trim().toUpperCase()==='COORDINADOR');
+      if(ccKey&&coKey){
+        const cc=(r[ccKey]||'').trim();
+        const co=(r[coKey]||'').trim();
+        if(cc&&co) COORD_RAW.push({cc,co});
+      }
     });
   }catch(e){ console.warn('No se pudo cargar Inputs:',e); }
+}
+
+// ── Asignación de coordinador por cliente + prefijo de ruta ──────
+// Se llama después de que DATA esté cargada.
+// Lógica: si en Inputs hay "CON-CONMET-F1" → "EFREN", significa
+// que las rutas del cliente CON-CONMET que empiecen con "F1" → EFREN.
+function buildCoordMap(){
+  if(!COORD_RAW.length||!DATA.length) return;
+  const clientNames=new Set(DATA.map(r=>(r[C.cliente]||'').trim()).filter(Boolean));
+  const assign={}; // { 'ACU-ACUMENT':'PABLO', 'CON-CONMET':{ F1:'EFREN', F2:'ROBERTO', __default:null } }
+
+  COORD_RAW.forEach(({cc,co})=>{
+    if(clientNames.has(cc)){
+      // Coincidencia directa con cliente
+      if(!assign[cc]) assign[cc]={__default:co};
+      else assign[cc].__default=co;
+    } else {
+      // Buscar cliente que sea prefijo de cc  (ej: 'CON-CONMET' ⊂ 'CON-CONMET-F1')
+      let found=null;
+      for(const cli of clientNames){
+        if(cc.length>cli.length&&cc.startsWith(cli+'-')){ found=cli; break; }
+      }
+      if(found){
+        if(!assign[found]) assign[found]={__default:null};
+        const prefix=cc.slice(found.length+1).toUpperCase(); // 'F1', 'F2', etc.
+        assign[found][prefix]=co;
+      }
+    }
+  });
+
+  // Enriquecer cada fila de DATA con el coordinador correcto
+  DATA.forEach(r=>{
+    const client=(r[C.cliente]||'').trim();
+    const route =(r['des']||'').trim().toUpperCase();
+    const entry =assign[client];
+    if(!entry) return;
+    let coord=entry.__default||'';
+    // Revisar si la ruta empieza con algún prefijo configurado
+    for(const [pfx,co] of Object.entries(entry)){
+      if(pfx==='__default') continue;
+      if(route.startsWith(pfx+'-')||route.startsWith(pfx+' ')||route===pfx){
+        coord=co; break;
+      }
+    }
+    if(coord) r[C.coord]=coord;
+  });
+
+  // Refrescar opciones del filtro Coordinador con los nuevos valores
+  cascadeSelects();
 }
 
 // ── Main loader ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async ()=>{
   await Promise.all([loadSheet(), loadInputs()]);
+  // Ambas cargas terminaron → asignar coordinadores y redibujar
+  buildCoordMap();
+  fillAllSelects();
+  draw();
 });
 
 async function loadSheet(){
@@ -973,13 +1037,21 @@ function getF(){
 }
 
 function resetFilters(){
-  SC_KEYS.forEach(k=>{ scSetVal(k,'',''); document.getElementById('sc-'+k+'-input')?.setAttribute('data-selected-lbl',''); });
+  // Limpiar todos los valores seleccionados
+  SC_KEYS.forEach(k=>{
+    SC_SEL[k]='';
+    const inp=document.getElementById('sc-'+k+'-input');
+    if(inp){ inp.value=''; inp.setAttribute('data-selected-lbl',''); }
+  });
   document.getElementById('fFi').value='';
   document.getElementById('fFf').value='';
   kpiFilter.ini=''; kpiFilter.lle='';
   updateKpiActive('ini'); updateKpiActive('lle');
+  // Destruir charts para forzar recreación limpia
+  if(myChartIni){ myChartIni.destroy(); myChartIni=null; }
+  if(myChartLle){ myChartLle.destroy(); myChartLle=null; }
   fillAllSelects();
-  draw();
+  requestAnimationFrame(()=>draw());
 }
 
 function filterRows(panelHint){
