@@ -218,14 +218,19 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   .tab-btn{padding:.5rem .8rem;font-size:.76rem;}
   /* Table cards: scroll horizontal interno */
   .table-card{overflow:visible;width:100%;}
-  .table-card>div[style]{max-width:100%;}          /* wrapper overflow-x:auto */
+  /* Cancelar table-layout:fixed en mobile → el browser calcula anchos naturales */
+  .data-table{table-layout:auto !important;}
+  .data-table col{width:auto !important;}
+  /* Min-width para forzar scroll cuando no caben las columnas */
+  .data-table.tbl-cli{min-width:680px;}  /* tablas con columna Carros */
+  .data-table.tbl-std{min-width:580px;}  /* tablas Gerente/Jefe/Coord */
   .table-hdr{padding:.65rem .85rem;flex-wrap:wrap;gap:.4rem;}
   .table-hdr-actions{width:100%;justify-content:space-between;}
   .table-hdr-title{font-size:.82rem;}
-  .data-table thead th{padding:.45rem .45rem;font-size:.58rem;white-space:nowrap;}
-  .data-table tbody td{padding:.38rem .45rem;font-size:.7rem;}
-  .pct-bar-wrap{width:36px;}
-  .pct-val{min-width:36px;font-size:.72rem;}
+  .data-table thead th{padding:.38rem .4rem;font-size:.57rem;white-space:nowrap;}
+  .data-table tbody td{padding:.32rem .4rem;font-size:.68rem;white-space:nowrap;}
+  .pct-bar-wrap{width:32px;}
+  .pct-val{min-width:32px;font-size:.7rem;}
   .btn-capture{font-size:.62rem;padding:.2rem .45rem;}
   .rank-badge{width:18px;height:18px;font-size:.58rem;}
   /* Modales full-width */
@@ -462,7 +467,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   <col style="width:76px">
   <col style="width:76px">
   <col style="width:72px">
-</colgroup><table class="data-table"><thead><tr>
+</colgroup><table class="data-table tbl-cli"><thead><tr>
           <th style="width:34px">#</th>
           <th>Cliente / Grupo</th>
           <th style="text-align:right">Carros</th>
@@ -491,7 +496,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   <col style="width:76px">
   <col style="width:76px">
   <col style="width:72px">
-</colgroup><table class="data-table"><thead><tr>
+</colgroup><table class="data-table tbl-std"><thead><tr>
           <th style="width:34px">#</th><th>Gerente</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle ok)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ger" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tGerBody"></tbody></table></div>
       </div>
@@ -511,7 +516,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   <col style="width:76px">
   <col style="width:76px">
   <col style="width:72px">
-</colgroup><table class="data-table"><thead><tr>
+</colgroup><table class="data-table tbl-std"><thead><tr>
           <th style="width:34px">#</th><th>Jefe</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle ok)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('jef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-jef" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tJefBody"></tbody></table></div>
       </div>
@@ -531,7 +536,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   <col style="width:76px">
   <col style="width:76px">
   <col style="width:72px">
-</colgroup><table class="data-table"><thead><tr>
+</colgroup><table class="data-table tbl-std"><thead><tr>
           <th style="width:34px">#</th><th>Coordinador</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle ok)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('coord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-coord" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tCoordBody"></tbody></table></div>
       </div>
@@ -599,7 +604,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   <col style="width:76px">
   <col style="width:76px">
   <col style="width:72px">
-</colgroup><table class="data-table"><thead><tr>
+</colgroup><table class="data-table tbl-cli"><thead><tr>
           <th style="width:34px">#</th>
           <th>Cliente / Grupo</th>
           <th style="text-align:right">Carros</th>
@@ -628,7 +633,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   <col style="width:76px">
   <col style="width:76px">
   <col style="width:72px">
-</colgroup><table class="data-table"><thead><tr>
+</colgroup><table class="data-table tbl-std"><thead><tr>
           <th style="width:34px">#</th><th>Gerente</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini ok · lle tarde)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lger" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltGerBody"></tbody></table></div>
       </div>
@@ -648,7 +653,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   <col style="width:76px">
   <col style="width:76px">
   <col style="width:72px">
-</colgroup><table class="data-table"><thead><tr>
+</colgroup><table class="data-table tbl-std"><thead><tr>
           <th style="width:34px">#</th><th>Jefe</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini ok · lle tarde)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ljef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ljef" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltJefBody"></tbody></table></div>
       </div>
@@ -668,7 +673,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   <col style="width:76px">
   <col style="width:76px">
   <col style="width:72px">
-</colgroup><table class="data-table"><thead><tr>
+</colgroup><table class="data-table tbl-std"><thead><tr>
           <th style="width:34px">#</th><th>Coordinador</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini ok · lle tarde)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lcoord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lcoord" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltCoordBody"></tbody></table></div>
       </div>
