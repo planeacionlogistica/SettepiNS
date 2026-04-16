@@ -133,12 +133,27 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 #drillModal{z-index:810;}
 #drillDetailModal{z-index:820;}
 .modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
-/* Drill modal nivel 1: más ancho, sin scroll horizontal en desktop */
-#drillModal .modal-box{max-width:820px;}
+/* ── Drill modal nivel 1 ── */
+#drillModal{z-index:810;}
+#drillModal .modal-box{max-width:860px;}
 #drillModal .modal-body{overflow-x:hidden;}
-#drillModal .modal-table{table-layout:fixed;width:100%;}
+#drillModal .modal-table{table-layout:fixed;width:100%;border-collapse:collapse;}
 #drillModal .modal-table th,
 #drillModal .modal-table td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* Anchos fijos del modal - suma ~860px menos padding del modal */
+#drillModal .col-ruta  {width:auto;}
+#drillModal .col-srvs  {width:52px;}
+#drillModal .col-enti  {width:66px;}
+#drillModal .col-solo  {width:92px;}
+#drillModal .col-ambos {width:108px;}
+#drillModal .col-ini   {width:62px;}
+#drillModal .col-lle   {width:62px;}
+#drillModal .col-pct   {width:66px;}
+/* Mobile: permitir scroll horizontal en el modal de rutas */
+@media(max-width:768px){
+  #drillModal .modal-body{overflow-x:auto;}
+  #drillModal .modal-table{min-width:580px;}
+}
 .modal-head{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:1px solid var(--border);background:var(--navy2);}
 .modal-head h3{font-size:.92rem;font-weight:700;color:#fff;}
 .modal-head span{font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.1rem;}
@@ -218,12 +233,14 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   .btn-capture{font-size:.62rem;padding:.2rem .45rem;}
   .rank-badge{width:18px;height:18px;font-size:.58rem;}
   /* Modales full-width */
-  .modal-overlay{padding:.4rem;}
+  .modal-overlay{padding:.3rem;}
   .modal-box{max-width:100% !important;max-height:94vh;border-radius:10px;}
-  .modal-head{padding:.75rem 1rem;}
-  .modal-head h3{font-size:.82rem;}
-  .modal-table thead th{padding:.42rem .5rem;font-size:.58rem;white-space:nowrap;}
-  .modal-table tbody td{padding:.38rem .5rem;font-size:.7rem;}
+  .modal-head{padding:.7rem .85rem;}
+  .modal-head h3{font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;}
+  /* Modal body: scroll vertical + horizontal donde aplique */
+  .modal-body{-webkit-overflow-scrolling:touch;}
+  .modal-table thead th{padding:.4rem .45rem;font-size:.58rem;white-space:nowrap;}
+  .modal-table tbody td{padding:.35rem .45rem;font-size:.68rem;}
 }
 @media(max-width:480px){
   .kpi-grid{grid-template-columns:1fr 1fr;gap:.4rem;}
@@ -707,15 +724,25 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     </div>
     <div class="modal-body">
       <table class="modal-table">
+        <colgroup>
+          <col class="col-ruta">
+          <col class="col-srvs">
+          <col class="col-enti">
+          <col class="col-solo">
+          <col class="col-ambos">
+          <col class="col-ini">
+          <col class="col-lle">
+          <col class="col-pct">
+        </colgroup>
         <thead><tr>
-          <th style="min-width:120px">Ruta / Descripción</th>
-          <th class="r" style="width:64px">Srvs.</th>
-          <th class="r" style="width:68px">En tiempo</th>
-          <th class="r" id="drillSoloHdr" style="width:88px">(ini ok · lle tarde)</th>
-          <th class="r" id="drillAmbosHdr" style="width:100px">(ini tarde · lle tarde)</th>
-          <th class="r" style="width:76px">⌀ Ini</th>
-          <th class="r" style="width:76px">⌀ Lle</th>
-          <th class="r" style="width:64px">% Cumpl.</th>
+          <th>Ruta / Descripción</th>
+          <th class="r">Srvs.</th>
+          <th class="r">En tiempo</th>
+          <th class="r" id="drillSoloHdr">(ini ok · lle tarde)</th>
+          <th class="r" id="drillAmbosHdr">(ini tarde · lle tarde)</th>
+          <th class="r">⌀ Ini</th>
+          <th class="r">⌀ Lle</th>
+          <th class="r">% Cumpl.</th>
         </tr></thead>
         <tbody id="drillBody"></tbody>
       </table>
