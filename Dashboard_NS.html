@@ -47,9 +47,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .sc-opt.selected{background:rgba(126,211,33,.15);font-weight:700;color:var(--navy);}
 .sc-opt.sc-none{color:var(--muted);font-style:italic;cursor:default;}
 .sc-opt.sc-none:hover{background:transparent;}
-.date-row{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;align-items:end;width:100%;}
-.date-row .fg{gap:.2rem;min-width:0;}
-.date-row input[type=date]{font-size:.7rem;padding:.32rem .28rem;min-width:0;width:100%;}
 .btn-reset{width:100%;background:transparent;border:1.5px solid var(--border);border-radius:7px;color:var(--muted);padding:.45rem;font-size:.75rem;font-family:"Inter",sans-serif;font-weight:600;cursor:pointer;transition:all .15s;margin-top:.2rem;}
 .btn-reset:hover{border-color:var(--red);color:var(--red);background:rgba(229,62,62,.06)}
 .main{flex:1;padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0;}
@@ -83,12 +80,10 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .table-count{font-size:.72rem;color:var(--muted);background:var(--bg);border-radius:20px;padding:.2rem .65rem;white-space:nowrap}
 .data-table{width:100%;border-collapse:collapse}
 .data-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.65rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:.5rem .75rem;text-align:left;white-space:nowrap;}
-.data-table thead th:nth-child(n+3){text-align:right}
 .data-table tbody tr{border-bottom:1px solid var(--border);transition:background .12s}
 .data-table tbody tr:last-child{border-bottom:none}
 .data-table tbody tr:hover{background:#f7f9ff}
 .data-table tbody td{padding:.42rem .75rem;font-size:.77rem;color:var(--text)}
-.data-table tbody td:nth-child(n+3){text-align:right;font-variant-numeric:tabular-nums}
 .td-cli{font-weight:600}.td-num{color:var(--navy)}.td-late{color:var(--red);font-weight:600}
 .pct-cell{display:flex;align-items:center;justify-content:flex-end;gap:.55rem}
 .pct-bar-wrap{width:70px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;flex-shrink:0}
@@ -146,15 +141,15 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .modal-body{overflow-y:auto;padding:0;}
 .modal-table{width:100%;border-collapse:collapse;}
 .modal-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.68rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:.55rem .9rem;text-align:left;white-space:nowrap;position:sticky;top:0;}
-.modal-table thead th:nth-child(n+2){text-align:right;}
+.modal-table thead th.r{text-align:right;}
 .modal-table tbody tr{border-bottom:1px solid var(--border);}
 .modal-table tbody tr:last-child{border-bottom:none;}
 .modal-table tbody tr:hover{background:#f7f9ff;}
 .modal-table tbody td{padding:.5rem .9rem;font-size:.78rem;color:var(--text);}
-.modal-table tbody td:nth-child(n+2){text-align:right;font-variant-numeric:tabular-nums;}
+.modal-table tbody td.r{text-align:right;font-variant-numeric:tabular-nums;}
 .td-ruta{font-weight:600;color:var(--navy);}
 .modal-foot{padding:.7rem 1.25rem;border-top:1px solid var(--border);font-size:.72rem;color:var(--muted);text-align:right;}
-.row-clickable{cursor:pointer;}
+.row-clickable{cursor:pointer;user-select:none;}
 .row-clickable .td-cli{color:var(--navy);text-decoration:underline dotted;}
 .row-ruta-clickable{cursor:pointer;}
 .row-ruta-clickable:hover{background:#f0f4ff !important;}
@@ -162,22 +157,29 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .min-pos{color:#c53030;font-weight:700;}
 .min-neg{color:#16a34a;font-weight:700;}
 .min-cero{color:#6b7a99;font-weight:600;}
-.filter-toggle-btn{display:none;width:100%;background:var(--navy2);color:var(--white);border:none;border-radius:8px;padding:.65rem 1rem;font-size:.82rem;font-weight:600;font-family:"Inter",sans-serif;cursor:pointer;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
+/* ── Filter toggle btn (mobile) ── */
+.filter-toggle-btn{display:none;width:100%;background:var(--navy2);color:var(--white);border:none;border-radius:8px;padding:.65rem 1rem;font-size:.82rem;font-weight:600;font-family:"Inter",sans-serif;cursor:pointer;align-items:center;justify-content:space-between;margin-bottom:.4rem;}
 .filter-toggle-btn span{font-size:.75rem;opacity:.6}
-.sidebar.collapsed .fg,.sidebar.collapsed .btn-reset,.sidebar.collapsed .sb-title{display:none}
-.sidebar.collapsed{padding:.5rem .95rem}
+/* ── Sidebar collapsed state ── */
+.sidebar.collapsed .sidebar-filters,
+.sidebar.collapsed .sb-title{display:none;}
+.sidebar.collapsed{padding:.5rem .6rem;}
+.sidebar-filters{display:flex;flex-direction:column;gap:.5rem;}
 .filter-active-badge{display:inline-block;background:var(--green);color:var(--navy);font-size:.58rem;font-weight:700;padding:.1rem .35rem;border-radius:8px;margin-left:.3rem;vertical-align:middle;}
-.sidebar-filters{display:flex;flex-direction:column;gap:.7rem;}
 .td-pct-late{color:var(--red);font-weight:700;font-size:.8rem;}
+
+/* ════════════ MOBILE ════════════ */
 @media(max-width:768px){
   nav{padding:10px 16px;gap:10px;}
   nav>a:first-child{font-size:15px;}
   .dropdown-toggle{padding:6px 10px;font-size:13px;}
   .layout{flex-direction:column;}
-  .sidebar{width:100%;height:auto;position:relative;top:0;border-right:none;border-bottom:1px solid var(--border);padding:.75rem 1rem;gap:.75rem;overflow:visible;}
+  .sidebar{width:100%;height:auto;position:relative;top:0;border-right:none;border-bottom:1px solid var(--border);padding:.75rem 1rem;gap:.5rem;overflow:visible;}
   .filter-toggle-btn{display:flex;}
+  /* Grid de 2 cols para los filtros en mobile */
   .sidebar-filters{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;}
-  .sidebar-filters .date-row{grid-column:1/-1;}
+  .sidebar-filters .fg:nth-last-child(1),
+  .sidebar-filters .fg:nth-last-child(2),
   .sidebar-filters .btn-reset{grid-column:1/-1;}
   .main{padding:.85rem .75rem;gap:.85rem;}
   .kpi-grid{grid-template-columns:repeat(2,1fr);gap:.5rem;}
@@ -185,27 +187,32 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   .kpi-val{font-size:1.5rem;}
   .kpi-lbl{font-size:.6rem;}
   .kpi-icon{font-size:1.1rem;margin-bottom:.2rem;}
-  .chart-wrap{height:200px;}
+  .chart-wrap{height:220px;}
   .chart-hdr{flex-direction:column;gap:.3rem;}
   .chart-legend{flex-wrap:wrap;gap:.5rem;}
   .tables-grid{grid-template-columns:1fr;}
   .tab-bar{padding:0 .75rem;}
   .tab-btn{padding:.55rem .9rem;font-size:.78rem;}
-  .data-table thead th{padding:.5rem .6rem;font-size:.65rem;}
-  .data-table tbody td{padding:.45rem .6rem;font-size:.75rem;}
+  .data-table{font-size:.72rem;}
+  .data-table thead th{padding:.5rem .5rem;font-size:.6rem;}
+  .data-table tbody td{padding:.42rem .5rem;font-size:.72rem;}
   .table-hdr{padding:.65rem .85rem;flex-wrap:wrap;gap:.4rem;}
   .table-hdr-actions{width:100%;justify-content:space-between;}
-  .pct-bar-wrap{width:45px;}
+  .pct-bar-wrap{width:40px;}
   .btn-capture{font-size:.65rem;padding:.22rem .5rem;}
+  /* Modales full-width */
+  .modal-box{max-width:100% !important;max-height:92vh;border-radius:10px;}
+  .modal-table thead th{padding:.45rem .55rem;font-size:.6rem;}
+  .modal-table tbody td{padding:.42rem .55rem;font-size:.72rem;}
 }
 @media(max-width:480px){
-  .kpi-grid{grid-template-columns:1fr;}
-  .kpi{padding:.85rem 1rem;}
-  .kpi-val{font-size:1.8rem;}
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .kpi{padding:.75rem .85rem;}
+  .kpi-val{font-size:1.4rem;}
   nav>a:first-child{font-size:14px;}
   .dropdown-toggle{font-size:12px;padding:5px 8px;}
   .chart-wrap{height:180px;}
-  .main{padding:.65rem .6em;}
+  .main{padding:.65rem .55rem;}
 }
 </style>
 </head>
@@ -245,99 +252,108 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 
 <div class="layout">
   <aside class="sidebar" id="sidebar">
-    <div class="sb-title">
-      Filtros
-      <button class="sb-reset" onclick="resetFilters()" title="Limpiar filtros">↺</button>
-    </div>
+    <!-- Botón toggle visible solo en mobile -->
+    <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleSidebar()">
+      🔽 Filtros <span>Ocultar</span>
+    </button>
 
-    <div class="fg">
-      <label>UDN</label>
-      <div class="sc-wrap" id="sc-udn">
-        <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
-          id="sc-udn-input" oninput="scFilter('udn')" onfocus="scOpen('udn')" onkeydown="scKey(event,'udn')">
-        <span class="sc-arrow">▼</span>
-        <div class="sc-dropdown" id="sc-udn-dd"></div>
+    <div class="sidebar-filters" id="sidebarFilters">
+      <div class="sb-title">
+        Filtros
+        <button class="sb-reset" onclick="resetFilters()" title="Limpiar filtros">↺</button>
       </div>
-    </div>
 
-    <div class="fg">
-      <label>Mes</label>
-      <div class="sc-wrap" id="sc-mes">
-        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-          id="sc-mes-input" oninput="scFilter('mes')" onfocus="scOpen('mes')" onkeydown="scKey(event,'mes')">
-        <span class="sc-arrow">▼</span>
-        <div class="sc-dropdown" id="sc-mes-dd"></div>
+      <div class="fg">
+        <label>UDN</label>
+        <div class="sc-wrap" id="sc-udn">
+          <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
+            id="sc-udn-input" oninput="scFilter('udn')" onfocus="scOpen('udn')" onkeydown="scKey(event,'udn')">
+          <span class="sc-arrow">▼</span>
+          <div class="sc-dropdown" id="sc-udn-dd"></div>
+        </div>
       </div>
-    </div>
 
-    <div class="fg">
-      <label>Semana</label>
-      <div class="sc-wrap" id="sc-sem">
-        <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
-          id="sc-sem-input" oninput="scFilter('sem')" onfocus="scOpen('sem')" onkeydown="scKey(event,'sem')">
-        <span class="sc-arrow">▼</span>
-        <div class="sc-dropdown" id="sc-sem-dd"></div>
+      <div class="fg">
+        <label>Mes</label>
+        <div class="sc-wrap" id="sc-mes">
+          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+            id="sc-mes-input" oninput="scFilter('mes')" onfocus="scOpen('mes')" onkeydown="scKey(event,'mes')">
+          <span class="sc-arrow">▼</span>
+          <div class="sc-dropdown" id="sc-mes-dd"></div>
+        </div>
       </div>
-    </div>
 
-    <div class="fg">
-      <label>Cliente</label>
-      <div class="sc-wrap" id="sc-cli">
-        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-          id="sc-cli-input" oninput="scFilter('cli')" onfocus="scOpen('cli')" onkeydown="scKey(event,'cli')">
-        <span class="sc-arrow">▼</span>
-        <div class="sc-dropdown" id="sc-cli-dd"></div>
+      <div class="fg">
+        <label>Semana</label>
+        <div class="sc-wrap" id="sc-sem">
+          <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
+            id="sc-sem-input" oninput="scFilter('sem')" onfocus="scOpen('sem')" onkeydown="scKey(event,'sem')">
+          <span class="sc-arrow">▼</span>
+          <div class="sc-dropdown" id="sc-sem-dd"></div>
+        </div>
       </div>
-    </div>
 
-    <div class="fg">
-      <label>Gerente</label>
-      <div class="sc-wrap" id="sc-ger">
-        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-          id="sc-ger-input" oninput="scFilter('ger')" onfocus="scOpen('ger')" onkeydown="scKey(event,'ger')">
-        <span class="sc-arrow">▼</span>
-        <div class="sc-dropdown" id="sc-ger-dd"></div>
+      <div class="fg">
+        <label>Cliente</label>
+        <div class="sc-wrap" id="sc-cli">
+          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+            id="sc-cli-input" oninput="scFilter('cli')" onfocus="scOpen('cli')" onkeydown="scKey(event,'cli')">
+          <span class="sc-arrow">▼</span>
+          <div class="sc-dropdown" id="sc-cli-dd"></div>
+        </div>
       </div>
-    </div>
 
-    <div class="fg">
-      <label>Jefe</label>
-      <div class="sc-wrap" id="sc-jef">
-        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-          id="sc-jef-input" oninput="scFilter('jef')" onfocus="scOpen('jef')" onkeydown="scKey(event,'jef')">
-        <span class="sc-arrow">▼</span>
-        <div class="sc-dropdown" id="sc-jef-dd"></div>
+      <div class="fg">
+        <label>Gerente</label>
+        <div class="sc-wrap" id="sc-ger">
+          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+            id="sc-ger-input" oninput="scFilter('ger')" onfocus="scOpen('ger')" onkeydown="scKey(event,'ger')">
+          <span class="sc-arrow">▼</span>
+          <div class="sc-dropdown" id="sc-ger-dd"></div>
+        </div>
       </div>
-    </div>
 
-    <div class="fg">
-      <label>Coordinador</label>
-      <div class="sc-wrap" id="sc-coord">
-        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-          id="sc-coord-input" oninput="scFilter('coord')" onfocus="scOpen('coord')" onkeydown="scKey(event,'coord')">
-        <span class="sc-arrow">▼</span>
-        <div class="sc-dropdown" id="sc-coord-dd"></div>
+      <div class="fg">
+        <label>Jefe</label>
+        <div class="sc-wrap" id="sc-jef">
+          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+            id="sc-jef-input" oninput="scFilter('jef')" onfocus="scOpen('jef')" onkeydown="scKey(event,'jef')">
+          <span class="sc-arrow">▼</span>
+          <div class="sc-dropdown" id="sc-jef-dd"></div>
+        </div>
       </div>
-    </div>
 
-    <div class="fg">
-      <label>Turno</label>
-      <div class="sc-wrap" id="sc-turno">
-        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
-          id="sc-turno-input" oninput="scFilter('turno')" onfocus="scOpen('turno')" onkeydown="scKey(event,'turno')">
-        <span class="sc-arrow">▼</span>
-        <div class="sc-dropdown" id="sc-turno-dd"></div>
+      <div class="fg">
+        <label>Coordinador</label>
+        <div class="sc-wrap" id="sc-coord">
+          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+            id="sc-coord-input" oninput="scFilter('coord')" onfocus="scOpen('coord')" onkeydown="scKey(event,'coord')">
+          <span class="sc-arrow">▼</span>
+          <div class="sc-dropdown" id="sc-coord-dd"></div>
+        </div>
       </div>
-    </div>
 
-    <div class="fg">
-      <label>Desde</label>
-      <input type="date" id="fFi" onchange="onFilterChange('fFi')">
-    </div>
-    <div class="fg">
-      <label>Hasta</label>
-      <input type="date" id="fFf" onchange="onFilterChange('fFf')">
-    </div>
+      <div class="fg">
+        <label>Turno</label>
+        <div class="sc-wrap" id="sc-turno">
+          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+            id="sc-turno-input" oninput="scFilter('turno')" onfocus="scOpen('turno')" onkeydown="scKey(event,'turno')">
+          <span class="sc-arrow">▼</span>
+          <div class="sc-dropdown" id="sc-turno-dd"></div>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Desde</label>
+        <input type="date" id="fFi" onchange="onFilterChange()">
+      </div>
+      <div class="fg">
+        <label>Hasta</label>
+        <input type="date" id="fFf" onchange="onFilterChange()">
+      </div>
+
+      <button class="btn-reset" onclick="resetFilters()">↺ Limpiar filtros</button>
+    </div><!-- /sidebar-filters -->
   </aside>
 
   <main class="main">
@@ -400,29 +416,38 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div class="table-hdr-actions"><span class="table-count" id="tCliCount">0 clientes</span><button class="btn-capture" onclick="exportXLSX('cli','Inicios_Clientes')">⬇ Excel</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:34px">#</th><th>Cliente / Grupo</th><th>Total</th><th>En Tiempo</th><th>Inició tarde, llegó bien</th><th>Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('cli')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-cli" style="pointer-events:none">↓</button></div></th>
+          <th style="width:34px">#</th>
+          <th>Cliente / Grupo</th>
+          <th style="text-align:right">Carros</th>
+          <th style="text-align:right">Total</th>
+          <th style="text-align:right">En Tiempo</th>
+          <th style="text-align:right">Inició tarde, llegó bien</th>
+          <th style="text-align:right">Inició Y llegó tarde</th>
+          <th style="text-align:right">Prom. Ini (min)</th>
+          <th style="text-align:right">Prom. Lle (min)</th>
+          <th style="cursor:pointer" onclick="sortTable('cli')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-cli" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tCliBody"></tbody></table></div>
       </div>
 
       <div class="table-card" id="card-ger">
-          <div class="table-hdr">
-            <div><div class="table-hdr-title"><span class="table-hdr-icon">👔</span><span id="tGerTitle">Resumen por Gerente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
-            <div class="table-hdr-actions"><span class="table-count" id="tGerCount">0 gerentes</span><button class="btn-capture" onclick="exportXLSX('ger','Inicios_Gerentes')">⬇ Excel</button></div>
-          </div>
-          <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-            <th style="width:34px">#</th><th>Gerente</th><th>Total</th><th>En Tiempo</th><th>Inició tarde, llegó bien</th><th>Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ger" style="pointer-events:none">↓</button></div></th>
-          </tr></thead><tbody id="tGerBody"></tbody></table></div>
+        <div class="table-hdr">
+          <div><div class="table-hdr-title"><span class="table-hdr-icon">👔</span><span id="tGerTitle">Resumen por Gerente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
+          <div class="table-hdr-actions"><span class="table-count" id="tGerCount">0 gerentes</span><button class="btn-capture" onclick="exportXLSX('ger','Inicios_Gerentes')">⬇ Excel</button></div>
         </div>
+        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+          <th style="width:34px">#</th><th>Gerente</th><th style="text-align:right">Total</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Inició tarde, llegó bien</th><th style="text-align:right">Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ger" style="pointer-events:none">↓</button></div></th>
+        </tr></thead><tbody id="tGerBody"></tbody></table></div>
+      </div>
 
-        <div class="table-card" id="card-jef">
-          <div class="table-hdr">
-            <div><div class="table-hdr-title"><span class="table-hdr-icon">🗂️</span><span id="tJefTitle">Resumen por Jefe</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
-            <div class="table-hdr-actions"><span class="table-count" id="tJefCount">0 jefes</span><button class="btn-capture" onclick="exportXLSX('jef','Inicios_Jefes')">⬇ Excel</button></div>
-          </div>
-          <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-            <th style="width:34px">#</th><th>Jefe</th><th>Total</th><th>En Tiempo</th><th>Inició tarde, llegó bien</th><th>Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('jef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-jef" style="pointer-events:none">↓</button></div></th>
-          </tr></thead><tbody id="tJefBody"></tbody></table></div>
+      <div class="table-card" id="card-jef">
+        <div class="table-hdr">
+          <div><div class="table-hdr-title"><span class="table-hdr-icon">🗂️</span><span id="tJefTitle">Resumen por Jefe</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
+          <div class="table-hdr-actions"><span class="table-count" id="tJefCount">0 jefes</span><button class="btn-capture" onclick="exportXLSX('jef','Inicios_Jefes')">⬇ Excel</button></div>
         </div>
+        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+          <th style="width:34px">#</th><th>Jefe</th><th style="text-align:right">Total</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Inició tarde, llegó bien</th><th style="text-align:right">Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('jef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-jef" style="pointer-events:none">↓</button></div></th>
+        </tr></thead><tbody id="tJefBody"></tbody></table></div>
+      </div>
 
       <div class="table-card section-end" id="card-coord">
         <div class="table-hdr">
@@ -430,10 +455,10 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div class="table-hdr-actions"><span class="table-count" id="tCoordCount">0 coordinadores</span><button class="btn-capture" onclick="exportXLSX('coord','Inicios_Coordinadores')">⬇ Excel</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:34px">#</th><th>Coordinador</th><th>Total</th><th>En Tiempo</th><th>Inició tarde, llegó bien</th><th>Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('coord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-coord" style="pointer-events:none">↓</button></div></th>
+          <th style="width:34px">#</th><th>Coordinador</th><th style="text-align:right">Total</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Inició tarde, llegó bien</th><th style="text-align:right">Inició Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('coord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-coord" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tCoordBody"></tbody></table></div>
       </div>
-    </div>
+    </div><!-- /panel-inicios -->
 
     <!-- ═══════════════════ PANEL LLEGADAS ═══════════════════ -->
     <div class="tab-panel active" id="panel-llegadas">
@@ -487,29 +512,38 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div class="table-hdr-actions"><span class="table-count" id="ltCliCount">0 clientes</span><button class="btn-capture" onclick="exportXLSX('lcli','Llegadas_Clientes')">⬇ Excel</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:34px">#</th><th>Cliente / Grupo</th><th>Total</th><th>En Tiempo</th><th>Salió bien, llegó tarde</th><th>Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lcli')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lcli" style="pointer-events:none">↓</button></div></th>
+          <th style="width:34px">#</th>
+          <th>Cliente / Grupo</th>
+          <th style="text-align:right">Carros</th>
+          <th style="text-align:right">Total</th>
+          <th style="text-align:right">En Tiempo</th>
+          <th style="text-align:right">Salió bien, llegó tarde</th>
+          <th style="text-align:right">Salió Y llegó tarde</th>
+          <th style="text-align:right">Prom. Ini (min)</th>
+          <th style="text-align:right">Prom. Lle (min)</th>
+          <th style="cursor:pointer" onclick="sortTable('lcli')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lcli" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltCliBody"></tbody></table></div>
       </div>
 
       <div class="table-card" id="lcard-ger">
-          <div class="table-hdr">
-            <div><div class="table-hdr-title"><span class="table-hdr-icon">👔</span><span id="ltGerTitle">Resumen por Gerente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
-            <div class="table-hdr-actions"><span class="table-count" id="ltGerCount">0 gerentes</span><button class="btn-capture" onclick="exportXLSX('lger','Llegadas_Gerentes')">⬇ Excel</button></div>
-          </div>
-          <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-            <th style="width:34px">#</th><th>Gerente</th><th>Total</th><th>En Tiempo</th><th>Salió bien, llegó tarde</th><th>Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lger" style="pointer-events:none">↓</button></div></th>
-          </tr></thead><tbody id="ltGerBody"></tbody></table></div>
+        <div class="table-hdr">
+          <div><div class="table-hdr-title"><span class="table-hdr-icon">👔</span><span id="ltGerTitle">Resumen por Gerente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
+          <div class="table-hdr-actions"><span class="table-count" id="ltGerCount">0 gerentes</span><button class="btn-capture" onclick="exportXLSX('lger','Llegadas_Gerentes')">⬇ Excel</button></div>
         </div>
+        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+          <th style="width:34px">#</th><th>Gerente</th><th style="text-align:right">Total</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Salió bien, llegó tarde</th><th style="text-align:right">Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lger')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lger" style="pointer-events:none">↓</button></div></th>
+        </tr></thead><tbody id="ltGerBody"></tbody></table></div>
+      </div>
 
-        <div class="table-card" id="lcard-jef">
-          <div class="table-hdr">
-            <div><div class="table-hdr-title"><span class="table-hdr-icon">🗂️</span><span id="ltJefTitle">Resumen por Jefe</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
-            <div class="table-hdr-actions"><span class="table-count" id="ltJefCount">0 jefes</span><button class="btn-capture" onclick="exportXLSX('ljef','Llegadas_Jefes')">⬇ Excel</button></div>
-          </div>
-          <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-            <th style="width:34px">#</th><th>Jefe</th><th>Total</th><th>En Tiempo</th><th>Salió bien, llegó tarde</th><th>Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ljef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ljef" style="pointer-events:none">↓</button></div></th>
-          </tr></thead><tbody id="ltJefBody"></tbody></table></div>
+      <div class="table-card" id="lcard-jef">
+        <div class="table-hdr">
+          <div><div class="table-hdr-title"><span class="table-hdr-icon">🗂️</span><span id="ltJefTitle">Resumen por Jefe</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
+          <div class="table-hdr-actions"><span class="table-count" id="ltJefCount">0 jefes</span><button class="btn-capture" onclick="exportXLSX('ljef','Llegadas_Jefes')">⬇ Excel</button></div>
         </div>
+        <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+          <th style="width:34px">#</th><th>Jefe</th><th style="text-align:right">Total</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Salió bien, llegó tarde</th><th style="text-align:right">Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('ljef')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-ljef" style="pointer-events:none">↓</button></div></th>
+        </tr></thead><tbody id="ltJefBody"></tbody></table></div>
+      </div>
 
       <div class="table-card section-end" id="lcard-coord">
         <div class="table-hdr">
@@ -517,14 +551,14 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <div class="table-hdr-actions"><span class="table-count" id="ltCoordCount">0 coordinadores</span><button class="btn-capture" onclick="exportXLSX('lcoord','Llegadas_Coordinadores')">⬇ Excel</button></div>
         </div>
         <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-          <th style="width:34px">#</th><th>Coordinador</th><th>Total</th><th>En Tiempo</th><th>Salió bien, llegó tarde</th><th>Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lcoord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lcoord" style="pointer-events:none">↓</button></div></th>
+          <th style="width:34px">#</th><th>Coordinador</th><th style="text-align:right">Total</th><th style="text-align:right">En Tiempo</th><th style="text-align:right">Salió bien, llegó tarde</th><th style="text-align:right">Salió Y llegó tarde</th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lcoord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lcoord" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltCoordBody"></tbody></table></div>
       </div>
-    </div>
+    </div><!-- /panel-llegadas -->
   </main>
 </div>
 
-<!-- MODAL NIVEL 2 -->
+<!-- ══ MODAL NIVEL 2: detalle de viajes individuales ══ -->
 <div class="modal-overlay" id="drillDetailModal" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="modal-box" style="max-width:900px">
     <div class="modal-head">
@@ -543,8 +577,8 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <th>Fecha</th>
           <th style="text-align:left">Unidad</th>
           <th style="text-align:left">Operador</th>
-          <th>Min Inicio</th>
-          <th>Min Llegada</th>
+          <th class="r">Min Inicio</th>
+          <th class="r">Min Llegada</th>
         </tr></thead>
         <tbody id="drillDetailBody"></tbody>
       </table>
@@ -553,9 +587,9 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   </div>
 </div>
 
-<!-- MODAL NIVEL 1 -->
+<!-- ══ MODAL NIVEL 1: rutas por cliente (columnas completas) ══ -->
 <div class="modal-overlay" id="drillModal" onclick="closeDrill(event)">
-  <div class="modal-box" style="max-width:800px">
+  <div class="modal-box" style="max-width:900px">
     <div class="modal-head">
       <div><h3 id="drillTitle">Detalle por Ruta</h3><span id="drillSub"></span></div>
       <div style="display:flex;align-items:center;gap:.6rem">
@@ -570,10 +604,13 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       <table class="modal-table">
         <thead><tr>
           <th>Ruta / Descripción</th>
-          <th>Total Viajes</th>
-          <th>Tarde</th>
-          <th>Prom. Minutos</th>
-          <th>% Cumplimiento</th>
+          <th class="r">Total</th>
+          <th class="r">En Tiempo</th>
+          <th class="r" id="drillSoloHdr">Solo tarde</th>
+          <th class="r" id="drillAmbosHdr">Ambos tarde</th>
+          <th class="r">Prom. Ini (min)</th>
+          <th class="r">Prom. Lle (min)</th>
+          <th class="r">% Cumpl.</th>
         </tr></thead>
         <tbody id="drillBody"></tbody>
       </table>
@@ -583,59 +620,45 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 </div>
 
 <script>
-const SHEET_ID   = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
-const SHEET_NAME = 'NS';
-const CHUNK      = 35000;
+const SHEET_ID    = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
+const SHEET_NAME  = 'NS';
+const INPUTS_NAME = 'Inputs';
+const CHUNK       = 35000;
 
 const C = {
-  fecha:   'start_date',
-  semana:  'Semana',
-  udn:     'business_unit',
-  cliente: 'group',
-  gerente: 'Gerente',
-  jefe:    'Jefe',
-  coord:   'Coordinador',
-  turno:   'Turno',
-  retardo: 'Inicios_Tarde',
-  viajes:  'Cantidad de viajes',
-  llegada: 'Llegadas_Tarde',
-  minIni:  'Minutos de Retraso',
-  minLle:  'Minutos llegadas',
-  driver:  'driver',
-  car:     'car',
+  fecha:'start_date', semana:'Semana', udn:'business_unit', cliente:'group',
+  gerente:'Gerente', jefe:'Jefe', coord:'Coordinador', turno:'Turno',
+  retardo:'Inicios_Tarde', viajes:'Cantidad de viajes', llegada:'Llegadas_Tarde',
+  minIni:'Minutos de Retraso', minLle:'Minutos llegadas', driver:'driver', car:'car',
 };
 
 let DATA         = [];
 let loadedMonths = new Set();
 let myChartIni   = null;
 let myChartLle   = null;
+let CARROS_MAP   = {};   // { 'CON-CONMET': 49, ... }
 
-const SC_KEYS = ['udn','mes','sem','cli','ger','jef','coord','turno','ope','car'];
+// ── Searchable selects ────────────────────────────────────────────
+const SC_KEYS  = ['udn','mes','sem','cli','ger','jef','coord','turno','ope','car'];
 const SC_VALS  = Object.fromEntries(SC_KEYS.map(k=>[k,[]]));
 const SC_SEL   = Object.fromEntries(SC_KEYS.map(k=>[k,'']));
 const SC_FOCUS = Object.fromEntries(SC_KEYS.map(k=>[k,-1]));
+const kpiFilter = { ini:'', lle:'' };
 
-const kpiFilter = { ini: '', lle: '' };
-
-function toggleKpiFilter(panel, val){
-  const cur = kpiFilter[panel];
-  kpiFilter[panel] = (val==='total'||val===cur) ? '' : val;
-  updateKpiActive(panel);
-  draw();
+// ── KPI filter ───────────────────────────────────────────────────
+function toggleKpiFilter(panel,val){
+  const cur=kpiFilter[panel];
+  kpiFilter[panel]=(val==='total'||val===cur)?'':val;
+  updateKpiActive(panel); draw();
 }
 function updateKpiActive(panel){
-  const v = kpiFilter[panel];
-  const prefix = panel==='ini' ? 'kpi-ini' : 'kpi-lle';
+  const v=kpiFilter[panel];
+  const prefix=panel==='ini'?'kpi-ini':'kpi-lle';
   ['total','tarde','ambos','pct'].forEach(k=>{
-    const el=document.getElementById(prefix+'-'+k);
-    if(!el) return;
-    el.classList.remove('kpi-active');
+    document.getElementById(prefix+'-'+k)?.classList.remove('kpi-active');
   });
-  if(v==='ini_solo')   document.getElementById(prefix+'-tarde')?.classList.add('kpi-active');
-  if(v==='ini_tarde')  document.getElementById(prefix+'-tarde')?.classList.add('kpi-active');
-  if(v==='lle_solo')   document.getElementById(prefix+'-tarde')?.classList.add('kpi-active');
-  if(v==='lle_tarde')  document.getElementById(prefix+'-tarde')?.classList.add('kpi-active');
-  if(v==='ambos')      document.getElementById(prefix+'-ambos')?.classList.add('kpi-active');
+  if(v==='ini_solo'||v==='lle_solo') document.getElementById(prefix+'-tarde')?.classList.add('kpi-active');
+  if(v==='ambos')                    document.getElementById(prefix+'-ambos')?.classList.add('kpi-active');
   ['total','tarde','ambos','pct'].forEach(k=>{
     const el=document.getElementById(prefix+'-'+k);
     if(el){ const h=el.querySelector('.kpi-hint'); if(h) h.textContent=el.classList.contains('kpi-active')?'✔ Filtrando · clic para quitar':'Filtrar'; }
@@ -646,6 +669,7 @@ function updateKpiActive(panel){
   });
 }
 
+// ── Date helpers ─────────────────────────────────────────────────
 function norm(s){
   if(!s) return '';
   s=String(s).trim();
@@ -669,7 +693,7 @@ function normMonth(f){ return f?f.slice(0,7):''; }
 const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 function mesLabel(ym){
   if(!ym) return '';
-  const [y,m]=ym.split('-');
+  const[y,m]=ym.split('-');
   return (MESES[parseInt(m,10)-1]||m)+' '+y;
 }
 function getCurrentMonth(){
@@ -677,6 +701,7 @@ function getCurrentMonth(){
   return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}`;
 }
 
+// ── CSV helpers ───────────────────────────────────────────────────
 function parseCSVLine(line){
   const cols=[];let cur='',inQ=false;
   for(let i=0;i<line.length;i++){
@@ -693,17 +718,16 @@ function parseCSV(text){
   if(lines.length<2) return [];
   const hdrs=parseCSVLine(lines[0]);
   if(!hdrs.includes(C.udn)){
-    const found=hdrs.find(h=>h==='business_unit'||h.toLowerCase().includes('business')||
-      h.toLowerCase().includes('unidad')||h.toLowerCase().includes('udn')||h.toLowerCase().includes('negocio'));
-    if(found) C.udn=found;
+    const f=hdrs.find(h=>h==='business_unit'||h.toLowerCase().includes('business')||h.toLowerCase().includes('unidad')||h.toLowerCase().includes('udn')||h.toLowerCase().includes('negocio'));
+    if(f) C.udn=f;
   }
   if(!hdrs.includes(C.coord)){
-    const found=hdrs.find(h=>h.toLowerCase().includes('coordinador')||h.toLowerCase().includes('coord'));
-    if(found) C.coord=found;
+    const f=hdrs.find(h=>h.toLowerCase().includes('coordinador')||h.toLowerCase().includes('coord'));
+    if(f) C.coord=f;
   }
   if(!hdrs.includes(C.turno)){
-    const found=hdrs.find(h=>h.toLowerCase().includes('turno'));
-    if(found) C.turno=found;
+    const f=hdrs.find(h=>h.toLowerCase().includes('turno'));
+    if(f) C.turno=f;
   }
   const rows=[];
   for(let i=1;i<lines.length;i++){
@@ -719,20 +743,44 @@ function csvUrl(offset){
   const tq=encodeURIComponent(`SELECT * LIMIT ${CHUNK} OFFSET ${offset}`);
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
 }
+function inputsUrl(){
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(INPUTS_NAME)}`;
+}
 
 function parseMin(v){
   if(v===undefined||v===null||String(v).trim()==='') return null;
   const n=parseFloat(String(v).replace(',','.'));
   return isNaN(n)?null:n;
 }
-function minCell(val, decimals=1){
+function minCell(val,decimals=1){
   if(val===null) return '<span style="color:#9ca3af;font-size:.7rem">–</span>';
-  const cls = val>0?'min-pos':val<0?'min-neg':'min-cero';
-  const sign= val>0?'+':'';
+  const cls=val>0?'min-pos':val<0?'min-neg':'min-cero';
+  const sign=val>0?'+':'';
   return `<span class="${cls}">${sign}${val.toFixed(decimals)} min</span>`;
 }
 
-window.addEventListener('DOMContentLoaded', loadSheet);
+// ── Load Inputs sheet (carros por cliente) ────────────────────────
+async function loadInputs(){
+  try{
+    const res=await fetch(inputsUrl());
+    if(!res.ok) return;
+    const rows=parseCSV(await res.text());
+    rows.forEach(r=>{
+      // Buscar columna CLIENTE (puede variar en mayúsculas)
+      const cliKey=Object.keys(r).find(k=>k.trim().toUpperCase()==='CLIENTE');
+      const carKey=Object.keys(r).find(k=>k.toLowerCase().includes('cantidad')&&k.toLowerCase().includes('carro'));
+      if(!cliKey||!carKey) return;
+      const cli=(r[cliKey]||'').trim();
+      const carros=parseInt(r[carKey])||0;
+      if(cli) CARROS_MAP[cli]=carros||null;
+    });
+  }catch(e){ console.warn('No se pudo cargar Inputs:',e); }
+}
+
+// ── Main loader ───────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async ()=>{
+  await Promise.all([loadSheet(), loadInputs()]);
+});
 
 async function loadSheet(){
   const overlay=document.getElementById('loadingOverlay');
@@ -752,7 +800,7 @@ async function loadSheet(){
     fillAllSelects();
     const mesActual=getCurrentMonth();
     if(loadedMonths.has(mesActual)){
-      scSetVal('mes', mesActual, mesLabel(mesActual));
+      scSetVal('mes',mesActual,mesLabel(mesActual));
       cascadeSelects();
     }
     draw();
@@ -778,6 +826,7 @@ async function loadSheet(){
   }
 }
 
+// ── Searchable select logic ───────────────────────────────────────
 function scRenderDD(key){
   if(key==='mes'){
     const dd=document.getElementById('sc-mes-dd');
@@ -786,53 +835,40 @@ function scRenderDD(key){
     SC_FOCUS.mes=-1;
     const allOpt=`<div class="sc-opt${SC_SEL.mes===''?' selected':''}" data-val="" data-lbl="Todos" onmousedown="scSelect(event,'mes')">Todos</div>`;
     dd.innerHTML=allOpt+(filtered.length
-      ? filtered.map(ym=>`<div class="sc-opt${SC_SEL.mes===ym?' selected':''}" data-val="${ym}" data-lbl="${mesLabel(ym)}" onmousedown="scSelect(event,'mes')">${mesLabel(ym)}</div>`).join('')
-      : '<div class="sc-opt sc-none">Sin resultados</div>');
+      ?filtered.map(ym=>`<div class="sc-opt${SC_SEL.mes===ym?' selected':''}" data-val="${ym}" data-lbl="${mesLabel(ym)}" onmousedown="scSelect(event,'mes')">${mesLabel(ym)}</div>`).join('')
+      :'<div class="sc-opt sc-none">Sin resultados</div>');
     return;
   }
   const dd=document.getElementById('sc-'+key+'-dd');
   const inputEl=document.getElementById('sc-'+key+'-input');
   const q=(inputEl.value||'').toLowerCase();
-  const filtered = SC_VALS[key].filter(v=>v.toLowerCase().includes(q));
+  const filtered=SC_VALS[key].filter(v=>v.toLowerCase().includes(q));
   SC_FOCUS[key]=-1;
-  const placeholder = key==='sem'?'Todas':'Todos';
+  const placeholder=key==='sem'?'Todas':'Todos';
   const allOpt=`<div class="sc-opt${SC_SEL[key]===''?' selected':''}" data-val="" data-lbl="${placeholder}" onmousedown="scSelect(event,'${key}')">${placeholder}</div>`;
   dd.innerHTML=allOpt+(filtered.length
-    ? filtered.map(v=>`<div class="sc-opt${SC_SEL[key]===v?' selected':''}" data-val="${v}" data-lbl="${v}" onmousedown="scSelect(event,'${key}')">${v}</div>`).join('')
-    : '<div class="sc-opt sc-none">Sin resultados</div>');
+    ?filtered.map(v=>`<div class="sc-opt${SC_SEL[key]===v?' selected':''}" data-val="${v}" data-lbl="${v}" onmousedown="scSelect(event,'${key}')">${v}</div>`).join('')
+    :'<div class="sc-opt sc-none">Sin resultados</div>');
 }
 function scOpen(key){
   document.querySelectorAll('.sc-wrap.open').forEach(el=>{ if(el.id!=='sc-'+key) el.classList.remove('open'); });
   document.getElementById('sc-'+key).classList.add('open');
-  // Al abrir, limpiar el texto para que muestre todas las opciones
-  const inp = document.getElementById('sc-'+key+'-input');
-  inp.value = '';
+  document.getElementById('sc-'+key+'-input').value='';
   cascadeSelects();
   scRenderDD(key);
 }
 function scFilter(key){
-  // Si había selección, limpiarla mientras escribe
-  if(SC_SEL[key] !== ''){
-    SC_SEL[key] = '';
-    cascadeSelects();
-    draw();
-  }
+  if(SC_SEL[key]!==''){ SC_SEL[key]=''; cascadeSelects(); draw(); }
   document.getElementById('sc-'+key).classList.add('open');
   scRenderDD(key);
-  // Auto-seleccionar si queda exactamente 1 resultado (no "Todos")
-  const dd = document.getElementById('sc-'+key+'-dd');
-  const opts = dd.querySelectorAll('.sc-opt:not(.sc-none)');
-  const realOpts = [...opts].filter(o => o.getAttribute('data-val') !== '');
-  if(realOpts.length === 1){
-    realOpts[0].dispatchEvent(new MouseEvent('mousedown', {bubbles:true}));
-  }
+  const dd=document.getElementById('sc-'+key+'-dd');
+  const realOpts=[...dd.querySelectorAll('.sc-opt:not(.sc-none)')].filter(o=>o.getAttribute('data-val')!=='');
+  if(realOpts.length===1) realOpts[0].dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));
 }
 function scSelect(e,key){
   e.preventDefault();
   const el=e.currentTarget;
-  const val=el.getAttribute('data-val');
-  const lbl=el.getAttribute('data-lbl');
-  scSetVal(key,val,lbl);
+  scSetVal(key,el.getAttribute('data-val'),el.getAttribute('data-lbl'));
   document.getElementById('sc-'+key).classList.remove('open');
   cascadeSelects();
   draw();
@@ -840,34 +876,21 @@ function scSelect(e,key){
 function scSetVal(key,val,lbl){
   SC_SEL[key]=val;
   const inp=document.getElementById('sc-'+key+'-input');
-  inp.value = val==='' ? '' : lbl;
-  inp.setAttribute('data-selected-lbl', val==='' ? '' : lbl);
+  inp.value=val===''?'':lbl;
+  inp.setAttribute('data-selected-lbl',val===''?'':lbl);
 }
 function scKey(e,key){
   const dd=document.getElementById('sc-'+key+'-dd');
   const opts=[...dd.querySelectorAll('.sc-opt:not(.sc-none)')];
   if(!opts.length) return;
-  if(e.key==='ArrowDown'){
-    e.preventDefault();
-    SC_FOCUS[key]=Math.min(SC_FOCUS[key]+1,opts.length-1);
-    opts.forEach((o,i)=>o.classList.toggle('focused',i===SC_FOCUS[key]));
-    opts[SC_FOCUS[key]]?.scrollIntoView({block:'nearest'});
-  } else if(e.key==='ArrowUp'){
-    e.preventDefault();
-    SC_FOCUS[key]=Math.max(SC_FOCUS[key]-1,0);
-    opts.forEach((o,i)=>o.classList.toggle('focused',i===SC_FOCUS[key]));
-    opts[SC_FOCUS[key]]?.scrollIntoView({block:'nearest'});
-  } else if(e.key==='Enter'){
+  if(e.key==='ArrowDown'){ e.preventDefault(); SC_FOCUS[key]=Math.min(SC_FOCUS[key]+1,opts.length-1); opts.forEach((o,i)=>o.classList.toggle('focused',i===SC_FOCUS[key])); opts[SC_FOCUS[key]]?.scrollIntoView({block:'nearest'}); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); SC_FOCUS[key]=Math.max(SC_FOCUS[key]-1,0); opts.forEach((o,i)=>o.classList.toggle('focused',i===SC_FOCUS[key])); opts[SC_FOCUS[key]]?.scrollIntoView({block:'nearest'}); }
+  else if(e.key==='Enter'){
     if(SC_FOCUS[key]>=0) opts[SC_FOCUS[key]].dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));
-    else {
-      // Sin foco: seleccionar primer resultado real
-      const first = opts.find(o=>o.getAttribute('data-val')!=='');
-      if(first) first.dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));
-    }
+    else{ const first=opts.find(o=>o.getAttribute('data-val')!==''); if(first) first.dispatchEvent(new MouseEvent('mousedown',{bubbles:true})); }
   } else if(e.key==='Escape'){
-    // Restaurar texto al valor seleccionado previo
-    const inp = document.getElementById('sc-'+key+'-input');
-    inp.value = inp.getAttribute('data-selected-lbl') || '';
+    const inp=document.getElementById('sc-'+key+'-input');
+    inp.value=inp.getAttribute('data-selected-lbl')||'';
     document.getElementById('sc-'+key).classList.remove('open');
   }
 }
@@ -875,56 +898,46 @@ document.addEventListener('click',function(e){
   if(!e.target.closest('.sc-wrap')){
     document.querySelectorAll('.sc-wrap.open').forEach(el=>{
       el.classList.remove('open');
-      // Restaurar texto al cerrar sin seleccionar
-      const key = el.id.replace('sc-','');
-      const inp = document.getElementById('sc-'+key+'-input');
-      const savedLbl = inp?.getAttribute('data-selected-lbl') || '';
-      if(inp) inp.value = savedLbl;
+      const key=el.id.replace('sc-','');
+      const inp=document.getElementById('sc-'+key+'-input');
+      if(inp) inp.value=inp.getAttribute('data-selected-lbl')||'';
     });
   }
 });
 
 function fillAllSelects(){
-  SC_VALS.udn   = uniq(DATA.map(r=>r[C.udn]||''));
-  SC_VALS.mes   = [...loadedMonths].sort((a,b)=>b.localeCompare(a));
-  SC_VALS.sem   = uniq(DATA.map(r=>r[C.semana]||''));
-  SC_VALS.turno = uniq(DATA.map(r=>(r[C.turno]||'').trim()));
-  SC_VALS.ope   = uniq(DATA.map(r=>r[C.driver]||''));
-  SC_VALS.car   = uniq(DATA.map(r=>r[C.car]||''));
+  SC_VALS.udn   =uniq(DATA.map(r=>r[C.udn]||''));
+  SC_VALS.mes   =[...loadedMonths].sort((a,b)=>b.localeCompare(a));
+  SC_VALS.sem   =uniq(DATA.map(r=>r[C.semana]||''));
+  SC_VALS.turno =uniq(DATA.map(r=>(r[C.turno]||'').trim()));
+  SC_VALS.ope   =uniq(DATA.map(r=>r[C.driver]||''));
+  SC_VALS.car   =uniq(DATA.map(r=>r[C.car]||''));
   cascadeSelects();
 }
-
 function cascadeSelects(){
-  const f = getF();
-  const base = DATA.filter(r => {
-    if(f.udn   && r[C.udn]                    !== f.udn)   return false;
-    if(f.mes   && normMonth(getFecha(r))       !== f.mes)   return false;
-    if(f.sem   && r[C.semana]                  !== f.sem)   return false;
-    if(f.turno && (r[C.turno]||'').trim()      !== f.turno) return false;
-    if(f.ope   && (r[C.driver]||'').trim()     !== f.ope)   return false;
-    if(f.car   && (r[C.car]||'').trim()        !== f.car)   return false;
+  const f=getF();
+  const base=DATA.filter(r=>{
+    if(f.udn   && r[C.udn]!==f.udn) return false;
+    if(f.mes   && normMonth(getFecha(r))!==f.mes) return false;
+    if(f.sem   && r[C.semana]!==f.sem) return false;
+    if(f.turno && (r[C.turno]||'').trim()!==f.turno) return false;
     return true;
   });
-  SC_VALS.cli = uniq(base.map(r => r[C.cliente]||''));
-  const baseCli = f.cli ? base.filter(r => r[C.cliente] === f.cli) : base;
-  SC_VALS.ger = uniq(baseCli.map(r => r[C.gerente]||''));
-  const baseGer = f.ger ? baseCli.filter(r => r[C.gerente] === f.ger) : baseCli;
-  SC_VALS.jef = uniq(baseGer.map(r => r[C.jefe]||''));
-  const baseJef = f.jef ? baseGer.filter(r => r[C.jefe] === f.jef) : baseGer;
-  SC_VALS.coord = uniq(baseJef.map(r => (r[C.coord]||'').trim()));
-  SC_VALS.turno = uniq(base.map(r => (r[C.turno]||'').trim()));
-  SC_VALS.ope   = uniq(base.map(r => (r[C.driver]||'').trim()));
-  SC_VALS.car   = uniq(base.map(r => (r[C.car]||'').trim()));
-  const baseSem = DATA.filter(r => {
-    if(f.udn && r[C.udn] !== f.udn) return false;
-    if(f.mes && normMonth(getFecha(r)) !== f.mes) return false;
-    return true;
-  });
-  SC_VALS.sem = uniq(baseSem.map(r => r[C.semana]||''));
+  SC_VALS.cli  =uniq(base.map(r=>r[C.cliente]||''));
+  const baseCli=f.cli?base.filter(r=>r[C.cliente]===f.cli):base;
+  SC_VALS.ger  =uniq(baseCli.map(r=>r[C.gerente]||''));
+  const baseGer=f.ger?baseCli.filter(r=>r[C.gerente]===f.ger):baseCli;
+  SC_VALS.jef  =uniq(baseGer.map(r=>r[C.jefe]||''));
+  const baseJef=f.jef?baseGer.filter(r=>r[C.jefe]===f.jef):baseGer;
+  SC_VALS.coord=uniq(baseJef.map(r=>(r[C.coord]||'').trim()));
+  SC_VALS.turno=uniq(base.map(r=>(r[C.turno]||'').trim()));
+  SC_VALS.ope  =uniq(base.map(r=>(r[C.driver]||'').trim()));
+  SC_VALS.car  =uniq(base.map(r=>(r[C.car]||'').trim()));
+  const baseSem=DATA.filter(r=>{ if(f.udn&&r[C.udn]!==f.udn) return false; if(f.mes&&normMonth(getFecha(r))!==f.mes) return false; return true; });
+  SC_VALS.sem=uniq(baseSem.map(r=>r[C.semana]||''));
 }
 
 function onFilterChange(){ draw(); }
-
 const uniq=arr=>[...new Set(arr.filter(v=>v&&v.trim()))].sort();
 const N=n=>n.toLocaleString('es-MX');
 function pctColor(p){ return p>=90?'#16a34a':'#e53e3e'; }
@@ -934,27 +947,16 @@ function countViajes(v){ const n=parseInt(v)||0; return n>0?n:1; }
 
 function getF(){
   return{
-    mes:   SC_SEL.mes,
-    sem:   SC_SEL.sem,
-    udn:   SC_SEL.udn,
-    cli:   SC_SEL.cli,
-    ger:   SC_SEL.ger,
-    jef:   SC_SEL.jef,
-    coord: SC_SEL.coord,
-    turno: SC_SEL.turno,
-    ope:   SC_SEL.ope,
-    car:   SC_SEL.car,
-    fi:    document.getElementById('fFi').value,
-    ff:    document.getElementById('fFf').value,
+    mes:SC_SEL.mes, sem:SC_SEL.sem, udn:SC_SEL.udn, cli:SC_SEL.cli,
+    ger:SC_SEL.ger, jef:SC_SEL.jef, coord:SC_SEL.coord, turno:SC_SEL.turno,
+    ope:SC_SEL.ope, car:SC_SEL.car,
+    fi:document.getElementById('fFi').value,
+    ff:document.getElementById('fFf').value,
   };
 }
 
 function resetFilters(){
-  SC_KEYS.forEach(k=>{
-    scSetVal(k,'','');
-    const inp=document.getElementById('sc-'+k+'-input');
-    if(inp) inp.setAttribute('data-selected-lbl','');
-  });
+  SC_KEYS.forEach(k=>{ scSetVal(k,'',''); document.getElementById('sc-'+k+'-input')?.setAttribute('data-selected-lbl',''); });
   document.getElementById('fFi').value='';
   document.getElementById('fFf').value='';
   kpiFilter.ini=''; kpiFilter.lle='';
@@ -965,24 +967,22 @@ function resetFilters(){
 
 function filterRows(panelHint){
   const f=getF();
-  const activePanel = panelHint || (document.getElementById('panel-llegadas').classList.contains('active') ? 'lle' : 'ini');
-  const estado = kpiFilter[activePanel];
+  const activePanel=panelHint||(document.getElementById('panel-llegadas').classList.contains('active')?'lle':'ini');
+  const estado=kpiFilter[activePanel];
   return DATA.filter(r=>{
-    if(f.mes&&normMonth(getFecha(r))!==f.mes) return false;
-    if(f.sem&&r[C.semana]!==f.sem) return false;
-    if(f.udn&&r[C.udn]!==f.udn) return false;
-    if(f.cli&&r[C.cliente]!==f.cli) return false;
-    if(f.ger&&r[C.gerente]!==f.ger) return false;
-    if(f.jef&&r[C.jefe]!==f.jef) return false;
-    if(f.coord&&(r[C.coord]||'').trim()!==f.coord) return false;
-    if(f.turno&&(r[C.turno]||'').trim()!==f.turno) return false;
-    if(f.ope&&(r[C.driver]||'').trim()!==f.ope) return false;
-    if(f.car&&(r[C.car]||'').trim()!==f.car) return false;
-    if(estado==='ini_solo'  && !(countLate(r[C.retardo])===1 && countLate(r[C.llegada])!==1)) return false;
-    if(estado==='ini_tarde' && countLate(r[C.retardo])!==1) return false;
-    if(estado==='lle_solo'  && !(countLate(r[C.llegada])===1 && countLate(r[C.retardo])!==1)) return false;
-    if(estado==='lle_tarde' && countLate(r[C.llegada])!==1) return false;
-    if(estado==='ambos' && !(countLate(r[C.retardo])===1 && countLate(r[C.llegada])===1)) return false;
+    if(f.mes   && normMonth(getFecha(r))!==f.mes)   return false;
+    if(f.sem   && r[C.semana]!==f.sem)               return false;
+    if(f.udn   && r[C.udn]!==f.udn)                  return false;
+    if(f.cli   && r[C.cliente]!==f.cli)               return false;
+    if(f.ger   && r[C.gerente]!==f.ger)               return false;
+    if(f.jef   && r[C.jefe]!==f.jef)                 return false;
+    if(f.coord && (r[C.coord]||'').trim()!==f.coord)  return false;
+    if(f.turno && (r[C.turno]||'').trim()!==f.turno)  return false;
+    if(f.ope   && (r[C.driver]||'').trim()!==f.ope)   return false;
+    if(f.car   && (r[C.car]||'').trim()!==f.car)      return false;
+    if(estado==='ini_solo' && !(countLate(r[C.retardo])===1&&countLate(r[C.llegada])!==1)) return false;
+    if(estado==='lle_solo' && !(countLate(r[C.llegada])===1&&countLate(r[C.retardo])!==1)) return false;
+    if(estado==='ambos'    && !(countLate(r[C.retardo])===1&&countLate(r[C.llegada])===1))  return false;
     const d=getFecha(r);
     if(f.fi&&d<f.fi) return false;
     if(f.ff&&d>f.ff) return false;
@@ -996,61 +996,48 @@ function switchTab(tab){
   document.getElementById('panel-llegadas').classList.toggle('active',tab==='llegadas');
 }
 
+// ── Table sort / render ───────────────────────────────────────────
 const sortState={
   cli:{col:3,dir:-1},ger:{col:3,dir:-1},jef:{col:3,dir:-1},coord:{col:3,dir:-1},
   lcli:{col:3,dir:-1},lger:{col:3,dir:-1},ljef:{col:3,dir:-1},lcoord:{col:3,dir:-1}
 };
-const tableData={
-  cli:[],ger:[],jef:[],coord:[],
-  lcli:[],lger:[],ljef:[],lcoord:[]
-};
-const TABLE_BODY={
-  cli:'tCliBody',ger:'tGerBody',jef:'tJefBody',coord:'tCoordBody',
-  lcli:'ltCliBody',lger:'ltGerBody',ljef:'ltJefBody',lcoord:'ltCoordBody'
-};
-const TABLE_CNT={
-  cli:'tCliCount',ger:'tGerCount',jef:'tJefCount',coord:'tCoordCount',
-  lcli:'ltCliCount',lger:'ltGerCount',ljef:'ltJefCount',lcoord:'ltCoordCount'
-};
-const TABLE_WORD={
-  cli:'cliente',ger:'gerente',jef:'jefe',coord:'coordinador',
-  lcli:'cliente',lger:'gerente',ljef:'jefe',lcoord:'coordinador'
-};
+const tableData={cli:[],ger:[],jef:[],coord:[],lcli:[],lger:[],ljef:[],lcoord:[]};
+const TABLE_BODY ={cli:'tCliBody',ger:'tGerBody',jef:'tJefBody',coord:'tCoordBody',lcli:'ltCliBody',lger:'ltGerBody',ljef:'ltJefBody',lcoord:'ltCoordBody'};
+const TABLE_CNT  ={cli:'tCliCount',ger:'tGerCount',jef:'tJefCount',coord:'tCoordCount',lcli:'ltCliCount',lger:'ltGerCount',ljef:'ltJefCount',lcoord:'ltCoordCount'};
+const TABLE_WORD ={cli:'cliente',ger:'gerente',jef:'jefe',coord:'coordinador',lcli:'cliente',lger:'gerente',ljef:'jefe',lcoord:'coordinador'};
 
-function sortTable(tbl){
-  sortState[tbl].dir*=-1;
-  renderTable(tbl);
-  const btn=document.getElementById('sort-'+tbl);
-  if(btn) btn.textContent=sortState[tbl].dir===-1?'↓':'↑';
-}
+function sortTable(tbl){ sortState[tbl].dir*=-1; renderTable(tbl); document.getElementById('sort-'+tbl).textContent=sortState[tbl].dir===-1?'↓':'↑'; }
 
 function renderTable(tbl){
-  const isL  = tbl.startsWith('l');
-  const isIni = !isL;
-  const colorFn = isL ? pctColorLlegadas : pctColor;
-  const rows = [...tableData[tbl]].sort((a,b)=>(a.pct-b.pct)*sortState[tbl].dir);
-  const bodyId=TABLE_BODY[tbl], countId=TABLE_CNT[tbl], word=TABLE_WORD[tbl];
+  const isL=tbl.startsWith('l');
+  const colorFn=isL?pctColorLlegadas:pctColor;
+  const isCliTable=(tbl==='cli'||tbl==='lcli');
+  const rows=[...tableData[tbl]].sort((a,b)=>(a.pct-b.pct)*sortState[tbl].dir);
+  const bodyId=TABLE_BODY[tbl],countId=TABLE_CNT[tbl],word=TABLE_WORD[tbl];
   const badges=['#f59e0b','#9ca3af','#b45309'];
   document.getElementById(countId).textContent=rows.length+(rows.length===1?' '+word:' '+word+'s');
-  if(!rows.length){ document.getElementById(bodyId).innerHTML='<tr><td colspan="9" class="table-empty">Sin resultados</td></tr>'; return; }
+  if(!rows.length){ document.getElementById(bodyId).innerHTML='<tr><td colspan="10" class="table-empty">Sin resultados</td></tr>'; return; }
 
-  const fmtMin = v => {
+  const fmtMin=v=>{
     if(v===null) return '<span style="color:#aaa;font-size:.7rem">–</span>';
-    const clr = v>0?'#c53030':v<0?'#16a34a':'#6b7a99';
+    const clr=v>0?'#c53030':v<0?'#16a34a':'#6b7a99';
     return `<span style="color:${clr};font-weight:600">${v>0?'+':''}${v.toFixed(1)}</span>`;
   };
 
   document.getElementById(bodyId).innerHTML=rows.map((row,i)=>{
-    const color  = colorFn(row.pct);
-    const pctFmt = row.pct.toFixed(1)+'%';
-    const bg = i<3 ? badges[i] : '#e5e7eb';
-    const fg = i<3 ? '#fff'    : '#6b7a99';
-    const isCliTable = (tbl==='cli'||tbl==='lcli');
-    const clickAttr  = isCliTable
-      ? `onclick="openDrill('${row.k.replace(/'/g,"\\'")}','${tbl}')" class="row-clickable"` : '';
+    const color=colorFn(row.pct);
+    const pctFmt=row.pct.toFixed(1)+'%';
+    const bg=i<3?badges[i]:'#e5e7eb';
+    const fg=i<3?'#fff':'#6b7a99';
+    const clickAttr=isCliTable?`onclick="openDrill('${row.k.replace(/'/g,"\\'")}','${tbl}')" class="row-clickable"`:'';
+    // Carros solo para tablas de cliente
+    const carrosCell=isCliTable
+      ? `<td style="text-align:right;color:var(--navy);font-weight:600">${CARROS_MAP[row.k]!=null?N(CARROS_MAP[row.k]):'–'}</td>`
+      : '';
     return `<tr ${clickAttr}>
       <td style="width:34px"><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td>
       <td class="td-cli" title="${row.k}">${row.k}${isCliTable?' <span style="font-size:.6rem;color:var(--muted)">▶</span>':''}</td>
+      ${carrosCell}
       <td style="text-align:right;color:var(--navy);font-variant-numeric:tabular-nums">${N(row.t)}</td>
       <td style="text-align:right;color:#16a34a;font-weight:600;font-variant-numeric:tabular-nums">${N(row.enT)}</td>
       <td style="text-align:right;color:#d97706;font-weight:600;font-variant-numeric:tabular-nums">${N(row.lSolo)}</td>
@@ -1062,38 +1049,30 @@ function renderTable(tbl){
   }).join('');
 }
 
-function buildTable(rows, field, tbl, isIniPanel){
+function buildTable(rows,field,tbl,isIniPanel){
   const byKey={};
   rows.forEach(r=>{
     const k=(r[field]||'').trim()||'(Sin asignar)';
     if(!byKey[k]) byKey[k]={t:0,enT:0,lSolo:0,lAmbos:0,sumMI:0,cMI:0,sumML:0,cML:0};
-    byKey[k].t += countViajes(r[C.viajes]);
-    const iniT = countLate(r[C.retardo])===1;
-    const lleT = countLate(r[C.llegada])===1;
-    if(isIniPanel){
-      if(!iniT)       byKey[k].enT++;
-      else if(!lleT)  byKey[k].lSolo++;
-      else            byKey[k].lAmbos++;
-    } else {
-      if(!lleT)       byKey[k].enT++;
-      else if(!iniT)  byKey[k].lSolo++;
-      else            byKey[k].lAmbos++;
-    }
-    const mI = parseMin(r[C.minIni]);
-    const mL = parseMin(r[C.minLle]);
-    if(iniT && mI!==null){ byKey[k].sumMI+=mI; byKey[k].cMI++; }
-    if(lleT && mL!==null){ byKey[k].sumML+=mL; byKey[k].cML++; }
+    byKey[k].t+=countViajes(r[C.viajes]);
+    const iniT=countLate(r[C.retardo])===1;
+    const lleT=countLate(r[C.llegada])===1;
+    if(isIniPanel){ if(!iniT) byKey[k].enT++; else if(!lleT) byKey[k].lSolo++; else byKey[k].lAmbos++; }
+    else          { if(!lleT) byKey[k].enT++; else if(!iniT) byKey[k].lSolo++; else byKey[k].lAmbos++; }
+    const mI=parseMin(r[C.minIni]), mL=parseMin(r[C.minLle]);
+    if(iniT&&mI!==null){ byKey[k].sumMI+=mI; byKey[k].cMI++; }
+    if(lleT&&mL!==null){ byKey[k].sumML+=mL; byKey[k].cML++; }
   });
   tableData[tbl]=Object.entries(byKey).map(([k,d])=>({
-    k, t:d.t, enT:d.enT, lSolo:d.lSolo, lAmbos:d.lAmbos,
-    avgMI: d.cMI>0 ? d.sumMI/d.cMI : null,
-    avgML: d.cML>0 ? d.sumML/d.cML : null,
-    pct:   d.t>0 ? d.enT/d.t*100 : 0,
+    k,t:d.t,enT:d.enT,lSolo:d.lSolo,lAmbos:d.lAmbos,
+    avgMI:d.cMI>0?d.sumMI/d.cMI:null,
+    avgML:d.cML>0?d.sumML/d.cML:null,
+    pct:d.t>0?d.enT/d.t*100:0,
   }));
   renderTable(tbl);
 }
 
-// ── Chart ────────────────────────────────────────────────────────
+// ── Chart ─────────────────────────────────────────────────────────
 const chartGroup={ini:'dia',lle:'dia'};
 function setGroup(chart,group){
   chartGroup[chart]=group;
@@ -1101,7 +1080,7 @@ function setGroup(chart,group){
     b.classList.toggle('active',b.textContent.toLowerCase().startsWith(
       group==='dia'?'d':group==='semana'?'s':group==='mes'?'m':'a'));
   });
-  const rows=filterRows(chart==='ini'?'ini':'lle');
+  const rows=filterRows(chart);
   if(chart==='ini') myChartIni=buildChart('chart-ini',rows,C.retardo,'Inicios tarde',myChartIni,'ini');
   else              myChartLle=buildChart('chart-lle',rows,C.llegada,'Llegadas tarde',myChartLle,'lle');
 }
@@ -1114,93 +1093,51 @@ function getGroupKey(r,group){
   return f;
 }
 function formatGroupLabel(key,group){
-  if(group==='dia'){
-    const dt=new Date(key+'T12:00:00');
-    if(isNaN(dt.getTime())) return key;
-    return dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short'});
-  }
-  if(group==='mes'){
-    const[y,m]=key.split('-');
-    return (MESES[parseInt(m,10)-1]||m)+' '+y;
-  }
+  if(group==='dia'){ const dt=new Date(key+'T12:00:00'); if(isNaN(dt.getTime())) return key; return dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short'}); }
+  if(group==='mes'){ const[y,m]=key.split('-'); return (MESES[parseInt(m,10)-1]||m)+' '+y; }
   return key;
 }
-
 function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
-  const isIni = chartId==='ini';
-  const group  = chartGroup[chartId||'ini'];
-  const by = {};
-
+  const isIni=chartId==='ini';
+  const group=chartGroup[chartId||'ini'];
+  const by={};
   rows.forEach(r=>{
-    const key = getGroupKey(r,group);
-    if(!key||key==='?') return;
+    const key=getGroupKey(r,group); if(!key||key==='?') return;
     if(!by[key]) by[key]={t:0,lSolo:0,lAmbos:0};
-    by[key].t += countViajes(r[C.viajes]);
-    const iniT = countLate(r[C.retardo])===1;
-    const lleT = countLate(r[C.llegada])===1;
-    if(isIni){
-      // INICIOS: solo = inició tarde pero llegó bien; ambos = inició Y llegó tarde
-      if(iniT &&  lleT)  by[key].lAmbos++;
-      else if(iniT && !lleT) by[key].lSolo++;
-    } else {
-      // LLEGADAS: solo = salió bien pero llegó tarde; ambos = ambos tarde
-      if(lleT &&  iniT)  by[key].lAmbos++;
-      else if(lleT && !iniT) by[key].lSolo++;
-    }
+    by[key].t+=countViajes(r[C.viajes]);
+    const iniT=countLate(r[C.retardo])===1, lleT=countLate(r[C.llegada])===1;
+    if(isIni){ if(iniT&&lleT) by[key].lAmbos++; else if(iniT&&!lleT) by[key].lSolo++; }
+    else     { if(lleT&&iniT) by[key].lAmbos++; else if(lleT&&!iniT) by[key].lSolo++; }
   });
-
-  const keys = Object.keys(by).sort((a,b)=>{
-    if(group==='semana') return (parseInt(a)||0)-(parseInt(b)||0);
-    return a.localeCompare(b);
-  });
-
-  const tots   = keys.map(k=>by[k].t);
-  const solos  = keys.map(k=>by[k].lSolo);
-  const ambos  = keys.map(k=>by[k].lAmbos);
-  const entiem = keys.map((_,i)=>tots[i]-solos[i]-ambos[i]);
-  const pcts   = keys.map((_,i)=>tots[i]>0?+((entiem[i]/tots[i])*100).toFixed(1):0);
-  const labels = keys.map(k=>formatGroupLabel(k,group));
-
-  const entiemPct = keys.map((_,i)=>tots[i]>0?+(entiem[i]/tots[i]*100).toFixed(2):0);
-  const solosPct  = keys.map((_,i)=>tots[i]>0?+(solos[i]/tots[i]*100).toFixed(2):0);
-  const ambosPct  = keys.map((_,i)=>tots[i]>0?+(ambos[i]/tots[i]*100).toFixed(2):0);
-
-  const soloLbl  = isIni ? 'Inició tarde, llegó bien' : 'Salió bien, llegó tarde';
-  const ambosLbl = isIni ? 'Inició Y llegó tarde'     : 'Salió Y llegó tarde';
-
+  const keys=Object.keys(by).sort((a,b)=>{ if(group==='semana') return(parseInt(a)||0)-(parseInt(b)||0); return a.localeCompare(b); });
+  const tots=keys.map(k=>by[k].t), solos=keys.map(k=>by[k].lSolo), ambos=keys.map(k=>by[k].lAmbos);
+  const entiem=keys.map((_,i)=>tots[i]-solos[i]-ambos[i]);
+  const labels=keys.map(k=>formatGroupLabel(k,group));
+  const entiemPct=keys.map((_,i)=>tots[i]>0?+(entiem[i]/tots[i]*100).toFixed(2):0);
+  const solosPct =keys.map((_,i)=>tots[i]>0?+(solos[i]/tots[i]*100).toFixed(2):0);
+  const ambosPct =keys.map((_,i)=>tots[i]>0?+(ambos[i]/tots[i]*100).toFixed(2):0);
+  const soloLbl  =isIni?'Inició tarde, llegó bien':'Salió bien, llegó tarde';
+  const ambosLbl =isIni?'Inició Y llegó tarde':'Salió Y llegó tarde';
   if(existing) existing.destroy();
-  const ctx = document.getElementById(canvasId).getContext('2d');
+  const ctx=document.getElementById(canvasId).getContext('2d');
   return new Chart(ctx,{
     type:'bar',
     data:{labels,datasets:[
-      {label:'En tiempo',
-       data:entiemPct, _raw:entiem, _pct:entiemPct, _tots:tots,
-       backgroundColor:'#3f3f3f', stack:'s', order:2,
-       borderRadius:{topLeft:0,topRight:0,bottomLeft:4,bottomRight:4}, barPercentage:.82},
-      {label:soloLbl,
-       data:solosPct, _raw:solos, _pct:solosPct, _tots:tots,
-       backgroundColor:'#e07010', stack:'s', order:2,
-       borderRadius:{topLeft:0,topRight:0,bottomLeft:0,bottomRight:0}, barPercentage:.82},
-      {label:ambosLbl,
-       data:ambosPct, _raw:ambos, _pct:ambosPct, _tots:tots,
-       backgroundColor:'#cc0000', stack:'s', order:2,
-       borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0}, barPercentage:.82},
+      {label:'En tiempo',data:entiemPct,_raw:entiem,_pct:entiemPct,_tots:tots,backgroundColor:'#3f3f3f',stack:'s',order:2,borderRadius:{topLeft:0,topRight:0,bottomLeft:4,bottomRight:4},barPercentage:.82},
+      {label:soloLbl,data:solosPct,_raw:solos,_pct:solosPct,_tots:tots,backgroundColor:'#e07010',stack:'s',order:2,borderRadius:{topLeft:0,topRight:0,bottomLeft:0,bottomRight:0},barPercentage:.82},
+      {label:ambosLbl,data:ambosPct,_raw:ambos,_pct:ambosPct,_tots:tots,backgroundColor:'#cc0000',stack:'s',order:2,borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},barPercentage:.82},
     ]},
     options:{
-      responsive:true, maintainAspectRatio:false,
-      layout:{ padding:{ top:16 } },
+      responsive:true,maintainAspectRatio:false,
+      layout:{padding:{top:16}},
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{display:false},
         tooltip:{
-          backgroundColor:'#1a2236', borderColor:'#6b7a99', borderWidth:1,
-          titleColor:'#fff', bodyColor:'rgba(255,255,255,.75)', padding:12,
+          backgroundColor:'#1a2236',borderColor:'#6b7a99',borderWidth:1,
+          titleColor:'#fff',bodyColor:'rgba(255,255,255,.75)',padding:12,
           callbacks:{
-            title(items){
-              const i=items[0];
-              const tot=i.dataset._tots?i.dataset._tots[i.dataIndex]:null;
-              return i.label+(tot!=null?' · '+tot.toLocaleString('es-MX')+' viajes':'');
-            },
+            title(items){ const i=items[0]; const tot=i.dataset._tots?i.dataset._tots[i.dataIndex]:null; return i.label+(tot!=null?' · '+tot.toLocaleString('es-MX')+' viajes':''); },
             label(c){
               if(c.dataset.label==='% Cumplimiento') return '  % Cumpl.: '+c.raw+'%';
               const rawVal=c.dataset._raw?c.dataset._raw[c.dataIndex]:null;
@@ -1212,80 +1149,51 @@ function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
         }
       },
       scales:{
-        x:{stacked:true,
-           ticks:{color:'#6b7a99',font:{size:10,family:'Inter'}},
-           grid:{color:'rgba(0,0,0,.04)'}},
-        y:{stacked:true, min: isIni ? 0 : 85, max:100,
-           ticks:{color:'#6b7a99',font:{size:10},callback:v=>v+'%'},
-           grid:{color:'rgba(0,0,0,.04)'}},
+        x:{stacked:true,ticks:{color:'#6b7a99',font:{size:10,family:'Inter'}},grid:{color:'rgba(0,0,0,.04)'}},
+        y:{stacked:true,min:isIni?0:85,max:100,ticks:{color:'#6b7a99',font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.04)'}},
       }
     },
-    plugins:[{id:'lbl', afterDatasetsDraw(chart){
-      const c2     = chart.ctx;
-      const area   = chart.chartArea;
-      const yScale = chart.scales.y;
-      const META   = 98;
-
-      // ── % "En tiempo" centrado en zona gris visible ──
-      const eBi = chart.data.datasets.findIndex(d=>d.label==='En tiempo');
+    plugins:[{id:'lbl',afterDatasetsDraw(chart){
+      const c2=chart.ctx,area=chart.chartArea,yScale=chart.scales.y,META=98;
+      const eBi=chart.data.datasets.findIndex(d=>d.label==='En tiempo');
       if(eBi>=0){
         chart.getDatasetMeta(eBi).data.forEach((bar,i)=>{
-          const pct    = chart.data.datasets[eBi]._pct?.[i];
-          const raw    = chart.data.datasets[eBi]._raw?.[i];
+          const pct=chart.data.datasets[eBi]._pct?.[i];
+          const raw=chart.data.datasets[eBi]._raw?.[i];
           if(!pct||!raw) return;
-          const topPx    = yScale.getPixelForValue(pct);
-          const bottomPx = area.bottom;
-          const centerY  = topPx + (bottomPx - topPx) * 0.55;
-          if(bottomPx - topPx < 18) return;
-          c2.save();
-          c2.font='bold 12px Inter'; c2.fillStyle='#ffffff';
-          c2.textAlign='center'; c2.textBaseline='middle';
-          c2.fillText(pct.toFixed(1)+'%', bar.x, centerY);
-          c2.restore();
+          const topPx=yScale.getPixelForValue(pct),bottomPx=area.bottom,centerY=topPx+(bottomPx-topPx)*0.55;
+          if(bottomPx-topPx<18) return;
+          c2.save();c2.font='bold 12px Inter';c2.fillStyle='#ffffff';c2.textAlign='center';c2.textBaseline='middle';
+          c2.fillText(pct.toFixed(1)+'%',bar.x,centerY);c2.restore();
         });
       }
-
-      // ── % naranja y rojo dentro de su segmento ──
       [{lbl:soloLbl},{lbl:ambosLbl}].forEach(({lbl})=>{
-        const bi = chart.data.datasets.findIndex(d=>d.label===lbl);
+        const bi=chart.data.datasets.findIndex(d=>d.label===lbl);
         if(bi<0) return;
         chart.getDatasetMeta(bi).data.forEach((bar,i)=>{
-          const pct = chart.data.datasets[bi]._pct?.[i];
-          const raw = chart.data.datasets[bi]._raw?.[i];
+          const pct=chart.data.datasets[bi]._pct?.[i];
+          const raw=chart.data.datasets[bi]._raw?.[i];
           if(!pct||!raw||bar.height<11) return;
-          c2.save();
-          c2.font='bold 10px Inter'; c2.fillStyle='#fff';
-          c2.textAlign='center'; c2.textBaseline='middle';
-          c2.fillText(pct.toFixed(1)+'%', bar.x, bar.y+bar.height/2);
-          c2.restore();
+          c2.save();c2.font='bold 10px Inter';c2.fillStyle='#fff';c2.textAlign='center';c2.textBaseline='middle';
+          c2.fillText(pct.toFixed(1)+'%',bar.x,bar.y+bar.height/2);c2.restore();
         });
       });
-
-      // ── Punto pequeño verde/rojo encima de cada barra ──
-      const aBi = chart.data.datasets.findIndex(d=>d.label===ambosLbl);
-      const sBi = chart.data.datasets.findIndex(d=>d.label===soloLbl);
+      const aBi=chart.data.datasets.findIndex(d=>d.label===ambosLbl);
+      const sBi=chart.data.datasets.findIndex(d=>d.label===soloLbl);
       if(aBi<0||sBi<0||eBi<0) return;
-
       chart.getDatasetMeta(aBi).data.forEach((amboBar,i)=>{
-        const ePct = chart.data.datasets[eBi]._pct?.[i] ?? 0;
-        const sPct = chart.data.datasets[sBi]._pct?.[i] ?? 0;
-        const aPct = chart.data.datasets[aBi]._pct?.[i] ?? 0;
-        const cumple = ePct >= META;
-
-        const x      = amboBar.x;
-        const topVal = ePct + sPct + aPct;
-        const topPx  = yScale.getPixelForValue(topVal) - 8;
-
-        c2.save();
-        c2.fillStyle = cumple ? 'rgba(22,163,74,.75)' : 'rgba(204,0,0,.65)';
-        c2.beginPath(); c2.arc(x, topPx, 4, 0, Math.PI*2); c2.fill();
-        c2.restore();
+        const ePct=chart.data.datasets[eBi]._pct?.[i]??0;
+        const sPct=chart.data.datasets[sBi]._pct?.[i]??0;
+        const aPct=chart.data.datasets[aBi]._pct?.[i]??0;
+        const x=amboBar.x,topVal=ePct+sPct+aPct,topPx=yScale.getPixelForValue(topVal)-8;
+        c2.save();c2.fillStyle=(ePct>=META)?'rgba(22,163,74,.75)':'rgba(204,0,0,.65)';
+        c2.beginPath();c2.arc(x,topPx,4,0,Math.PI*2);c2.fill();c2.restore();
       });
     }}]
   });
 }
 
-// ── Main draw ────────────────────────────────────────────────────
+// ── Main draw ─────────────────────────────────────────────────────
 function draw(){
   if(!DATA.length) return;
   const f=getF();
@@ -1298,45 +1206,39 @@ function draw(){
   if(f.jef)   parts.push('Jefe: '+f.jef);
   if(f.coord) parts.push('Coord: '+f.coord);
   if(f.turno) parts.push('Turno: '+f.turno);
-  if(f.ope)   parts.push('Op: '+f.ope);
-  if(f.car)   parts.push('Car: '+f.car);
   const sfx=parts.length?' – '+parts.join(' · '):'';
 
-  const allBase = (() => {
+  const allBase=(()=>{
     const saved={ini:kpiFilter.ini,lle:kpiFilter.lle};
-    kpiFilter.ini=''; kpiFilter.lle='';
+    kpiFilter.ini='';kpiFilter.lle='';
     const r=filterRows('ini');
-    kpiFilter.ini=saved.ini; kpiFilter.lle=saved.lle;
+    kpiFilter.ini=saved.ini;kpiFilter.lle=saved.lle;
     return r;
   })();
 
-  const rowsIni = filterRows('ini');
-  const rowsLle = filterRows('lle');
+  const rowsIni=filterRows('ini');
+  const rowsLle=filterRows('lle');
 
-  const totAll    = allBase.reduce((s,r)=>s+countViajes(r[C.viajes]),0);
-  const totIniT   = allBase.reduce((s,r)=>s+countLate(r[C.retardo]),0);
-  const totLleT   = allBase.reduce((s,r)=>s+countLate(r[C.llegada]),0);
-  const totAmbos  = allBase.filter(r=>countLate(r[C.retardo])===1&&countLate(r[C.llegada])===1).length;
-  // Solo: inició tarde pero llegó bien / salió bien pero llegó tarde
-  const totIniSolo = allBase.filter(r=>countLate(r[C.retardo])===1&&countLate(r[C.llegada])!==1).length;
-  const totLleSolo = allBase.filter(r=>countLate(r[C.llegada])===1&&countLate(r[C.retardo])!==1).length;
-
-  const pI = totAll>0?(totAll-totIniT)/totAll*100:0;
-  const pL = totAll>0?(totAll-totLleT)/totAll*100:0;
+  const totAll   =allBase.reduce((s,r)=>s+countViajes(r[C.viajes]),0);
+  const totIniT  =allBase.reduce((s,r)=>s+countLate(r[C.retardo]),0);
+  const totLleT  =allBase.reduce((s,r)=>s+countLate(r[C.llegada]),0);
+  const totAmbos =allBase.filter(r=>countLate(r[C.retardo])===1&&countLate(r[C.llegada])===1).length;
+  const totIniSolo=allBase.filter(r=>countLate(r[C.retardo])===1&&countLate(r[C.llegada])!==1).length;
+  const totLleSolo=allBase.filter(r=>countLate(r[C.llegada])===1&&countLate(r[C.retardo])!==1).length;
 
   document.getElementById('kTotal').textContent=N(totAll);
-  document.getElementById('kTarde').textContent=N(totIniSolo);   // inició tarde pero llegó bien
+  document.getElementById('kTarde').textContent=N(totIniSolo);
   document.getElementById('kAmbos').textContent=N(totAmbos);
   const kp=document.getElementById('kPct');
   kp.textContent=totAll>0?((totAll-totIniT)/totAll*100).toFixed(1)+'%':'–';
-  kp.style.color=pctColor((totAll-totIniT)/totAll*100);
+  kp.style.color=pctColor(totAll>0?(totAll-totIniT)/totAll*100:0);
 
   document.getElementById('lkTotal').textContent=N(totAll);
-  document.getElementById('lkTarde').textContent=N(totLleSolo);  // salió bien pero llegó tarde
+  document.getElementById('lkTarde').textContent=N(totLleSolo);
   document.getElementById('lkAmbos').textContent=N(totAmbos);
   const lp=document.getElementById('lkPct');
   lp.textContent=totAll>0?((totAll-totLleT)/totAll*100).toFixed(1)+'%':'–';
-  lp.style.color=pctColorLlegadas((totAll-totLleT)/totAll*100);
+  lp.style.color=pctColorLlegadas(totAll>0?(totAll-totLleT)/totAll*100:0);
 
   ['chartTitle','tCliTitle','tGerTitle','tJefTitle','tCoordTitle'].forEach((id,i)=>
     document.getElementById(id).textContent=['Inicios Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe','Resumen por Coordinador'][i]+sfx);
@@ -1357,35 +1259,38 @@ function draw(){
   buildTable(rowsLle,C.coord,'lcoord',false);
 }
 
-// ── Capture ──────────────────────────────────────────────────────
-function exportXLSX(tbl, label){
-  const rows = [...tableData[tbl]].sort((a,b)=>(a.pct-b.pct)*sortState[tbl].dir);
-  const isIni = !tbl.startsWith('l');
-  const soloHdr  = isIni ? 'Inició tarde, llegó bien' : 'Salió bien, llegó tarde';
-  const ambosHdr = isIni ? 'Inició Y llegó tarde'     : 'Salió Y llegó tarde';
+// ── Excel export ──────────────────────────────────────────────────
+function exportXLSX(tbl,label){
+  const rows=[...tableData[tbl]].sort((a,b)=>(a.pct-b.pct)*sortState[tbl].dir);
+  const isIni=!tbl.startsWith('l');
+  const isCliTable=(tbl==='cli'||tbl==='lcli');
+  const soloHdr =isIni?'Inició tarde, llegó bien':'Salió bien, llegó tarde';
+  const ambosHdr=isIni?'Inició Y llegó tarde':'Salió Y llegó tarde';
 
-  const wsData = [
-    ['#', 'Nombre', 'Total Viajes', 'En Tiempo', soloHdr, ambosHdr,
-     'Prom. Inicio (min)', 'Prom. Llegada (min)', '% Cumplimiento'],
-    ...rows.map((r,i)=>[
-      i+1, r.k, r.t, r.enT, r.lSolo, r.lAmbos,
-      r.avgMI!==null ? +r.avgMI.toFixed(1) : '',
-      r.avgML!==null ? +r.avgML.toFixed(1) : '',
-      +r.pct.toFixed(1),
-    ])
-  ];
+  const headers=['#','Nombre'];
+  if(isCliTable) headers.push('Carros');
+  headers.push('Total Viajes','En Tiempo',soloHdr,ambosHdr,'Prom. Inicio (min)','Prom. Llegada (min)','% Cumplimiento');
 
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
-  // Anchos de columna
-  ws['!cols'] = [
-    {wch:4},{wch:36},{wch:13},{wch:12},{wch:24},{wch:22},{wch:18},{wch:18},{wch:15}
+  const wsData=[
+    headers,
+    ...rows.map((r,i)=>{
+      const row=[i+1,r.k];
+      if(isCliTable) row.push(CARROS_MAP[r.k]!=null?CARROS_MAP[r.k]:'');
+      row.push(r.t,r.enT,r.lSolo,r.lAmbos,
+        r.avgMI!==null?+r.avgMI.toFixed(1):'',
+        r.avgML!==null?+r.avgML.toFixed(1):'',
+        +r.pct.toFixed(1));
+      return row;
+    })
   ];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, label.replace(/_/g,' ').slice(0,31));
-  XLSX.writeFile(wb, `Traxion_${label}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  const ws=XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols']=[{wch:4},{wch:36},{wch:8},{wch:13},{wch:12},{wch:24},{wch:22},{wch:18},{wch:18},{wch:15}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,label.replace(/_/g,' ').slice(0,31));
+  XLSX.writeFile(wb,`Traxion_${label}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
-// ── Drill modal ──────────────────────────────────────────────────
+// ── Drill modal nivel 1 ───────────────────────────────────────────
 let drillSortDir=1;
 let lastDrillArgs=null;
 
@@ -1402,34 +1307,59 @@ function toggleDrillSort(){
 }
 
 function renderDrill(clienteK,tbl){
-  const isLlegadas = tbl==='lcli';
-  const lateField  = isLlegadas ? C.llegada : C.retardo;
-  const minField   = isLlegadas ? C.minLle  : C.minIni;
-  const lateLbl    = isLlegadas ? 'Llegadas Tarde' : 'Inicios Tarde';
-  const colorFn    = isLlegadas ? pctColorLlegadas : pctColor;
-  const rows = filterRows(isLlegadas?'lle':'ini').filter(r=>(r[C.cliente]||'').trim()===clienteK);
+  const isLlegadas=tbl==='lcli';
+  const colorFn=isLlegadas?pctColorLlegadas:pctColor;
+  const rows=filterRows(isLlegadas?'lle':'ini').filter(r=>(r[C.cliente]||'').trim()===clienteK);
 
   const byRuta={};
   rows.forEach(r=>{
     const ruta=(r['des']||'Sin ruta').trim()||'Sin ruta';
-    if(!byRuta[ruta]) byRuta[ruta]={t:0,l:0,sumMin:0,cntMin:0};
+    if(!byRuta[ruta]) byRuta[ruta]={t:0,enT:0,lSolo:0,lAmbos:0,sumMI:0,cMI:0,sumML:0,cML:0};
     byRuta[ruta].t+=countViajes(r[C.viajes]);
-    byRuta[ruta].l+=countLate(r[lateField]);
-    const m=parseMin(r[minField]);
-    if(m!==null){ byRuta[ruta].sumMin+=m; byRuta[ruta].cntMin++; }
+    const iniT=countLate(r[C.retardo])===1, lleT=countLate(r[C.llegada])===1;
+    const mI=parseMin(r[C.minIni]), mL=parseMin(r[C.minLle]);
+    if(isLlegadas){
+      if(!lleT)      byRuta[ruta].enT++;
+      else if(!iniT) byRuta[ruta].lSolo++;
+      else           byRuta[ruta].lAmbos++;
+    } else {
+      if(!iniT)      byRuta[ruta].enT++;
+      else if(!lleT) byRuta[ruta].lSolo++;
+      else           byRuta[ruta].lAmbos++;
+    }
+    if(iniT&&mI!==null){ byRuta[ruta].sumMI+=mI; byRuta[ruta].cMI++; }
+    if(lleT&&mL!==null){ byRuta[ruta].sumML+=mL; byRuta[ruta].cML++; }
   });
 
   const sorted=Object.entries(byRuta)
-    .map(([k,d])=>({k,t:d.t,l:d.l,pct:d.t>0?(d.t-d.l)/d.t*100:0,avgMin:d.cntMin>0?d.sumMin/d.cntMin:null}))
+    .map(([k,d])=>({
+      k,t:d.t,enT:d.enT,lSolo:d.lSolo,lAmbos:d.lAmbos,
+      pct:d.t>0?d.enT/d.t*100:0,
+      avgMI:d.cMI>0?d.sumMI/d.cMI:null,
+      avgML:d.cML>0?d.sumML/d.cML:null,
+    }))
     .sort((a,b)=>(a.pct-b.pct)*drillSortDir);
 
   const totT=sorted.reduce((s,r)=>s+r.t,0);
-  const totL=sorted.reduce((s,r)=>s+r.l,0);
-  const pctG=totT>0?(totT-totL)/totT*100:0;
+  const totEnT=sorted.reduce((s,r)=>s+r.enT,0);
+  const pctG=totT>0?(totEnT/totT*100):0;
+  const lateLbl=isLlegadas?'Llegadas Tarde':'Inicios Tarde';
+  const soloLbl=isLlegadas?'Salió bien, llegó tarde':'Inició tarde, llegó bien';
+  const ambosLbl=isLlegadas?'Salió Y llegó tarde':'Inició Y llegó tarde';
+
+  // Actualizar headers dinámicos
+  document.getElementById('drillSoloHdr').textContent=soloLbl;
+  document.getElementById('drillAmbosHdr').textContent=ambosLbl;
 
   document.getElementById('drillTitle').textContent=clienteK;
   document.getElementById('drillSub').textContent=`${lateLbl} · ${sorted.length} rutas · ${N(totT)} viajes · ${pctG.toFixed(1)}% cumplimiento`;
   document.getElementById('drillSortBtn').textContent=drillSortDir===1?'↑ Menor → Mayor':'↓ Mayor → Menor';
+
+  const fmtMin=v=>{
+    if(v===null) return '<span style="color:#aaa;font-size:.7rem">–</span>';
+    const clr=v>0?'#c53030':v<0?'#16a34a':'#6b7a99';
+    return `<span style="color:${clr};font-weight:600">${v>0?'+':''}${v.toFixed(1)}</span>`;
+  };
 
   document.getElementById('drillBody').innerHTML=sorted.map((r,i)=>{
     const color=colorFn(r.pct);
@@ -1439,16 +1369,19 @@ function renderDrill(clienteK,tbl){
     const cliEsc=clienteK.replace(/'/g,"\\'");
     return `<tr class="row-ruta-clickable" style="background:${bg}" onclick="openDrillDetail('${rutaEsc}','${cliEsc}','${tbl}')">
       <td class="td-ruta">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td>
-      <td>${N(r.t)}</td>
-      <td style="color:${r.l>0?'#d97706':'#16a34a'};font-weight:600">${N(r.l)}</td>
-      <td>${minCell(r.avgMin)}</td>
-      <td><div class="pct-cell">
+      <td class="r" style="color:var(--navy)">${N(r.t)}</td>
+      <td class="r" style="color:#16a34a;font-weight:600">${N(r.enT)}</td>
+      <td class="r" style="color:#d97706;font-weight:600">${N(r.lSolo)}</td>
+      <td class="r" style="color:#cc0000;font-weight:700">${N(r.lAmbos)}</td>
+      <td class="r">${fmtMin(r.avgMI)}</td>
+      <td class="r">${fmtMin(r.avgML)}</td>
+      <td class="r"><div class="pct-cell">
         <div class="pct-bar-wrap"><div class="pct-bar" style="width:${barW}%;background:${color}"></div></div>
         <span class="pct-val" style="color:${color}">${r.pct.toFixed(1)}%</span>
       </div></td>
     </tr>`;
   }).join('');
-  document.getElementById('drillFoot').textContent=`Total: ${N(totT)} viajes · ${N(totL)} ${lateLbl.toLowerCase()} · ${pctG.toFixed(1)}% cumplimiento`;
+  document.getElementById('drillFoot').textContent=`Total: ${N(totT)} viajes · ${N(totEnT)} en tiempo · ${pctG.toFixed(1)}% cumplimiento`;
 }
 
 function closeDrill(e){ if(e.target===document.getElementById('drillModal')) document.getElementById('drillModal').classList.remove('open'); }
@@ -1461,12 +1394,13 @@ document.addEventListener('keydown',e=>{
   }
 });
 
-function openDrillDetail(rutaK, clienteK, tbl){
-  const isLlegadas = tbl==='lcli';
-  const lateField  = isLlegadas ? C.llegada : C.retardo;
-  const lateLbl    = isLlegadas ? 'Llegada tarde' : 'Inicio tarde';
+// ── Drill modal nivel 2 ───────────────────────────────────────────
+function openDrillDetail(rutaK,clienteK,tbl){
+  const isLlegadas=tbl==='lcli';
+  const lateField=isLlegadas?C.llegada:C.retardo;
+  const lateLbl=isLlegadas?'Llegada tarde':'Inicio tarde';
 
-  const rows = filterRows(isLlegadas?'lle':'ini').filter(r=>
+  const rows=filterRows(isLlegadas?'lle':'ini').filter(r=>
     (r[C.cliente]||'').trim()===clienteK &&
     (r['des']||'Sin ruta').trim()===rutaK
   );
@@ -1480,49 +1414,63 @@ function openDrillDetail(rutaK, clienteK, tbl){
   document.getElementById('drillDetailSub').textContent=`${lateLbl} · ${totT} viajes · ${totL} tarde · ${pctG}% cumplimiento`;
 
   document.getElementById('drillDetailBody').innerHTML=sorted.map((r,i)=>{
-    const tarde    = countLate(r[lateField])===1;
-    const fecha    = getFecha(r);
-    const dt       = new Date(fecha+'T12:00:00');
-    const fechaFmt = isNaN(dt)?fecha:dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
-    const unidad   = (r['car']||'–').trim();
-    const driver   = (r['driver']||'–').trim();
-    const bg       = i%2===0?'#ffffff':'#f7f9ff';
-    const minIni   = parseMin(r[C.minIni]);
-    const minLle   = parseMin(r[C.minLle]);
+    const tarde=countLate(r[lateField])===1;
+    const fecha=getFecha(r);
+    const dt=new Date(fecha+'T12:00:00');
+    const fechaFmt=isNaN(dt)?fecha:dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
+    const unidad=(r['car']||'–').trim();
+    const driver=(r['driver']||'–').trim();
+    const bg=i%2===0?'#ffffff':'#f7f9ff';
+    const minIni=parseMin(r[C.minIni]);
+    const minLle=parseMin(r[C.minLle]);
     return `<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${fechaFmt}</td>
       <td style="text-align:left;font-weight:600">${unidad}</td>
       <td style="text-align:left">${driver}</td>
-      <td style="text-align:right">${minCell(minIni,0)}</td>
-      <td style="text-align:right">${minCell(minLle,0)}</td>
+      <td class="r">${minCell(minIni,0)}</td>
+      <td class="r">${minCell(minLle,0)}</td>
     </tr>`;
-  }).join('')||'<tr><td colspan="9" class="table-empty">Sin viajes registrados</td></tr>';
+  }).join('')||'<tr><td colspan="5" class="table-empty">Sin viajes registrados</td></tr>';
 
-  document.getElementById('drillDetailFoot').textContent=
-    `Total: ${totT} viajes · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
-
+  document.getElementById('drillDetailFoot').textContent=`Total: ${totT} viajes · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
   document.getElementById('drillDetailModal').classList.add('open');
 }
 
-// ── Nav & sidebar ────────────────────────────────────────────────
+// ── Nav / sidebar ─────────────────────────────────────────────────
 function toggleDropdown(id){
   const d=document.getElementById(id);
-  document.querySelectorAll('.dropdown').forEach(x=>{if(x.id!==id) x.classList.remove('open');});
+  document.querySelectorAll('.dropdown').forEach(x=>{ if(x.id!==id) x.classList.remove('open'); });
   d.classList.toggle('open');
 }
 document.addEventListener('click',function(e){
   if(!e.target.closest('.dropdown')) document.querySelectorAll('.dropdown').forEach(d=>d.classList.remove('open'));
 });
+
 function toggleSidebar(){
   const sb=document.getElementById('sidebar');
-  const isCollapsed=sb.classList.toggle('collapsed');
-  const btn=sb.querySelector('.filter-toggle-btn');
-  btn.innerHTML=(isCollapsed?'▶':'🔽')+' Filtros <span>'+(isCollapsed?'Mostrar':'Ocultar')+'</span>';
+  const filters=document.getElementById('sidebarFilters');
+  const btn=document.getElementById('filterToggleBtn');
+  const isCollapsed=filters.style.display==='none'||sb.classList.contains('collapsed');
+  if(isCollapsed){
+    sb.classList.remove('collapsed');
+    filters.style.display='';
+    btn.innerHTML='🔽 Filtros <span>Ocultar</span>';
+  } else {
+    sb.classList.add('collapsed');
+    filters.style.display='none';
+    btn.innerHTML='▶ Filtros <span>Mostrar</span>';
+  }
 }
+
+// Colapsar sidebar en mobile al cargar
 if(window.innerWidth<=768){
   document.addEventListener('DOMContentLoaded',()=>{
     const sb=document.getElementById('sidebar');
-    if(sb) sb.classList.add('collapsed');
+    const filters=document.getElementById('sidebarFilters');
+    const btn=document.getElementById('filterToggleBtn');
+    if(sb){ sb.classList.add('collapsed'); }
+    if(filters){ filters.style.display='none'; }
+    if(btn){ btn.innerHTML='▶ Filtros <span>Mostrar</span>'; }
   });
 }
 
