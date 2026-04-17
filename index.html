@@ -9,10 +9,11 @@
 body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6;}
 .layout{display:flex;height:100vh;}
 .sidebar{width:260px;background:#1f2937;color:#fff;padding:20px;overflow-y:auto;}
-.sidebar h1{color:#84cc16;font-size:22px;margin-bottom:30px;text-align:center;}
 .menu-group{margin-bottom:25px;}
-.menu-group-title{font-size:11px;color:#9ca3af;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;}
-.menu-item{display:block;padding:12px 15px;margin-bottom:8px;border-radius:8px;color:#e5e7eb;text-decoration:none;font-weight:600;transition:all 0.3s;font-size:14px;}
+.menu-group-title{display:flex;align-items:center;gap:8px;font-size:11px;color:#9ca3af;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700;}
+.menu-group-title svg{width:14px;height:14px;stroke:#9ca3af;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.menu-item{display:flex;align-items:center;gap:10px;padding:12px 15px;margin-bottom:8px;border-radius:8px;color:#e5e7eb;text-decoration:none;font-weight:600;transition:all 0.3s;font-size:14px;border-left:2px solid transparent;}
+.menu-item svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
 .menu-item:hover{background:#374151;transform:translateX(5px);}
 .menu-item.active{background:#84cc16;color:#1f2937;}
 .main{flex:1;background:#fff;position:relative;overflow:hidden;}
@@ -28,23 +29,45 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6;}
 </head>
 <body>
 <div class="layout">
-    <aside class="sidebar">
-        <h1>🚛 TRAXIÓN</h1>
-        <div class="menu-group">
-            <div class="menu-group-title">📊 Logística</div>
-            <a href="Dashboard_NS.html" class="menu-item">📈 Nivel de Servicio</a>
-            <a href="Dashboard_kilometros.html" class="menu-item">📍 Kilómetros Recorridos</a>
-            <a href="Dashboard_flota.html" class="menu-item">🚗 Flota Vehicular</a>
-             <a href="Dashboard_ralenti.html" class="menu-item">Ralenti</a>
-        </div>
-    </aside>
-    <main class="main">
-        <div class="hero">
-            <h2>TRAXIÓN</h2>
-            <p>Inteligencia de Negocios · Operaciones · Seguridad</p>
-            <p class="tagline">Movemos lo más valioso, conectamos destinos</p>
-        </div>
-    </main>
+  <aside class="sidebar">
+
+    <h1 style="color:#84cc16;font-size:22px;margin-bottom:30px;text-align:center;letter-spacing:3px;font-weight:900;">TRAXIÓN</h1>
+
+    <div class="menu-group">
+      <div class="menu-group-title">
+        <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z"/></svg>
+        Logística
+      </div>
+
+      <a href="Dashboard_NS.html" class="menu-item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><line x1="12" y1="3" x2="12" y2="6"/><line x1="18" y1="12" x2="21" y2="12"/></svg>
+        Nivel de Servicio
+      </a>
+
+      <a href="Dashboard_kilometros.html" class="menu-item">
+        <svg viewBox="0 0 24 24"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+        Kilómetros Recorridos
+      </a>
+
+      <a href="Dashboard_flota.html" class="menu-item">
+        <svg viewBox="0 0 24 24"><rect x="1" y="8" width="15" height="9" rx="1"/><path d="M16 10h4l3 3v4h-7V10z"/><circle cx="5.5" cy="18.5" r="1.5"/><circle cx="18.5" cy="18.5" r="1.5"/></svg>
+        Flota Vehicular
+      </a>
+
+      <a href="Dashboard_ralenti.html" class="menu-item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        Ralentí
+      </a>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="hero">
+      <h2>TRAXIÓN</h2>
+      <p>Inteligencia de Negocios · Operaciones · Seguridad</p>
+      <p class="tagline">Movemos lo más valioso, conectamos destinos</p>
+    </div>
+  </main>
 </div>
 </body>
 </html>
