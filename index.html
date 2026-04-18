@@ -3,541 +3,164 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ralentí | Traxión</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Favicon -->
-<link rel="icon" type="image/svg+xml" href="favicon-traxion.svg">
-
-<!-- Fuente Montserrat (para que se vea igual en todos lados) -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
+<title>Traxión | Dashboard Ejecutivo</title>
 <style>
-nav{background:#1f2937;padding:15px 30px;display:flex;gap:25px;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);position:sticky;top:0;z-index:300;flex-wrap:wrap;}
-nav>a{color:#e5e7eb;text-decoration:none;font-weight:600;padding:8px 16px;border-radius:8px;transition:all .3s;white-space:nowrap;}
-nav>a:first-child{color:#84cc16;font-weight:800;font-size:18px;}
-nav>a:hover{background:#374151;}
-.dropdown{position:relative;display:inline-block;}
-.dropdown-toggle{color:#e5e7eb;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;background:transparent;border:none;font-size:14px;font-family:inherit;}
-.dropdown-toggle:hover{background:#374151;}
-.dropdown-arrow{font-size:12px;transition:transform .3s;}
-.dropdown.open .dropdown-arrow{transform:rotate(180deg);}
-.dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#374151;min-width:220px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);margin-top:8px;z-index:1000;overflow:hidden;}
-.dropdown.open .dropdown-menu{display:block;}
-.dropdown-menu a{display:block;padding:12px 20px;color:#e5e7eb;text-decoration:none;font-weight:600;transition:all .3s;}
-.dropdown-menu a:hover{background:#4b5563;padding-left:25px;}
-.dropdown-menu a.active{background:#84cc16;color:#1f2937;}
-:root{--navy:#1a2236;--navy2:#222d42;--green:#7ed321;--white:#fff;--bg:#f0f2f7;--border:#dde3f0;--text:#1a2236;--muted:#6b7a99;--red:#e53e3e;--amber:#d97706;--teal:#0891b2;}
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;min-height:100vh;}
-.layout{display:flex;align-items:flex-start;min-height:calc(100vh - 58px);}
-.sidebar{width:172px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);padding:.6rem;display:flex;flex-direction:column;gap:.45rem;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
-.sb-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:.5rem;border-bottom:1px solid var(--border);}
-.fg{display:flex;flex-direction:column;gap:.15rem;}
-.fg label{font-size:.6rem;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;}
-.fg select,.fg input[type=date]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:.28rem .4rem;font-size:.72rem;font-family:"Inter",sans-serif;appearance:none;cursor:pointer;outline:none;}
-.fg select:focus,.fg input:focus{border-color:var(--green);}
-.btn-reset{width:100%;background:transparent;border:1.5px solid var(--border);border-radius:7px;color:var(--muted);padding:.42rem;font-size:.74rem;font-family:"Inter",sans-serif;font-weight:600;cursor:pointer;margin-top:.3rem;}
-.btn-reset:hover{border-color:var(--red);color:var(--red);}
-.note-diesel{background:#fefce8;border:1px solid #fde68a;border-radius:7px;padding:.45rem .55rem;font-size:.61rem;color:#92400e;line-height:1.55;margin-top:.2rem;}
-.note-diesel b{display:block;margin-bottom:.15rem;font-size:.63rem;}
-.main{flex:1;padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0;}
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
-.kpi{background:var(--white);border-radius:12px;padding:1rem 1.25rem;box-shadow:0 2px 10px rgba(26,34,54,.07);border-top:4px solid var(--kc,var(--green));transition:transform .15s;}
-.kpi:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,34,54,.12);}
-.kpi-val{font-size:1.8rem;font-weight:700;color:var(--kc,var(--green));line-height:1;letter-spacing:-.02em;}
-.kpi-lbl{font-size:.65rem;font-weight:600;color:var(--muted);margin-top:.3rem;text-transform:uppercase;letter-spacing:.05em;}
-.kpi-sub{font-size:.65rem;color:var(--muted);margin-top:.15rem;opacity:.8;}
-.chart-card{background:var(--white);border-radius:12px;padding:1.1rem 1.35rem;box-shadow:0 2px 10px rgba(26,34,54,.07);display:flex;flex-direction:column;gap:.7rem;}
-.chart-hdr{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
-.chart-title{font-size:.95rem;font-weight:700;color:var(--text);}
-.chart-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem;}
-.chart-wrap{position:relative;height:290px;}
-.grp-btns{display:flex;gap:2px;background:var(--bg);border-radius:7px;padding:2px;}
-.grp-btn{background:transparent;border:none;cursor:pointer;padding:.22rem .55rem;font-size:.72rem;font-weight:600;font-family:"Inter",sans-serif;color:var(--muted);border-radius:5px;}
-.grp-btn.active{background:var(--white);color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,.12);}
-.tables-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;}
-.table-card{background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);overflow:hidden;}
-.table-hdr{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);}
-.table-hdr-title{font-size:.9rem;font-weight:700;color:var(--text);}
-.table-hdr-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem;}
-.table-count{font-size:.72rem;color:var(--muted);background:var(--bg);border-radius:20px;padding:.2rem .65rem;}
-.tbl-actions{display:flex;align-items:center;gap:.5rem;}
-.data-table{width:100%;border-collapse:collapse;}
-.data-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:.38rem .6rem;text-align:left;}
-.data-table thead th.r{text-align:right;}
-.data-table tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
-.data-table tbody tr:hover{background:#f7f9ff;}
-.data-table tbody td{padding:.35rem .6rem;font-size:.74rem;color:var(--text);}
-.data-table tbody td.r{text-align:right;font-variant-numeric:tabular-nums;}
-.rank-badge{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;font-size:.6rem;font-weight:700;flex-shrink:0;}
-.btn-capture{display:flex;align-items:center;gap:.3rem;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:.28rem .65rem;font-size:.7rem;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;}
-.btn-capture:hover{border-color:#16a34a;color:#16a34a;}
-.dist-row{display:flex;align-items:center;gap:.6rem;padding:.4rem .75rem;border-bottom:1px solid var(--border);font-size:.74rem;}
-.dist-row:last-child{border-bottom:none;}
-.dist-label{flex:1;font-weight:500;}
-.dist-count{color:var(--navy);font-weight:700;min-width:40px;text-align:right;}
-.dist-pct{color:var(--muted);min-width:36px;text-align:right;font-size:.7rem;}
-.dist-bar-wrap{width:65px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
-.dist-bar-fill{height:100%;border-radius:3px;}
-.loading-overlay{position:fixed;inset:0;z-index:999;background:#f0f2f7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;transition:opacity .4s ease;}
-.loading-overlay.hidden{opacity:0;pointer-events:none;}
-.loading-logo{font-size:1.1rem;font-weight:800;color:#1a2236;}
-.loading-logo span{color:#7ed321;}
-.loading-box{background:#fff;border-radius:16px;padding:2.2rem 3rem;box-shadow:0 4px 24px rgba(26,34,54,.1);display:flex;flex-direction:column;align-items:center;gap:1.1rem;min-width:280px;text-align:center;}
-.loading-spinner{width:48px;height:48px;border-radius:50%;border:4px solid #dde3f0;border-top-color:#7ed321;animation:spin .75s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-title{font-size:.95rem;font-weight:700;color:#1a2236;}
-.loading-sub{font-size:.78rem;color:#6b7a99;line-height:1.5;}
-.loading-bar-track{width:100%;height:5px;background:#dde3f0;border-radius:3px;overflow:hidden;}
-.loading-bar-fill{height:100%;width:0%;background:#7ed321;border-radius:3px;animation:loadbar 15s ease-out forwards;}
-@keyframes loadbar{0%{width:0%}80%{width:85%}100%{width:95%}}
-.err{background:#fff5f5;border-left:4px solid var(--red);padding:.75rem 1rem;font-size:.8rem;color:#c53030;}
-.err.hidden{display:none;}
-.row-clickable{cursor:pointer;user-select:none;}
-.row-clickable:hover{background:#eef4ff !important;}
-.row-clickable .unit-cell{color:var(--navy);text-decoration:underline dotted;}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:1rem;z-index:810;}
-.modal-overlay.open{display:flex;}
-.modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:900px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
-.modal-head{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:1px solid var(--border);background:var(--navy2);}
-.modal-head h3{font-size:.92rem;font-weight:700;color:#fff;margin:0;}
-.modal-head span{font-size:.72rem;color:rgba(255,255,255,.55);display:block;margin-top:.15rem;}
-.modal-close{background:none;border:none;color:rgba(255,255,255,.65);font-size:1.2rem;cursor:pointer;padding:.2rem .55rem;border-radius:4px;line-height:1;}
-.modal-close:hover{color:#fff;}
-.modal-body{overflow-y:auto;padding:0;}
-.modal-table{width:100%;border-collapse:collapse;}
-.modal-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:.42rem .75rem;text-align:left;white-space:nowrap;position:sticky;top:0;}
-.modal-table thead th.r{text-align:right;}
-.modal-table tbody tr{border-bottom:1px solid var(--border);}
-.modal-table tbody tr:last-child{border-bottom:none;}
-.modal-table tbody tr:hover{background:#f7f9ff;}
-.modal-table tbody td{padding:.4rem .75rem;font-size:.74rem;color:var(--text);}
-.modal-table tbody td.r{text-align:right;font-variant-numeric:tabular-nums;}
-.modal-foot{padding:.7rem 1.25rem;border-top:1px solid var(--border);font-size:.72rem;color:var(--muted);text-align:right;background:#f9fafc;}
-.map-link{color:#0891b2;text-decoration:none;font-size:.7rem;font-weight:500;}
-.map-link:hover{text-decoration:underline;}
-.day-divider td{background:#f0f4ff;color:var(--navy);font-weight:700;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;padding:.45rem .75rem;}
-.evt-pill{display:inline-block;font-size:.6rem;font-weight:700;padding:.1rem .4rem;border-radius:4px;}
-.evt-5{background:#fef3c7;color:#92400e;}
-.evt-15{background:#fed7aa;color:#7c2d12;}
-.evt-20{background:#fecaca;color:#7f1d1d;}
-@media(max-width:1024px){.tables-grid{grid-template-columns:1fr;}.kpi-grid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:768px){.layout{flex-direction:column;}.sidebar{width:100%;height:auto;position:relative;top:0;}.main{padding:.75rem;}.kpi-grid{grid-template-columns:repeat(2,1fr);}.chart-wrap{height:210px;}}
+body{
+    font-family:'Segoe UI',Tahoma,Verdana,sans-serif;
+    background:#f3f4f6;
+}
+/* ===== Layout ===== */
+.layout{
+    display:flex;
+    height:100vh;
+}
+/* ===== Sidebar ===== */
+.sidebar{
+    width:260px;
+    background:#1f2937;
+    color:#fff;
+    padding:20px;
+    overflow-y:auto;
+}
+.sidebar h1{
+    color:#84cc16;
+    font-size:22px;
+    margin-bottom:30px;
+    text-align:center;
+}
+.menu-group{
+    margin-bottom:25px;
+}
+.menu-group-title{
+    font-size:11px;
+    color:#9ca3af;
+    margin-bottom:10px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-weight:700;
+}
+.menu-item{
+    display:block;
+    padding:12px 15px;
+    margin-bottom:8px;
+    border-radius:8px;
+    color:#e5e7eb;
+    text-decoration:none;
+    font-weight:600;
+    transition:all 0.3s;
+    font-size:14px;
+}
+.menu-item:hover{
+    background:#374151;
+    transform:translateX(5px);
+}
+.menu-item.active{
+    background:#84cc16;
+    color:#1f2937;
+}
+/* ===== Main ===== */
+.main{
+    flex:1;
+    background:#fff;
+    position:relative;
+    overflow:hidden;
+}
+/* Fondo imagen */
+.main::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:
+      linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,.75)),
+      url("fondotraxion.jpeg");
+    background-size:cover;
+    background-position:center;
+}
+/* Centro */
+.hero{
+    position:relative;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:40px;
+}
+.hero img{
+    width:180px;
+    margin-bottom:30px;
+    filter:drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+}
+.hero h2{
+    font-size:56px;
+    letter-spacing:6px;
+    font-weight:900;
+    color:#1f2937;
+    margin-bottom:10px;
+}
+.hero p{
+    margin-top:10px;
+    font-size:18px;
+    color:#6b7280;
+    font-weight:500;
+}
+.hero .tagline{
+    font-size:16px;
+    color:#84cc16;
+    font-weight:700;
+    margin-top:20px;
+    letter-spacing:2px;
+}
+@media (max-width: 1024px){
+    .layout{
+        flex-direction:column;
+    }
+    .sidebar{
+        width:100%;
+        max-height:300px;
+    }
+}
+@media (max-width: 640px){
+    .hero h2{
+        font-size:36px;
+        letter-spacing:3px;
+    }
+    .hero p{
+        font-size:16px;
+    }
+    .hero img{
+        width:140px;
+    }
+}
 </style>
 </head>
 <body>
-<nav>
-  <a href="index.html">TRAXIÓN</a>
-  <div class="dropdown" id="dd1">
-    <button class="dropdown-toggle" onclick="toggleDropdown('dd1')">Logística <span class="dropdown-arrow">▼</span></button>
-    <div class="dropdown-menu">
-      <a href="dashboard_NS.html">Nivel de Servicio</a>
-      <a href="dashboard_kilometros.html">Kilómetros</a>
-      <a href="dashboard_flota.html">Flota</a>
-      <a href="Dashboard_ralenti.html" class="active">Ralentí</a>
-    </div>
-  </div>
-</nav>
-
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-logo"><span>TRAXIÓN</span></div>
-  <div class="loading-box">
-    <div class="loading-spinner"></div>
-    <div class="loading-title">Cargando Ralentí...</div>
-    <div class="loading-sub">Conectando con Google Sheets · Hoja: Ralenti</div>
-    <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
-  </div>
-</div>
-
 <div class="layout">
-  <aside class="sidebar">
-    <div class="sb-title">Filtros</div>
-    <div class="fg"><label>Mes</label><select id="fMes" onchange="draw()"><option value="">Todos</option></select></div>
-    <div class="fg"><label>Desde</label><input type="date" id="fFi" onchange="draw()"></div>
-    <div class="fg"><label>Hasta</label><input type="date" id="fFf" onchange="draw()"></div>
-    <div class="fg"><label>Cliente</label><select id="fCli" onchange="draw()"><option value="">Todos</option></select></div>
-    <div class="fg"><label>Jefe</label><select id="fJefe" onchange="draw()"><option value="">Todos</option></select></div>
-    <div class="fg"><label>Gerente</label><select id="fGerente" onchange="draw()"><option value="">Todos</option></select></div>
-    <div class="fg"><label>Unidad</label><select id="fUnit" onchange="draw()"><option value="">Todas</option></select></div>
-    <div class="fg"><label>Tipo Evento</label>
-      <select id="fTipo" onchange="draw()">
-        <option value="">Todos</option>
-        <option value="Ralenti mayor a 5 min">5 min</option>
-        <option value="Ralenti mayor a 15 min">15 min</option>
-        <option value="Ralenti mayor a 20 min">20 min</option>
-      </select>
-    </div>
-    <div class="note-diesel">
-      <b>⛽ Consumo ralentí</b>
-      Autobús personal (Mercedes, VW, International): ~2 L/hr<br>
-      <span style="font-size:.58rem;color:#a16207">US DOE / Webfleet</span>
-    </div>
-    <button class="btn-reset" onclick="resetFilters()">↺ Limpiar filtros</button>
-  </aside>
-
-  <main class="main">
-    <div class="err hidden" id="errBanner">⚠️ <span id="errMsg"></span></div>
-
-    <div class="kpi-grid">
-      <div class="kpi" style="--kc:#0891b2">
-        <div class="kpi-val" id="kHoras">–</div>
-        <div class="kpi-lbl">Horas en Ralentí</div>
-        <div class="kpi-sub" id="kHorasSub">Eventos únicos</div>
-      </div>
-      <div class="kpi" style="--kc:#7ed321">
-        <div class="kpi-val" id="kKm">–</div>
-        <div class="kpi-lbl">Km en Ralentí</div>
-        <div class="kpi-sub">Motor encendido</div>
-      </div>
-      <div class="kpi" style="--kc:#d97706">
-        <div class="kpi-val" id="kLts">–</div>
-        <div class="kpi-lbl">Litros Estimados</div>
-        <div class="kpi-sub">2 L/hr · transporte personal</div>
-      </div>
-      <div class="kpi" style="--kc:#e53e3e">
-        <div class="kpi-val" id="kCosto">–</div>
-        <div class="kpi-lbl">Costo Estimado</div>
-        <div class="kpi-sub">$22 / litro diesel</div>
-      </div>
-    </div>
-
-    <div class="chart-card">
-      <div class="chart-hdr">
-        <div>
-          <div class="chart-title">Horas de Ralentí por Periodo</div>
-          <div class="chart-sub">Eventos deduplicados · el tooltip muestra horas + costo estimado</div>
+    <!-- ===== MENU LATERAL ===== -->
+    <aside class="sidebar">
+        <h1>TRAXIÓN</h1>
+        
+        <div class="menu-group">
+            <div class="menu-group-title">Logística</div>
+            <a href="dashboard_NS.html" class="menu-item"> Nivel de Servicio</a>
+            <a href="dashboard_kilometros.html" class="menu-item"> Kilómetros Recorridos</a>
+            <a href="dashboard_flota.html" class="menu-item"> Flota Vehicular</a>
+            <a href="dashboard_difkm.html" class="menu-item">Ralenti </a>
         </div>
-        <div class="grp-btns">
-          <button class="grp-btn active" onclick="setGroup('dia')">Día</button>
-          <button class="grp-btn" onclick="setGroup('semana')">Sem</button>
-          <button class="grp-btn" onclick="setGroup('mes')">Mes</button>
+  
+    </aside>
+    
+    <!-- ===== CONTENIDO PRINCIPAL ===== -->
+    <main class="main">
+        <div class="hero">
+            <h2>TRAXIÓN</h2>
+            <p>Logistica · Operaciones · Seguridad</p>
+            <p class="tagline">Movemos lo más valioso, conectamos destinos</p>
         </div>
-      </div>
-      <div class="chart-wrap"><canvas id="chartHoras"></canvas></div>
-    </div>
-
-    <div class="tables-grid">
-      <div class="table-card">
-        <div class="table-hdr">
-          <div><div class="table-hdr-title">🏢 Por Cliente</div><div class="table-hdr-sub">Ordenado por horas</div></div>
-          <div class="tbl-actions"><span class="table-count" id="cntCli">–</span><button class="btn-capture" onclick="exportTable('cli')">⬇ Excel</button></div>
-        </div>
-        <div style="overflow-x:auto">
-          <table class="data-table"><thead><tr>
-            <th style="width:28px">#</th><th>Cliente</th><th class="r">Unidades</th><th class="r">Horas</th><th class="r">Km</th>
-          </tr></thead><tbody id="tCliBody"></tbody></table>
-        </div>
-      </div>
-
-      <div class="table-card">
-        <div class="table-hdr"><div><div class="table-hdr-title">📊 Distribución por Tipo</div><div class="table-hdr-sub">Todos los eventos</div></div></div>
-        <div id="distEventos"></div>
-
-        <div class="table-hdr" style="border-top:1px solid var(--border);margin-top:.5rem">
-          <div><div class="table-hdr-title">⚡ Top Unidades</div><div class="table-hdr-sub">Más horas acumuladas · operador del evento mayor</div></div>
-          <div class="tbl-actions"><span class="table-count" id="cntUnits">–</span><button class="btn-capture" onclick="exportTable('unit')">⬇ Excel</button></div>
-        </div>
-        <div style="overflow-x:auto">
-          <table class="data-table"><thead><tr>
-            <th style="width:28px">#</th><th>Unidad</th><th>Operador</th><th class="r">Hora</th><th class="r">Horas</th><th>Ubicación</th>
-          </tr></thead><tbody id="tUnitBody"></tbody></table>
-        </div>
-      </div>
-    </div>
-  </main>
+    </main>
 </div>
-
-<!-- ══ MODAL DETALLE UNIDAD ══ -->
-<div class="modal-overlay" id="unitModal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal-box">
-    <div class="modal-head">
-      <div><h3 id="unitModalTitle">Detalle de unidad</h3><span id="unitModalSub"></span></div>
-      <button class="modal-close" onclick="document.getElementById('unitModal').classList.remove('open')">✕</button>
-    </div>
-    <div class="modal-body">
-      <table class="modal-table">
-        <thead><tr>
-          <th>Fecha</th>
-          <th>Hora</th>
-          <th>Evento</th>
-          <th class="r">Horas</th>
-          <th class="r">Km</th>
-          <th>Ubicación</th>
-        </tr></thead>
-        <tbody id="unitModalBody"></tbody>
-      </table>
-    </div>
-    <div class="modal-foot" id="unitModalFoot"></div>
-  </div>
-</div>
-
-<script>
-const SHEET_ID   = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
-const SHEET_NAME = 'Ralenti';
-const CHUNK      = 35000;
-const LITROS_HR  = 2;
-const PRECIO_LT  = 22;
-const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-
-const C = {
-  driver:'Driver Name', unidad:'Vehicle Number', inicio:'START_TIME', tipo:'Event Type',
-  ubic:'Start Location', lat:'Start Latitude', lng:'Start Longitude',
-  mes:'Mes', sem:'Sem', dia:'Dia',
-  horas:'Horas en ralenti', km:'Kilometros recorrido en ralenti',
-  velocidad:'Velocidad en el evento', cliente:'Cliente', jefe:'Jefe', gerente:'Gerente',
-};
-
-let DATA=[], chartInst=null, chartGroup='dia';
-let tCliData=[], tUnitData=[];
-
-function csvUrl(offset){
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${encodeURIComponent('SELECT * LIMIT '+CHUNK+' OFFSET '+offset)}`;
-}
-function parseCSVLine(line){
-  const cols=[];let cur='',inQ=false;
-  for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=ch;}
-  cols.push(cur.trim());return cols;
-}
-function parseCSV(text){
-  const lines=text.trim().split(/\r?\n/);if(lines.length<2)return[];
-  const hdrs=parseCSVLine(lines[0]),rows=[];
-  for(let i=1;i<lines.length;i++){if(!lines[i].trim())continue;const cols=parseCSVLine(lines[i]),obj={};hdrs.forEach((h,idx)=>{obj[h]=cols[idx]||'';});if(hdrs.some(h=>obj[h]&&obj[h].trim()))rows.push(obj);}
-  return rows;
-}
-function parseHoras(v){
-  if(!v||String(v).trim()===''||String(v).trim()==='-'||String(v).trim()==='0')return null;
-  const s=String(v).trim();
-  const m=s.match(/^(\d+):(\d{2})(?::(\d{2}))?$/);
-  if(m){const val=parseInt(m[1])+parseInt(m[2])/60+(parseInt(m[3]||0)/3600);return val>0?val:null;}
-  const n=parseFloat(s.replace(',','.'));
-  if(!isNaN(n)&&n>0)return n<1?n*24:n;
-  return null;
-}
-function parseKm(v){if(!v||String(v).trim()===''||String(v).trim()==='-')return 0;const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?0:n;}
-function getFecha(r){
-  const raw=(r[C.inicio]||'').trim();
-  const m=raw.match(/(\d{2})\/(\d{2})\/(\d{4})/);if(m)return`${m[3]}-${m[2]}-${m[1]}`;
-  const m2=raw.match(/(\d{4})-(\d{2})-(\d{2})/);if(m2)return raw.slice(0,10);
-  return raw.slice(0,10)||'';
-}
-function getHora(r){
-  const raw=(r[C.inicio]||'').trim();
-  const m=raw.match(/\d{2}\/\d{2}\/\d{4}\s+(\d{2}:\d{2})/);if(m)return m[1];
-  const m2=raw.match(/\d{4}-\d{2}-\d{2}[T\s](\d{2}:\d{2})/);if(m2)return m2[1];
-  return '–';
-}
-function fmtH(h){const hh=Math.floor(h),mm=Math.round((h-hh)*60);return mm>0?`${hh}h ${mm}m`:`${hh}h`;}
-function fmtM(v){return'$'+Math.round(v).toLocaleString('es-MX');}
-function fmtN(v){return v.toLocaleString('es-MX',{maximumFractionDigits:1});}
-function uniq(arr){return[...new Set(arr.filter(v=>v&&v.trim()))].sort();}
-
-window.addEventListener('DOMContentLoaded',loadSheet);
-async function loadSheet(){
-  const ov=document.getElementById('loadingOverlay'),bn=document.getElementById('errBanner'),em=document.getElementById('errMsg');
-  try{
-    const res=await fetch(csvUrl(0));
-    if(!res.ok)throw new Error('HTTP '+res.status+' — verifica que el Sheet sea público.');
-    const rows=parseCSV(await res.text());
-    if(!rows.length)throw new Error('Sin datos en la hoja "Ralenti". Verifica que exista y tenga encabezados.');
-    DATA=[...rows];
-    ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',450);
-    fillSelects();
-    const mesActual=MESES[new Date().getMonth()];
-    const fM=document.getElementById('fMes');
-    if([...fM.options].some(o=>o.value.toLowerCase()===mesActual)){fM.value=mesActual;}
-    draw();
-    if(rows.length>=CHUNK){let off=CHUNK;while(true){const r2=await fetch(csvUrl(off));if(!r2.ok)break;const more=parseCSV(await r2.text());if(!more.length)break;DATA.push(...more);if(more.length<CHUNK)break;off+=CHUNK;}fillSelects();draw();}
-  }catch(e){console.error(e);if(ov)ov.style.display='none';if(bn&&em){em.textContent=e.message;bn.classList.remove('hidden');}}
-}
-
-function getF(){return{mes:document.getElementById('fMes').value,fi:document.getElementById('fFi').value,ff:document.getElementById('fFf').value,cli:document.getElementById('fCli').value,jefe:document.getElementById('fJefe').value,gerente:document.getElementById('fGerente').value,unit:document.getElementById('fUnit').value,tipo:document.getElementById('fTipo').value};}
-function filterRows(){
-  const f=getF();
-  return DATA.filter(r=>{
-    if(f.mes&&(r[C.mes]||'').trim().toLowerCase()!==f.mes.toLowerCase())return false;
-    if(f.cli&&(r[C.cliente]||'').trim()!==f.cli)return false;
-    if(f.jefe&&(r[C.jefe]||'').trim()!==f.jefe)return false;
-    if(f.gerente&&(r[C.gerente]||'').trim()!==f.gerente)return false;
-    if(f.unit&&String(r[C.unidad]||'').trim()!==f.unit)return false;
-    if(f.tipo&&(r[C.tipo]||'').trim()!==f.tipo)return false;
-    const d=getFecha(r);if(f.fi&&d<f.fi)return false;if(f.ff&&d>f.ff)return false;
-    return true;
-  });
-}
-function deduped(rows){return rows.filter(r=>parseHoras(r[C.horas])!==null);}
-function fillSelects(){
-  fillSel('fMes',uniq(DATA.map(r=>(r[C.mes]||'').trim())),v=>v.charAt(0).toUpperCase()+v.slice(1));
-  fillSel('fCli',uniq(DATA.map(r=>(r[C.cliente]||'').trim())));
-  fillSel('fJefe',uniq(DATA.map(r=>(r[C.jefe]||'').trim())));
-  fillSel('fGerente',uniq(DATA.map(r=>(r[C.gerente]||'').trim())));
-  fillSel('fUnit',uniq(DATA.map(r=>String(r[C.unidad]||'').trim())));
-}
-function fillSel(id,vals,lFn=null){
-  const el=document.getElementById(id),cur=el.value,first=el.options[0].outerHTML;
-  el.innerHTML=first;vals.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=lFn?lFn(v):v;el.appendChild(o);});
-  if(vals.includes(cur))el.value=cur;
-}
-
-function draw(){
-  const rows=filterRows(),ded=deduped(rows);
-  const totalHrs=ded.reduce((s,r)=>s+(parseHoras(r[C.horas])||0),0);
-  const totalKm =ded.reduce((s,r)=>s+parseKm(r[C.km]),0);
-  const totalLts=totalHrs*LITROS_HR,totalCosto=totalLts*PRECIO_LT;
-  const units=new Set(ded.map(r=>String(r[C.unidad]||'').trim())).size;
-  document.getElementById('kHoras').textContent=fmtH(totalHrs);
-  document.getElementById('kHorasSub').textContent=ded.length.toLocaleString('es-MX')+' eventos únicos';
-  document.getElementById('kKm').textContent=fmtN(totalKm)+' km';
-  document.getElementById('kLts').textContent=fmtN(totalLts)+' L';
-  document.getElementById('kCosto').textContent=fmtM(totalCosto);
-  drawChart(ded);drawTableCli(ded);drawTableUnits(ded);drawDist(rows);
-}
-
-function setGroup(g){
-  chartGroup=g;
-  document.querySelectorAll('.grp-btn').forEach(b=>{const t=b.textContent.toLowerCase();b.classList.toggle('active',(g==='dia'&&t==='día')||(g==='semana'&&t==='sem')||(g==='mes'&&t==='mes'));});
-  draw();
-}
-function getGKey(r){
-  if(chartGroup==='dia')return getFecha(r);
-  if(chartGroup==='semana'){const s=(r[C.sem]||'').trim();return s?'Sem '+s:getFecha(r).slice(0,7);}
-  return(r[C.mes]||'').trim()||getFecha(r).slice(5,7);
-}
-function drawChart(ded){
-  const by={};
-  ded.forEach(r=>{const k=getGKey(r)||'?';if(k==='?')return;if(!by[k])by[k]=0;by[k]+=(parseHoras(r[C.horas])||0);});
-  const mesOrder=MESES;
-  const keys=Object.keys(by).sort((a,b)=>{
-    if(chartGroup==='semana'){return parseInt(a.replace('Sem ',''))-parseInt(b.replace('Sem ',''));}
-    if(chartGroup==='mes'){return mesOrder.indexOf(a.toLowerCase())-mesOrder.indexOf(b.toLowerCase());}
-    return a.localeCompare(b);
-  });
-  const hrs=keys.map(k=>+by[k].toFixed(2));
-  const labels=keys.map(k=>{
-    if(chartGroup==='dia'){const d=new Date(k+'T12:00:00');return isNaN(d)?k:d.toLocaleDateString('es-MX',{day:'2-digit',month:'short'});}
-    return k.charAt(0).toUpperCase()+k.slice(1);
-  });
-  if(chartInst){chartInst.destroy();chartInst=null;}
-  chartInst=new Chart(document.getElementById('chartHoras').getContext('2d'),{
-    type:'bar',
-    data:{labels,datasets:[{label:'Horas',data:hrs,backgroundColor:'rgba(8,145,178,.75)',borderColor:'#0891b2',borderWidth:1,borderRadius:4,barPercentage:.75}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2236',borderColor:'#6b7a99',borderWidth:1,titleColor:'#fff',bodyColor:'rgba(255,255,255,.8)',padding:10,callbacks:{label(c){const h=c.raw,hh=Math.floor(h),mm=Math.round((h-hh)*60);return'  '+hh+'h'+(mm>0?' '+mm+'m':'')+' · $'+Math.round(h*LITROS_HR*PRECIO_LT).toLocaleString('es-MX');}}}},scales:{x:{ticks:{color:'#6b7a99',font:{size:10,family:'Inter'}},grid:{color:'rgba(0,0,0,.04)'}},y:{ticks:{color:'#0891b2',font:{size:10},callback:v=>v+'h'},grid:{color:'rgba(0,0,0,.04)'},beginAtZero:true}}},
-    plugins:[{id:'lbl',afterDatasetsDraw(chart){const c2=chart.ctx;chart.getDatasetMeta(0).data.forEach((bar,i)=>{const h=chart.data.datasets[0].data[i];if(!h||bar.height<14)return;const hh=Math.floor(h),mm=Math.round((h-hh)*60);c2.save();c2.font='bold 10px Inter';c2.fillStyle='#fff';c2.textAlign='center';c2.textBaseline='middle';c2.fillText(hh+'h'+(mm>0?' '+mm+'m':''),bar.x,bar.y+bar.height/2);c2.restore();});}}]
-  });
-}
-
-function drawTableCli(ded){
-  const by={};
-  ded.forEach(r=>{const k=(r[C.cliente]||'Sin asignar').trim();if(!by[k])by[k]={u:new Set(),h:0,k:0};by[k].u.add(String(r[C.unidad]||'').trim());by[k].h+=(parseHoras(r[C.horas])||0);by[k].k+=parseKm(r[C.km]);});
-  tCliData=Object.entries(by).map(([k,d])=>({k,units:d.u.size,hrs:d.h,km:d.k})).sort((a,b)=>b.hrs-a.hrs);
-  const badges=['#f59e0b','#9ca3af','#b45309'];
-  document.getElementById('cntCli').textContent=tCliData.length+(tCliData.length===1?' cliente':' clientes');
-  document.getElementById('tCliBody').innerHTML=tCliData.length?tCliData.map((r,i)=>{
-    const bg=i<3?badges[i]:'#e5e7eb',fg=i<3?'#fff':'#6b7a99';
-    return`<tr><td><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td><td style="font-weight:600">${r.k}</td><td class="r" style="color:var(--navy);font-weight:600">${r.units}</td><td class="r" style="color:#0891b2;font-weight:700">${fmtH(r.hrs)}</td><td class="r" style="color:var(--muted)">${r.km.toFixed(1)} km</td></tr>`;
-  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.8rem">Sin resultados</td></tr>';
-}
-
-function getUbic(r){
-  const u=(r[C.ubic]||'').trim();
-  const lat=parseFloat(r[C.lat]),lng=parseFloat(r[C.lng]);
-  if(u && u.toLowerCase()!=='nan' && u!=='') return {label:u,lat,lng};
-  if(!isNaN(lat)&&!isNaN(lng)) return {label:lat.toFixed(5)+', '+lng.toFixed(5),lat,lng};
-  return {label:'–',lat:null,lng:null};
-}
-function ubicLink(r){
-  const u=getUbic(r);
-  if(u.lat===null) return '<span style="color:var(--muted)">–</span>';
-  return `<a class="map-link" href="https://www.google.com/maps?q=${u.lat},${u.lng}" target="_blank" rel="noopener" title="Ver en Google Maps">📍 ${u.label.length>22?u.label.slice(0,22)+'…':u.label}</a>`;
-}
-
-function drawTableUnits(ded){
-  const by={};
-  ded.forEach(r=>{
-    const k=String(r[C.unidad]||'').trim();const h=parseHoras(r[C.horas])||0;
-    if(!by[k])by[k]={hrs:0,operador:'',hora:'',maxH:0,maxRow:null};
-    by[k].hrs+=h;
-    if(h>=by[k].maxH){by[k].maxH=h;by[k].operador=(r[C.driver]||'–').trim();by[k].hora=getHora(r);by[k].maxRow=r;}
-  });
-  tUnitData=Object.entries(by).map(([k,d])=>({k,operador:d.operador,hora:d.hora,hrs:d.hrs,maxRow:d.maxRow})).sort((a,b)=>b.hrs-a.hrs).slice(0,20);
-  const badges=['#f59e0b','#9ca3af','#b45309'];
-  document.getElementById('cntUnits').textContent=Object.keys(by).length+' unidades';
-  document.getElementById('tUnitBody').innerHTML=tUnitData.length?tUnitData.map((r,i)=>{
-    const bg=i<3?badges[i]:'#e5e7eb',fg=i<3?'#fff':'#6b7a99';
-    const ubicCell=r.maxRow?ubicLink(r.maxRow):'<span style="color:var(--muted)">–</span>';
-    const safeK=r.k.replace(/'/g,"\\'");
-    return`<tr class="row-clickable" onclick="if(!event.target.closest('a'))openUnitDetail('${safeK}')"><td><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td><td class="unit-cell" style="font-weight:600">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td><td style="font-size:.7rem;color:var(--muted);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.operador}">${r.operador}</td><td class="r" style="font-size:.72rem;color:var(--muted)">${r.hora}</td><td class="r" style="color:#0891b2;font-weight:700">${fmtH(r.hrs)}</td><td style="font-size:.7rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${ubicCell}</td></tr>`;
-  }).join(''):'<tr><td colspan="6" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.8rem">Sin resultados</td></tr>';
-}
-
-function openUnitDetail(unidad){
-  const events=deduped(filterRows()).filter(r=>String(r[C.unidad]||'').trim()===unidad);
-  // Ordenar por fecha+hora
-  events.sort((a,b)=>{
-    const fa=getFecha(a)+' '+getHora(a),fb=getFecha(b)+' '+getHora(b);
-    return fa.localeCompare(fb);
-  });
-  // Agrupar por día
-  const byDay={};
-  events.forEach(r=>{const d=getFecha(r);if(!byDay[d])byDay[d]=[];byDay[d].push(r);});
-  const days=Object.keys(byDay).sort();
-  const totalHrs=events.reduce((s,r)=>s+(parseHoras(r[C.horas])||0),0);
-  const totalKm=events.reduce((s,r)=>s+parseKm(r[C.km]),0);
-  const cliente=events[0]?(events[0][C.cliente]||'').trim():'';
-  const operador=events[0]?(events[0][C.driver]||'').trim():'';
-  document.getElementById('unitModalTitle').textContent='Unidad '+unidad+(cliente?' · '+cliente:'');
-  document.getElementById('unitModalSub').textContent=`${events.length} eventos · ${days.length} días · ${fmtH(totalHrs)} totales · ${totalKm.toFixed(1)} km${operador?' · '+operador:''}`;
-  let html='';
-  days.forEach(day=>{
-    const dt=new Date(day+'T12:00:00');
-    const dayLbl=isNaN(dt)?day:dt.toLocaleDateString('es-MX',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
-    const dayHrs=byDay[day].reduce((s,r)=>s+(parseHoras(r[C.horas])||0),0);
-    const dayKm=byDay[day].reduce((s,r)=>s+parseKm(r[C.km]),0);
-    html+=`<tr class="day-divider"><td colspan="6">${dayLbl} · ${byDay[day].length} ev · ${fmtH(dayHrs)} · ${dayKm.toFixed(1)} km</td></tr>`;
-    byDay[day].forEach(r=>{
-      const tipo=(r[C.tipo]||'').trim();
-      const tipoCorto=tipo.includes('20')?'20 min':tipo.includes('15')?'15 min':tipo.includes('5')?'5 min':tipo;
-      const cls=tipo.includes('20')?'evt-20':tipo.includes('15')?'evt-15':'evt-5';
-      const h=parseHoras(r[C.horas])||0;
-      const km=parseKm(r[C.km]);
-      html+=`<tr><td>${getFecha(r)}</td><td style="font-variant-numeric:tabular-nums">${getHora(r)}</td><td><span class="evt-pill ${cls}">${tipoCorto}</span></td><td class="r" style="color:#0891b2;font-weight:600">${fmtH(h)}</td><td class="r" style="color:var(--muted)">${km.toFixed(2)}</td><td>${ubicLink(r)}</td></tr>`;
-    });
-  });
-  document.getElementById('unitModalBody').innerHTML=html||'<tr><td colspan="6" style="text-align:center;padding:1.5rem;color:var(--muted)">Sin eventos</td></tr>';
-  document.getElementById('unitModalFoot').textContent=`Costo estimado total: $${Math.round(totalHrs*LITROS_HR*PRECIO_LT).toLocaleString('es-MX')} (${fmtN(totalHrs*LITROS_HR)} L · 2 L/hr · $22/L)`;
-  document.getElementById('unitModal').classList.add('open');
-}
-
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape') document.getElementById('unitModal')?.classList.remove('open');
-});
-
-function drawDist(rows){
-  const tipos={'Ralenti mayor a 5 min':0,'Ralenti mayor a 15 min':0,'Ralenti mayor a 20 min':0};
-  rows.forEach(r=>{const t=(r[C.tipo]||'').trim();if(tipos[t]!==undefined)tipos[t]++;});
-  const total=Object.values(tipos).reduce((a,b)=>a+b,0)||1;
-  const colors={'Ralenti mayor a 5 min':'#fcd34d','Ralenti mayor a 15 min':'#fb923c','Ralenti mayor a 20 min':'#f87171'};
-  const labels={'Ralenti mayor a 5 min':'> 5 min','Ralenti mayor a 15 min':'> 15 min','Ralenti mayor a 20 min':'> 20 min'};
-  document.getElementById('distEventos').innerHTML=Object.entries(tipos).map(([t,n])=>{
-    const pct=(n/total*100);
-    return`<div class="dist-row"><div class="dist-label">${labels[t]}</div><div class="dist-bar-wrap"><div class="dist-bar-fill" style="width:${pct.toFixed(0)}%;background:${colors[t]}"></div></div><div class="dist-count">${n.toLocaleString('es-MX')}</div><div class="dist-pct">${pct.toFixed(1)}%</div></div>`;
-  }).join('');
-}
-
-function exportTable(type){
-  if(type==='cli'){
-    const ws=XLSX.utils.aoa_to_sheet([['#','Cliente','Unidades','Horas','Km'],...tCliData.map((r,i)=>[i+1,r.k,r.units,fmtH(r.hrs),+r.km.toFixed(1)])]);
-    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Clientes');XLSX.writeFile(wb,`Ralenti_Clientes_${new Date().toISOString().slice(0,10)}.xlsx`);
-  }else{
-    const ws=XLSX.utils.aoa_to_sheet([['#','Unidad','Operador','Hora Evento','Horas'],...tUnitData.map((r,i)=>[i+1,r.k,r.operador,r.hora,fmtH(r.hrs)])]);
-    const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Unidades');XLSX.writeFile(wb,`Ralenti_Unidades_${new Date().toISOString().slice(0,10)}.xlsx`);
-  }
-}
-
-function resetFilters(){['fMes','fCli','fJefe','fGerente','fUnit','fTipo'].forEach(id=>document.getElementById(id).value='');document.getElementById('fFi').value='';document.getElementById('fFf').value='';draw();}
-function toggleDropdown(id){const d=document.getElementById(id);document.querySelectorAll('.dropdown').forEach(x=>{if(x.id!==id)x.classList.remove('open');});d.classList.toggle('open');}
-document.addEventListener('click',e=>{if(!e.target.closest('.dropdown'))document.querySelectorAll('.dropdown').forEach(d=>d.classList.remove('open'));});
-</script>
 </body>
 </html>
+
