@@ -696,7 +696,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 
 <!-- ══ MODAL NIVEL 2: detalle de viajes individuales ══ -->
 <div class="modal-overlay" id="drillDetailModal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal-box" style="max-width:900px">
+  <div class="modal-box" style="max-width:1150px">
     <div class="modal-head">
       <div><h3 id="drillDetailTitle">Detalle de Viajes</h3><span id="drillDetailSub"></span></div>
       <div style="display:flex;align-items:center;gap:.6rem">
@@ -710,6 +710,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     <div class="modal-body">
       <table class="modal-table">
         <thead><tr>
+          <th style="width:36px"></th>
           <th>Fecha</th>
           <th style="text-align:left">Unidad</th>
           <th style="text-align:left">Operador</th>
@@ -719,7 +720,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <th class="r">Lle Real GPS</th>
           <th class="r">Min Ini</th>
           <th class="r">Min Lle</th>
-          <th class="r">Auditoría</th>
         </tr></thead>
         <tbody id="drillDetailBody"></tbody>
       </table>
@@ -760,8 +760,43 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   </div>
 </div>
 
-<!-- ══ MODAL OPERADOR: resumen del mes actual ══ -->
-<div class="modal-overlay" id="operadorModal" onclick="if(event.target===this)this.classList.remove('open')">
+<!-- ══ MODAL AUDITORÍA: iframe de la ruta ══ -->
+<div class="modal-overlay" id="auditModal" style="z-index:840" onclick="if(event.target===this)closeAuditModal()">
+  <div class="modal-box" style="max-width:1100px;max-height:92vh">
+    <div class="modal-head">
+      <div><h3 id="auditModalTitle">Auditoría de Ruta</h3><span id="auditModalSub"></span></div>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <a id="auditModalLink" href="#" target="_blank"
+          style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
+                 border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
+                 font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;text-decoration:none">
+          ↗ Abrir en pestaña</a>
+        <button class="modal-close" onclick="closeAuditModal()">✕</button>
+      </div>
+    </div>
+    <div style="flex:1;position:relative;min-height:0">
+      <div id="auditLoader" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+           justify-content:center;gap:1rem;background:#f0f2f7">
+        <div class="loading-spinner"></div>
+        <div style="font-size:.85rem;color:#6b7a99">Cargando auditoría...</div>
+      </div>
+      <div id="auditError" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;
+           flex-direction:column;gap:.75rem;background:#f0f2f7;padding:2rem;text-align:center">
+        <div style="font-size:2rem">🚫</div>
+        <div style="font-size:.9rem;font-weight:700;color:#1a2236">Esta página no permite mostrarse aquí</div>
+        <div style="font-size:.78rem;color:#6b7a99">El sitio bloquea iframes por seguridad.</div>
+        <a id="auditErrorLink" href="#" target="_blank"
+          style="background:#1a2236;color:#7ed321;border:1px solid #7ed321;border-radius:8px;
+                 padding:.5rem 1.2rem;font-size:.82rem;font-weight:700;text-decoration:none">
+          🗺️ Abrir en pestaña nueva</a>
+      </div>
+      <iframe id="auditIframe" src="about:blank" style="width:100%;height:100%;min-height:500px;border:none;display:block"
+        onload="onAuditLoad()" onerror="onAuditError()"></iframe>
+    </div>
+  </div>
+</div>
+
+<script> onclick="if(event.target===this)this.classList.remove('open')">
   <div class="modal-box" style="max-width:520px">
     <div class="modal-head">
       <div><h3 id="operadorModalTitle">Resumen Operador</h3><span id="operadorModalSub"></span></div>
@@ -1637,6 +1672,7 @@ function closeDrill(e){ if(e.target===document.getElementById('drillModal')) doc
 
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
+    if(document.getElementById('auditModal').classList.contains('open')){ closeAuditModal(); return; }
     const op=document.getElementById('operadorModal');
     if(op.classList.contains('open')){ op.classList.remove('open'); return; }
     const d2=document.getElementById('drillDetailModal');
@@ -1644,6 +1680,48 @@ document.addEventListener('keydown',e=>{
     document.getElementById('drillModal').classList.remove('open');
   }
 });
+
+// ── Modal iframe auditoría ────────────────────────────────────────
+const AUDIT_BASE='https://auditoria-nacional-btx.netlify.app/auditoria_mx?user=JoseManuel&pwd=Settepi2025&zh=6&id=';
+let _auditTimer=null;
+function openAuditModal(tripId){
+  const url=AUDIT_BASE+tripId;
+  document.getElementById('auditModalTitle').textContent='Auditoría · ID '+tripId;
+  document.getElementById('auditModalSub').textContent='';
+  document.getElementById('auditModalLink').href=url;
+  document.getElementById('auditErrorLink').href=url;
+  document.getElementById('auditLoader').style.display='flex';
+  document.getElementById('auditError').style.display='none';
+  document.getElementById('auditIframe').src='about:blank';
+  document.getElementById('auditModal').classList.add('open');
+  // pequeño delay para que el modal esté visible antes de cargar el iframe
+  setTimeout(()=>{ document.getElementById('auditIframe').src=url; },120);
+  // fallback: si en 12s no cargó, probablemente está bloqueado
+  _auditTimer=setTimeout(()=>{
+    const ifr=document.getElementById('auditIframe');
+    try{ if(!ifr.contentDocument||ifr.contentDocument.URL==='about:blank') onAuditError(); }
+    catch(e){ onAuditError(); }
+  },12000);
+}
+function onAuditLoad(){
+  clearTimeout(_auditTimer);
+  const ifr=document.getElementById('auditIframe');
+  try{
+    // Si el src sigue siendo about:blank ignorar
+    if(ifr.src==='about:blank') return;
+    document.getElementById('auditLoader').style.display='none';
+  }catch(e){ onAuditError(); }
+}
+function onAuditError(){
+  clearTimeout(_auditTimer);
+  document.getElementById('auditLoader').style.display='none';
+  document.getElementById('auditError').style.display='flex';
+}
+function closeAuditModal(){
+  clearTimeout(_auditTimer);
+  document.getElementById('auditIframe').src='about:blank';
+  document.getElementById('auditModal').classList.remove('open');
+}
 
 // ── Modal resumen operador (mes actual) ───────────────────────────
 function openOperadorModal(driver){
@@ -1747,15 +1825,14 @@ function openDrillDetail(rutaK,clienteK,tbl){
     const eEta =(r[C.endEta]   ||'–').trim();
     const tripId=(r[C.id]||'').trim();
     const auditBtn=tripId
-      ? `<a href="https://auditoria-nacional-btx.netlify.app/auditoria_mx?user=JoseManuel&pwd=Settepi2025&zh=6&id=${tripId}" target="_blank"
-           style="display:inline-flex;align-items:center;gap:.25rem;background:#1a2236;color:#7ed321;border:1px solid #7ed321;
-                  border-radius:5px;padding:.18rem .5rem;font-size:.65rem;font-weight:700;text-decoration:none;white-space:nowrap;
-                  transition:all .15s" onmouseover="this.style.background='#7ed321';this.style.color='#1a2236'"
-                  onmouseout="this.style.background='#1a2236';this.style.color='#7ed321'">
-           🔍 Ver
-         </a>`
-      : '<span style="color:#aaa;font-size:.7rem">–</span>';
+      ? `<button onclick="openAuditModal('${tripId}')"
+           style="background:#1a2236;color:#7ed321;border:1px solid #7ed321;border-radius:5px;
+                  padding:.15rem .35rem;font-size:.62rem;font-weight:700;cursor:pointer;
+                  white-space:nowrap;font-family:'Inter',sans-serif;line-height:1.4"
+           title="Ver ruta en auditoría">🗺️</button>`
+      : '';
     return `<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
+      <td style="text-align:center;padding:.3rem .4rem">${auditBtn}</td>
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${fechaFmt}</td>
       <td style="text-align:left;font-weight:600">${unidad}</td>
       <td style="text-align:left;cursor:pointer;color:var(--navy);text-decoration:underline dotted;white-space:nowrap" onclick="openOperadorModal('${driverEsc}')" title="Ver resumen del mes">${driver} <span style="font-size:.6rem;opacity:.5">▶</span></td>
@@ -1765,7 +1842,6 @@ function openDrillDetail(rutaK,clienteK,tbl){
       <td class="r" style="font-size:.72rem;white-space:nowrap;color:#374151;font-weight:600">${eEta}</td>
       <td class="r">${minCell(minIni,0)}</td>
       <td class="r">${minCell(minLle,0)}</td>
-      <td class="r">${auditBtn}</td>
     </tr>`;
   }).join('')||'<tr><td colspan="10" class="table-empty">Sin viajes registrados</td></tr>';
 
