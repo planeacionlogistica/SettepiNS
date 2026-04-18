@@ -387,6 +387,16 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
 
       <div class="fg">
+        <label>Ruta</label>
+        <div class="sc-wrap" id="sc-ruta">
+          <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
+            id="sc-ruta-input" oninput="scFilter('ruta')" onfocus="scOpen('ruta')" onkeydown="scKey(event,'ruta')">
+          <span class="sc-arrow">▼</span>
+          <div class="sc-dropdown" id="sc-ruta-dd"></div>
+        </div>
+      </div>
+
+      <div class="fg">
         <label>Desde</label>
         <input type="date" id="fFi" onchange="onFilterChange()">
       </div>
@@ -754,7 +764,7 @@ const C = {
   fecha:'start_date', semana:'Semana', udn:'business_unit', cliente:'group',
   gerente:'Gerente', jefe:'Jefe', coord:'Coordinador', turno:'Turno',
   retardo:'Inicios_Tarde', viajes:'Cantidad de viajes', llegada:'Llegadas_Tarde',
-  minIni:'Minutos de Retraso', minLle:'Minutos llegadas', driver:'driver', car:'car',
+  minIni:'Minutos de Retraso', minLle:'Minutos llegadas', driver:'driver', car:'car', ruta:'des',
 };
 
 let DATA         = [];
@@ -765,7 +775,7 @@ let CARROS_MAP   = {};   // { 'CON-CONMET': 49, ... }
 let COORD_RAW    = [];   // [ {cc:'CON-CONMET-F1', co:'EFREN PEREZ CRUZ'}, ... ]
 
 // ── Searchable selects ────────────────────────────────────────────
-const SC_KEYS  = ['udn','mes','sem','cli','ger','jef','coord','turno','ope','car'];
+const SC_KEYS  = ['udn','mes','sem','cli','ger','jef','coord','turno','ruta','ope','car'];
 const SC_VALS  = Object.fromEntries(SC_KEYS.map(k=>[k,[]]));
 const SC_SEL   = Object.fromEntries(SC_KEYS.map(k=>[k,'']));
 const SC_FOCUS = Object.fromEntries(SC_KEYS.map(k=>[k,-1]));
@@ -1099,6 +1109,7 @@ function fillAllSelects(){
   SC_VALS.mes   =[...loadedMonths].sort((a,b)=>b.localeCompare(a));
   SC_VALS.sem   =uniq(DATA.map(r=>r[C.semana]||''));
   SC_VALS.turno =uniq(DATA.map(r=>(r[C.turno]||'').trim()));
+  SC_VALS.ruta  =uniq(DATA.map(r=>(r[C.ruta]||'').trim()));
   SC_VALS.ope   =uniq(DATA.map(r=>r[C.driver]||''));
   SC_VALS.car   =uniq(DATA.map(r=>r[C.car]||''));
   cascadeSelects();
@@ -1120,6 +1131,7 @@ function cascadeSelects(){
   const baseJef=f.jef?baseGer.filter(r=>r[C.jefe]===f.jef):baseGer;
   SC_VALS.coord=uniq(baseJef.map(r=>(r[C.coord]||'').trim()));
   SC_VALS.turno=uniq(base.map(r=>(r[C.turno]||'').trim()));
+  SC_VALS.ruta =uniq(base.map(r=>(r[C.ruta]||'').trim()));
   SC_VALS.ope  =uniq(base.map(r=>(r[C.driver]||'').trim()));
   SC_VALS.car  =uniq(base.map(r=>(r[C.car]||'').trim()));
   const baseSem=DATA.filter(r=>{ if(f.udn&&r[C.udn]!==f.udn) return false; if(f.mes&&normMonth(getFecha(r))!==f.mes) return false; return true; });
@@ -1138,6 +1150,7 @@ function getF(){
   return{
     mes:SC_SEL.mes, sem:SC_SEL.sem, udn:SC_SEL.udn, cli:SC_SEL.cli,
     ger:SC_SEL.ger, jef:SC_SEL.jef, coord:SC_SEL.coord, turno:SC_SEL.turno,
+    ruta:SC_SEL.ruta,
     ope:SC_SEL.ope, car:SC_SEL.car,
     fi:document.getElementById('fFi').value,
     ff:document.getElementById('fFf').value,
@@ -1175,6 +1188,7 @@ function filterRows(panelHint){
     if(f.jef   && r[C.jefe]!==f.jef)                 return false;
     if(f.coord && (r[C.coord]||'').trim()!==f.coord)  return false;
     if(f.turno && (r[C.turno]||'').trim()!==f.turno)  return false;
+    if(f.ruta  && (r[C.ruta]||'').trim()!==f.ruta)    return false;
     if(f.ope   && (r[C.driver]||'').trim()!==f.ope)   return false;
     if(f.car   && (r[C.car]||'').trim()!==f.car)      return false;
     if(estado==='ini_solo' && !(countLate(r[C.retardo])===1&&countLate(r[C.llegada])!==1)) return false;
@@ -1408,6 +1422,7 @@ function draw(){
   if(f.jef)   parts.push('Jefe: '+f.jef);
   if(f.coord) parts.push('Coord: '+f.coord);
   if(f.turno) parts.push('Turno: '+f.turno);
+  if(f.ruta)  parts.push('Ruta: '+f.ruta);
   const sfx=parts.length?' – '+parts.join(' · '):'';
 
   const allBase=(()=>{
