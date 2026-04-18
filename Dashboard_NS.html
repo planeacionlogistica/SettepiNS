@@ -719,6 +719,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <th class="r">Lle Real GPS</th>
           <th class="r">Min Ini</th>
           <th class="r">Min Lle</th>
+          <th class="r">Auditoría</th>
         </tr></thead>
         <tbody id="drillDetailBody"></tbody>
       </table>
@@ -788,6 +789,7 @@ const C = {
   retardo:'Inicios_Tarde', viajes:'Cantidad de viajes', llegada:'Llegadas_Tarde',
   minIni:'Minutos de Retraso', minLle:'Minutos llegadas', driver:'driver', car:'car', ruta:'des',
   startTime:'start_time', startEta:'start_eta', endTime:'end_time', endEta:'end_eta',
+  id:'id',
 };
 
 let DATA         = [];
@@ -1743,6 +1745,16 @@ function openDrillDetail(rutaK,clienteK,tbl){
     const sEta =(r[C.startEta] ||'–').trim();
     const eTime=(r[C.endTime]  ||'–').trim();
     const eEta =(r[C.endEta]   ||'–').trim();
+    const tripId=(r[C.id]||'').trim();
+    const auditBtn=tripId
+      ? `<a href="https://auditoria-nacional-btx.netlify.app/auditoria_mx?user=JoseManuel&pwd=Settepi2025&zh=6&id=${tripId}" target="_blank"
+           style="display:inline-flex;align-items:center;gap:.25rem;background:#1a2236;color:#7ed321;border:1px solid #7ed321;
+                  border-radius:5px;padding:.18rem .5rem;font-size:.65rem;font-weight:700;text-decoration:none;white-space:nowrap;
+                  transition:all .15s" onmouseover="this.style.background='#7ed321';this.style.color='#1a2236'"
+                  onmouseout="this.style.background='#1a2236';this.style.color='#7ed321'">
+           🔍 Ver
+         </a>`
+      : '<span style="color:#aaa;font-size:.7rem">–</span>';
     return `<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${fechaFmt}</td>
       <td style="text-align:left;font-weight:600">${unidad}</td>
@@ -1753,8 +1765,9 @@ function openDrillDetail(rutaK,clienteK,tbl){
       <td class="r" style="font-size:.72rem;white-space:nowrap;color:#374151;font-weight:600">${eEta}</td>
       <td class="r">${minCell(minIni,0)}</td>
       <td class="r">${minCell(minLle,0)}</td>
+      <td class="r">${auditBtn}</td>
     </tr>`;
-  }).join('')||'<tr><td colspan="9" class="table-empty">Sin viajes registrados</td></tr>';
+  }).join('')||'<tr><td colspan="10" class="table-empty">Sin viajes registrados</td></tr>';
 
   document.getElementById('drillDetailFoot').textContent=`Servicios: ${totT} viajes · · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
   document.getElementById('drillDetailModal').classList.add('open');
