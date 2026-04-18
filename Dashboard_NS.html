@@ -134,6 +134,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .modal-overlay.open{display:flex;}
 #drillModal{z-index:810;}
 #drillDetailModal{z-index:820;}
+#operadorModal{z-index:830;}
 .modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
 /* ── Drill modal nivel 1 ── */
 #drillModal{z-index:810;}
@@ -712,8 +713,12 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <th>Fecha</th>
           <th style="text-align:left">Unidad</th>
           <th style="text-align:left">Operador</th>
-          <th class="r">Min Inicio</th>
-          <th class="r">Min Llegada</th>
+          <th class="r">Ini Prog.</th>
+          <th class="r">Ini Real GPS</th>
+          <th class="r">Lle Prog.</th>
+          <th class="r">Lle Real GPS</th>
+          <th class="r">Min Ini</th>
+          <th class="r">Min Lle</th>
         </tr></thead>
         <tbody id="drillDetailBody"></tbody>
       </table>
@@ -754,6 +759,23 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   </div>
 </div>
 
+<!-- ══ MODAL OPERADOR: resumen del mes actual ══ -->
+<div class="modal-overlay" id="operadorModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-head">
+      <div><h3 id="operadorModalTitle">Resumen Operador</h3><span id="operadorModalSub"></span></div>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <button onclick="document.getElementById('operadorModal').classList.remove('open')"
+          style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
+                 border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
+                 font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">← Volver</button>
+        <button class="modal-close" onclick="document.getElementById('operadorModal').classList.remove('open')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="operadorModalBody" style="padding:1.2rem 1.4rem;overflow-y:auto"></div>
+  </div>
+</div>
+
 <script>
 const SHEET_ID    = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const SHEET_NAME  = 'NS';
@@ -765,6 +787,7 @@ const C = {
   gerente:'Gerente', jefe:'Jefe', coord:'Coordinador', turno:'Turno',
   retardo:'Inicios_Tarde', viajes:'Cantidad de viajes', llegada:'Llegadas_Tarde',
   minIni:'Minutos de Retraso', minLle:'Minutos llegadas', driver:'driver', car:'car', ruta:'des',
+  startTime:'start_time', startEta:'start_eta', endTime:'end_time', endEta:'end_eta',
 };
 
 let DATA         = [];
@@ -1094,6 +1117,12 @@ function scKey(e,key){
   }
 }
 document.addEventListener('click',function(e){
+  // Fix sticking: clic en sc-input siempre reabre el dropdown
+  const scInp=e.target.closest('.sc-input');
+  if(scInp){
+    const key=scInp.id.replace('sc-','').replace('-input','');
+    if(SC_KEYS.includes(key)){ scOpen(key); return; }
+  }
   if(!e.target.closest('.sc-wrap')){
     document.querySelectorAll('.sc-wrap.open').forEach(el=>{
       el.classList.remove('open');
@@ -1130,8 +1159,9 @@ function cascadeSelects(){
   SC_VALS.jef  =uniq(baseGer.map(r=>r[C.jefe]||''));
   const baseJef=f.jef?baseGer.filter(r=>r[C.jefe]===f.jef):baseGer;
   SC_VALS.coord=uniq(baseJef.map(r=>(r[C.coord]||'').trim()));
+  const baseCoord=f.coord?baseJef.filter(r=>(r[C.coord]||'').trim()===f.coord):baseJef;
+  SC_VALS.ruta =uniq(baseCoord.map(r=>(r[C.ruta]||'').trim()));
   SC_VALS.turno=uniq(base.map(r=>(r[C.turno]||'').trim()));
-  SC_VALS.ruta =uniq(base.map(r=>(r[C.ruta]||'').trim()));
   SC_VALS.ope  =uniq(base.map(r=>(r[C.driver]||'').trim()));
   SC_VALS.car  =uniq(base.map(r=>(r[C.car]||'').trim()));
   const baseSem=DATA.filter(r=>{ if(f.udn&&r[C.udn]!==f.udn) return false; if(f.mes&&normMonth(getFecha(r))!==f.mes) return false; return true; });
@@ -1602,11 +1632,77 @@ function closeDrill(e){ if(e.target===document.getElementById('drillModal')) doc
 
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
+    const op=document.getElementById('operadorModal');
+    if(op.classList.contains('open')){ op.classList.remove('open'); return; }
     const d2=document.getElementById('drillDetailModal');
     if(d2.classList.contains('open')){ d2.classList.remove('open'); return; }
     document.getElementById('drillModal').classList.remove('open');
   }
 });
+
+// ── Modal resumen operador (mes actual) ───────────────────────────
+function openOperadorModal(driver){
+  if(!driver||driver==='–') return;
+  const mesActual=getCurrentMonth();
+  const rows=DATA.filter(r=>(r[C.driver]||'').trim()===driver && normMonth(getFecha(r))===mesActual);
+  const totT=rows.length;
+  const mesLbl=mesLabel(mesActual);
+
+  document.getElementById('operadorModalTitle').textContent=driver;
+  document.getElementById('operadorModalSub').textContent=mesLbl+(totT?' · '+N(totT)+' servicios':'');
+
+  if(!totT){
+    document.getElementById('operadorModalBody').innerHTML=`<div class="table-empty">Sin registros en ${mesLbl}</div>`;
+    document.getElementById('operadorModal').classList.add('open');
+    return;
+  }
+
+  const iniT=rows.filter(r=>countLate(r[C.retardo])===1).length;
+  const lleT=rows.filter(r=>countLate(r[C.llegada])===1).length;
+  const iniEnT=totT-iniT, lleEnT=totT-lleT;
+  const pctIni=totT>0?(iniEnT/totT*100):0;
+  const pctLle=totT>0?(lleEnT/totT*100):0;
+  const rowsIniT=rows.filter(r=>countLate(r[C.retardo])===1);
+  const rowsLleT=rows.filter(r=>countLate(r[C.llegada])===1);
+  const avgMI=rowsIniT.length?rowsIniT.reduce((s,r)=>s+(parseMin(r[C.minIni])||0),0)/rowsIniT.length:null;
+  const avgML=rowsLleT.length?rowsLleT.reduce((s,r)=>s+(parseMin(r[C.minLle])||0),0)/rowsLleT.length:null;
+  const cIni=pctIni>=90?'#16a34a':'#e53e3e';
+  const cLle=pctLle>=98?'#16a34a':'#e53e3e';
+  const fmtAvg=v=>v===null?'–':((v>0?'+':'')+v.toFixed(1)+' min');
+  const fmtAvgClr=v=>v===null?'#9ca3af':v>0?'#c53030':'#16a34a';
+
+  const card=(titulo,enT,tarde,avgV,pct,colorPct)=>`
+    <div style="background:#f7f9ff;border-radius:10px;padding:.9rem 1rem;border-top:3px solid ${colorPct}">
+      <div style="font-size:.65rem;font-weight:700;color:#6b7a99;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.6rem">${titulo}</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:.28rem">
+        <span style="font-size:.78rem;color:#374151">En tiempo</span>
+        <span style="font-weight:700;color:#16a34a">${N(enT)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:.28rem">
+        <span style="font-size:.78rem;color:#374151">Tarde</span>
+        <span style="font-weight:700;color:#e53e3e">${N(tarde)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:.28rem">
+        <span style="font-size:.78rem;color:#374151">Prom. retraso</span>
+        <span style="font-weight:700;color:${fmtAvgClr(avgV)}">${fmtAvg(avgV)}</span>
+      </div>
+      <div style="margin-top:.55rem;padding-top:.55rem;border-top:1px solid #dde3f0;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:.78rem;font-weight:600">% Cumplimiento</span>
+        <span style="font-size:1.15rem;font-weight:800;color:${colorPct}">${pct.toFixed(1)}%</span>
+      </div>
+    </div>`;
+
+  document.getElementById('operadorModalBody').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem;margin-bottom:.85rem">
+      ${card('Inicios',iniEnT,iniT,avgMI,pctIni,cIni)}
+      ${card('Llegadas',lleEnT,lleT,avgML,pctLle,cLle)}
+    </div>
+    <div style="background:#f7f9ff;border-radius:10px;padding:.75rem 1.1rem;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:.8rem;font-weight:600;color:#374151">Total servicios · ${mesLbl}</span>
+      <span style="font-size:1.35rem;font-weight:800;color:#1a2236">${N(totT)}</span>
+    </div>`;
+  document.getElementById('operadorModal').classList.add('open');
+}
 
 // ── Drill modal nivel 2 ───────────────────────────────────────────
 function openDrillDetail(rutaK,clienteK,tbl){
@@ -1637,14 +1733,25 @@ function openDrillDetail(rutaK,clienteK,tbl){
     const bg=i%2===0?'#ffffff':'#f7f9ff';
     const minIni=parseMin(r[C.minIni]);
     const minLle=parseMin(r[C.minLle]);
+    const horaProg=(C.horaProg&&r[C.horaProg]?String(r[C.horaProg]).trim():'–');
+    const horaReal=(C.horaReal&&r[C.horaReal]?String(r[C.horaReal]).trim():'–');
+    const driverEsc=driver.replace(/'/g,"\\'");
+    const sTime=(r[C.startTime]||'–').trim();
+    const sEta =(r[C.startEta] ||'–').trim();
+    const eTime=(r[C.endTime]  ||'–').trim();
+    const eEta =(r[C.endEta]   ||'–').trim();
     return `<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${fechaFmt}</td>
       <td style="text-align:left;font-weight:600">${unidad}</td>
-      <td style="text-align:left">${driver}</td>
+      <td style="text-align:left;cursor:pointer;color:var(--navy);text-decoration:underline dotted;white-space:nowrap" onclick="openOperadorModal('${driverEsc}')" title="Ver resumen del mes">${driver} <span style="font-size:.6rem;opacity:.5">▶</span></td>
+      <td class="r" style="font-size:.72rem;white-space:nowrap;color:#6b7a99">${sTime}</td>
+      <td class="r" style="font-size:.72rem;white-space:nowrap;color:#374151;font-weight:600">${sEta}</td>
+      <td class="r" style="font-size:.72rem;white-space:nowrap;color:#6b7a99">${eTime}</td>
+      <td class="r" style="font-size:.72rem;white-space:nowrap;color:#374151;font-weight:600">${eEta}</td>
       <td class="r">${minCell(minIni,0)}</td>
       <td class="r">${minCell(minLle,0)}</td>
     </tr>`;
-  }).join('')||'<tr><td colspan="5" class="table-empty">Sin viajes registrados</td></tr>';
+  }).join('')||'<tr><td colspan="9" class="table-empty">Sin viajes registrados</td></tr>';
 
   document.getElementById('drillDetailFoot').textContent=`Servicios: ${totT} viajes · · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
   document.getElementById('drillDetailModal').classList.add('open');
