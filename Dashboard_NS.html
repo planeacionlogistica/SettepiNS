@@ -779,6 +779,9 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
            justify-content:center;gap:1rem;background:#f0f2f7">
         <div class="loading-spinner"></div>
         <div style="font-size:.85rem;color:#6b7a99">Cargando auditoría...</div>
+        <button onclick="retryAudit()" style="display:none;margin-top:.5rem;background:#1a2236;color:#7ed321;
+          border:1px solid #7ed321;border-radius:7px;padding:.4rem 1rem;font-size:.78rem;font-weight:700;
+          cursor:pointer;font-family:'Inter',sans-serif" id="auditRetryBtn">🔄 Reintentar</button>
       </div>
       <div id="auditError" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;
            flex-direction:column;gap:.75rem;background:#f0f2f7;padding:2rem;text-align:center">
@@ -1697,12 +1700,26 @@ function openAuditModal(tripId){
   document.getElementById('auditModal').classList.add('open');
   // pequeño delay para que el modal esté visible antes de cargar el iframe
   setTimeout(()=>{ document.getElementById('auditIframe').src=url; },120);
+  // mostrar botón reintentar después de 5s por si tarda
+  setTimeout(()=>{
+    const btn=document.getElementById('auditRetryBtn');
+    if(btn&&document.getElementById('auditLoader').style.display!=='none') btn.style.display='block';
+  },5000);
   // fallback: si en 12s no cargó, probablemente está bloqueado
   _auditTimer=setTimeout(()=>{
     const ifr=document.getElementById('auditIframe');
     try{ if(!ifr.contentDocument||ifr.contentDocument.URL==='about:blank') onAuditError(); }
     catch(e){ onAuditError(); }
   },12000);
+}
+function retryAudit(){
+  const btn=document.getElementById('auditRetryBtn');
+  if(btn) btn.style.display='none';
+  document.getElementById('auditLoader').style.display='flex';
+  document.getElementById('auditError').style.display='none';
+  const url=document.getElementById('auditModalLink').href;
+  document.getElementById('auditIframe').src='about:blank';
+  setTimeout(()=>{ document.getElementById('auditIframe').src=url; },120);
 }
 function onAuditLoad(){
   clearTimeout(_auditTimer);
