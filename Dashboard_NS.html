@@ -1687,7 +1687,7 @@ const AUDIT_BASE='https://auditoria-nacional-btx.netlify.app/auditoria_mx?user=J
 let _auditTimer=null;
 function openAuditModal(tripId){
   const url=AUDIT_BASE+tripId;
-  document.getElementById('auditModalTitle').textContent='Auditoría · ID '+tripId;
+  document.getElementById('auditModalTitle').textContent='Auditoría del Viaje · ID '+tripId;
   document.getElementById('auditModalSub').textContent='';
   document.getElementById('auditModalLink').href=url;
   document.getElementById('auditErrorLink').href=url;
@@ -1830,7 +1830,7 @@ function openDrillDetail(rutaK,clienteK,tbl){
            style="background:#1a2236;color:#7ed321;border:1px solid #7ed321;border-radius:5px;
                   padding:.15rem .35rem;font-size:.62rem;font-weight:700;cursor:pointer;
                   white-space:nowrap;font-family:'Inter',sans-serif;line-height:1.4"
-           title="Ver ruta en auditoría">🗺️</button>`
+           title="Auditoría del viaje">📍</button>`
       : '';
     return `<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
       <td style="text-align:center;padding:.3rem .4rem">${auditBtn}</td>
