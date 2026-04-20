@@ -41,19 +41,11 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .err.hidden{display:none;}
 
 /* KPI strip */
-.kpi-section{display:flex;gap:1rem;align-items:stretch;}
-.kpi-total{background:var(--navy2);border-radius:12px;padding:1rem 1.4rem;display:flex;flex-direction:column;justify-content:center;min-width:110px;flex-shrink:0;box-shadow:0 2px 8px rgba(26,34,54,.12);}
-.kpi-total-val{font-size:2.4rem;font-weight:700;color:#fff;line-height:1;letter-spacing:-.03em;}
-.kpi-total-lbl{font-size:.62rem;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-top:.3rem;}
-.kpi-total-sub{font-size:.6rem;color:rgba(255,255,255,.3);margin-top:.1rem;}
-.kpi-strip{background:var(--white);border-radius:12px;box-shadow:0 2px 8px rgba(26,34,54,.07);display:flex;flex:1;overflow:hidden;}
-.kpi-chip{flex:1;display:flex;flex-direction:column;justify-content:center;padding:.65rem .75rem;border-left:1px solid var(--border);position:relative;transition:background .12s;cursor:default;min-width:0;}
-.kpi-chip:first-child{border-left:none;}
-.kpi-chip:hover{background:#fafbff;}
-.kpi-chip-bar{position:absolute;top:0;left:0;right:0;height:3px;}
-.kpi-chip-val{font-size:1.45rem;font-weight:700;line-height:1;letter-spacing:-.02em;margin-top:.2rem;}
-.kpi-chip-lbl{font-size:.58rem;font-weight:600;color:var(--muted);margin-top:.2rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.kpi-chip-pct{font-size:.57rem;color:var(--muted);margin-top:.1rem;}
+.kpi-section{display:flex;gap:.7rem;align-items:stretch;}
+.kpi-chip{flex:1;border-radius:10px;padding:.9rem 1rem;display:flex;flex-direction:column;justify-content:space-between;min-width:0;border:1px solid transparent;}
+.kpi-chip-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;}
+.kpi-chip-val{font-size:2rem;font-weight:700;line-height:1;letter-spacing:-.02em;}
+.kpi-chip-pct{font-size:.67rem;margin-top:.3rem;}
 
 /* Mid */
 .mid-grid{display:grid;grid-template-columns:310px 1fr;gap:1.1rem;}
@@ -100,18 +92,17 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .modal-sub{font-size:.7rem;color:rgba(255,255,255,.55);display:block;margin-top:.1rem;}
 .modal-close{background:none;border:none;color:rgba(255,255,255,.65);font-size:1.2rem;cursor:pointer;padding:.2rem .55rem;border-radius:4px;line-height:1;}
 .modal-close:hover{color:#fff;}
-.modal-body{overflow-y:auto;padding:1.1rem 1.25rem;display:flex;flex-direction:column;gap:1rem;}
-.mg-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding-bottom:5px;border-bottom:2px solid;}
-.mg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:7px;}
-.ucard{border-radius:8px;padding:9px 12px;border:1px solid transparent;}
-.uc-op{background:#EAF3DE;border-color:#C0DD97;color:#3B6D11;}
-.uc-mto{background:#FAEEDA;border-color:#FAC775;color:#854F0B;}
-.uc-cor{background:#FCEBEB;border-color:#F7C1C1;color:#A32D2D;}
-.uc-dis{background:#E6F1FB;border-color:#B5D4F4;color:#185FA5;}
-.uc-esp{background:#f3f4f6;border-color:#d1d5db;color:#6b7a99;}
-.un{font-weight:700;font-size:.85rem;}
-.ut{font-size:.68rem;margin-top:2px;opacity:.88;}
+.modal-body{overflow-y:auto;padding:0;}
 .no-data{text-align:center;padding:2rem;color:var(--muted);font-size:.8rem;}
+.modal-table{width:100%;border-collapse:collapse;}
+.modal-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:.42rem .75rem;text-align:left;position:sticky;top:0;white-space:nowrap;}
+.modal-table thead th.r{text-align:right;}
+.modal-table tbody tr{border-bottom:1px solid var(--border);}
+.modal-table tbody tr:last-child{border-bottom:none;}
+.modal-table tbody tr:hover{background:#f7f9ff;}
+.modal-table tbody td{padding:.4rem .75rem;font-size:.75rem;color:var(--text);}
+.modal-table tbody td.r{text-align:right;}
+.estatus-pill{display:inline-block;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap;}
 
 @media(max-width:1200px){.kpi-row.r1,.kpi-row.r2{grid-template-columns:repeat(3,1fr);}.mid-grid{grid-template-columns:1fr;}}
 @media(max-width:768px){.kpi-row.r1,.kpi-row.r2{grid-template-columns:repeat(2,1fr);}.main{padding:.75rem;}}
@@ -145,14 +136,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 <main class="main">
   <div class="err hidden" id="errBanner">⚠️ <span id="errMsg"></span></div>
 
-  <div class="kpi-section">
-    <div class="kpi-total">
-      <div class="kpi-total-val" id="kTotalVal">–</div>
-      <div class="kpi-total-lbl">Total unidades</div>
-      <div class="kpi-total-sub">Flota activa</div>
-    </div>
-    <div class="kpi-strip" id="kpiStrip"></div>
-  </div>
+  <div class="kpi-section" id="kpiSection"></div>
 
   <div class="mid-grid">
     <div class="chart-card">
@@ -294,16 +278,15 @@ function draw() {
   drawClientes();
 }
 
+function hexToRgb(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return r+','+g+','+b;}
 function drawKPIs(t) {
-  document.getElementById('kTotalVal').textContent = t;
   const allS=['Operando','Mtto Garcia','Mtto Cienega','Taller Externo','Corralon','Alto Rezago','Disponible','Transferencia','Pendiente para baja'];
-  document.getElementById('kpiStrip').innerHTML = allS.map(s=>{
+  document.getElementById('kpiSection').innerHTML = allS.map(s=>{
     const cfg=getStatusCfg(s),n=statusCount(DATA,s);
-    return `<div class="kpi-chip">
-      <div class="kpi-chip-bar" style="background:${cfg.col}"></div>
+    return `<div class="kpi-chip" style="background:rgba(${hexToRgb(cfg.col)},.08);border-color:rgba(${hexToRgb(cfg.col)},.2)">
+      <div class="kpi-chip-lbl" style="color:rgba(${hexToRgb(cfg.col)},.75)">${s}</div>
       <div class="kpi-chip-val" style="color:${cfg.col}">${n}</div>
-      <div class="kpi-chip-lbl">${s}</div>
-      <div class="kpi-chip-pct">${pct(n,t)}</div>
+      <div class="kpi-chip-pct" style="color:rgba(${hexToRgb(cfg.col)},.65)">${pct(n,t)} del total</div>
     </div>`;
   }).join('');
 }
@@ -363,29 +346,40 @@ function openModal(cl) {
   const alertStr=[cor?`${cor} en corralón/rezago`:'',mto?`${mto} en mantenimiento`:''].filter(Boolean).join(' · ');
   document.getElementById('modalSub').textContent=`${cl.units.length} unidades${alertStr?' · ⚠ '+alertStr:''}`;
 
-  const byS={};
-  cl.units.forEach(u=>{const s=(u[C.estatus]||'Sin estatus').trim();if(!byS[s])byS[s]=[];byS[s].push(u);});
+  // Ordenar por estatus
   const orden=ALL_STATUSES.map(s=>s.key.toLowerCase());
-  const grupos=Object.entries(byS).sort(([a],[b])=>{
-    const ia=orden.indexOf(a.toLowerCase()),ib=orden.indexOf(b.toLowerCase());
+  const sorted=[...cl.units].sort((a,b)=>{
+    const ia=orden.indexOf((a[C.estatus]||'').toLowerCase()),ib=orden.indexOf((b[C.estatus]||'').toLowerCase());
     return(ia<0?99:ia)-(ib<0?99:ib);
   });
 
-  let html='';
-  grupos.forEach(([estatus,units])=>{
-    const cfg=getStatusCfg(estatus);
-    html+=`<div><div class="mg-title" style="color:${cfg.col};border-color:${cfg.col}">${estatus} (${units.length})</div><div class="mg-grid">`;
-    units.forEach(u=>{
-      const tipo=(u[C.tipo]||'').trim(),marca=(u[C.marca]||'').trim(),modelo=(u[C.modelo]||'').trim(),anio=(u[C.anio]||'').trim();
-      const nota=(u[C.comentario]||'').trim(),jefe=(u[C.jefe]||'').trim();
-      const sub1=[tipo,marca,modelo,anio].filter(Boolean).join(' · ');
-      const sub2=nota&&nota.toLowerCase()!=='ningun comentario'?nota:'';
-      const sub3=jefe&&jefe!=='SIN ASIGNACION'?'Jefe: '+jefe:'';
-      html+=`<div class="ucard ${cfg.cls}"><div class="un">${u[C.id]||'–'}</div>${sub1?`<div class="ut">${sub1}</div>`:''}${sub2?`<div class="ut">${sub2}</div>`:''}${sub3?`<div class="ut" style="opacity:.7">${sub3}</div>`:''}</div>`;
-    });
-    html+=`</div></div>`;
+  let rows='';
+  sorted.forEach(u=>{
+    const cfg=getStatusCfg(u[C.estatus]);
+    const nota=(u[C.comentario]||'').trim();
+    const jefe=(u[C.jefe]||'').trim();
+    const ger=(u[C.gerente]||'').trim();
+    rows+=`<tr>
+      <td style="font-weight:600">${u[C.id]||'–'}</td>
+      <td>${u[C.tipo]||'–'}</td>
+      <td>${u[C.marca]||'–'}</td>
+      <td>${u[C.modelo]||'–'}</td>
+      <td>${u[C.anio]||'–'}</td>
+      <td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${u[C.estatus]||'–'}</span></td>
+      <td>${nota&&nota.toLowerCase()!=='ningun comentario'?nota:'–'}</td>
+      <td>${jefe&&jefe!=='SIN ASIGNACION'?jefe:'–'}</td>
+      <td>${ger&&ger!=='SIN ASIGNACION'?ger:'–'}</td>
+    </tr>`;
   });
-  document.getElementById('modalBody').innerHTML=html||'<p class="no-data">Sin unidades</p>';
+
+  document.getElementById('modalBody').innerHTML=`
+    <table class="modal-table">
+      <thead><tr>
+        <th>IDS</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Año</th>
+        <th>Estatus</th><th>Comentario</th><th>Jefe</th><th>Gerente</th>
+      </tr></thead>
+      <tbody>${rows||'<tr><td colspan="9" class="no-data">Sin unidades</td></tr>'}</tbody>
+    </table>`;
   document.getElementById('unitModal').classList.add('open');
 }
 
