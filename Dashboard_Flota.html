@@ -40,16 +40,20 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .err{background:#fff5f5;border-left:4px solid var(--red);padding:.75rem 1rem;font-size:.8rem;color:#c53030;border-radius:8px;}
 .err.hidden{display:none;}
 
-/* KPIs en 2 filas */
-.kpi-section{display:flex;flex-direction:column;gap:.6rem;}
-.kpi-row{display:grid;gap:.7rem;}
-.kpi-row.r1{grid-template-columns:1.2fr repeat(4,1fr);}
-.kpi-row.r2{grid-template-columns:repeat(5,1fr);}
-.kpi{background:var(--white);border-radius:10px;padding:.85rem 1rem;box-shadow:0 2px 8px rgba(26,34,54,.07);border-top:3px solid var(--kc,#888);transition:transform .15s;}
-.kpi:hover{transform:translateY(-2px);}
-.kpi-val{font-size:1.75rem;font-weight:700;color:var(--kc,#888);line-height:1;letter-spacing:-.02em;}
-.kpi-lbl{font-size:.62rem;font-weight:600;color:var(--muted);margin-top:.25rem;text-transform:uppercase;letter-spacing:.04em;}
-.kpi-sub{font-size:.6rem;color:var(--muted);margin-top:.1rem;}
+/* KPI strip */
+.kpi-section{display:flex;gap:1rem;align-items:stretch;}
+.kpi-total{background:var(--navy2);border-radius:12px;padding:1rem 1.4rem;display:flex;flex-direction:column;justify-content:center;min-width:110px;flex-shrink:0;box-shadow:0 2px 8px rgba(26,34,54,.12);}
+.kpi-total-val{font-size:2.4rem;font-weight:700;color:#fff;line-height:1;letter-spacing:-.03em;}
+.kpi-total-lbl{font-size:.62rem;font-weight:600;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.06em;margin-top:.3rem;}
+.kpi-total-sub{font-size:.6rem;color:rgba(255,255,255,.3);margin-top:.1rem;}
+.kpi-strip{background:var(--white);border-radius:12px;box-shadow:0 2px 8px rgba(26,34,54,.07);display:flex;flex:1;overflow:hidden;}
+.kpi-chip{flex:1;display:flex;flex-direction:column;justify-content:center;padding:.65rem .75rem;border-left:1px solid var(--border);position:relative;transition:background .12s;cursor:default;min-width:0;}
+.kpi-chip:first-child{border-left:none;}
+.kpi-chip:hover{background:#fafbff;}
+.kpi-chip-bar{position:absolute;top:0;left:0;right:0;height:3px;}
+.kpi-chip-val{font-size:1.45rem;font-weight:700;line-height:1;letter-spacing:-.02em;margin-top:.2rem;}
+.kpi-chip-lbl{font-size:.58rem;font-weight:600;color:var(--muted);margin-top:.2rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.kpi-chip-pct{font-size:.57rem;color:var(--muted);margin-top:.1rem;}
 
 /* Mid */
 .mid-grid{display:grid;grid-template-columns:310px 1fr;gap:1.1rem;}
@@ -142,8 +146,12 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   <div class="err hidden" id="errBanner">⚠️ <span id="errMsg"></span></div>
 
   <div class="kpi-section">
-    <div class="kpi-row r1" id="kpiRow1"></div>
-    <div class="kpi-row r2" id="kpiRow2"></div>
+    <div class="kpi-total">
+      <div class="kpi-total-val" id="kTotalVal">–</div>
+      <div class="kpi-total-lbl">Total unidades</div>
+      <div class="kpi-total-sub">Flota activa</div>
+    </div>
+    <div class="kpi-strip" id="kpiStrip"></div>
   </div>
 
   <div class="mid-grid">
@@ -287,13 +295,17 @@ function draw() {
 }
 
 function drawKPIs(t) {
-  const r1=['Operando','Mtto Garcia','Mtto Cienega','Taller Externo'];
-  const r2=['Corralon','Alto Rezago','Disponible','Transferencia','Pendiente para baja'];
-  document.getElementById('kpiRow1').innerHTML =
-    `<div class="kpi" style="--kc:var(--navy)"><div class="kpi-val" style="color:var(--navy)">${t}</div><div class="kpi-lbl">Total unidades</div><div class="kpi-sub">Flota activa</div></div>` +
-    r1.map(s=>{const cfg=getStatusCfg(s),n=statusCount(DATA,s);return `<div class="kpi" style="--kc:${cfg.col}"><div class="kpi-val">${n}</div><div class="kpi-lbl">${s}</div><div class="kpi-sub">${pct(n,t)}</div></div>`;}).join('');
-  document.getElementById('kpiRow2').innerHTML =
-    r2.map(s=>{const cfg=getStatusCfg(s),n=statusCount(DATA,s);return `<div class="kpi" style="--kc:${cfg.col}"><div class="kpi-val">${n}</div><div class="kpi-lbl">${s}</div><div class="kpi-sub">${pct(n,t)}</div></div>`;}).join('');
+  document.getElementById('kTotalVal').textContent = t;
+  const allS=['Operando','Mtto Garcia','Mtto Cienega','Taller Externo','Corralon','Alto Rezago','Disponible','Transferencia','Pendiente para baja'];
+  document.getElementById('kpiStrip').innerHTML = allS.map(s=>{
+    const cfg=getStatusCfg(s),n=statusCount(DATA,s);
+    return `<div class="kpi-chip">
+      <div class="kpi-chip-bar" style="background:${cfg.col}"></div>
+      <div class="kpi-chip-val" style="color:${cfg.col}">${n}</div>
+      <div class="kpi-chip-lbl">${s}</div>
+      <div class="kpi-chip-pct">${pct(n,t)}</div>
+    </div>`;
+  }).join('');
 }
 
 function drawBars(t) {
