@@ -150,7 +150,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       <a href="Dashboard_ralenti.html">Ralentí</a>
     </div>
   </div>
-  
 </nav>
 
 <!-- Loading -->
@@ -159,7 +158,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   <div class="loading-box">
     <div class="loading-spinner"></div>
     <div class="loading-title">Cargando Flota...</div>
-    <div class="loading-sub">Conectando con Google Sheets · Hoja: flota</div>
+    <div class="loading-sub">Conectando con Google Sheets · Hoja: Flota</div>
     <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
   </div>
 </div>
@@ -254,28 +253,50 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 
 <script>
 /* ════════════════════════════════════════════════
-   CONFIGURACIÓN — ajusta aquí cuando tengas las columnas
+   CONFIGURACIÓN
    ════════════════════════════════════════════════ */
-const SHEET_ID   = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I'; // <-- mismo sheet
-const SHEET_NAME = 'flota';
+const SHEET_ID   = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
+const SHEET_NAME = 'Flota';
 
-// Nombres de columnas en tu pestaña "flota"
+// Columnas exactas del sheet
 const C = {
-  id:       'id_unidad',      // número/nombre de la unidad
-  tipo:     'tipo',           // Tractor, Full, etc.
-  cliente:  'cliente',        // nombre del cliente
-  estatus:  'estatus',        // op | mto | cor | dis | esp
-  dias_cor: 'dias_corralon',  // número (0 si no aplica)
-  notas:    'notas',          // texto libre
+  id:       'IDS',
+  tipo:     'Tipo',
+  marca:    'Marca',
+  modelo:   'Modelo',
+  anio:     'Año',
+  cliente:  'PLANTA',
+  estatus:  'Estatus',
+  comentario:'COMENTARIO',
+  clima:    'Marca del clima',
+  funcClima:'Funciona clima',
+  jefe:     'Jefe',
+  gerente:  'Gerente',
 };
 
-/* Colores y labels por estatus */
+/* Mapeo estatus texto → categoría visual */
+const STATUS_MAP = {
+  'operando':            'op',
+  'mtto garcia':         'mto',
+  'mtto cienega':        'mto',
+  'taller externo':      'mto',
+  'corralon':            'cor',
+  'alto rezago':         'cor',
+  'disponible':          'dis',
+  'transferencia':       'esp',
+  'pendiente para baja': 'esp',
+};
+function getCategoria(estatusRaw) {
+  return STATUS_MAP[(estatusRaw || '').toLowerCase().trim()] || 'esp';
+}
+
+/* Colores y labels por categoría */
 const SCFG = {
-  op:  { label:'Operando',       col:'#639922', bg:'#EAF3DE', brd:'#C0DD97', bcls:'b-op',  cls:'uc-op'  },
-  mto: { label:'Mantenimiento',  col:'#BA7517', bg:'#FAEEDA', brd:'#FAC775', bcls:'b-mto', cls:'uc-mto' },
-  cor: { label:'Corralón',       col:'#E24B4A', bg:'#FCEBEB', brd:'#F7C1C1', bcls:'b-cor', cls:'uc-cor' },
-  dis: { label:'Disponible',     col:'#378ADD', bg:'#E6F1FB', brd:'#B5D4F4', bcls:'b-dis', cls:'uc-dis' },
-  esp: { label:'Especial/Paro',  col:'#888780', bg:'#f3f4f6', brd:'#d1d5db', bcls:'b-esp', cls:'uc-esp' },
+  op:  { label:'Operando',          col:'#639922', bg:'#EAF3DE', brd:'#C0DD97', bcls:'b-op',  cls:'uc-op'  },
+  mto: { label:'Mantenimiento',     col:'#BA7517', bg:'#FAEEDA', brd:'#FAC775', bcls:'b-mto', cls:'uc-mto' },
+  cor: { label:'Corralón / Rezago', col:'#E24B4A', bg:'#FCEBEB', brd:'#F7C1C1', bcls:'b-cor', cls:'uc-cor' },
+  dis: { label:'Disponible',        col:'#378ADD', bg:'#E6F1FB', brd:'#B5D4F4', bcls:'b-dis', cls:'uc-dis' },
+  esp: { label:'Especial / Baja',   col:'#888780', bg:'#f3f4f6', brd:'#d1d5db', bcls:'b-esp', cls:'uc-esp' },
 };
 const STATUS_ORDER = ['op','mto','cor','dis','esp'];
 
@@ -309,7 +330,7 @@ function parseCSV(text) {
 }
 
 /* ── Count helpers ── */
-function countBy(units, s) { return units.filter(u => u[C.estatus] === s).length; }
+function countBy(units, s) { return units.filter(u => getCategoria(u[C.estatus]) === s).length; }
 function pct(n, total) { return total ? (n / total * 100).toFixed(1) + '%' : '0%'; }
 
 /* ── Carga de datos ── */
@@ -322,11 +343,12 @@ async function loadSheet() {
     const res = await fetch(csvUrl());
     if (!res.ok) throw new Error('HTTP ' + res.status + ' — verifica que el Sheet sea público y que la hoja se llame "flota".');
     const rows = parseCSV(await res.text());
-    if (!rows.length) throw new Error('Sin datos en hoja "flota". Verifica que tenga encabezados y filas.');
-    // Validar que existan columnas esperadas
+    if (!rows.length) throw new Error('Sin datos en hoja "Flota". Verifica que tenga encabezados y filas.');
+    // Validar columnas clave
     const firstRow = rows[0];
-    const missing = Object.entries(C).filter(([k, v]) => !(v in firstRow)).map(([k, v]) => v);
-    if (missing.length) throw new Error(`Columnas no encontradas: ${missing.join(', ')}. Ajusta los nombres en la sección CONFIGURACIÓN del código.`);
+    const keysToCheck = ['id','tipo','cliente','estatus','jefe','gerente'];
+    const missing = keysToCheck.filter(k => !(C[k] in firstRow)).map(k => C[k]);
+    if (missing.length) throw new Error(`Columnas no encontradas: ${missing.join(', ')}. Revisa la sección CONFIGURACIÓN.`);
     DATA = rows;
     ov.classList.add('hidden');
     setTimeout(() => ov.style.display = 'none', 450);
@@ -432,21 +454,13 @@ function drawClientes() {
     const tr = document.createElement('tr');
     tr.className = 'cli-row';
 
-    // Alerta corralón
-    const enCor = cl.units.filter(u => u[C.estatus] === 'cor');
-    const maxDias = enCor.reduce((max, u) => Math.max(max, parseInt(u[C.dias_cor]) || 0), 0);
-    const alertaHtml = enCor.length > 0
-      ? `<span class="alerta-badge">${enCor.length} corralón${maxDias > 0 ? ' · ' + maxDias + 'd' : ''}</span>`
-      : '<span style="color:var(--muted);font-size:.7rem">–</span>';
-
-    // Alerta mtto
-    const enMto = cl.units.filter(u => u[C.estatus] === 'mto');
-    let alertaFullHtml = alertaHtml;
-    if (enMto.length > 0 && enCor.length === 0) {
-      alertaFullHtml = `<span class="badge b-mto">${enMto.length} en mtto</span>`;
-    } else if (enMto.length > 0 && enCor.length > 0) {
-      alertaFullHtml += ` <span class="badge b-mto">${enMto.length} mtto</span>`;
-    }
+    // Alertas
+    const enCor = cl.units.filter(u => getCategoria(u[C.estatus]) === 'cor');
+    const enMto = cl.units.filter(u => getCategoria(u[C.estatus]) === 'mto');
+    let alertaFullHtml = '';
+    if (enCor.length > 0) alertaFullHtml += `<span class="alerta-badge">${enCor.length} corralón/rezago</span> `;
+    if (enMto.length > 0) alertaFullHtml += `<span class="badge b-mto">${enMto.length} mtto</span>`;
+    if (!alertaFullHtml) alertaFullHtml = '<span style="color:var(--muted);font-size:.7rem">–</span>';
 
     tr.innerHTML = `
       <td style="font-weight:600">${cl.name}</td>
@@ -486,7 +500,7 @@ function buildMiniBar(units) {
 
 function buildDetailContent(cl) {
   const byStatus = {};
-  STATUS_ORDER.forEach(s => { byStatus[s] = cl.units.filter(u => u[C.estatus] === s); });
+  STATUS_ORDER.forEach(s => { byStatus[s] = cl.units.filter(u => getCategoria(u[C.estatus]) === s); });
 
   let html = '<div class="detail-content">';
   STATUS_ORDER.forEach(s => {
@@ -495,13 +509,18 @@ function buildDetailContent(cl) {
     html += `<div class="dc-section" style="margin-top:10px;color:${SCFG[s].col}">${SCFG[s].label} (${group.length})</div>`;
     html += '<div class="unit-cards">';
     group.forEach(u => {
-      const dias = parseInt(u[C.dias_cor]) || 0;
-      const corBadge = s === 'cor' && dias > 0 ? `<span class="cor-badge">${dias}d</span>` : '';
-      const nota = (u[C.notas] || '').trim();
+      const estatusReal = (u[C.estatus] || '').trim();
+      const nota = (u[C.comentario] || '').trim();
+      const marca = (u[C.marca] || '').trim();
+      const modelo = (u[C.modelo] || '').trim();
+      const anio = (u[C.anio] || '').trim();
+      const jefe = (u[C.jefe] || '').trim();
+      const sub = [marca, modelo, anio].filter(Boolean).join(' ');
       html += `<div class="ucard ${SCFG[s].cls}">
-        ${corBadge}
         <div class="un">${u[C.id] || '–'}</div>
-        <div class="ut">${u[C.tipo] || ''}${nota ? ' · ' + nota : ''}</div>
+        <div class="ut">${u[C.tipo] || ''}${sub ? ' · ' + sub : ''}</div>
+        <div class="ut" style="opacity:.75">${estatusReal}${nota && nota !== 'ningun comentario' ? ' · ' + nota : ''}</div>
+        ${jefe && jefe !== 'SIN ASIGNACION' ? `<div class="ut" style="opacity:.65">Jefe: ${jefe}</div>` : ''}
       </div>`;
     });
     html += '</div>';
