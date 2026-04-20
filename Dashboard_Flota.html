@@ -1,6 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flota | Traxión</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon-traxion.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
+<style>
+/* ── Nav (igual que el resto de dashboards) ── */
+nav{background:#1f2937;padding:15px 30px;display:flex;gap:25px;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);position:sticky;top:0;z-index:300;flex-wrap:wrap;}
+nav>a{color:#e5e7eb;text-decoration:none;font-weight:600;padding:8px 16px;border-radius:8px;transition:all .3s;white-space:nowrap;}
+nav>a:first-child{color:#84cc16;font-weight:800;font-size:18px;}
+nav>a:hover{background:#374151;}
+.dropdown{position:relative;display:inline-block;}
+.dropdown-toggle{color:#e5e7eb;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;background:transparent;border:none;font-size:14px;font-family:inherit;}
+.dropdown-toggle:hover{background:#374151;}
+.dropdown-arrow{font-size:12px;transition:transform .3s;}
+.dropdown.open .dropdown-arrow{transform:rotate(180deg);}
+.dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#374151;min-width:220px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);margin-top:8px;z-index:1000;overflow:hidden;}
+.dropdown.open .dropdown-menu{display:block;}
+.dropdown-menu a{display:block;padding:12px 20px;color:#e5e7eb;text-decoration:none;font-weight:600;transition:all .3s;}
+.dropdown-menu a:hover{background:#4b5563;padding-left:25px;}
+.dropdown-menu a.active{background:#84cc16;color:#1f2937;}
 
-<html>
-  
-  <p>aqui va la flota</p>
-  
+/* ── Variables y reset ── */
+:root{--navy:#1a2236;--navy2:#222d42;--green:#7ed321;--white:#fff;--bg:#f0f2f7;--border:#dde3f0;--text:#1a2236;--muted:#6b7a99;--red:#e53e3e;--amber:#d97706;
+  --col-op:#639922;--col-mto:#BA7517;--col-cor:#E24B4A;--col-dis:#378ADD;--col-esp:#888780;
+  --bg-op:#EAF3DE;--bg-mto:#FAEEDA;--bg-cor:#FCEBEB;--bg-dis:#E6F1FB;--bg-esp:#f3f4f6;}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;min-height:100vh;}
+
+/* ── Layout ── */
+.layout{display:flex;align-items:flex-start;min-height:calc(100vh - 58px);}
+.main{flex:1;padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0;}
+
+/* ── Loading ── */
+.loading-overlay{position:fixed;inset:0;z-index:999;background:#f0f2f7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;transition:opacity .4s ease;}
+.loading-overlay.hidden{opacity:0;pointer-events:none;}
+.loading-logo{font-size:1.1rem;font-weight:800;color:#1a2236;}
+.loading-logo span{color:#7ed321;}
+.loading-box{background:#fff;border-radius:16px;padding:2.2rem 3rem;box-shadow:0 4px 24px rgba(26,34,54,.1);display:flex;flex-direction:column;align-items:center;gap:1.1rem;min-width:280px;text-align:center;}
+.loading-spinner{width:48px;height:48px;border-radius:50%;border:4px solid #dde3f0;border-top-color:#7ed321;animation:spin .75s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-title{font-size:.95rem;font-weight:700;color:#1a2236;}
+.loading-sub{font-size:.78rem;color:#6b7a99;line-height:1.5;}
+.loading-bar-track{width:100%;height:5px;background:#dde3f0;border-radius:3px;overflow:hidden;}
+.loading-bar-fill{height:100%;width:0%;background:#7ed321;border-radius:3px;animation:loadbar 8s ease-out forwards;}
+@keyframes loadbar{0%{width:0%}80%{width:85%}100%{width:95%}}
+
+/* ── Error ── */
+.err{background:#fff5f5;border-left:4px solid var(--red);padding:.75rem 1rem;font-size:.8rem;color:#c53030;border-radius:8px;}
+.err.hidden{display:none;}
+
+/* ── KPIs ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:.8rem;}
+.kpi{background:var(--white);border-radius:12px;padding:1rem 1.25rem;box-shadow:0 2px 10px rgba(26,34,54,.07);border-top:4px solid var(--kc,var(--green));transition:transform .15s;}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,34,54,.12);}
+.kpi-val{font-size:1.8rem;font-weight:700;color:var(--kc,var(--green));line-height:1;letter-spacing:-.02em;}
+.kpi-lbl{font-size:.65rem;font-weight:600;color:var(--muted);margin-top:.3rem;text-transform:uppercase;letter-spacing:.05em;}
+.kpi-sub{font-size:.65rem;color:var(--muted);margin-top:.15rem;opacity:.8;}
+
+/* ── Mid grid (dona + clientes) ── */
+.mid-grid{display:grid;grid-template-columns:340px 1fr;gap:1.1rem;}
+.chart-card{background:var(--white);border-radius:12px;padding:1.1rem 1.35rem;box-shadow:0 2px 10px rgba(26,34,54,.07);display:flex;flex-direction:column;gap:.7rem;}
+.chart-title{font-size:.95rem;font-weight:700;color:var(--text);}
+.chart-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem;}
+.donut-wrap{position:relative;width:100%;height:220px;}
+
+/* ── Barras de estatus ── */
+.sbar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.sdot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.sname{font-size:.75rem;color:var(--text);flex:1;}
+.bwrap{flex:2;height:5px;background:var(--bg);border-radius:3px;overflow:hidden;}
+.bfill{height:100%;border-radius:3px;}
+.scnt{font-size:.75rem;font-weight:600;color:var(--text);min-width:22px;text-align:right;}
+.lgrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+.lgi{display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--muted);}
+.lgsq{width:8px;height:8px;border-radius:2px;}
+
+/* ── Tabla de clientes con drill-down ── */
+.table-card{background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);overflow:visible;}
+.table-hdr{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);}
+.table-hdr-title{font-size:.9rem;font-weight:700;color:var(--text);}
+.table-hdr-sub{font-size:.7rem;color:var(--muted);margin-top:.1rem;}
+.table-count{font-size:.72rem;color:var(--muted);background:var(--bg);border-radius:20px;padding:.2rem .65rem;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:.4rem .75rem;text-align:left;}
+.data-table thead th.r{text-align:right;}
+
+/* Fila de cliente (clickeable) */
+.cli-row{cursor:pointer;transition:background .15s;}
+.cli-row:hover td{background:#f7f9ff;}
+.cli-row.open td{background:#f0f4ff;}
+.cli-row td{padding:.5rem .75rem;border-bottom:1px solid var(--border);font-size:.78rem;color:var(--text);vertical-align:middle;}
+.cli-row:last-of-type td{border-bottom:none;}
+.arrow-icon{font-size:.7rem;color:var(--muted);transition:transform .2s;display:inline-block;}
+.arrow-icon.open{transform:rotate(90deg);}
+
+/* Fila de detalle expandible */
+.detail-row td{padding:0;border-bottom:1px solid var(--border);}
+.detail-inner{overflow:hidden;max-height:0;transition:max-height .3s ease;}
+.detail-inner.open{max-height:500px;}
+.detail-content{padding:10px 14px 14px 14px;background:#f8faff;}
+.dc-section{font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px;}
+.unit-cards{display:flex;flex-wrap:wrap;gap:6px;}
+.ucard{border-radius:8px;padding:7px 11px;font-size:.72rem;border:1px solid transparent;min-width:100px;position:relative;}
+.uc-op{background:var(--bg-op);border-color:#C0DD97;color:var(--col-op);}
+.uc-mto{background:var(--bg-mto);border-color:#FAC775;color:var(--col-mto);}
+.uc-cor{background:var(--bg-cor);border-color:#F7C1C1;color:var(--col-cor);}
+.uc-dis{background:var(--bg-dis);border-color:#B5D4F4;color:var(--col-dis);}
+.uc-esp{background:var(--bg-esp);border-color:#d1d5db;color:var(--col-esp);}
+.un{font-weight:700;font-size:.82rem;}
+.ut{font-size:.68rem;margin-top:1px;opacity:.9;}
+.cor-badge{position:absolute;top:-5px;right:-5px;background:#E24B4A;color:#fff;font-size:.55rem;font-weight:700;border-radius:10px;padding:1px 5px;white-space:nowrap;}
+.alerta-badge{display:inline-block;font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:8px;background:#FCEBEB;color:#A32D2D;margin-left:5px;vertical-align:middle;}
+
+/* Mini barra de mix */
+.mini-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;width:80px;gap:1px;}
+.mb-seg{height:100%;}
+
+/* Badge estatus dominante */
+.badge{display:inline-block;font-size:.62rem;font-weight:700;padding:2px 7px;border-radius:8px;}
+.b-op{background:var(--bg-op);color:var(--col-op);}
+.b-mto{background:var(--bg-mto);color:var(--col-mto);}
+.b-cor{background:var(--bg-cor);color:var(--col-cor);}
+.b-dis{background:var(--bg-dis);color:var(--col-dis);}
+.b-esp{background:var(--bg-esp);color:var(--col-esp);}
+
+/* Sin datos */
+.no-data{text-align:center;padding:2rem;color:var(--muted);font-size:.8rem;}
+
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr);}.mid-grid{grid-template-columns:1fr;}}
+@media(max-width:768px){.kpi-grid{grid-template-columns:repeat(2,1fr);}.main{padding:.75rem;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">TRAXIÓN</a>
+  <div class="dropdown" id="dd1">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dd1')">Logística <span class="dropdown-arrow">▼</span></button>
+    <div class="dropdown-menu">
+      <a href="Dashboard_NS.html">Nivel de Servicio</a>
+      <a href="Dashboard_Kilometros.html">Kilómetros</a>
+      <a href="Dashboard_Flota.html" class="active">Flota</a>
+      <a href="Dashboard_ralenti.html">Ralentí</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-logo"><span>TRAXIÓN</span></div>
+  <div class="loading-box">
+    <div class="loading-spinner"></div>
+    <div class="loading-title">Cargando Flota...</div>
+    <div class="loading-sub">Conectando con Google Sheets · Hoja: flota</div>
+    <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+  </div>
+</div>
+
+<div class="layout">
+  <main class="main">
+
+    <div class="err hidden" id="errBanner">⚠️ <span id="errMsg"></span></div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi" style="--kc:#1a2236">
+        <div class="kpi-val" id="kTotal">–</div>
+        <div class="kpi-lbl">Total unidades</div>
+        <div class="kpi-sub">Flota activa</div>
+      </div>
+      <div class="kpi" style="--kc:var(--col-op)">
+        <div class="kpi-val" id="kOp">–</div>
+        <div class="kpi-lbl">Operando</div>
+        <div class="kpi-sub" id="kOpPct">–</div>
+      </div>
+      <div class="kpi" style="--kc:var(--col-mto)">
+        <div class="kpi-val" id="kMto">–</div>
+        <div class="kpi-lbl">Mantenimiento</div>
+        <div class="kpi-sub" id="kMtoPct">–</div>
+      </div>
+      <div class="kpi" style="--kc:var(--col-cor)">
+        <div class="kpi-val" id="kCor">–</div>
+        <div class="kpi-lbl">Corralón</div>
+        <div class="kpi-sub" id="kCorPct">–</div>
+      </div>
+      <div class="kpi" style="--kc:var(--col-dis)">
+        <div class="kpi-val" id="kDis">–</div>
+        <div class="kpi-lbl">Disponible</div>
+        <div class="kpi-sub">Sin asignar</div>
+      </div>
+      <div class="kpi" style="--kc:var(--col-esp)">
+        <div class="kpi-val" id="kEsp">–</div>
+        <div class="kpi-lbl">Especial / Paro</div>
+        <div class="kpi-sub">Retención</div>
+      </div>
+    </div>
+
+    <!-- Dona + Clientes -->
+    <div class="mid-grid">
+
+      <!-- Dona -->
+      <div class="chart-card">
+        <div>
+          <div class="chart-title">Distribución de estatus</div>
+          <div class="chart-sub">Total de unidades por estado actual</div>
+        </div>
+
+        <!-- Barras -->
+        <div id="statusBars"></div>
+
+        <!-- Dona Chart.js -->
+        <div class="donut-wrap">
+          <canvas id="donutChart" role="img" aria-label="Dona de estatus de flota">Distribución de unidades por estatus.</canvas>
+        </div>
+        <div class="lgrow" id="donutLegend"></div>
+      </div>
+
+      <!-- Tabla clientes drill-down -->
+      <div class="table-card">
+        <div class="table-hdr">
+          <div>
+            <div class="table-hdr-title">Clientes — clic para ver unidades</div>
+            <div class="table-hdr-sub">Expandir fila para ver detalle de unidades</div>
+          </div>
+          <span class="table-count" id="cntClientes">–</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th class="r">Uds</th>
+                <th>Mix</th>
+                <th>Alerta</th>
+                <th style="width:20px"></th>
+              </tr>
+            </thead>
+            <tbody id="clientesTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════
+   CONFIGURACIÓN — ajusta aquí cuando tengas las columnas
+   ════════════════════════════════════════════════ */
+const SHEET_ID   = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I'; // <-- mismo sheet
+const SHEET_NAME = 'flota';
+
+// Nombres de columnas en tu pestaña "flota"
+const C = {
+  id:       'id_unidad',      // número/nombre de la unidad
+  tipo:     'tipo',           // Tractor, Full, etc.
+  cliente:  'cliente',        // nombre del cliente
+  estatus:  'estatus',        // op | mto | cor | dis | esp
+  dias_cor: 'dias_corralon',  // número (0 si no aplica)
+  notas:    'notas',          // texto libre
+};
+
+/* Colores y labels por estatus */
+const SCFG = {
+  op:  { label:'Operando',       col:'#639922', bg:'#EAF3DE', brd:'#C0DD97', bcls:'b-op',  cls:'uc-op'  },
+  mto: { label:'Mantenimiento',  col:'#BA7517', bg:'#FAEEDA', brd:'#FAC775', bcls:'b-mto', cls:'uc-mto' },
+  cor: { label:'Corralón',       col:'#E24B4A', bg:'#FCEBEB', brd:'#F7C1C1', bcls:'b-cor', cls:'uc-cor' },
+  dis: { label:'Disponible',     col:'#378ADD', bg:'#E6F1FB', brd:'#B5D4F4', bcls:'b-dis', cls:'uc-dis' },
+  esp: { label:'Especial/Paro',  col:'#888780', bg:'#f3f4f6', brd:'#d1d5db', bcls:'b-esp', cls:'uc-esp' },
+};
+const STATUS_ORDER = ['op','mto','cor','dis','esp'];
+
+let DATA = [];
+let donutInst = null;
+
+/* ── CSV helpers ── */
+function csvUrl() {
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+}
+function parseCSVLine(line) {
+  const cols = []; let cur = '', inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { if (inQ && line[i+1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+    else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+    else cur += ch;
+  }
+  cols.push(cur.trim()); return cols;
+}
+function parseCSV(text) {
+  const lines = text.trim().split(/\r?\n/); if (lines.length < 2) return [];
+  const hdrs = parseCSVLine(lines[0]), rows = [];
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const cols = parseCSVLine(lines[i]), obj = {};
+    hdrs.forEach((h, idx) => { obj[h] = (cols[idx] || '').trim(); });
+    if (Object.values(obj).some(v => v)) rows.push(obj);
+  }
+  return rows;
+}
+
+/* ── Count helpers ── */
+function countBy(units, s) { return units.filter(u => u[C.estatus] === s).length; }
+function pct(n, total) { return total ? (n / total * 100).toFixed(1) + '%' : '0%'; }
+
+/* ── Carga de datos ── */
+window.addEventListener('DOMContentLoaded', loadSheet);
+async function loadSheet() {
+  const ov = document.getElementById('loadingOverlay');
+  const bn = document.getElementById('errBanner');
+  const em = document.getElementById('errMsg');
+  try {
+    const res = await fetch(csvUrl());
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' — verifica que el Sheet sea público y que la hoja se llame "flota".');
+    const rows = parseCSV(await res.text());
+    if (!rows.length) throw new Error('Sin datos en hoja "flota". Verifica que tenga encabezados y filas.');
+    // Validar que existan columnas esperadas
+    const firstRow = rows[0];
+    const missing = Object.entries(C).filter(([k, v]) => !(v in firstRow)).map(([k, v]) => v);
+    if (missing.length) throw new Error(`Columnas no encontradas: ${missing.join(', ')}. Ajusta los nombres en la sección CONFIGURACIÓN del código.`);
+    DATA = rows;
+    ov.classList.add('hidden');
+    setTimeout(() => ov.style.display = 'none', 450);
+    draw();
+  } catch(e) {
+    console.error(e);
+    if (ov) ov.style.display = 'none';
+    em.textContent = e.message;
+    bn.classList.remove('hidden');
+  }
+}
+
+/* ── Render principal ── */
+function draw() {
+  const total = DATA.length;
+
+  // KPIs
+  document.getElementById('kTotal').textContent = total;
+  STATUS_ORDER.forEach(s => {
+    const n = countBy(DATA, s);
+    const cfg = SCFG[s];
+    const id = s === 'op' ? 'kOp' : s === 'mto' ? 'kMto' : s === 'cor' ? 'kCor' : s === 'dis' ? 'kDis' : 'kEsp';
+    const el = document.getElementById(id);
+    if (el) el.textContent = n;
+    const pctEl = document.getElementById(id + 'Pct');
+    if (pctEl) pctEl.textContent = pct(n, total);
+  });
+
+  drawStatusBars(total);
+  drawDonut(total);
+  drawClientes();
+}
+
+/* ── Barras de estatus ── */
+function drawStatusBars(total) {
+  const container = document.getElementById('statusBars');
+  container.innerHTML = STATUS_ORDER.map(s => {
+    const n = countBy(DATA, s);
+    const w = total ? Math.round(n / total * 100) : 0;
+    return `<div class="sbar-row">
+      <div class="sdot" style="background:${SCFG[s].col}"></div>
+      <div class="sname">${SCFG[s].label}</div>
+      <div class="bwrap"><div class="bfill" style="width:${w}%;background:${SCFG[s].col}"></div></div>
+      <div class="scnt">${n}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Dona ── */
+function drawDonut(total) {
+  const counts = STATUS_ORDER.map(s => countBy(DATA, s));
+  const colors = STATUS_ORDER.map(s => SCFG[s].col);
+
+  if (donutInst) { donutInst.destroy(); donutInst = null; }
+  donutInst = new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: STATUS_ORDER.map(s => SCFG[s].label),
+      datasets: [{ data: counts, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} uds (${pct(ctx.parsed, total)})` } }
+      }
+    }
+  });
+
+  // Leyenda custom
+  document.getElementById('donutLegend').innerHTML = STATUS_ORDER.map((s, i) => {
+    const n = counts[i];
+    return n > 0 ? `<span class="lgi"><span class="lgsq" style="background:${SCFG[s].col}"></span>${SCFG[s].label} ${pct(n, total)}</span>` : '';
+  }).join('');
+}
+
+/* ── Tabla de clientes con drill-down ── */
+function drawClientes() {
+  // Agrupar por cliente
+  const byCliente = {};
+  DATA.forEach(r => {
+    const cli = (r[C.cliente] || 'Sin asignar').trim();
+    if (!byCliente[cli]) byCliente[cli] = [];
+    byCliente[cli].push(r);
+  });
+
+  const clientes = Object.entries(byCliente)
+    .map(([name, units]) => ({ name, units }))
+    .sort((a, b) => b.units.length - a.units.length);
+
+  document.getElementById('cntClientes').textContent = clientes.length + (clientes.length === 1 ? ' cliente' : ' clientes');
+
+  const tbody = document.getElementById('clientesTbody');
+  tbody.innerHTML = '';
+
+  if (!clientes.length) {
+    tbody.innerHTML = `<tr><td colspan="5" class="no-data">Sin datos de clientes</td></tr>`;
+    return;
+  }
+
+  clientes.forEach((cl, i) => {
+    // Fila principal
+    const tr = document.createElement('tr');
+    tr.className = 'cli-row';
+
+    // Alerta corralón
+    const enCor = cl.units.filter(u => u[C.estatus] === 'cor');
+    const maxDias = enCor.reduce((max, u) => Math.max(max, parseInt(u[C.dias_cor]) || 0), 0);
+    const alertaHtml = enCor.length > 0
+      ? `<span class="alerta-badge">${enCor.length} corralón${maxDias > 0 ? ' · ' + maxDias + 'd' : ''}</span>`
+      : '<span style="color:var(--muted);font-size:.7rem">–</span>';
+
+    // Alerta mtto
+    const enMto = cl.units.filter(u => u[C.estatus] === 'mto');
+    let alertaFullHtml = alertaHtml;
+    if (enMto.length > 0 && enCor.length === 0) {
+      alertaFullHtml = `<span class="badge b-mto">${enMto.length} en mtto</span>`;
+    } else if (enMto.length > 0 && enCor.length > 0) {
+      alertaFullHtml += ` <span class="badge b-mto">${enMto.length} mtto</span>`;
+    }
+
+    tr.innerHTML = `
+      <td style="font-weight:600">${cl.name}</td>
+      <td class="r" style="font-weight:700;color:var(--navy)">${cl.units.length}</td>
+      <td>${buildMiniBar(cl.units)}</td>
+      <td>${alertaFullHtml}</td>
+      <td><span class="arrow-icon" id="arr${i}">›</span></td>`;
+
+    // Fila detalle
+    const dtrow = document.createElement('tr');
+    dtrow.className = 'detail-row';
+    dtrow.innerHTML = `<td colspan="5"><div class="detail-inner" id="di${i}">${buildDetailContent(cl)}</div></td>`;
+
+    tr.addEventListener('click', () => {
+      const di = document.getElementById(`di${i}`);
+      const arr = document.getElementById(`arr${i}`);
+      const isOpen = di.classList.contains('open');
+      document.querySelectorAll('.detail-inner').forEach(d => d.classList.remove('open'));
+      document.querySelectorAll('.arrow-icon').forEach(a => { a.classList.remove('open'); });
+      document.querySelectorAll('.cli-row').forEach(r => r.classList.remove('open'));
+      if (!isOpen) { di.classList.add('open'); arr.classList.add('open'); tr.classList.add('open'); }
+    });
+
+    tbody.appendChild(tr);
+    tbody.appendChild(dtrow);
+  });
+}
+
+function buildMiniBar(units) {
+  const total = units.length || 1;
+  const segs = STATUS_ORDER.map(s => {
+    const w = Math.round(countBy(units, s) / total * 100);
+    return w > 0 ? `<div class="mb-seg" style="width:${w}%;background:${SCFG[s].col}"></div>` : '';
+  }).join('');
+  return `<div class="mini-bar">${segs}</div>`;
+}
+
+function buildDetailContent(cl) {
+  const byStatus = {};
+  STATUS_ORDER.forEach(s => { byStatus[s] = cl.units.filter(u => u[C.estatus] === s); });
+
+  let html = '<div class="detail-content">';
+  STATUS_ORDER.forEach(s => {
+    const group = byStatus[s];
+    if (!group.length) return;
+    html += `<div class="dc-section" style="margin-top:10px;color:${SCFG[s].col}">${SCFG[s].label} (${group.length})</div>`;
+    html += '<div class="unit-cards">';
+    group.forEach(u => {
+      const dias = parseInt(u[C.dias_cor]) || 0;
+      const corBadge = s === 'cor' && dias > 0 ? `<span class="cor-badge">${dias}d</span>` : '';
+      const nota = (u[C.notas] || '').trim();
+      html += `<div class="ucard ${SCFG[s].cls}">
+        ${corBadge}
+        <div class="un">${u[C.id] || '–'}</div>
+        <div class="ut">${u[C.tipo] || ''}${nota ? ' · ' + nota : ''}</div>
+      </div>`;
+    });
+    html += '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+/* ── Dropdown nav ── */
+function toggleDropdown(id) {
+  const d = document.getElementById(id);
+  document.querySelectorAll('.dropdown').forEach(x => { if (x.id !== id) x.classList.remove('open'); });
+  d.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.dropdown')) document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+});
+</script>
+</body>
 </html>
