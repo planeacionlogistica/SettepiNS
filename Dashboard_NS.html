@@ -135,14 +135,17 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .modal-overlay.open{display:flex;}
 #drillModal{z-index:810;}
 #drillDetailModal{z-index:820;}
+#drillDetailModal .modal-box{max-width:1150px;}
+#drillDetailModal .modal-body{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+#drillDetailModal .modal-table{table-layout:fixed;min-width:860px;width:100%;border-collapse:collapse;}
 #operadorModal{z-index:830;}
 .modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
 /* ── Drill modal nivel 1 ── */
 #drillModal{z-index:810;}
-#drillModal .modal-box{max-width:860px;}
+#drillModal .modal-box{max-width:980px;}
 /* Desktop: sin scroll horizontal, columnas se ajustan al contenido */
-#drillModal .modal-body{overflow-x:hidden;}
-#drillModal .modal-table{table-layout:auto;width:100%;border-collapse:collapse;}
+#drillModal .modal-body{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+#drillModal .modal-table{table-layout:fixed;width:100%;min-width:760px;border-collapse:collapse;}
 /* Todas las columnas salvo la primera → ancho mínimo (se encogen al contenido) */
 #drillModal .modal-table th:not(:first-child),
 #drillModal .modal-table td:not(:first-child){white-space:nowrap;width:1%;}
@@ -166,9 +169,10 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .modal-table thead th.sortable:hover{background:#2c3a55;}
 .th-inner{display:flex;align-items:center;gap:4px;}
 .th-inner.r{justify-content:flex-end;}
-.sort-ind{font-size:.55rem;opacity:.4;flex-shrink:0;}
-th.sort-asc .sort-ind{opacity:1;color:#7ed321;}
-th.sort-desc .sort-ind{opacity:1;color:#7ed321;}
+.sort-ind{font-size:.6rem;opacity:.3;flex-shrink:0;transition:opacity .15s,color .15s;}
+th.sortable:hover .sort-ind{opacity:.6;}
+th.sort-asc .sort-ind,th.sort-desc .sort-ind{opacity:1;color:#7ed321 !important;}
+th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 .modal-table thead th.r{text-align:right;}
 .modal-table tbody tr{border-bottom:1px solid var(--border);}
 .modal-table tbody tr:last-child{border-bottom:none;}
@@ -721,6 +725,13 @@ th.sort-desc .sort-ind{opacity:1;color:#7ed321;}
     </div>
     <div class="modal-body">
       <table class="modal-table">
+        <colgroup>
+          <col style="width:36px">
+          <col style="width:90px"><col style="width:75px"><col style="width:170px">
+          <col style="width:80px"><col style="width:95px">
+          <col style="width:80px"><col style="width:95px">
+          <col style="width:70px"><col style="width:70px">
+        </colgroup>
         <thead id="detailThead"><tr>
           <th style="width:36px"></th>
           <th class="sortable" data-col="fecha" onclick="sortDetail('fecha')"><div class="th-inner">Fecha<span class="sort-ind">↕</span></div></th>
@@ -755,6 +766,12 @@ th.sort-desc .sort-ind{opacity:1;color:#7ed321;}
     </div>
     <div class="modal-body">
       <table class="modal-table">
+        <colgroup>
+          <col style="width:220px;min-width:160px">
+          <col style="width:64px"><col style="width:80px">
+          <col style="width:120px"><col style="width:130px">
+          <col style="width:72px"><col style="width:72px"><col style="width:78px">
+        </colgroup>
         <thead id="drillThead"><tr>
           <th class="sortable" data-col="k" onclick="sortDrill('k')"><div class="th-inner">Ruta / Descripción<span class="sort-ind">↕</span></div></th>
           <th class="r sortable" data-col="t" onclick="sortDrill('t')"><div class="th-inner r">Srvs.<span class="sort-ind">↕</span></div></th>
