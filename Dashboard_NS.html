@@ -1065,9 +1065,62 @@ function buildCoordMap(){
   cascadeSelects();
 }
 
+// ── MAE: mapa de paradas por ruta ─────────────────────────────────
+let MAE_MAP={};      // ID_Ruta → [{sec,lat,lng,parada}]
+let MAE_DESC_MAP={}; // Desc_Ruta.toLowerCase() → ID_Ruta
+
+async function loadMAE(){
+  try{
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=MAE`;
+    const res=await fetch(url); if(!res.ok) return;
+    const rows=parseCSV(await res.text());
+    rows.forEach(r=>{
+      const idRuta=(r['ID Ruta']||r['ID_Ruta']||'').trim();
+      const descRuta=(r['Desc Ruta']||r['Desc_Ruta']||'').trim();
+      const sec=parseInt(r['Sec']||r['sec'])||0;
+      const lat=parseFloat(r['Lat']||r['lat']);
+      const lng=parseFloat(r['Lng']||r['lng']||r['Lon']||r['lon']);
+      const parada=(r['Parada']||r['parada']||'').trim();
+      if(!idRuta||isNaN(lat)||isNaN(lng)) return;
+      if(!MAE_MAP[idRuta]) MAE_MAP[idRuta]=[];
+      MAE_MAP[idRuta].push({sec,lat,lng,parada,descRuta});
+      if(descRuta) MAE_DESC_MAP[descRuta.toLowerCase()]=idRuta;
+    });
+    Object.values(MAE_MAP).forEach(arr=>arr.sort((a,b)=>a.sec-b.sec));
+    console.log('MAE cargado:',Object.keys(MAE_MAP).length,'rutas');
+  }catch(e){ console.warn('MAE no disponible:',e); }
+}
+
+function getMapsUrl(rutaKey){
+  // Buscar por ID exacto, luego por Desc_Ruta parcial
+  let stops=MAE_MAP[rutaKey];
+  if(!stops){ const k=Object.keys(MAE_MAP).find(id=>id.toLowerCase()===rutaKey.toLowerCase()); if(k) stops=MAE_MAP[k]; }
+  if(!stops){ const id=MAE_DESC_MAP[rutaKey.toLowerCase()]; if(id) stops=MAE_MAP[id]; }
+  if(!stops||!stops.length) return null;
+  // Google Maps acepta máx ~10 waypoints → selección distribuida
+  let sel=stops;
+  if(sel.length>10){
+    const step=(sel.length-1)/9;
+    sel=[sel[0],...Array.from({length:8},(_,i)=>sel[Math.round((i+1)*step)]),sel[sel.length-1]];
+  }
+  return 'https://www.google.com/maps/dir/'+sel.map(s=>`${s.lat},${s.lng}`).join('/');
+}
+
+function mapBtn(rutaKey){
+  const url=getMapsUrl(rutaKey);
+  if(!url) return '';
+  return `<a href="${url}" target="_blank" rel="noopener"
+    onclick="event.stopPropagation()"
+    style="display:inline-flex;align-items:center;gap:2px;margin-left:6px;
+           background:#e8f5e9;border:1px solid #a5d6a7;border-radius:4px;
+           color:#2e7d32;font-size:.6rem;font-weight:700;padding:1px 5px;
+           text-decoration:none;white-space:nowrap;vertical-align:middle;"
+    title="Ver ruta en Google Maps">🗺 Maps</a>`;
+}
+
 // ── Main loader ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async ()=>{
-  await Promise.all([loadSheet(), loadInputs()]);
+  await Promise.all([loadSheet(), loadInputs(), loadMAE()]);
   // Ambas cargas terminaron → asignar coordinadores y redibujar
   buildCoordMap();
   fillAllSelects();
@@ -1838,7 +1891,7 @@ function renderDrill(clienteK,tbl){
     const rutaEsc=r.k.replace(/'/g,"\\'");
     const cliEsc=clienteK.replace(/'/g,"\\'");
     return `<tr class="row-ruta-clickable" style="background:${bg}" onclick="openDrillDetail('${rutaEsc}','${cliEsc}','${tbl}')">
-      <td class="td-ruta">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td>
+      <td class="td-ruta">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span>${mapBtn(r.k)}</td>
       <td class="r" style="color:var(--navy)">${N(r.t)}</td>
       <td class="r" style="color:#16a34a;font-weight:600">${N(r.enT)}</td>
       <td class="r" style="color:#d97706;font-weight:600">${N(r.lSolo)}</td>
@@ -1902,7 +1955,7 @@ function rerenderDrillBody(){
     const tbl=lastDrillArgs?lastDrillArgs[1]:'cli';
     const fmtMin=v=>{if(v===null)return'<span style="color:#aaa;font-size:.7rem">–</span>';const clr=v>0?'#c53030':v<0?'#16a34a':'#6b7a99';return`<span style="color:${clr};font-weight:600">${v>0?'+':''}${v.toFixed(1)}</span>`;};
     return`<tr class="row-ruta-clickable" style="background:${bg}" onclick="openDrillDetail('${rutaEsc}','${cliEsc}','${tbl}')">
-      <td class="td-ruta">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td>
+      <td class="td-ruta">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span>${mapBtn(r.k)}</td>
       <td class="r" style="color:var(--navy)">${r.t}</td>
       <td class="r" style="color:#16a34a;font-weight:600">${r.enT}</td>
       <td class="r" style="color:#d97706;font-weight:600">${r.lSolo}</td>
