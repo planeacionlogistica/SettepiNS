@@ -1069,6 +1069,10 @@ function buildCoordMap(){
 let MAE_MAP={};      // ID_Ruta → [{sec,lat,lng,parada}]
 let MAE_DESC_MAP={}; // Desc_Ruta.toLowerCase() → ID_Ruta
 
+let MAE_HORARIOS={};  // ID_Ruta → {h1,h2,...h10} del primer registro
+
+function normStr(s){ return (s||'').toLowerCase().trim().replace(/\s+/g,' '); }
+
 async function loadMAE(){
   try{
     const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=MAE`;
@@ -1077,45 +1081,92 @@ async function loadMAE(){
     rows.forEach(r=>{
       const idRuta=(r['ID Ruta']||r['ID_Ruta']||'').trim();
       const descRuta=(r['Desc Ruta']||r['Desc_Ruta']||'').trim();
+      const tipSer=(r['Tip. Ser.']||r['Tip_Ser']||r['TipSer']||'').trim();
       const sec=parseInt(r['Sec']||r['sec'])||0;
       const lat=parseFloat(r['Lat']||r['lat']);
       const lng=parseFloat(r['Lng']||r['lng']||r['Lon']||r['lon']);
       const parada=(r['Parada']||r['parada']||'').trim();
       if(!idRuta||isNaN(lat)||isNaN(lng)) return;
       if(!MAE_MAP[idRuta]) MAE_MAP[idRuta]=[];
-      MAE_MAP[idRuta].push({sec,lat,lng,parada,descRuta});
-      if(descRuta) MAE_DESC_MAP[descRuta.toLowerCase()]=idRuta;
+      // Guardar horarios del primer registro de la ruta
+      if(!MAE_HORARIOS[idRuta]){
+        const hs={};
+        for(let i=1;i<=10;i++){const v=(r['H'+i]||'').trim(); if(v) hs['H'+i]=v;}
+        MAE_HORARIOS[idRuta]={horarios:hs, descRuta, tipSer};
+      }
+      MAE_MAP[idRuta].push({sec,lat,lng,parada,descRuta,tipSer});
+      // índice por desc normalizado
+      if(descRuta) MAE_DESC_MAP[normStr(descRuta)]=idRuta;
     });
     Object.values(MAE_MAP).forEach(arr=>arr.sort((a,b)=>a.sec-b.sec));
     console.log('MAE cargado:',Object.keys(MAE_MAP).length,'rutas');
   }catch(e){ console.warn('MAE no disponible:',e); }
 }
 
-function getMapsUrl(rutaKey){
-  // Buscar por ID exacto, luego por Desc_Ruta parcial
-  let stops=MAE_MAP[rutaKey];
-  if(!stops){ const k=Object.keys(MAE_MAP).find(id=>id.toLowerCase()===rutaKey.toLowerCase()); if(k) stops=MAE_MAP[k]; }
-  if(!stops){ const id=MAE_DESC_MAP[rutaKey.toLowerCase()]; if(id) stops=MAE_MAP[id]; }
-  if(!stops||!stops.length) return null;
-  // Google Maps acepta máx ~10 waypoints → selección distribuida
-  let sel=stops;
-  if(sel.length>10){
-    const step=(sel.length-1)/9;
-    sel=[sel[0],...Array.from({length:8},(_,i)=>sel[Math.round((i+1)*step)]),sel[sel.length-1]];
+function findStops(rutaKey){
+  const nk=normStr(rutaKey);
+  // 1. Exacto por ID
+  if(MAE_MAP[rutaKey]) return MAE_MAP[rutaKey];
+  // 2. ID case-insensitive
+  const byId=Object.keys(MAE_MAP).find(id=>normStr(id)===nk);
+  if(byId) return MAE_MAP[byId];
+  // 3. Desc exacta
+  const byDesc=MAE_DESC_MAP[nk];
+  if(byDesc) return MAE_MAP[byDesc];
+  // 4. Desc que contiene la clave o clave que contiene la desc
+  const byContains=Object.entries(MAE_DESC_MAP).find(([desc])=>
+    desc.includes(nk)||nk.includes(desc)||(desc.length>5&&nk.includes(desc.slice(0,Math.min(desc.length,15))))
+  );
+  if(byContains) return MAE_MAP[byContains[1]];
+  // 5. Palabras clave: match si ≥2 palabras de 4+ chars coinciden
+  const words=nk.split(' ').filter(w=>w.length>=4);
+  if(words.length>=2){
+    const byWords=Object.entries(MAE_DESC_MAP).find(([desc])=>
+      words.filter(w=>desc.includes(w)).length>=2
+    );
+    if(byWords) return MAE_MAP[byWords[1]];
   }
-  return 'https://www.google.com/maps/dir/'+sel.map(s=>`${s.lat},${s.lng}`).join('/');
+  return null;
+}
+
+function getMapsUrl(rutaKey){
+  let stops=findStops(rutaKey);
+  if(!stops||!stops.length) return null;
+  // Máx 9 paradas + origen = ubicación actual
+  let sel=stops;
+  if(sel.length>9){
+    const step=(sel.length-1)/8;
+    sel=[sel[0],...Array.from({length:7},(_,i)=>sel[Math.round((i+1)*step)]),sel[sel.length-1]];
+  }
+  // Primer punto = ubicación actual del dispositivo
+  return 'https://www.google.com/maps/dir/My+Location/'+sel.map(s=>`${s.lat},${s.lng}`).join('/');
+}
+
+function getHorarios(rutaKey){
+  const stops=findStops(rutaKey);
+  if(!stops||!stops.length) return null;
+  const idRuta=stops[0] ? Object.keys(MAE_MAP).find(k=>MAE_MAP[k]===stops) : null;
+  // Buscar en MAE_HORARIOS
+  const entry=idRuta ? MAE_HORARIOS[idRuta] : null;
+  if(!entry) return null;
+  const hs=Object.entries(entry.horarios).map(([k,v])=>v).filter(Boolean);
+  return hs.length ? hs.join(' / ') : null;
 }
 
 function mapBtn(rutaKey){
   const url=getMapsUrl(rutaKey);
   if(!url) return '';
+  const hs=getHorarios(rutaKey);
+  const tip=hs?`Ver en Maps · Horarios: ${hs}`:'Ver ruta en Google Maps (desde tu ubicación)';
+  const stops=findStops(rutaKey);
+  const nStops=stops?stops.length:0;
   return `<a href="${url}" target="_blank" rel="noopener"
     onclick="event.stopPropagation()"
-    style="display:inline-flex;align-items:center;gap:2px;margin-left:6px;
+    style="display:inline-flex;align-items:center;gap:3px;margin-left:6px;
            background:#e8f5e9;border:1px solid #a5d6a7;border-radius:4px;
-           color:#2e7d32;font-size:.6rem;font-weight:700;padding:1px 5px;
-           text-decoration:none;white-space:nowrap;vertical-align:middle;"
-    title="Ver ruta en Google Maps">🗺 Maps</a>`;
+           color:#2e7d32;font-size:.6rem;font-weight:700;padding:2px 6px;
+           text-decoration:none;white-space:nowrap;vertical-align:middle;line-height:1.4"
+    title="${tip}">🗺 Maps${nStops?` <span style='opacity:.6;font-weight:400'>${nStops}p</span>`:''}</a>${hs?`<span style='display:inline-block;margin-left:4px;font-size:.58rem;color:#6b7a99;vertical-align:middle'>${hs}</span>`:''}`;
 }
 
 // ── Main loader ───────────────────────────────────────────────────
@@ -2040,7 +2091,7 @@ async function exportDrillModal(){
   wb.creator='Traxión · Settepi';
   const ws=wb.addWorksheet(`${tipo}_Rutas`);
   ws.columns=[
-    {width:42},{width:10},{width:12},{width:24},{width:24},{width:12},{width:12},{width:14}
+    {width:40},{width:22},{width:8},{width:10},{width:12},{width:24},{width:24},{width:12},{width:12},{width:14}
   ];
   // ── Logo ──
   const logo64=await buildLogoBase64();
@@ -2066,7 +2117,7 @@ async function exportDrillModal(){
   // ── Fila vacía ──
   ws.addRow([]);
   // ── Headers tabla (fila 5) ──
-  const hdrRow=ws.addRow(['Ruta / Descripción','Servicios','En Tiempo',soloHdr,ambosHdr,'⌀ Min Ini','⌀ Min Lle','% Cumplimiento']);
+  const hdrRow=ws.addRow(['Ruta / Descripción','Horarios','Paradas','Servicios','En Tiempo',soloHdr,ambosHdr,'⌀ Min Ini','⌀ Min Lle','% Cumplimiento']);
   hdrRow.eachCell(cell=>{
     cell.font={name:'Calibri',bold:true,size:10,color:{argb:'FFFFFFFF'}};
     cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF222D42'}};
@@ -2077,8 +2128,12 @@ async function exportDrillModal(){
   // ── Datos ──
   const sorted=[...lastDrillData].sort((a,b)=>(a.pct-b.pct)*drillSortDir);
   sorted.forEach((r,i)=>{
+    const _stops=findStops(r.k);
+    const _nStops=_stops?_stops.length:0;
+    const _idRuta=_stops&&_nStops>0?Object.keys(MAE_MAP).find(k=>MAE_MAP[k]===_stops):'';
+    const _hor=_idRuta&&MAE_HORARIOS[_idRuta]?Object.values(MAE_HORARIOS[_idRuta].horarios).filter(Boolean).join(' / '):'';
     const row=ws.addRow([
-      r.k, r.t, r.enT, r.lSolo, r.lAmbos,
+      r.k, _hor, _nStops||'', r.t, r.enT, r.lSolo, r.lAmbos,
       r.avgMI!==null?+r.avgMI.toFixed(1):'',
       r.avgML!==null?+r.avgML.toFixed(1):'',
       +r.pct.toFixed(1)
@@ -2091,7 +2146,7 @@ async function exportDrillModal(){
       cell.border={bottom:{style:'thin',color:{argb:'FFDDE3F0'}}};
     });
     // Color % cumplimiento
-    const pctCell=row.getCell(8);
+    const pctCell=row.getCell(10);
     const pv=r.pct;
     pctCell.font={name:'Calibri',size:10,bold:true,
       color:{argb:pv>=95?'FF16A34A':pv>=85?'FFD97706':'FFE53E3E'}};
