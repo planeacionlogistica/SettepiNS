@@ -704,6 +704,10 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
                  border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
                  font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">← Volver</button>
+        <button onclick="exportDetailModal()"
+          style="background:#16a34a;border:1px solid #16a34a;color:#fff;
+                 border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
+                 font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">⬇ Excel</button>
         <button class="modal-close" onclick="document.getElementById('drillDetailModal').classList.remove('open')">✕</button>
       </div>
     </div>
@@ -738,6 +742,10 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
                  border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
                  font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">↑ Menor → Mayor</button>
+        <button onclick="exportDrillModal()"
+          style="background:#16a34a;border:1px solid #16a34a;color:#fff;
+                 border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
+                 font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">⬇ Excel</button>
         <button class="modal-close" onclick="document.getElementById('drillModal').classList.remove('open')">✕</button>
       </div>
     </div>
@@ -1584,6 +1592,10 @@ function exportXLSX(tbl,label){
 // ── Drill modal nivel 1 ───────────────────────────────────────────
 let drillSortDir=1;
 let lastDrillArgs=null;
+let lastDrillData=[];
+let lastDrillIsLlegadas=false;
+let lastDetailData=[];
+let lastDetailMeta={};
 
 function openDrill(clienteK,tbl){
   drillSortDir=1;
@@ -1639,6 +1651,8 @@ function renderDrill(clienteK,tbl){
   const ambosLbl=isLlegadas?'Salió Y llegó tarde (ini tarde · lle tarde)':'Inició Y llegó tarde (ini tarde · lle tarde)';
 
   // Actualizar headers dinámicos (forma corta)
+  lastDrillData=[...sorted];
+  lastDrillIsLlegadas=isLlegadas;
   document.getElementById('drillSoloHdr').textContent  = isLlegadas ? '(ini ok · lle tarde)' : '(ini tarde · lle ok)';
   document.getElementById('drillAmbosHdr').textContent = '(ini tarde · lle tarde)';
 
@@ -1670,6 +1684,58 @@ function renderDrill(clienteK,tbl){
     </tr>`;
   }).join('');
   document.getElementById('drillFoot').textContent=`Servicios: ${N(totT)} viajes · · ${N(totEnT)} en tiempo · ${pctG.toFixed(1)}% cumplimiento`;
+}
+
+
+function exportDrillModal(){
+  if(!lastDrillData.length){alert('Sin datos para exportar');return;}
+  const isL=lastDrillIsLlegadas;
+  const soloHdr=isL?'Salió bien, llegó tarde':'Inició tarde, llegó bien';
+  const ambosHdr='Inició Y llegó tarde';
+  const headers=['Ruta / Descripción','Servicios','En tiempo',soloHdr,ambosHdr,'⌀ Min Ini','⌀ Min Lle','% Cumplimiento'];
+  const wsData=[headers,...lastDrillData.map(r=>[
+    r.k, r.t, r.enT, r.lSolo, r.lAmbos,
+    r.avgMI!==null?+r.avgMI.toFixed(1):'',
+    r.avgML!==null?+r.avgML.toFixed(1):'',
+    +r.pct.toFixed(1)
+  ])];
+  const ws=XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols']=[{wch:40},{wch:10},{wch:10},{wch:22},{wch:22},{wch:12},{wch:12},{wch:14}];
+  const wb=XLSX.utils.book_new();
+  const cliente=document.getElementById('drillTitle').textContent.slice(0,25);
+  const tipo=isL?'Llegadas':'Inicios';
+  XLSX.utils.book_append_sheet(wb,ws,`${tipo}_Rutas`.slice(0,31));
+  XLSX.writeFile(wb,`Traxion_NS_${tipo}_Rutas_${cliente}_${new Date().toISOString().slice(0,10)}.xlsx`);
+}
+
+function exportDetailModal(){
+  if(!lastDetailData.length){alert('Sin datos para exportar');return;}
+  const isL=lastDetailMeta.isLlegadas;
+  const C_local=typeof C!=='undefined'?C:{};
+  const headers=['Fecha','Unidad','Operador','Ini Prog.','Ini Real GPS','Lle Prog.','Lle Real GPS','Min Ini','Min Lle','Tarde'];
+  const wsData=[headers,...lastDetailData.map(r=>{
+    const lateField=isL?(C_local.llegada||'llegada'):(C_local.retardo||'retardo');
+    const tarde=typeof countLate==='function'?countLate(r[lateField])===1:false;
+    return[
+      getFecha(r),
+      (r['car']||'–').trim(),
+      (r['driver']||'–').trim(),
+      (C_local.startTime&&r[C_local.startTime]?r[C_local.startTime]:'–'),
+      (C_local.startEta&&r[C_local.startEta]?r[C_local.startEta]:'–'),
+      (C_local.endTime&&r[C_local.endTime]?r[C_local.endTime]:'–'),
+      (C_local.endEta&&r[C_local.endEta]?r[C_local.endEta]:'–'),
+      typeof parseMin==='function'&&parseMin(r[C_local.minIni])!==null?+parseMin(r[C_local.minIni]).toFixed(1):'',
+      typeof parseMin==='function'&&parseMin(r[C_local.minLle])!==null?+parseMin(r[C_local.minLle]).toFixed(1):'',
+      tarde?'Tarde':'A tiempo'
+    ];
+  })];
+  const ws=XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols']=[{wch:14},{wch:12},{wch:28},{wch:12},{wch:13},{wch:12},{wch:13},{wch:9},{wch:9},{wch:9}];
+  const wb=XLSX.utils.book_new();
+  const tipo=isL?'Llegadas':'Inicios';
+  const nombre=`${lastDetailMeta.cliente||''}_${lastDetailMeta.ruta||''}`.slice(0,20);
+  XLSX.utils.book_append_sheet(wb,ws,`${tipo}_Viajes`.slice(0,31));
+  XLSX.writeFile(wb,`Traxion_NS_${tipo}_Viajes_${nombre}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 function closeDrill(e){ if(e.target===document.getElementById('drillModal')) document.getElementById('drillModal').classList.remove('open'); }
@@ -1864,6 +1930,8 @@ function openDrillDetail(rutaK,clienteK,tbl){
   }).join('')||'<tr><td colspan="10" class="table-empty">Sin viajes registrados</td></tr>';
 
   document.getElementById('drillDetailFoot').textContent=`Servicios: ${totT} viajes · · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
+  lastDetailData=[...sorted];
+  lastDetailMeta={cliente:clienteK,ruta:rutaK,isLlegadas:isLlegadas,totT,totL,pctG};
   document.getElementById('drillDetailModal').classList.add('open');
 }
 
