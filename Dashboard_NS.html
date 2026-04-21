@@ -855,7 +855,7 @@ const C = {
   fecha:'start_date', semana:'Semana', udn:'business_unit', cliente:'group',
   gerente:'Gerente', jefe:'Jefe', coord:'Coordinador', turno:'Turno',
   retardo:'Inicios_Tarde', viajes:'Cantidad de viajes', llegada:'Llegadas_Tarde',
-  minIni:'Minutos de Retraso', minLle:'Minutos llegadas', driver:'driver', car:'car', ruta:'des',
+  minIni:'Minutos de Retraso', minLle:'Minutos llegadas', driver:'operador', car:'car', ruta:'des',
   startTime:'start_time', startEta:'start_eta', endTime:'end_time', endEta:'end_eta',
   id:'id',
 };
@@ -1066,9 +1066,68 @@ function buildCoordMap(){
 }
 
 // ── MAE: mapa de paradas por ruta ─────────────────────────────────
+// ── MAE: horarios por ruta (solo para Excel) ─────────────────────
+let MAE_MAP={};
+let MAE_HORARIOS={};
+let MAE_IDX=[];
+
+function normStr(s){
+  return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .toLowerCase().trim().replace(/\s+/g,' ');
+}
+
+async function loadMAE(){
+  try{
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=MAE`;
+    const res=await fetch(url); if(!res.ok) return;
+    const rows=parseCSV(await res.text());
+    rows.forEach(r=>{
+      const idRuta=(r['ID Ruta']||r['ID_Ruta']||'').trim();
+      const descRuta=(r['Desc Ruta']||r['Desc_Ruta']||'').trim();
+      const planta=(r['Planta']||r['planta']||'').trim();
+      const tipSer=(r['Tip. Ser.']||r['Tip_Ser']||'').trim();
+      const sec=parseInt(r['Sec'])||0;
+      const lat=parseFloat(r['Lat']||r['lat']);
+      const lng=parseFloat(r['Lng']||r['lng']||r['Lon']);
+      const parada=(r['Parada']||r['parada']||'').trim();
+      if(!idRuta||isNaN(lat)||isNaN(lng)) return;
+      if(!MAE_MAP[idRuta]) MAE_MAP[idRuta]=[];
+      if(!MAE_HORARIOS[idRuta]){
+        const hs={};
+        for(let i=1;i<=10;i++){const v=(r['H'+i]||'').trim();if(v)hs['H'+i]=v;}
+        MAE_HORARIOS[idRuta]={horarios:hs,descRuta,tipSer,planta};
+        MAE_IDX.push({nDesc:normStr(descRuta),nId:normStr(idRuta),idRuta,planta:normStr(planta)});
+      }
+      MAE_MAP[idRuta].push({sec,lat,lng,parada,descRuta,tipSer,planta,idRuta});
+    });
+    Object.values(MAE_MAP).forEach(arr=>arr.sort((a,b)=>a.sec-b.sec));
+    console.log('MAE cargado:',Object.keys(MAE_MAP).length,'rutas');
+  }catch(e){ console.warn('MAE error:',e); }
+}
+
+function findIdRuta(rutaKey, plantaKey){
+  const nk=normStr(rutaKey);
+  const np=plantaKey?normStr(plantaKey):'';
+  const pool=(np?MAE_IDX.filter(x=>x.planta&&x.planta.includes(np.slice(0,6))):[])||[];
+  const cands=pool.length?pool:MAE_IDX;
+  if(MAE_MAP[rutaKey]) return rutaKey;
+  let m=cands.find(x=>x.nId===nk); if(m) return m.idRuta;
+  m=cands.find(x=>x.nDesc===nk); if(m) return m.idRuta;
+  m=cands.find(x=>x.nDesc.includes(nk)||nk.includes(x.nDesc)); if(m) return m.idRuta;
+  const pref=nk.slice(0,Math.min(nk.length,18));
+  m=cands.find(x=>x.nDesc.startsWith(pref)||pref.startsWith(x.nDesc.slice(0,12))); if(m) return m.idRuta;
+  const words=nk.split(' ').filter(w=>w.length>=5);
+  if(words.length){
+    let best=null,bestScore=0;
+    cands.forEach(x=>{const sc=words.filter(w=>x.nDesc.includes(w)).length;if(sc>bestScore){bestScore=sc;best=x;}});
+    if(best&&bestScore>=1) return best.idRuta;
+  }
+  return null;
+}
+
 // ── Main loader ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async ()=>{
-  await Promise.all([loadSheet(), loadInputs()]);
+  await Promise.all([loadSheet(), loadInputs(), loadMAE()]);
   // Ambas cargas terminaron → asignar coordinadores y redibujar
   buildCoordMap();
   fillAllSelects();
@@ -1709,6 +1768,51 @@ async function exportClientesConRutas(tbl, tipo){
       cell.alignment={vertical:'middle',horizontal:c<=2?'left':'center'};
       cell.border={bottom:{style:'thin',color:{argb:'FFDDE3F0'}}};
     });
+    const pv=r.pct;
+    row.getCell(9).font={name:'Calibri',size:10,bold:true,
+      color:{argb:pv>=95?'FF16A34A':pv>=85?'FFD97706':'FFE53E3E'}};
+  });
+
+  // ══ HOJA 3: Por Horario ══
+  const ws3=wb.addWorksheet(`${tipo} Por Horario`);
+  ws3.columns=[{width:12},{width:36},{width:36},{width:10},{width:12},{width:22},{width:22},{width:14},{width:14}];
+  addSheetHeader(ws3,ws3.columns,`${tipo} NS – Por Horario`,`Rutas agrupadas por horario de salida`);
+  const h3=ws3.addRow(['Horario','Cliente','Ruta','Servicios','En Tiempo',soloHdr,ambosHdr,'Prom. Ini','% Cumpl.']);
+  styleHeader(h3,9);
+
+  const rutasConHorario=[];
+  todasRutas.forEach(r=>{
+    const idRuta=findIdRuta(r.ruta,r.cliente);
+    const hEntry=idRuta?MAE_HORARIOS[idRuta]:null;
+    const hList=hEntry?Object.values(hEntry.horarios).filter(Boolean):[];
+    if(hList.length){
+      hList.forEach(h=>rutasConHorario.push({horario:h,cliente:r.cliente,ruta:r.ruta,
+        t:r.t,enT:r.enT,lSolo:r.lSolo,lAmbos:r.lAmbos,avgMI:r.avgMI,pct:r.pct}));
+    } else {
+      rutasConHorario.push({horario:'Sin horario',cliente:r.cliente,ruta:r.ruta,
+        t:r.t,enT:r.enT,lSolo:r.lSolo,lAmbos:r.lAmbos,avgMI:r.avgMI,pct:r.pct});
+    }
+  });
+  rutasConHorario.sort((a,b)=>a.horario.localeCompare(b.horario)||a.cliente.localeCompare(b.cliente));
+
+  let prevHor3='';
+  rutasConHorario.forEach((r,i)=>{
+    const isNew=r.horario!==prevHor3; prevHor3=r.horario;
+    const row=ws3.addRow([r.horario,r.cliente,r.ruta,r.t,r.enT,r.lSolo,r.lAmbos,
+      r.avgMI!==null?+r.avgMI.toFixed(1):'',+r.pct.toFixed(1)]);
+    const bg=i%2===0?'FFFFFFFF':'FFF7F9FF';
+    row.eachCell({includeEmpty:true},(cell,c)=>{
+      if(c>9)return;
+      cell.font={name:'Calibri',size:10};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      cell.alignment={vertical:'middle',horizontal:c<=3?'left':'center'};
+      cell.border={bottom:{style:'thin',color:{argb:'FFDDE3F0'}}};
+    });
+    if(isNew){
+      const hc=row.getCell(1);
+      hc.font={name:'Calibri',size:10,bold:true,color:{argb:'FF222D42'}};
+      hc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE8EDF5'}};
+    }
     const pv=r.pct;
     row.getCell(9).font={name:'Calibri',size:10,bold:true,
       color:{argb:pv>=95?'FF16A34A':pv>=85?'FFD97706':'FFE53E3E'}};
