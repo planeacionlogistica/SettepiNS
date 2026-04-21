@@ -479,7 +479,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
       <div class="table-card" id="card-cli">
         <div class="table-hdr">
           <div><div class="table-hdr-title"><span class="table-hdr-icon">🏢</span><span id="tCliTitle">Resumen por Cliente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
-          <div class="table-hdr-actions"><span class="table-count" id="tCliCount">0 clientes</span><button class="btn-capture" onclick="exportXLSX('cli','Inicios_Clientes')">⬇ Excel</button></div>
+          <div class="table-hdr-actions"><span class="table-count" id="tCliCount">0 clientes</span><button class="btn-capture" onclick="exportClientesConRutas('cli','Inicios')">⬇ Excel</button></div>
         </div>
         <div style="overflow-x:auto"><colgroup>
   <col style="width:34px">
@@ -616,7 +616,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
       <div class="table-card" id="lcard-cli">
         <div class="table-hdr">
           <div><div class="table-hdr-title"><span class="table-hdr-icon">🏢</span><span id="ltCliTitle">Resumen por Cliente</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
-          <div class="table-hdr-actions"><span class="table-count" id="ltCliCount">0 clientes</span><button class="btn-capture" onclick="exportXLSX('lcli','Llegadas_Clientes')">⬇ Excel</button></div>
+          <div class="table-hdr-actions"><span class="table-count" id="ltCliCount">0 clientes</span><button class="btn-capture" onclick="exportClientesConRutas('lcli','Llegadas')">⬇ Excel</button></div>
         </div>
         <div style="overflow-x:auto"><colgroup>
   <col style="width:34px">
@@ -1580,6 +1580,148 @@ function draw(){
 }
 
 // ── Excel export ──────────────────────────────────────────────────
+async function exportClientesConRutas(tbl, tipo){
+  const clientes=[...tableData[tbl]].sort((a,b)=>(a.pct-b.pct)*sortState[tbl].dir);
+  if(!clientes.length){alert('Sin datos para exportar');return;}
+  const isIni=!tbl.startsWith('l');
+  const isLlegadas=!isIni;
+  const soloHdr =isIni?'Inició tarde, llegó bien':'Salió bien, llegó tarde';
+  const ambosHdr='Inició Y llegó tarde';
+
+  // ── Construir datos de TODAS las rutas ──
+  const todasRutas=[];
+  clientes.forEach(cli=>{
+    const rows=filterRows(isLlegadas?'lle':'ini').filter(r=>(r[C.cliente]||'').trim()===cli.k);
+    const byRuta={};
+    rows.forEach(r=>{
+      const ruta=(r['des']||'Sin ruta').trim()||'Sin ruta';
+      if(!byRuta[ruta]) byRuta[ruta]={t:0,enT:0,lSolo:0,lAmbos:0,sumMI:0,cMI:0,sumML:0,cML:0};
+      byRuta[ruta].t+=countViajes(r[C.viajes]);
+      const iniT=countLate(r[C.retardo])===1, lleT=countLate(r[C.llegada])===1;
+      const mI=parseMin(r[C.minIni]), mL=parseMin(r[C.minLle]);
+      if(isLlegadas){
+        if(!lleT) byRuta[ruta].enT++; else if(!iniT) byRuta[ruta].lSolo++; else byRuta[ruta].lAmbos++;
+      } else {
+        if(!iniT) byRuta[ruta].enT++; else if(!lleT) byRuta[ruta].lSolo++; else byRuta[ruta].lAmbos++;
+      }
+      if(iniT&&mI!==null){byRuta[ruta].sumMI+=mI;byRuta[ruta].cMI++;}
+      if(lleT&&mL!==null){byRuta[ruta].sumML+=mL;byRuta[ruta].cML++;}
+    });
+    Object.entries(byRuta).forEach(([ruta,d])=>{
+      todasRutas.push({
+        cliente:cli.k,ruta,t:d.t,enT:d.enT,lSolo:d.lSolo,lAmbos:d.lAmbos,
+        pct:d.t>0?d.enT/d.t*100:0,
+        avgMI:d.cMI>0?d.sumMI/d.cMI:null,
+        avgML:d.cML>0?d.sumML/d.cML:null,
+      });
+    });
+  });
+  todasRutas.sort((a,b)=>a.cliente.localeCompare(b.cliente)||(a.pct-b.pct));
+
+  // ── ExcelJS ──
+  const wb=new ExcelJS.Workbook();
+  wb.creator='Traxión · Settepi';
+  const fecha=new Date().toLocaleDateString('es-MX');
+  const fechaFile=new Date().toISOString().slice(0,10);
+
+  // Helper: estilo de header
+  function styleHeader(row,lastCol){
+    row.eachCell({includeEmpty:true},(cell,c)=>{
+      if(c>lastCol) return;
+      cell.font={name:'Calibri',bold:true,size:10,color:{argb:'FFFFFFFF'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF222D42'}};
+      cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+      cell.border={bottom:{style:'medium',color:{argb:'FF7ED321'}}};
+    });
+    row.height=28;
+  }
+  function styleDataRow(row,i,lastCol){
+    const bg=i%2===0?'FFFFFFFF':'FFF7F9FF';
+    row.eachCell({includeEmpty:true},(cell,c)=>{
+      if(c>lastCol) return;
+      cell.font={name:'Calibri',size:10};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      cell.alignment={vertical:'middle',horizontal:c<=2?'left':'center'};
+      cell.border={bottom:{style:'thin',color:{argb:'FFDDE3F0'}}};
+    });
+  }
+  function addSheetHeader(ws,cols,title,subtitle){
+    const nc=cols.length;
+    const endCol=String.fromCharCode(64+nc);
+    ws.mergeCells(`A1:${endCol}2`);
+    const hc=ws.getCell('A1');
+    hc.value=' SETTEPI · TRAXIÓN';
+    hc.font={name:'Calibri',bold:true,size:14,color:{argb:'FFFFFFFF'}};
+    hc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1A2236'}};
+    hc.alignment={vertical:'middle',horizontal:'left'};
+    ws.getRow(1).height=26; ws.getRow(2).height=14;
+    ws.mergeCells(`A3:${endCol}3`);
+    const sc=ws.getCell('A3');
+    sc.value=`${title} · ${subtitle} · ${fecha}`;
+    sc.font={name:'Calibri',italic:true,size:10,color:{argb:'FF6B7A99'}};
+    sc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F2F7'}};
+    sc.alignment={horizontal:'left',vertical:'middle'};
+    ws.getRow(3).height=18;
+    ws.addRow([]);
+  }
+
+  // ══ HOJA 1: Resumen por cliente ══
+  const ws1=wb.addWorksheet(`${tipo} Resumen Clientes`);
+  ws1.columns=[{width:4},{width:36},{width:9},{width:12},{width:11},{width:22},{width:22},{width:16},{width:16},{width:14}];
+  addSheetHeader(ws1,ws1.columns,`${tipo} NS – Resumen por Cliente`,
+    `${clientes.length} clientes`);
+  const h1=ws1.addRow(['#','Cliente','Carros','Servicios','En Tiempo',soloHdr,ambosHdr,'Prom. Ini (min)','Prom. Lle (min)','% Cumpl.']);
+  styleHeader(h1,10);
+  clientes.forEach((r,i)=>{
+    const row=ws1.addRow([i+1,r.k,CARROS_MAP[r.k]!=null?CARROS_MAP[r.k]:'',r.t,r.enT,r.lSolo,r.lAmbos,
+      r.avgMI!==null?+r.avgMI.toFixed(1):'',r.avgML!==null?+r.avgML.toFixed(1):'',+r.pct.toFixed(1)]);
+    styleDataRow(row,i,10);
+    const pv=r.pct;
+    row.getCell(10).font={name:'Calibri',size:10,bold:true,
+      color:{argb:pv>=95?'FF16A34A':pv>=85?'FFD97706':'FFE53E3E'}};
+  });
+  // Total
+  const totT1=clientes.reduce((s,r)=>s+r.t,0);
+  const totE1=clientes.reduce((s,r)=>s+r.enT,0);
+  const tot1=ws1.addRow(['','TOTAL','',totT1,totE1,'','','','',totT1>0?+(totE1/totT1*100).toFixed(1):'']);
+  tot1.eachCell({includeEmpty:true},(c,n)=>{if(n>10)return;c.font={name:'Calibri',bold:true,size:10,color:{argb:'FFFFFFFF'}};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1A2236'}};c.alignment={horizontal:'center',vertical:'middle'};});
+  tot1.getCell(2).alignment={horizontal:'left',vertical:'middle'};
+
+  // ══ HOJA 2: Todas las rutas ══
+  const ws2=wb.addWorksheet(`${tipo} Todas las Rutas`);
+  ws2.columns=[{width:36},{width:40},{width:12},{width:11},{width:22},{width:22},{width:14},{width:14},{width:14}];
+  addSheetHeader(ws2,ws2.columns,`${tipo} NS – Todas las Rutas`,
+    `${todasRutas.length} rutas · ${clientes.length} clientes`);
+  const h2=ws2.addRow(['Cliente','Ruta / Descripción','Servicios','En Tiempo',soloHdr,ambosHdr,'Prom. Ini (min)','Prom. Lle (min)','% Cumpl.']);
+  styleHeader(h2,9);
+
+  let prevCli=''; let cliRowStart=6; let cliColor=false;
+  todasRutas.forEach((r,i)=>{
+    if(r.cliente!==prevCli){ prevCli=r.cliente; cliColor=!cliColor; }
+    const row=ws2.addRow([r.cliente,r.ruta,r.t,r.enT,r.lSolo,r.lAmbos,
+      r.avgMI!==null?+r.avgMI.toFixed(1):'',r.avgML!==null?+r.avgML.toFixed(1):'',+r.pct.toFixed(1)]);
+    const bg=cliColor?'FFEEF4FF':'FFFFFFFF';
+    row.eachCell({includeEmpty:true},(cell,c)=>{
+      if(c>9)return;
+      cell.font={name:'Calibri',size:10};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      cell.alignment={vertical:'middle',horizontal:c<=2?'left':'center'};
+      cell.border={bottom:{style:'thin',color:{argb:'FFDDE3F0'}}};
+    });
+    const pv=r.pct;
+    row.getCell(9).font={name:'Calibri',size:10,bold:true,
+      color:{argb:pv>=95?'FF16A34A':pv>=85?'FFD97706':'FFE53E3E'}};
+  });
+
+  // ── Descargar ──
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`Traxion_NS_${tipo}_Completo_${fechaFile}.xlsx`;
+  a.click();
+}
+
+
 function exportXLSX(tbl,label){
   const rows=[...tableData[tbl]].sort((a,b)=>(a.pct-b.pct)*sortState[tbl].dir);
   const isIni=!tbl.startsWith('l');
