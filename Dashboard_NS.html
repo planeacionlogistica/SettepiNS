@@ -1611,7 +1611,7 @@ function openDrill(clienteK,tbl){
 }
 function toggleDrillSort(){
   drillSortDir*=-1;
-  document.getElementById('drillSortBtn').textContent=drillSortDir===1?'↑ Menor → Mayor':'↓ Mayor → Menor';
+  const _dsb=document.getElementById('drillSortBtn');if(_dsb)_dsb.textContent=drillSortDir===1?'↑ Menor → Mayor':'↓ Mayor → Menor';
   if(lastDrillArgs) renderDrill(...lastDrillArgs);
 }
 
@@ -1664,7 +1664,7 @@ function renderDrill(clienteK,tbl){
 
   document.getElementById('drillTitle').textContent=clienteK;
   document.getElementById('drillSub').textContent=`${lateLbl} · ${sorted.length} rutas · ${N(totT)} viajes · ${pctG.toFixed(1)}% cumplimiento`;
-  document.getElementById('drillSortBtn').textContent=drillSortDir===1?'↑ Menor → Mayor':'↓ Mayor → Menor';
+  const _dsb=document.getElementById('drillSortBtn');if(_dsb)_dsb.textContent=drillSortDir===1?'↑ Menor → Mayor':'↓ Mayor → Menor';
 
   const fmtMin=v=>{
     if(v===null) return '<span style="color:#aaa;font-size:.7rem">–</span>';
