@@ -6,6 +6,7 @@
 <title> NS | Traxión</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="favicon-traxion.svg">
@@ -161,6 +162,13 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .modal-body{overflow-y:auto;padding:0;}
 .modal-table{width:100%;border-collapse:collapse;}
 .modal-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:.42rem .75rem;text-align:left;white-space:nowrap;position:sticky;top:0;}
+.modal-table thead th.sortable{cursor:pointer;user-select:none;}
+.modal-table thead th.sortable:hover{background:#2c3a55;}
+.th-inner{display:flex;align-items:center;gap:4px;}
+.th-inner.r{justify-content:flex-end;}
+.sort-ind{font-size:.55rem;opacity:.4;flex-shrink:0;}
+th.sort-asc .sort-ind{opacity:1;color:#7ed321;}
+th.sort-desc .sort-ind{opacity:1;color:#7ed321;}
 .modal-table thead th.r{text-align:right;}
 .modal-table tbody tr{border-bottom:1px solid var(--border);}
 .modal-table tbody tr:last-child{border-bottom:none;}
@@ -700,36 +708,30 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     <div class="modal-head">
       <div style="display:flex;align-items:center;gap:.65rem;min-width:0;">
         <div style="min-width:0"><h3 id="drillDetailTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px">Detalle de Viajes</h3><span id="drillDetailSub"></span></div>
-        <button id="detailSortBtn" onclick="toggleDetailSort()"
-          style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
-                 border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;flex-shrink:0;
-                 font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">↑ Fecha Asc</button>
+
       </div>
       <div style="display:flex;align-items:center;gap:.6rem;flex-shrink:0">
         <button onclick="document.getElementById('drillDetailModal').classList.remove('open')"
           style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
                  border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
                  font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">← Volver</button>
-        <button onclick="exportDetailModal()"
-          style="background:#16a34a;border:1px solid #16a34a;color:#fff;
-                 border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
-                 font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">⬇ Excel</button>
+        <button class="btn-capture" onclick="exportDetailModal()">⬇ Excel</button>
         <button class="modal-close" onclick="document.getElementById('drillDetailModal').classList.remove('open')">✕</button>
       </div>
     </div>
     <div class="modal-body">
       <table class="modal-table">
-        <thead><tr>
+        <thead id="detailThead"><tr>
           <th style="width:36px"></th>
-          <th>Fecha</th>
-          <th style="text-align:left">Unidad</th>
-          <th style="text-align:left">Operador</th>
-          <th class="r">Ini Prog.</th>
-          <th class="r">Ini Real GPS</th>
-          <th class="r">Lle Prog.</th>
-          <th class="r">Lle Real GPS</th>
-          <th class="r">Min Ini</th>
-          <th class="r">Min Lle</th>
+          <th class="sortable" data-col="fecha" onclick="sortDetail('fecha')"><div class="th-inner">Fecha<span class="sort-ind">↕</span></div></th>
+          <th class="sortable" data-col="car" onclick="sortDetail('car')"><div class="th-inner">Unidad<span class="sort-ind">↕</span></div></th>
+          <th class="sortable" data-col="driver" onclick="sortDetail('driver')"><div class="th-inner">Operador<span class="sort-ind">↕</span></div></th>
+          <th class="r sortable" data-col="startTime" onclick="sortDetail('startTime')"><div class="th-inner r">Ini Prog.<span class="sort-ind">↕</span></div></th>
+          <th class="r sortable" data-col="startEta" onclick="sortDetail('startEta')"><div class="th-inner r">Ini Real GPS<span class="sort-ind">↕</span></div></th>
+          <th class="r sortable" data-col="endTime" onclick="sortDetail('endTime')"><div class="th-inner r">Lle Prog.<span class="sort-ind">↕</span></div></th>
+          <th class="r sortable" data-col="endEta" onclick="sortDetail('endEta')"><div class="th-inner r">Lle Real GPS<span class="sort-ind">↕</span></div></th>
+          <th class="r sortable" data-col="minIni" onclick="sortDetail('minIni')"><div class="th-inner r">Min Ini<span class="sort-ind">↕</span></div></th>
+          <th class="r sortable" data-col="minLle" onclick="sortDetail('minLle')"><div class="th-inner r">Min Lle<span class="sort-ind">↕</span></div></th>
         </tr></thead>
         <tbody id="drillDetailBody"></tbody>
       </table>
@@ -744,30 +746,24 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     <div class="modal-head">
       <div style="display:flex;align-items:center;gap:.65rem;min-width:0;">
         <div style="min-width:0"><h3 id="drillTitle" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px">Detalle por Ruta</h3><span id="drillSub"></span></div>
-        <button id="drillSortBtn" onclick="toggleDrillSort()"
-          style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
-                 border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;flex-shrink:0;
-                 font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">↑ Menor → Mayor</button>
+
       </div>
       <div style="display:flex;align-items:center;gap:.6rem;flex-shrink:0">
-        <button onclick="exportDrillModal()"
-          style="background:#16a34a;border:1px solid #16a34a;color:#fff;
-                 border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
-                 font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">⬇ Excel</button>
+        <button class="btn-capture" onclick="exportDrillModal()">⬇ Excel</button>
         <button class="modal-close" onclick="document.getElementById('drillModal').classList.remove('open')">✕</button>
       </div>
     </div>
     <div class="modal-body">
       <table class="modal-table">
-        <thead><tr>
-          <th>Ruta / Descripción</th>
-          <th class="r">Srvs.</th>
-          <th class="r">En tiempo</th>
-          <th class="r" id="drillSoloHdr">(ini ok · lle tarde)</th>
-          <th class="r" id="drillAmbosHdr">(ini tarde · lle tarde)</th>
-          <th class="r">⌀ Ini</th>
-          <th class="r">⌀ Lle</th>
-          <th class="r">% Cumpl.</th>
+        <thead id="drillThead"><tr>
+          <th class="sortable" data-col="k" onclick="sortDrill('k')"><div class="th-inner">Ruta / Descripción<span class="sort-ind">↕</span></div></th>
+          <th class="r sortable" data-col="t" onclick="sortDrill('t')"><div class="th-inner r">Srvs.<span class="sort-ind">↕</span></div></th>
+          <th class="r sortable" data-col="enT" onclick="sortDrill('enT')"><div class="th-inner r">En tiempo<span class="sort-ind">↕</span></div></th>
+          <th class="r sortable" data-col="lSolo" id="drillSoloHdr" onclick="sortDrill('lSolo')"><div class="th-inner r">(ini ok · lle tarde)<span class="sort-ind">↕</span></div></th>
+          <th class="r sortable" data-col="lAmbos" id="drillAmbosHdr" onclick="sortDrill('lAmbos')"><div class="th-inner r">(ini tarde · lle tarde)<span class="sort-ind">↕</span></div></th>
+          <th class="r sortable" data-col="avgMI" onclick="sortDrill('avgMI')"><div class="th-inner r">⌀ Ini<span class="sort-ind">↕</span></div></th>
+          <th class="r sortable" data-col="avgML" onclick="sortDrill('avgML')"><div class="th-inner r">⌀ Lle<span class="sort-ind">↕</span></div></th>
+          <th class="r sortable" data-col="pct" onclick="sortDrill('pct')"><div class="th-inner r">% Cumpl.<span class="sort-ind">↕</span></div></th>
         </tr></thead>
         <tbody id="drillBody"></tbody>
       </table>
@@ -1607,6 +1603,8 @@ let lastDetailMeta={};
 
 function openDrill(clienteK,tbl){
   drillSortDir=1;
+  drillSortDir2=1;
+  drillSortCol='pct';
   lastDrillArgs=[clienteK,tbl];
   renderDrill(clienteK,tbl);
   document.getElementById('drillModal').classList.add('open');
@@ -1692,28 +1690,90 @@ function renderDrill(clienteK,tbl){
     </tr>`;
   }).join('');
   document.getElementById('drillFoot').textContent=`Servicios: ${N(totT)} viajes · · ${N(totEnT)} en tiempo · ${pctG.toFixed(1)}% cumplimiento`;
+  updateThIndicators('drillThead', drillSortCol, drillSortDir2);
 }
 
 
-let detailSortDir=1;  // 1=asc fecha, -1=desc fecha, 2=tarde primero
+// ── Sort state ──
+let drillSortCol='pct', drillSortDir2=1;
+let detailSortCol='fecha', detailSortDir2=1;
 
-function toggleDetailSort(){
-  // Cicla: fecha asc → fecha desc → tarde primero → fecha asc
-  if(detailSortDir===1){ detailSortDir=-1; document.getElementById('detailSortBtn').textContent='↓ Fecha Desc'; }
-  else if(detailSortDir===-1){ detailSortDir=2; document.getElementById('detailSortBtn').textContent='⚠ Tarde Primero'; }
-  else { detailSortDir=1; document.getElementById('detailSortBtn').textContent='↑ Fecha Asc'; }
+function sortDrill(col){
+  if(drillSortCol===col) drillSortDir2*=-1; else{ drillSortCol=col; drillSortDir2=1; }
+  updateThIndicators('drillThead', col, drillSortDir2);
+  rerenderDrillBody();
+}
+function sortDetail(col){
+  if(detailSortCol===col) detailSortDir2*=-1; else{ detailSortCol=col; detailSortDir2=1; }
+  updateThIndicators('detailThead', col, detailSortDir2);
   rerenderDetailModal();
+}
+function updateThIndicators(theadId, activeCol, dir){
+  const thead=document.getElementById(theadId); if(!thead) return;
+  thead.querySelectorAll('th.sortable').forEach(th=>{
+    th.classList.remove('sort-asc','sort-desc');
+    const ind=th.querySelector('.sort-ind'); if(ind) ind.textContent='↕';
+    if(th.dataset.col===activeCol){
+      th.classList.add(dir===1?'sort-asc':'sort-desc');
+      if(ind) ind.textContent=dir===1?'▲':'▼';
+    }
+  });
+}
+// Mantener compatibilidad con toggleDrillSort existente
+function toggleDetailSort(){
+  // delegado a sortDetail fecha
+  sortDetail('fecha');
+}
+
+function rerenderDrillBody(){
+  if(!lastDrillData.length) return;
+  const col=drillSortCol, dir=drillSortDir2;
+  const sorted=[...lastDrillData].sort((a,b)=>{
+    const av=a[col]??'', bv=b[col]??'';
+    if(typeof av==='number'&&typeof bv==='number') return (av-bv)*dir;
+    return String(av).localeCompare(String(bv))*dir;
+  });
+  const isLlegadas=lastDrillIsLlegadas;
+  const colorFn=isLlegadas?(typeof pctColorLlegadas!=='undefined'?pctColorLlegadas:pctColor):pctColor;
+  document.getElementById('drillBody').innerHTML=sorted.map((r,i)=>{
+    const color=colorFn(r.pct);
+    const bg=i%2===0?'#ffffff':'#f7f9ff';
+    const rutaEsc=r.k.replace(/'/g,"\\'");
+    const cliEsc=(lastDrillArgs?lastDrillArgs[0]:'').replace(/'/g,"\\'");
+    const tbl=lastDrillArgs?lastDrillArgs[1]:'cli';
+    const fmtMin=v=>{if(v===null)return'<span style="color:#aaa;font-size:.7rem">–</span>';const clr=v>0?'#c53030':v<0?'#16a34a':'#6b7a99';return`<span style="color:${clr};font-weight:600">${v>0?'+':''}${v.toFixed(1)}</span>`;};
+    return`<tr class="row-ruta-clickable" style="background:${bg}" onclick="openDrillDetail('${rutaEsc}','${cliEsc}','${tbl}')">
+      <td class="td-ruta">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td>
+      <td class="r" style="color:var(--navy)">${r.t}</td>
+      <td class="r" style="color:#16a34a;font-weight:600">${r.enT}</td>
+      <td class="r" style="color:#d97706;font-weight:600">${r.lSolo}</td>
+      <td class="r" style="color:#cc0000;font-weight:700">${r.lAmbos}</td>
+      <td class="r">${fmtMin(r.avgMI)}</td>
+      <td class="r">${fmtMin(r.avgML)}</td>
+      <td class="r"><span style="color:${color};font-weight:700;font-size:.88rem">${r.pct.toFixed(1)}%</span></td>
+    </tr>`;
+  }).join('');
 }
 
 function rerenderDetailModal(){
   if(!lastDetailData.length) return;
   const isL=lastDetailMeta.isLlegadas;
-  const lateField=isL?(typeof C!=='undefined'?(C.llegada||'llegada'):'llegada'):(typeof C!=='undefined'?(C.retardo||'retardo'):'retardo');
-  let sorted=[...lastDetailData];
-  if(detailSortDir===1)       sorted.sort((a,b)=>getFecha(a).localeCompare(getFecha(b)));
-  else if(detailSortDir===-1) sorted.sort((a,b)=>getFecha(b).localeCompare(getFecha(a)));
-  else                        sorted.sort((a,b)=>(countLate(b[lateField])===1?1:0)-(countLate(a[lateField])===1?1:0));
-
+  const lateField=isL?(C.llegada||'llegada'):(C.retardo||'retardo');
+  const col=detailSortCol, dir=detailSortDir2;
+  const sorted=[...lastDetailData].sort((a,b)=>{
+    let av,bv;
+    if(col==='fecha'){ av=getFecha(a); bv=getFecha(b); }
+    else if(col==='minIni'){ av=parseMin(a[C.minIni])??-9999; bv=parseMin(b[C.minIni])??-9999; return(av-bv)*dir; }
+    else if(col==='minLle'){ av=parseMin(a[C.minLle])??-9999; bv=parseMin(b[C.minLle])??-9999; return(av-bv)*dir; }
+    else if(col==='startTime'){ av=String(a[C.startTime]||''); bv=String(b[C.startTime]||''); }
+    else if(col==='startEta') { av=String(a[C.startEta]||'');  bv=String(b[C.startEta]||''); }
+    else if(col==='endTime')  { av=String(a[C.endTime]||'');   bv=String(b[C.endTime]||''); }
+    else if(col==='endEta')   { av=String(a[C.endEta]||'');    bv=String(b[C.endEta]||''); }
+    else if(col==='car')      { av=String(a['car']||'');        bv=String(b['car']||''); }
+    else if(col==='driver')   { av=String(a['driver']||'');     bv=String(b['driver']||''); }
+    else { av=getFecha(a); bv=getFecha(b); }
+    return av.localeCompare(bv)*dir;
+  });
   document.getElementById('drillDetailBody').innerHTML=sorted.map((r,i)=>{
     const tarde=countLate(r[lateField])===1;
     const fecha=getFecha(r);
@@ -1729,9 +1789,9 @@ function rerenderDetailModal(){
     const eTime=(r[C.endTime]  ||'–').trim();
     const eEta =(r[C.endEta]   ||'–').trim();
     const tripId=(r[C.id]||'').trim();
-    const driverEsc=driver.replace(/'/g,"\'");
+    const driverEsc=driver.replace(/'/g,"\\'");
     const auditBtn=tripId?`<button onclick="openAuditModal('${tripId}')" style="background:#1a2236;color:#7ed321;border:1px solid #7ed321;border-radius:5px;padding:.15rem .35rem;font-size:.62rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;line-height:1.4" title="Auditoría del viaje">📍</button>`:'';
-    return `<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
+    return`<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
       <td style="text-align:center;padding:.3rem .4rem">${auditBtn}</td>
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${fechaFmt}</td>
       <td style="text-align:left;font-weight:600">${unidad}</td>
@@ -1746,55 +1806,177 @@ function rerenderDetailModal(){
   }).join('')||'<tr><td colspan="10" class="table-empty">Sin viajes registrados</td></tr>';
 }
 
-function exportDrillModal(){
-  if(!lastDrillData.length){alert('Sin datos para exportar');return;}
-  const isL=lastDrillIsLlegadas;
-  const soloHdr=isL?'Salió bien, llegó tarde':'Inició tarde, llegó bien';
-  const ambosHdr='Inició Y llegó tarde';
-  const headers=['Ruta / Descripción','Servicios','En tiempo',soloHdr,ambosHdr,'⌀ Min Ini','⌀ Min Lle','% Cumplimiento'];
-  const wsData=[headers,...lastDrillData.map(r=>[
-    r.k, r.t, r.enT, r.lSolo, r.lAmbos,
-    r.avgMI!==null?+r.avgMI.toFixed(1):'',
-    r.avgML!==null?+r.avgML.toFixed(1):'',
-    +r.pct.toFixed(1)
-  ])];
-  const ws=XLSX.utils.aoa_to_sheet(wsData);
-  ws['!cols']=[{wch:40},{wch:10},{wch:10},{wch:22},{wch:22},{wch:12},{wch:12},{wch:14}];
-  const wb=XLSX.utils.book_new();
-  const cliente=document.getElementById('drillTitle').textContent.slice(0,25);
-  const tipo=isL?'Llegadas':'Inicios';
-  XLSX.utils.book_append_sheet(wb,ws,`${tipo}_Rutas`.slice(0,31));
-  XLSX.writeFile(wb,`Traxion_NS_${tipo}_Rutas_${cliente}_${new Date().toISOString().slice(0,10)}.xlsx`);
+// ── Export con ExcelJS + logo ──
+async function buildLogoBase64(){
+  try{
+    const img=new Image(); img.crossOrigin='anonymous';
+    await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src='logo-settepi.png';});
+    const c=document.createElement('canvas');c.width=img.width;c.height=img.height;
+    c.getContext('2d').drawImage(img,0,0);
+    return c.toDataURL('image/png').split(',')[1];
+  }catch(e){ return null; }
 }
 
-function exportDetailModal(){
+async function exportDrillModal(){
+  if(!lastDrillData.length){alert('Sin datos para exportar');return;}
+  const isL=lastDrillIsLlegadas;
+  const cliente=document.getElementById('drillTitle').textContent;
+  const tipo=isL?'Llegadas':'Inicios';
+  const soloHdr=isL?'Salió bien, llegó tarde':'Inició tarde, llegó bien';
+  const ambosHdr='Inició Y llegó tarde';
+  const wb=new ExcelJS.Workbook();
+  wb.creator='Traxión · Settepi';
+  const ws=wb.addWorksheet(`${tipo}_Rutas`);
+  ws.columns=[
+    {width:42},{width:10},{width:12},{width:24},{width:24},{width:12},{width:12},{width:14}
+  ];
+  // ── Logo ──
+  const logo64=await buildLogoBase64();
+  if(logo64){
+    const imgId=wb.addImage({base64:logo64,extension:'png'});
+    ws.addImage(imgId,{tl:{col:0,row:0},ext:{width:120,height:40}});
+  }
+  // ── Header empresa (fila 1-2) ──
+  ws.mergeCells('A1:H2');
+  const hCell=ws.getCell('A1');
+  hCell.value=logo64?'':' SETTEPI · TRAXIÓN';
+  hCell.font={name:'Calibri',bold:true,size:14,color:{argb:'FFFFFFFF'}};
+  hCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1A2236'}};
+  hCell.alignment={vertical:'middle',horizontal:logo64?'left':'center'};
+  // ── Subtítulo (fila 3) ──
+  ws.mergeCells('A3:H3');
+  const stCell=ws.getCell('A3');
+  stCell.value=`${tipo} NS · ${cliente} · ${new Date().toLocaleDateString('es-MX')}`;
+  stCell.font={name:'Calibri',italic:true,size:10,color:{argb:'FF6B7A99'}};
+  stCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F2F7'}};
+  stCell.alignment={horizontal:'left',vertical:'middle'};
+  ws.getRow(3).height=18;
+  // ── Fila vacía ──
+  ws.addRow([]);
+  // ── Headers tabla (fila 5) ──
+  const hdrRow=ws.addRow(['Ruta / Descripción','Servicios','En Tiempo',soloHdr,ambosHdr,'⌀ Min Ini','⌀ Min Lle','% Cumplimiento']);
+  hdrRow.eachCell(cell=>{
+    cell.font={name:'Calibri',bold:true,size:10,color:{argb:'FFFFFFFF'}};
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF222D42'}};
+    cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+    cell.border={bottom:{style:'medium',color:{argb:'FF7ED321'}}};
+  });
+  hdrRow.height=30;
+  // ── Datos ──
+  const sorted=[...lastDrillData].sort((a,b)=>(a.pct-b.pct)*drillSortDir);
+  sorted.forEach((r,i)=>{
+    const row=ws.addRow([
+      r.k, r.t, r.enT, r.lSolo, r.lAmbos,
+      r.avgMI!==null?+r.avgMI.toFixed(1):'',
+      r.avgML!==null?+r.avgML.toFixed(1):'',
+      +r.pct.toFixed(1)
+    ]);
+    const bgColor=i%2===0?'FFFFFFFF':'FFF7F9FF';
+    row.eachCell((cell,colNum)=>{
+      cell.font={name:'Calibri',size:10};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bgColor}};
+      cell.alignment={vertical:'middle',horizontal:colNum===1?'left':'center'};
+      cell.border={bottom:{style:'thin',color:{argb:'FFDDE3F0'}}};
+    });
+    // Color % cumplimiento
+    const pctCell=row.getCell(8);
+    const pv=r.pct;
+    pctCell.font={name:'Calibri',size:10,bold:true,
+      color:{argb:pv>=95?'FF16A34A':pv>=85?'FFD97706':'FFE53E3E'}};
+    pctCell.numFmt='0.0"%"';
+  });
+  // Totales
+  const totT=sorted.reduce((s,r)=>s+r.t,0);
+  const totEnT=sorted.reduce((s,r)=>s+r.enT,0);
+  const totRow=ws.addRow(['TOTAL',totT,totEnT,'','','','',totT>0?+(totEnT/totT*100).toFixed(1):'']);
+  totRow.eachCell(cell=>{
+    cell.font={name:'Calibri',bold:true,size:10};
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1A2236'}};
+    cell.font={name:'Calibri',bold:true,size:10,color:{argb:'FFFFFFFF'}};
+    cell.alignment={horizontal:'center',vertical:'middle'};
+  });
+  totRow.getCell(1).alignment={horizontal:'left',vertical:'middle'};
+  // ── Guardar ──
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`Traxion_NS_${tipo}_Rutas_${cliente.slice(0,20)}_${new Date().toISOString().slice(0,10)}.xlsx`;
+  a.click();
+}
+
+async function exportDetailModal(){
   if(!lastDetailData.length){alert('Sin datos para exportar');return;}
   const isL=lastDetailMeta.isLlegadas;
-  const C_local=typeof C!=='undefined'?C:{};
-  const headers=['Fecha','Unidad','Operador','Ini Prog.','Ini Real GPS','Lle Prog.','Lle Real GPS','Min Ini','Min Lle','Tarde'];
-  const wsData=[headers,...lastDetailData.map(r=>{
-    const lateField=isL?(C_local.llegada||'llegada'):(C_local.retardo||'retardo');
-    const tarde=typeof countLate==='function'?countLate(r[lateField])===1:false;
-    return[
+  const tipo=isL?'Llegadas':'Inicios';
+  const nombre=`${lastDetailMeta.cliente||''} · ${lastDetailMeta.ruta||''}`;
+  const lateField=isL?(C.llegada||'llegada'):(C.retardo||'retardo');
+  const wb=new ExcelJS.Workbook();
+  wb.creator='Traxión · Settepi';
+  const ws=wb.addWorksheet(`${tipo}_Viajes`);
+  ws.columns=[{width:14},{width:12},{width:28},{width:13},{width:14},{width:13},{width:14},{width:9},{width:9},{width:11}];
+  // ── Logo ──
+  const logo64=await buildLogoBase64();
+  if(logo64){
+    const imgId=wb.addImage({base64:logo64,extension:'png'});
+    ws.addImage(imgId,{tl:{col:0,row:0},ext:{width:120,height:40}});
+  }
+  // ── Header ──
+  ws.mergeCells('A1:J2');
+  const hCell=ws.getCell('A1');
+  hCell.value=logo64?'':' SETTEPI · TRAXIÓN';
+  hCell.font={name:'Calibri',bold:true,size:14,color:{argb:'FFFFFFFF'}};
+  hCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1A2236'}};
+  hCell.alignment={vertical:'middle',horizontal:logo64?'left':'center'};
+  ws.mergeCells('A3:J3');
+  const stCell=ws.getCell('A3');
+  stCell.value=`${tipo} NS · ${nombre} · ${new Date().toLocaleDateString('es-MX')}`;
+  stCell.font={name:'Calibri',italic:true,size:10,color:{argb:'FF6B7A99'}};
+  stCell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F2F7'}};
+  stCell.alignment={horizontal:'left',vertical:'middle'};
+  ws.getRow(3).height=18;
+  ws.addRow([]);
+  // ── Headers ──
+  const hdrRow=ws.addRow(['Fecha','Unidad','Operador','Ini Prog.','Ini Real GPS','Lle Prog.','Lle Real GPS','Min Ini','Min Lle','Estado']);
+  hdrRow.eachCell(cell=>{
+    cell.font={name:'Calibri',bold:true,size:10,color:{argb:'FFFFFFFF'}};
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF222D42'}};
+    cell.alignment={horizontal:'center',vertical:'middle'};
+    cell.border={bottom:{style:'medium',color:{argb:'FF7ED321'}}};
+  });
+  hdrRow.height=28;
+  // ── Datos ──
+  lastDetailData.forEach((r,i)=>{
+    const tarde=countLate(r[lateField])===1;
+    const row=ws.addRow([
       getFecha(r),
       (r['car']||'–').trim(),
       (r['driver']||'–').trim(),
-      (C_local.startTime&&r[C_local.startTime]?r[C_local.startTime]:'–'),
-      (C_local.startEta&&r[C_local.startEta]?r[C_local.startEta]:'–'),
-      (C_local.endTime&&r[C_local.endTime]?r[C_local.endTime]:'–'),
-      (C_local.endEta&&r[C_local.endEta]?r[C_local.endEta]:'–'),
-      typeof parseMin==='function'&&parseMin(r[C_local.minIni])!==null?+parseMin(r[C_local.minIni]).toFixed(1):'',
-      typeof parseMin==='function'&&parseMin(r[C_local.minLle])!==null?+parseMin(r[C_local.minLle]).toFixed(1):'',
+      (C.startTime&&r[C.startTime]?r[C.startTime]:'–'),
+      (C.startEta&&r[C.startEta]?r[C.startEta]:'–'),
+      (C.endTime&&r[C.endTime]?r[C.endTime]:'–'),
+      (C.endEta&&r[C.endEta]?r[C.endEta]:'–'),
+      typeof parseMin==='function'&&parseMin(r[C.minIni])!==null?+parseMin(r[C.minIni]).toFixed(1):'',
+      typeof parseMin==='function'&&parseMin(r[C.minLle])!==null?+parseMin(r[C.minLle]).toFixed(1):'',
       tarde?'Tarde':'A tiempo'
-    ];
-  })];
-  const ws=XLSX.utils.aoa_to_sheet(wsData);
-  ws['!cols']=[{wch:14},{wch:12},{wch:28},{wch:12},{wch:13},{wch:12},{wch:13},{wch:9},{wch:9},{wch:9}];
-  const wb=XLSX.utils.book_new();
-  const tipo=isL?'Llegadas':'Inicios';
-  const nombre=`${lastDetailMeta.cliente||''}_${lastDetailMeta.ruta||''}`.slice(0,20);
-  XLSX.utils.book_append_sheet(wb,ws,`${tipo}_Viajes`.slice(0,31));
-  XLSX.writeFile(wb,`Traxion_NS_${tipo}_Viajes_${nombre}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    ]);
+    const bgColor=tarde?'FFFFF5F5':i%2===0?'FFFFFFFF':'FFF7F9FF';
+    row.eachCell((cell,colNum)=>{
+      cell.font={name:'Calibri',size:10};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bgColor}};
+      cell.alignment={vertical:'middle',horizontal:colNum<=3?'left':'center'};
+      cell.border={bottom:{style:'thin',color:{argb:'FFDDE3F0'}}};
+    });
+    if(tarde){
+      row.getCell(10).font={name:'Calibri',size:10,bold:true,color:{argb:'FFE53E3E'}};
+    } else {
+      row.getCell(10).font={name:'Calibri',size:10,color:{argb:'FF16A34A'}};
+    }
+  });
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`Traxion_NS_${tipo}_Viajes_${nombre.slice(0,20)}_${new Date().toISOString().slice(0,10)}.xlsx`;
+  a.click();
 }
 
 function closeDrill(e){ if(e.target===document.getElementById('drillModal')) document.getElementById('drillModal').classList.remove('open'); }
@@ -1991,8 +2173,9 @@ function openDrillDetail(rutaK,clienteK,tbl){
   document.getElementById('drillDetailFoot').textContent=`Servicios: ${totT} viajes · · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
   lastDetailData=[...sorted];
   lastDetailMeta={cliente:clienteK,ruta:rutaK,isLlegadas:isLlegadas,totT,totL,pctG};
-  detailSortDir=1;
-  const dsb=document.getElementById('detailSortBtn');if(dsb)dsb.textContent='↑ Fecha Asc';
+  detailSortCol='fecha';
+  detailSortDir2=1;
+  updateThIndicators('detailThead','fecha',1);
   document.getElementById('drillDetailModal').classList.add('open');
 }
 
