@@ -850,7 +850,7 @@ const SHEET_ID    = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const SHEET_NAME  = 'NS';
 const INPUTS_NAME = 'Inputs';
 const FIRST_CHUNK = 30000;
-const CHUNK       = 100000;
+const CHUNK       = 50000;
 
 const C = {
   fecha:'start_date', semana:'Semana', udn:'business_unit', cliente:'group',
@@ -971,6 +971,10 @@ function parseCSV(text){
 }
 function csvUrl(offset, limit){
   const tq=encodeURIComponent(`SELECT * LIMIT ${limit} OFFSET ${offset}`);
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
+}
+function countUrl(){
+  const tq=encodeURIComponent(`SELECT COUNT(A)`);
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
 }
 function inputsUrl(){
@@ -1142,7 +1146,22 @@ async function loadSheet(){
   const errMsg =document.getElementById('errMsg');
   try{
     loadMsg.innerHTML='Cargando datos...<br>Por favor espera';
-    const res=await fetch(csvUrl(0, FIRST_CHUNK));
+    // 1) Consultar el total de filas para cargar desde el final (lo más reciente primero)
+    let totalRows = 0;
+    try{
+      const countRes = await fetch(countUrl());
+      if(countRes.ok){
+        const countText = await countRes.text();
+        const nums = countText.match(/[\d.]+/g);
+        if(nums && nums.length) totalRows = Math.floor(parseFloat(nums[nums.length-1])) || 0;
+      }
+    }catch(e){ console.warn('No se pudo obtener COUNT, se usará carga normal', e); }
+
+    // 2) Calcular el offset del primer fetch (las últimas FIRST_CHUNK filas)
+    const firstOffset = totalRows > FIRST_CHUNK ? (totalRows - FIRST_CHUNK) : 0;
+    const firstLimit  = totalRows > 0 ? Math.min(FIRST_CHUNK, totalRows) : FIRST_CHUNK;
+
+    const res=await fetch(csvUrl(firstOffset, firstLimit));
     if(!res.ok) throw new Error('HTTP '+res.status+'. Verifica que el Sheet sea público (Compartir → Cualquier persona con el enlace).');
     const firstRows=parseCSV(await res.text());
     if(!firstRows.length) throw new Error('Sin filas válidas. Abre F12 → Console para ver el detalle.');
@@ -1152,12 +1171,35 @@ async function loadSheet(){
     if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',450); }
     fillAllSelects();
     const mesActual=getCurrentMonth();
+    let mesAutoSelected=false;
     if(loadedMonths.has(mesActual)){
       scSetVal('mes',mesActual,mesLabel(mesActual));
       cascadeSelects();
+      mesAutoSelected=true;
     }
     draw();
-    if(firstRows.length>=FIRST_CHUNK){
+
+    // 3) Cargar el resto hacia atrás (chunks más viejos)
+    let nextEnd = firstOffset;
+    while(nextEnd > 0){
+      const nextStart = Math.max(0, nextEnd - CHUNK);
+      const limit = nextEnd - nextStart;
+      const r2=await fetch(csvUrl(nextStart, limit));
+      if(!r2.ok) break;
+      const more=parseCSV(await r2.text());
+      if(!more.length) break;
+      more.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
+      DATA.push(...more);
+      fillAllSelects();
+      if(!mesAutoSelected && loadedMonths.has(mesActual)){
+        scSetVal('mes',mesActual,mesLabel(mesActual));
+        cascadeSelects();
+        mesAutoSelected=true;
+      }
+      nextEnd = nextStart;
+    }
+    // Fallback: si no se pudo calcular totalRows y seguimos teniendo FIRST_CHUNK filas, cargar hacia adelante
+    if(totalRows===0 && firstRows.length>=FIRST_CHUNK){
       let offset=FIRST_CHUNK;
       while(true){
         const r2=await fetch(csvUrl(offset, CHUNK));
@@ -1167,11 +1209,20 @@ async function loadSheet(){
         more.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
         DATA.push(...more);
         fillAllSelects();
+        if(!mesAutoSelected && loadedMonths.has(mesActual)){
+          scSetVal('mes',mesActual,mesLabel(mesActual));
+          cascadeSelects();
+          mesAutoSelected=true;
+        }
         if(more.length<CHUNK) break;
         offset+=CHUNK;
       }
-      draw();
     }
+    if(!mesAutoSelected && loadedMonths.has(mesActual)){
+      scSetVal('mes',mesActual,mesLabel(mesActual));
+      cascadeSelects();
+    }
+    draw();
   }catch(e){
     console.error(e);
     if(overlay) overlay.style.display='none';
@@ -1214,9 +1265,6 @@ function scFilter(key){
   if(SC_SEL[key]!==''){ SC_SEL[key]=''; cascadeSelects(); draw(); }
   document.getElementById('sc-'+key).classList.add('open');
   scRenderDD(key);
-  const dd=document.getElementById('sc-'+key+'-dd');
-  const realOpts=[...dd.querySelectorAll('.sc-opt:not(.sc-none)')].filter(o=>o.getAttribute('data-val')!=='');
-  if(realOpts.length===1) realOpts[0].dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));
 }
 function scSelect(e,key){
   e.preventDefault();
@@ -1240,7 +1288,6 @@ function scKey(e,key){
   else if(e.key==='ArrowUp'){ e.preventDefault(); SC_FOCUS[key]=Math.max(SC_FOCUS[key]-1,0); opts.forEach((o,i)=>o.classList.toggle('focused',i===SC_FOCUS[key])); opts[SC_FOCUS[key]]?.scrollIntoView({block:'nearest'}); }
   else if(e.key==='Enter'){
     if(SC_FOCUS[key]>=0) opts[SC_FOCUS[key]].dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));
-    else{ const first=opts.find(o=>o.getAttribute('data-val')!==''); if(first) first.dispatchEvent(new MouseEvent('mousedown',{bubbles:true})); }
   } else if(e.key==='Escape'){
     const inp=document.getElementById('sc-'+key+'-input');
     inp.value=inp.getAttribute('data-selected-lbl')||'';
