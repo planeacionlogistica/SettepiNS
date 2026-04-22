@@ -849,7 +849,8 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 const SHEET_ID    = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const SHEET_NAME  = 'NS';
 const INPUTS_NAME = 'Inputs';
-const CHUNK       = 35000;
+const FIRST_CHUNK = 30000;
+const CHUNK       = 100000;
 
 const C = {
   fecha:'start_date', semana:'Semana', udn:'business_unit', cliente:'group',
@@ -968,8 +969,8 @@ function parseCSV(text){
   }
   return rows;
 }
-function csvUrl(offset){
-  const tq=encodeURIComponent(`SELECT * LIMIT ${CHUNK} OFFSET ${offset}`);
+function csvUrl(offset, limit){
+  const tq=encodeURIComponent(`SELECT * LIMIT ${limit} OFFSET ${offset}`);
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
 }
 function inputsUrl(){
@@ -1141,7 +1142,7 @@ async function loadSheet(){
   const errMsg =document.getElementById('errMsg');
   try{
     loadMsg.innerHTML='Cargando datos...<br>Por favor espera';
-    const res=await fetch(csvUrl(0));
+    const res=await fetch(csvUrl(0, FIRST_CHUNK));
     if(!res.ok) throw new Error('HTTP '+res.status+'. Verifica que el Sheet sea público (Compartir → Cualquier persona con el enlace).');
     const firstRows=parseCSV(await res.text());
     if(!firstRows.length) throw new Error('Sin filas válidas. Abre F12 → Console para ver el detalle.');
@@ -1156,10 +1157,10 @@ async function loadSheet(){
       cascadeSelects();
     }
     draw();
-    if(firstRows.length>=CHUNK){
-      let offset=CHUNK;
+    if(firstRows.length>=FIRST_CHUNK){
+      let offset=FIRST_CHUNK;
       while(true){
-        const r2=await fetch(csvUrl(offset));
+        const r2=await fetch(csvUrl(offset, CHUNK));
         if(!r2.ok) break;
         const more=parseCSV(await r2.text());
         if(!more.length) break;
