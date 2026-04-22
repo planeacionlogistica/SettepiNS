@@ -849,7 +849,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 const SHEET_ID    = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const SHEET_NAME  = 'NS';
 const INPUTS_NAME = 'Inputs';
-const FIRST_CHUNK = 30000;
+const FIRST_CHUNK = 15000;
 const CHUNK       = 50000;
 
 const C = {
@@ -1144,20 +1144,123 @@ async function loadSheet(){
   const loadMsg=document.getElementById('loadingMsg');
   const banner =document.getElementById('errBanner');
   const errMsg =document.getElementById('errMsg');
+
+  // ── IndexedDB Cache helpers (para cargas casi instantáneas en visitas posteriores)
+  const DB_NAME='DashboardNS', STORE='ns_cache', DB_KEY='full_data_v1';
+  const CACHE_MAX_AGE_MS = 7*24*60*60*1000; // 7 días → refresh total
+  function openDB(){
+    return new Promise(resolve=>{
+      if(!self.indexedDB){ resolve(null); return; }
+      const req=indexedDB.open(DB_NAME,1);
+      req.onerror=()=>resolve(null);
+      req.onsuccess=()=>resolve(req.result);
+      req.onupgradeneeded=e=>{ const db=e.target.result; if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE); };
+    });
+  }
+  async function cacheGet(key){
+    try{ const db=await openDB(); if(!db) return null;
+      return await new Promise(res=>{
+        const tx=db.transaction(STORE,'readonly'); const r=tx.objectStore(STORE).get(key);
+        r.onsuccess=()=>res(r.result); r.onerror=()=>res(null);
+      });
+    }catch(e){ return null; }
+  }
+  async function cacheSet(key,value){
+    try{ const db=await openDB(); if(!db) return;
+      return await new Promise(res=>{
+        const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(value,key);
+        tx.oncomplete=()=>res(); tx.onerror=()=>res();
+      });
+    }catch(e){}
+  }
+  function rowKey(r){ return r[C.id] || `${r[C.fecha]||''}|${r[C.ruta]||''}|${r[C.driver]||''}|${r[C.startTime]||''}`; }
+
   try{
     loadMsg.innerHTML='Cargando datos...<br>Por favor espera';
-    // 1) Consultar el total de filas para cargar desde el final (lo más reciente primero)
-    let totalRows = 0;
-    try{
-      const countRes = await fetch(countUrl());
-      if(countRes.ok){
-        const countText = await countRes.text();
-        const nums = countText.match(/[\d.]+/g);
-        if(nums && nums.length) totalRows = Math.floor(parseFloat(nums[nums.length-1])) || 0;
-      }
-    }catch(e){ console.warn('No se pudo obtener COUNT, se usará carga normal', e); }
 
-    // 2) Calcular el offset del primer fetch (las últimas FIRST_CHUNK filas)
+    // ═══════════════════════════════════════════════════════════════
+    // FASE 1: Intentar cargar desde caché IndexedDB (casi instantáneo)
+    // ═══════════════════════════════════════════════════════════════
+    let hasCache=false;
+    const cached = await cacheGet(DB_KEY);
+    if(cached && cached.rows && cached.rows.length && (Date.now()-cached.cachedAt < CACHE_MAX_AGE_MS)){
+      DATA = cached.rows;
+      (cached.months||[]).forEach(m=>loadedMonths.add(m));
+      hasCache=true;
+      if(banner) banner.classList.add('hidden');
+      if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',450); }
+      fillAllSelects();
+      const mesActualCache=getCurrentMonth();
+      if(loadedMonths.has(mesActualCache)){
+        scSetVal('mes',mesActualCache,mesLabel(mesActualCache));
+        cascadeSelects();
+      }
+      draw();
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // FASE 2: Consultar COUNT actual del sheet (en paralelo si hay caché)
+    // ═══════════════════════════════════════════════════════════════
+    const CACHE_COUNT_KEY = 'ns_total_rows_v1';
+    let cachedCount = 0;
+    try{ cachedCount = parseInt(localStorage.getItem(CACHE_COUNT_KEY) || '0') || 0; }catch(e){}
+
+    const countPromise = (async()=>{
+      try{
+        const r = await fetch(countUrl());
+        if(!r.ok) return 0;
+        const t = await r.text();
+        const nums = t.match(/[\d.]+/g);
+        return nums && nums.length ? Math.floor(parseFloat(nums[nums.length-1])) || 0 : 0;
+      }catch(e){ console.warn('COUNT falló', e); return 0; }
+    })();
+
+    // ═══════════════════════════════════════════════════════════════
+    // FASE 3A: MODO CACHÉ → refrescar solo últimas ~3000 filas (~7 días)
+    // ═══════════════════════════════════════════════════════════════
+    if(hasCache){
+      const realCount = await countPromise;
+      if(realCount > 0){
+        try{ localStorage.setItem(CACHE_COUNT_KEY, String(realCount)); }catch(e){}
+        const RECENT_CHUNK = 3000; // cubre aprox 7 días a 350 filas/día
+        const recentOffset = realCount > RECENT_CHUNK ? (realCount - RECENT_CHUNK) : 0;
+        const recentLimit  = Math.min(RECENT_CHUNK, realCount);
+        try{
+          const r = await fetch(csvUrl(recentOffset, recentLimit));
+          if(r.ok){
+            const fresh = parseCSV(await r.text());
+            if(fresh.length){
+              // Dedupe: quitar del caché las filas que vienen frescas (match por id)
+              const freshKeys = new Set(fresh.map(rowKey));
+              DATA = DATA.filter(r => !freshKeys.has(rowKey(r)));
+              DATA.push(...fresh);
+              fresh.forEach(r=>{ const m=normMonth(getFecha(r)); if(m) loadedMonths.add(m); });
+              fillAllSelects();
+              const mesA=getCurrentMonth();
+              if(loadedMonths.has(mesA) && !SC_SEL.mes){
+                scSetVal('mes',mesA,mesLabel(mesA));
+                cascadeSelects();
+              }
+              draw();
+            }
+          }
+        }catch(e){ console.warn('Error refrescando filas recientes', e); }
+      }
+      // Guardar caché actualizado (sin bloquear UI)
+      setTimeout(()=>cacheSet(DB_KEY, { rows: DATA, months:[...loadedMonths], cachedAt: Date.now() }), 200);
+      return; // listo, terminamos en modo caché
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // FASE 3B: SIN CACHÉ → carga completa desde el final (primera vez)
+    // ═══════════════════════════════════════════════════════════════
+    let totalRows = 0;
+    if(cachedCount > FIRST_CHUNK){
+      totalRows = cachedCount;
+    } else {
+      totalRows = await countPromise;
+    }
+
     const firstOffset = totalRows > FIRST_CHUNK ? (totalRows - FIRST_CHUNK) : 0;
     const firstLimit  = totalRows > 0 ? Math.min(FIRST_CHUNK, totalRows) : FIRST_CHUNK;
 
@@ -1179,7 +1282,33 @@ async function loadSheet(){
     }
     draw();
 
-    // 3) Cargar el resto hacia atrás (chunks más viejos)
+    const realCount = await countPromise;
+    if(realCount > 0){
+      try{ localStorage.setItem(CACHE_COUNT_KEY, String(realCount)); }catch(e){}
+      if(totalRows === 0) totalRows = realCount;
+      const missed = realCount - (firstOffset + firstRows.length);
+      if(missed > 0){
+        try{
+          const rMiss = await fetch(csvUrl(firstOffset + firstRows.length, Math.min(missed, CHUNK)));
+          if(rMiss.ok){
+            const extra = parseCSV(await rMiss.text());
+            if(extra.length){
+              extra.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
+              DATA.push(...extra);
+              fillAllSelects();
+              if(!mesAutoSelected && loadedMonths.has(mesActual)){
+                scSetVal('mes',mesActual,mesLabel(mesActual));
+                cascadeSelects();
+                mesAutoSelected=true;
+              }
+              draw();
+            }
+          }
+        }catch(e){ console.warn('Error cargando filas faltantes', e); }
+      }
+    }
+
+    // Cargar el resto hacia atrás (chunks más viejos)
     let nextEnd = firstOffset;
     while(nextEnd > 0){
       const nextStart = Math.max(0, nextEnd - CHUNK);
@@ -1223,6 +1352,9 @@ async function loadSheet(){
       cascadeSelects();
     }
     draw();
+
+    // Guardar TODO en caché para próximas visitas (sin bloquear UI)
+    setTimeout(()=>cacheSet(DB_KEY, { rows: DATA, months:[...loadedMonths], cachedAt: Date.now() }), 500);
   }catch(e){
     console.error(e);
     if(overlay) overlay.style.display='none';
