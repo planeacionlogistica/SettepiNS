@@ -390,8 +390,25 @@ const C = {
   id:'IDS', tipo:'Tipo', marca:'Marca', modelo:'Modelo', anio:'Año',
   cliente:'PLANTA', estatus:'Estatus', comentario:'COMENTARIO',
   clima:'Marca del clima', funcClima:'Funciona clima', jefe:'Jefe', gerente:'Gerente',
-  kmGps:'km 10 dias anterior', kmBus:'Km Bustrax', kmInef:'Km ineficiente', pctInef:'% ineficiencia',
+  kmGps:'', kmBus:'', kmInef:'', pctInef:'',
 };
+
+function autoDetectCols(sample){
+  if(!sample)return;
+  const hdrs=Object.keys(sample);
+  const find=(...pats)=>{
+    for(const p of pats){
+      const h=hdrs.find(x=>x.toLowerCase().includes(p.toLowerCase()));
+      if(h)return h;
+    }
+    return '';
+  };
+  C.kmGps   = find('km 10 dias','km 10 días','gps','10 dias');
+  C.kmBus   = find('bustrax','bus');
+  C.kmInef  = find('km inef','km ineficie');
+  C.pctInef = find('% inef','porcentaje inef','% ineficien');
+  console.log('Columnas detectadas:',{kmGps:C.kmGps,kmBus:C.kmBus,kmInef:C.kmInef,pctInef:C.pctInef});
+}
 
 const ALL_STATUSES = [
   {key:'Operando',            col:'#639922', cat:'op' },
@@ -515,6 +532,7 @@ window.addEventListener('DOMContentLoaded',async()=>{
     const rows=parseCSV(await res.text());
     if(!rows.length)throw new Error('Sin datos en hoja "Flota".');
     DATA=rows;
+    autoDetectCols(rows[0]);
     ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',450);
     cascadeFilters();draw();
   }catch(e){console.error(e);ov.style.display='none';document.getElementById('errMsg').textContent=e.message;document.getElementById('errBanner').classList.remove('hidden');}
@@ -531,7 +549,7 @@ function draw(){
   drawBars(rows,t);
   drawDonut(rows,t);
   drawClientes(rows);
-  drawIneficiencia(rows);
+  try{drawIneficiencia(rows);}catch(e){console.error('Error en sección ineficiencia:',e);}
 }
 
 function drawKPIs(rows,t){
@@ -607,6 +625,19 @@ function reasignable(r,rango){
 }
 
 function drawIneficiencia(rows){
+  // Si no se detectaron las columnas, avisar al usuario en pantalla
+  if(!C.kmGps||!C.kmBus){
+    document.getElementById('ineffTotal').textContent='–';
+    document.getElementById('ineffTotalSub').textContent='columnas no encontradas';
+    document.getElementById('ineffRojo').textContent='–';
+    document.getElementById('ineffKm').textContent='–';
+    document.getElementById('ineffPool').textContent='–';
+    document.getElementById('semaforoStack').innerHTML='<div style="padding:1rem;background:#FCEBEB;border-radius:10px;color:#A32D2D;font-size:.75rem;line-height:1.4">No encontré las columnas de km GPS / Bustrax en la hoja.<br><br>Asegúrate que en la hoja <b>Flota</b> existan encabezados con alguna de estas palabras:<br>· "km 10 dias" o "gps"<br>· "bustrax"<br>· "km inef"<br>· "% inef"</div>';
+    document.getElementById('cntIneff').textContent='–';
+    document.getElementById('ineffTbody').innerHTML='<tr><td colspan="8" class="no-data">Agrega las columnas de km GPS, Bustrax, km ineficiente y % ineficiencia en tu hoja</td></tr>';
+    return;
+  }
+
   // Filtrar a unidades con datos reales de km
   const conDatos=rows.filter(r=>numVal(r[C.kmGps])>0||numVal(r[C.kmBus])>0);
 
