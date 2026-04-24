@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NS Saltillo | Traxión</title>
+<title> NS | Traxión</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
@@ -281,9 +281,9 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
       Logística <span class="dropdown-arrow">▼</span>
     </button>
     <div class="dropdown-menu">
-      <a href="dashboard_NS.html" class="active">Nivel de Servicio</a>
+      <a href="Dashboard_NS.html" class="active">Nivel de Servicio</a>
       <a href="dashboard_kilometros.html">Kilómetros</a>
-      <a href="dashboard_flota.html">Flota</a>
+      <a href="Dashboard_Flota.html">Flota</a>
       <a href="Dashboard_ralenti.html">Ralenti</a>
     </div>
   </div>
@@ -412,6 +412,16 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
             id="sc-ruta-input" oninput="scFilter('ruta')" onfocus="scOpen('ruta')" onkeydown="scKey(event,'ruta')">
           <span class="sc-arrow">▼</span>
           <div class="sc-dropdown" id="sc-ruta-dd"></div>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Operador</label>
+        <div class="sc-wrap" id="sc-ope">
+          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+            id="sc-ope-input" oninput="scFilter('ope')" onfocus="scOpen('ope')" onkeydown="scKey(event,'ope')">
+          <span class="sc-arrow">▼</span>
+          <div class="sc-dropdown" id="sc-ope-dd"></div>
         </div>
       </div>
 
@@ -852,16 +862,17 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 </div>
 
 <script>
-const SHEET_ID    = '1l3QYg7N050BScrtNhKkHQ-hHNDgaK9Prw95Dzb2-DRE';
-const GID         = '1297993336';
+const SHEET_ID    = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
+const SHEET_NAME  = 'NS';
 const INPUTS_NAME = 'Inputs';
-const CHUNK       = 100000;
+const FIRST_CHUNK = 15000;
+const CHUNK       = 50000;
 
 const C = {
   fecha:'start_date', semana:'Semana', udn:'business_unit', cliente:'group',
   gerente:'Gerente', jefe:'Jefe', coord:'Coordinador', turno:'Turno',
   retardo:'Inicios_Tarde', viajes:'Cantidad de viajes', llegada:'Llegadas_Tarde',
-  minIni:'Minutos de Retraso', minLle:'Minutos llegadas', driver:'driver', car:'car', ruta:'des',
+  minIni:'Minutos de Retraso', minLle:'Minutos llegadas', driver:'operador', car:'car', ruta:'des',
   startTime:'start_time', startEta:'start_eta', endTime:'end_time', endEta:'end_eta',
   id:'id',
 };
@@ -974,19 +985,13 @@ function parseCSV(text){
   }
   return rows;
 }
-const SHEETS = ['NS Settepi', 'NS Lipu'];
-
-function csvUrl(offset, sheetName){
-  const tq=encodeURIComponent(`SELECT * LIMIT ${CHUNK} OFFSET ${offset}`);
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&tq=${tq}`;
-}
-function csvUrlRange(offset, limit, sheetName){
+function csvUrl(offset, limit){
   const tq=encodeURIComponent(`SELECT * LIMIT ${limit} OFFSET ${offset}`);
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&tq=${tq}`;
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
 }
-function countUrl(sheetName){
-  const tq=encodeURIComponent('SELECT COUNT(A)');
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&tq=${tq}`;
+function countUrl(){
+  const tq=encodeURIComponent(`SELECT COUNT(A)`);
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
 }
 function inputsUrl(){
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(INPUTS_NAME)}`;
@@ -1150,83 +1155,50 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   draw();
 });
 
-async function loadOneSheet(sheetName, offset){
-  const res=await fetch(csvUrl(offset, sheetName));
-  if(!res.ok) throw new Error(`HTTP ${res.status} en hoja "${sheetName}"`);
-  return parseCSV(await res.text());
-}
-
-// ── IndexedDB cache (stale-while-revalidate) ──────────────────────
-const IDB_NAME='ns-dashboard-cache';
-const IDB_STORE='data';
-const DB_KEY='full_data_v2';
-const CACHE_MAX_AGE_MS = 7*24*60*60*1000; // 7 días → refresh total
-function idbOpen(){
-  return new Promise((res,rej)=>{
-    const req=indexedDB.open(IDB_NAME,1);
-    req.onupgradeneeded=()=>{
-      const db=req.result;
-      if(!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
-    };
-    req.onsuccess=()=>res(req.result);
-    req.onerror=()=>rej(req.error);
-  });
-}
-async function idbGet(key){
-  try{
-    const db=await idbOpen();
-    return await new Promise((res)=>{
-      const tx=db.transaction(IDB_STORE,'readonly');
-      const req=tx.objectStore(IDB_STORE).get(key);
-      req.onsuccess=()=>res(req.result||null);
-      req.onerror=()=>res(null);
-    });
-  }catch(e){ return null; }
-}
-async function idbSet(key,val){
-  try{
-    const db=await idbOpen();
-    await new Promise((res)=>{
-      const tx=db.transaction(IDB_STORE,'readwrite');
-      tx.objectStore(IDB_STORE).put(val,key);
-      tx.oncomplete=()=>res();
-      tx.onerror=()=>res();
-    });
-  }catch(e){ /* silencioso */ }
-}
-// Llave única por fila: incluye __sheet para no chocar entre Settepi y Lipu
-function rowKey(r){
-  const id = r[C.id] || `${r[C.fecha]||''}|${r[C.ruta]||''}|${r[C.driver]||''}|${r[C.startTime]||''}`;
-  return `${r.__sheet||''}::${id}`;
-}
-// Marca cada fila con la hoja de origen (Settepi/Lipu)
-function tagSheet(rows, sheetName){
-  rows.forEach(r => r.__sheet = sheetName);
-  return rows;
-}
-async function getRowCount(sheetName){
-  try{
-    const r = await fetch(countUrl(sheetName));
-    if(!r.ok) return 0;
-    const t = await r.text();
-    const nums = t.match(/[\d.]+/g);
-    return nums && nums.length ? Math.floor(parseFloat(nums[nums.length-1])) || 0 : 0;
-  }catch(e){ console.warn('COUNT falló para',sheetName,e); return 0; }
-}
-
 async function loadSheet(){
   const overlay=document.getElementById('loadingOverlay');
   const loadMsg=document.getElementById('loadingMsg');
   const banner =document.getElementById('errBanner');
   const errMsg =document.getElementById('errMsg');
-  const refInd =document.getElementById('refreshIndicator');
+
+  // ── IndexedDB Cache helpers (para cargas casi instantáneas en visitas posteriores)
+  const DB_NAME='DashboardNS', STORE='ns_cache', DB_KEY='full_data_v1';
+  const CACHE_MAX_AGE_MS = 7*24*60*60*1000; // 7 días → refresh total
+  function openDB(){
+    return new Promise(resolve=>{
+      if(!self.indexedDB){ resolve(null); return; }
+      const req=indexedDB.open(DB_NAME,1);
+      req.onerror=()=>resolve(null);
+      req.onsuccess=()=>resolve(req.result);
+      req.onupgradeneeded=e=>{ const db=e.target.result; if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE); };
+    });
+  }
+  async function cacheGet(key){
+    try{ const db=await openDB(); if(!db) return null;
+      return await new Promise(res=>{
+        const tx=db.transaction(STORE,'readonly'); const r=tx.objectStore(STORE).get(key);
+        r.onsuccess=()=>res(r.result); r.onerror=()=>res(null);
+      });
+    }catch(e){ return null; }
+  }
+  async function cacheSet(key,value){
+    try{ const db=await openDB(); if(!db) return;
+      return await new Promise(res=>{
+        const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(value,key);
+        tx.oncomplete=()=>res(); tx.onerror=()=>res();
+      });
+    }catch(e){}
+  }
+  function rowKey(r){ return r[C.id] || `${r[C.fecha]||''}|${r[C.ruta]||''}|${r[C.driver]||''}|${r[C.startTime]||''}`; }
 
   try{
+    loadMsg.innerHTML='Cargando datos...<br>Por favor espera';
+
     // ═══════════════════════════════════════════════════════════════
     // FASE 1: Intentar cargar desde caché IndexedDB (casi instantáneo)
     // ═══════════════════════════════════════════════════════════════
     let hasCache=false;
-    const cached = await idbGet(DB_KEY);
+    const cached = await cacheGet(DB_KEY);
     if(cached && cached.rows && cached.rows.length && (Date.now()-cached.cachedAt < CACHE_MAX_AGE_MS)){
       DATA = cached.rows;
       (cached.months||[]).forEach(m=>loadedMonths.add(m));
@@ -1241,99 +1213,174 @@ async function loadSheet(){
       }
       draw();
       // Mostrar indicador "Actualizando datos..." mientras se refresca en background
+      const refInd=document.getElementById('refreshIndicator');
       if(refInd) refInd.style.display='block';
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // FASE 2: Consultar COUNT actual de cada hoja
+    // FASE 2: Consultar COUNT actual del sheet (en paralelo si hay caché)
     // ═══════════════════════════════════════════════════════════════
-    const countPromises = SHEETS.map(s => getRowCount(s));
+    const CACHE_COUNT_KEY = 'ns_total_rows_v1';
+    let cachedCount = 0;
+    try{ cachedCount = parseInt(localStorage.getItem(CACHE_COUNT_KEY) || '0') || 0; }catch(e){}
+
+    const countPromise = (async()=>{
+      try{
+        const r = await fetch(countUrl());
+        if(!r.ok) return 0;
+        const t = await r.text();
+        const nums = t.match(/[\d.]+/g);
+        return nums && nums.length ? Math.floor(parseFloat(nums[nums.length-1])) || 0 : 0;
+      }catch(e){ console.warn('COUNT falló', e); return 0; }
+    })();
 
     // ═══════════════════════════════════════════════════════════════
-    // FASE 3A: MODO CACHÉ → refrescar solo últimas ~3000 filas por hoja
+    // FASE 3A: MODO CACHÉ → refrescar solo últimas ~3000 filas (~7 días)
     // ═══════════════════════════════════════════════════════════════
     if(hasCache){
-      const counts = await Promise.all(countPromises);
-      const RECENT_CHUNK = 3000;
-      // Refrescar ambas hojas en paralelo
-      await Promise.all(SHEETS.map(async (sheetName, i) => {
-        const realCount = counts[i];
-        if(realCount <= 0) return;
+      const realCount = await countPromise;
+      if(realCount > 0){
+        try{ localStorage.setItem(CACHE_COUNT_KEY, String(realCount)); }catch(e){}
+        const RECENT_CHUNK = 3000; // cubre aprox 7 días a 350 filas/día
         const recentOffset = realCount > RECENT_CHUNK ? (realCount - RECENT_CHUNK) : 0;
         const recentLimit  = Math.min(RECENT_CHUNK, realCount);
         try{
-          const r = await fetch(csvUrlRange(recentOffset, recentLimit, sheetName));
-          if(!r.ok) return;
-          const fresh = tagSheet(parseCSV(await r.text()), sheetName);
-          if(!fresh.length) return;
-          // Dedupe: quitar del DATA las filas frescas que ya estaban
-          const freshKeys = new Set(fresh.map(rowKey));
-          DATA = DATA.filter(row => !freshKeys.has(rowKey(row)));
-          DATA.push(...fresh);
-          fresh.forEach(r=>{ const m=normMonth(getFecha(r)); if(m) loadedMonths.add(m); });
-        }catch(e){ console.warn('Error refrescando',sheetName,e); }
-      }));
-      fillAllSelects();
-      const mesA=getCurrentMonth();
-      if(loadedMonths.has(mesA) && !SC_SEL.mes){
-        scSetVal('mes',mesA,mesLabel(mesA));
-        cascadeSelects();
+          const r = await fetch(csvUrl(recentOffset, recentLimit));
+          if(r.ok){
+            const fresh = parseCSV(await r.text());
+            if(fresh.length){
+              // Dedupe: quitar del caché las filas que vienen frescas (match por id)
+              const freshKeys = new Set(fresh.map(rowKey));
+              DATA = DATA.filter(r => !freshKeys.has(rowKey(r)));
+              DATA.push(...fresh);
+              fresh.forEach(r=>{ const m=normMonth(getFecha(r)); if(m) loadedMonths.add(m); });
+              fillAllSelects();
+              const mesA=getCurrentMonth();
+              if(loadedMonths.has(mesA) && !SC_SEL.mes){
+                scSetVal('mes',mesA,mesLabel(mesA));
+                cascadeSelects();
+              }
+              draw();
+            }
+          }
+        }catch(e){ console.warn('Error refrescando filas recientes', e); }
       }
-      draw();
       // Guardar caché actualizado (sin bloquear UI)
-      setTimeout(()=>idbSet(DB_KEY, { rows: DATA, months:[...loadedMonths], cachedAt: Date.now() }), 200);
+      setTimeout(()=>cacheSet(DB_KEY, { rows: DATA, months:[...loadedMonths], cachedAt: Date.now() }), 200);
+      // Ocultar indicador de actualización
+      const refInd=document.getElementById('refreshIndicator');
       if(refInd) refInd.style.display='none';
-      return;
+      return; // listo, terminamos en modo caché
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // FASE 3B: SIN CACHÉ → carga completa desde el inicio (primera vez)
+    // FASE 3B: SIN CACHÉ → carga completa desde el final (primera vez)
     // ═══════════════════════════════════════════════════════════════
-    loadMsg.innerHTML='Cargando NS Settepi y NS Lipu...<br>Por favor espera';
-    const [rowsA, rowsB] = await Promise.all([
-      loadOneSheet(SHEETS[0], 0).then(rs => tagSheet(rs, SHEETS[0])),
-      loadOneSheet(SHEETS[1], 0).then(rs => tagSheet(rs, SHEETS[1])),
-    ]);
-    const firstRows=[...rowsA,...rowsB];
-    if(!firstRows.length) throw new Error('Sin filas válidas en ninguna de las dos hojas.');
+    let totalRows = 0;
+    if(cachedCount > FIRST_CHUNK){
+      totalRows = cachedCount;
+    } else {
+      totalRows = await countPromise;
+    }
+
+    const firstOffset = totalRows > FIRST_CHUNK ? (totalRows - FIRST_CHUNK) : 0;
+    const firstLimit  = totalRows > 0 ? Math.min(FIRST_CHUNK, totalRows) : FIRST_CHUNK;
+
+    const res=await fetch(csvUrl(firstOffset, firstLimit));
+    if(!res.ok) throw new Error('HTTP '+res.status+'. Verifica que el Sheet sea público (Compartir → Cualquier persona con el enlace).');
+    const firstRows=parseCSV(await res.text());
+    if(!firstRows.length) throw new Error('Sin filas válidas. Abre F12 → Console para ver el detalle.');
     DATA=[...firstRows];
     firstRows.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
     if(banner) banner.classList.add('hidden');
     if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',450); }
     fillAllSelects();
     const mesActual=getCurrentMonth();
+    let mesAutoSelected=false;
     if(loadedMonths.has(mesActual)){
+      scSetVal('mes',mesActual,mesLabel(mesActual));
+      cascadeSelects();
+      mesAutoSelected=true;
+    }
+    draw();
+
+    const realCount = await countPromise;
+    if(realCount > 0){
+      try{ localStorage.setItem(CACHE_COUNT_KEY, String(realCount)); }catch(e){}
+      if(totalRows === 0) totalRows = realCount;
+      const missed = realCount - (firstOffset + firstRows.length);
+      if(missed > 0){
+        try{
+          const rMiss = await fetch(csvUrl(firstOffset + firstRows.length, Math.min(missed, CHUNK)));
+          if(rMiss.ok){
+            const extra = parseCSV(await rMiss.text());
+            if(extra.length){
+              extra.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
+              DATA.push(...extra);
+              fillAllSelects();
+              if(!mesAutoSelected && loadedMonths.has(mesActual)){
+                scSetVal('mes',mesActual,mesLabel(mesActual));
+                cascadeSelects();
+                mesAutoSelected=true;
+              }
+              draw();
+            }
+          }
+        }catch(e){ console.warn('Error cargando filas faltantes', e); }
+      }
+    }
+
+    // Cargar el resto hacia atrás (chunks más viejos)
+    let nextEnd = firstOffset;
+    while(nextEnd > 0){
+      const nextStart = Math.max(0, nextEnd - CHUNK);
+      const limit = nextEnd - nextStart;
+      const r2=await fetch(csvUrl(nextStart, limit));
+      if(!r2.ok) break;
+      const more=parseCSV(await r2.text());
+      if(!more.length) break;
+      more.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
+      DATA.push(...more);
+      fillAllSelects();
+      if(!mesAutoSelected && loadedMonths.has(mesActual)){
+        scSetVal('mes',mesActual,mesLabel(mesActual));
+        cascadeSelects();
+        mesAutoSelected=true;
+      }
+      nextEnd = nextStart;
+    }
+    // Fallback: si no se pudo calcular totalRows y seguimos teniendo FIRST_CHUNK filas, cargar hacia adelante
+    if(totalRows===0 && firstRows.length>=FIRST_CHUNK){
+      let offset=FIRST_CHUNK;
+      while(true){
+        const r2=await fetch(csvUrl(offset, CHUNK));
+        if(!r2.ok) break;
+        const more=parseCSV(await r2.text());
+        if(!more.length) break;
+        more.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
+        DATA.push(...more);
+        fillAllSelects();
+        if(!mesAutoSelected && loadedMonths.has(mesActual)){
+          scSetVal('mes',mesActual,mesLabel(mesActual));
+          cascadeSelects();
+          mesAutoSelected=true;
+        }
+        if(more.length<CHUNK) break;
+        offset+=CHUNK;
+      }
+    }
+    if(!mesAutoSelected && loadedMonths.has(mesActual)){
       scSetVal('mes',mesActual,mesLabel(mesActual));
       cascadeSelects();
     }
     draw();
 
-    // Resto de datos en background (paginación si la hoja excede CHUNK)
-    const needsMore = SHEETS.filter((s,i)=>(i===0?rowsA:rowsB).length>=CHUNK);
-    if(needsMore.length){
-      for(const sheetName of needsMore){
-        let offset=CHUNK;
-        while(true){
-          const more = await loadOneSheet(sheetName, offset)
-            .then(rs => tagSheet(rs, sheetName))
-            .catch(()=>[]);
-          if(!more.length) break;
-          more.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
-          DATA.push(...more);
-          fillAllSelects();
-          if(more.length<CHUNK) break;
-          offset+=CHUNK;
-        }
-      }
-      draw();
-    }
-
-    // Guardar TODO en caché para próximas visitas
-    setTimeout(()=>idbSet(DB_KEY, { rows: DATA, months:[...loadedMonths], cachedAt: Date.now() }), 500);
-    if(refInd) refInd.style.display='none';
+    // Guardar TODO en caché para próximas visitas (sin bloquear UI)
+    setTimeout(()=>cacheSet(DB_KEY, { rows: DATA, months:[...loadedMonths], cachedAt: Date.now() }), 500);
   }catch(e){
     console.error(e);
     if(overlay) overlay.style.display='none';
+    const refInd=document.getElementById('refreshIndicator');
     if(refInd) refInd.style.display='none';
     if(banner&&errMsg){ errMsg.textContent=e.message; banner.classList.remove('hidden'); }
   }
@@ -1374,9 +1421,6 @@ function scFilter(key){
   if(SC_SEL[key]!==''){ SC_SEL[key]=''; cascadeSelects(); draw(); }
   document.getElementById('sc-'+key).classList.add('open');
   scRenderDD(key);
-  const dd=document.getElementById('sc-'+key+'-dd');
-  const realOpts=[...dd.querySelectorAll('.sc-opt:not(.sc-none)')].filter(o=>o.getAttribute('data-val')!=='');
-  if(realOpts.length===1) realOpts[0].dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));
 }
 function scSelect(e,key){
   e.preventDefault();
@@ -1400,7 +1444,6 @@ function scKey(e,key){
   else if(e.key==='ArrowUp'){ e.preventDefault(); SC_FOCUS[key]=Math.max(SC_FOCUS[key]-1,0); opts.forEach((o,i)=>o.classList.toggle('focused',i===SC_FOCUS[key])); opts[SC_FOCUS[key]]?.scrollIntoView({block:'nearest'}); }
   else if(e.key==='Enter'){
     if(SC_FOCUS[key]>=0) opts[SC_FOCUS[key]].dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));
-    else{ const first=opts.find(o=>o.getAttribute('data-val')!==''); if(first) first.dispatchEvent(new MouseEvent('mousedown',{bubbles:true})); }
   } else if(e.key==='Escape'){
     const inp=document.getElementById('sc-'+key+'-input');
     inp.value=inp.getAttribute('data-selected-lbl')||'';
@@ -1949,7 +1992,6 @@ async function exportClientesConRutas(tbl, tipo){
     const m=str.match(/(\d{1,2}):(\d{2})/);
     if(!m) return 'Sin hora';
     let hh=parseInt(m[1],10);
-    // Detectar AM/PM
     const ampm=str.toUpperCase().match(/(AM|PM)/);
     if(ampm){
       if(ampm[1]==='PM' && hh<12) hh+=12;
@@ -1959,7 +2001,7 @@ async function exportClientesConRutas(tbl, tipo){
   }
 
   // Agrupar viajes por (horario, cliente, ruta) usando start_time real
-  const horarioMap={}; // key: "HH:MM|cliente|ruta"
+  const horarioMap={};
   clientes.forEach(cli=>{
     const rows=filterRows(isLlegadas?'lle':'ini').filter(r=>(r[C.cliente]||'').trim()===cli.k);
     rows.forEach(r=>{
@@ -1987,7 +2029,6 @@ async function exportClientesConRutas(tbl, tipo){
     pct:d.t>0?d.enT/d.t*100:0
   }));
   rutasConHorario.sort((a,b)=>{
-    // Sin hora va al final
     if(a.horario==='Sin hora' && b.horario!=='Sin hora') return 1;
     if(b.horario==='Sin hora' && a.horario!=='Sin hora') return -1;
     return a.horario.localeCompare(b.horario)||a.cliente.localeCompare(b.cliente)||a.ruta.localeCompare(b.ruta);
@@ -2250,8 +2291,7 @@ function rerenderDetailModal(){
     const sEta =(r[C.startEta] ||'–').trim();
     const eTime=(r[C.endTime]  ||'–').trim();
     const eEta =(r[C.endEta]   ||'–').trim();
-    const _rawId=(r[C.id]||'').trim();
-    const tripId=_rawId&&!isNaN(_rawId)?String(Math.round(parseFloat(_rawId))):_rawId;
+    const tripId=(r[C.id]||'').trim();
     const driverEsc=driver.replace(/'/g,"\\'");
     const auditBtn=tripId?`<button onclick="openAuditModal('${tripId}')" style="background:#1a2236;color:#7ed321;border:1px solid #7ed321;border-radius:5px;padding:.15rem .35rem;font-size:.62rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;line-height:1.4" title="Auditoría del viaje">📍</button>`:'';
     return`<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
@@ -2456,7 +2496,7 @@ document.addEventListener('keydown',e=>{
 });
 
 // ── Modal iframe auditoría ────────────────────────────────────────
-const AUDIT_BASE='https://auditoria-nacional-btx.netlify.app/auditoria_mx?user=Marcosldtf&pwd=FicoTraxion25&zh=6&id=';
+const AUDIT_BASE='https://auditoria-nacional-btx.netlify.app/auditoria_mx?user=REGMty-Logistica&pwd=Logistica2025&zh=6&id=';
 let _auditTimer=null;
 function openAuditModal(tripId){
   const url=AUDIT_BASE+tripId;
@@ -2611,8 +2651,7 @@ function openDrillDetail(rutaK,clienteK,tbl){
     const sEta =(r[C.startEta] ||'–').trim();
     const eTime=(r[C.endTime]  ||'–').trim();
     const eEta =(r[C.endEta]   ||'–').trim();
-    const _rawId=(r[C.id]||'').trim();
-    const tripId=_rawId&&!isNaN(_rawId)?String(Math.round(parseFloat(_rawId))):_rawId;
+    const tripId=(r[C.id]||'').trim();
     const auditBtn=tripId
       ? `<button onclick="openAuditModal('${tripId}')"
            style="background:#1a2236;color:#7ed321;border:1px solid #7ed321;border-radius:5px;
