@@ -304,7 +304,9 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <thead>
             <tr>
               <th>Cliente</th>
-              <th class="r">Uds</th>
+              <th class="r">Contrato</th>
+              <th class="r">Asignados</th>
+              <th class="r">Diferencia</th>
               <th>Alertas</th>
             </tr>
           </thead>
@@ -346,12 +348,12 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     <div class="ineff-grid">
       <div class="table-card" style="box-shadow:none;border:1px solid var(--border);">
         <div style="padding:.9rem 1.1rem .5rem;border-bottom:1px solid var(--border);">
-          <div class="chart-title" style="font-size:.92rem;font-weight:700;color:var(--text)">GPS km vs Bustrax km</div>
-          <div style="font-size:.68rem;color:var(--muted)">Cada punto es una unidad · línea punteada = paridad</div>
+          <div class="chart-title" style="font-size:.92rem;font-weight:700;color:var(--text)">Top ineficiencia · GPS vs Bustrax</div>
+          <div style="font-size:.68rem;color:var(--muted)">% km GPS no cobrado en Bustrax · clic en semáforo para filtrar</div>
         </div>
         <div style="padding:.75rem 1rem;">
           <div class="scatter-wrap">
-            <canvas id="scatterChart" role="img" aria-label="Dispersión GPS vs Bustrax"></canvas>
+            <canvas id="barChart" role="img" aria-label="Bar chart ineficiencia"></canvas>
           </div>
         </div>
       </div>
@@ -378,42 +380,20 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
     </div>
 
-    <!-- ══════ Unidades Ineficientes (inactivas col Q) ══════ -->
+    <!-- ══════ Unidades sin movimiento (col Q) ══════ -->
     <div class="section-divider" id="inactivasSection">
-      <div class="section-divider-title">Unidades Ineficientes</div>
-      <div class="section-divider-sub" id="inactivasSub">Sin movimiento · Col Q</div>
+      <div class="section-divider-title">Unidades sin movimiento</div>
+      <div class="section-divider-sub" id="inactivasSub">Sin movimiento en los últimos 10 días</div>
       <div class="section-divider-line"></div>
     </div>
 
     <div class="table-card" id="inactivasCard">
       <div class="table-hdr">
         <div>
-          <div class="table-hdr-title">Detalle unidades ineficientes</div>
-          <div class="table-hdr-sub">Unidades sin movimiento en 10 días · clic en encabezado para ordenar</div>
+          <div class="table-hdr-title">Detalle · unidades sin movimiento</div>
+          <div class="table-hdr-sub">Clic en encabezado para ordenar</div>
         </div>
         <span class="table-count" id="cntInactivas">–</span>
-      </div>
-      <!-- Filtros locales -->
-      <div class="inact-filters">
-        <div class="fg">
-          <label>Estatus</label>
-          <select class="inact-sel" id="inactFiltEst" onchange="draw()">
-            <option value="">Todos</option>
-          </select>
-        </div>
-        <div class="fg">
-          <label>Cliente</label>
-          <select class="inact-sel" id="inactFiltCli" onchange="draw()">
-            <option value="">Todos</option>
-          </select>
-        </div>
-        <div class="fg">
-          <label>Jefe</label>
-          <select class="inact-sel" id="inactFiltJef" onchange="draw()">
-            <option value="">Todos</option>
-          </select>
-        </div>
-        <button class="btn-inact-clr" onclick="clearInactFilt()">↺ Limpiar</button>
       </div>
       <div style="overflow-x:auto">
         <table class="ineff-table">
@@ -487,9 +467,10 @@ function hexToRgb(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(
 function uniq(arr){return[...new Set(arr.filter(v=>v&&String(v).trim()))].sort();}
 function isIneficiente(r){const v=(r[C.unidadesInef]||'').trim();return v&&v.toLowerCase()!=='no'&&v!=='0'&&v!=='';}
 
-let DATA=[], scatterInst=null, ACTIVE_RANGO='';
+let DATA=[], barInst=null, ACTIVE_RANGO='';
+let CONTRATO_MAP={};
 let INEFF_SORT={col:'pct',dir:'desc'};
-let INACT_SORT={col:'id',dir:'asc'};
+let INACT_SORT_COL='id', INACT_SORT_DIR='asc';
 
 /* ── Searchable selects ── */
 const SC_KEYS=['ger','jef','cli','est'];
@@ -580,17 +561,30 @@ function resetFilters(){
   cascadeFilters();draw();
 }
 
-/* ── CSV ── */
-function csvUrl(){return`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;}
+function csvUrl(sheet){return`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;}
 function parseLine(line){const cols=[];let cur='',inQ=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=ch;}cols.push(cur.trim());return cols;}
 function parseCSV(text){const lines=text.trim().split(/\r?\n/);if(lines.length<2)return[];const hdrs=parseLine(lines[0]),rows=[];for(let i=1;i<lines.length;i++){if(!lines[i].trim())continue;const cols=parseLine(lines[i]),obj={};hdrs.forEach((h,idx)=>{obj[h]=(cols[idx]||'').trim();});if(Object.values(obj).some(v=>v))rows.push(obj);}return rows;}
+
+async function loadInputs(){
+  try{
+    const res=await fetch(csvUrl('Inputs'));
+    if(!res.ok)return;
+    const rows=parseCSV(await res.text());
+    if(!rows.length)return;
+    const hdrs=Object.keys(rows[0]);
+    const cliCol=hdrs.find(h=>h.toLowerCase().includes('cliente'))||'CLIENTE';
+    const cantCol=hdrs.find(h=>h.toLowerCase().includes('cantidad')||h.toLowerCase().includes('carros'))||'Cantidad de carros';
+    rows.forEach(r=>{const cli=(r[cliCol]||'').trim();const cant=parseInt(r[cantCol])||0;if(cli)CONTRATO_MAP[cli.toLowerCase()]=cant;});
+    console.log('Inputs: '+Object.keys(CONTRATO_MAP).length+' clientes');
+  }catch(e){console.warn('Inputs no cargó:',e);}
+}
 
 window.addEventListener('DOMContentLoaded',async()=>{
   const ov=document.getElementById('loadingOverlay');
   try{
-    const res=await fetch(csvUrl());
-    if(!res.ok)throw new Error('HTTP '+res.status+' — verifica que el Sheet sea público y la hoja se llame "Flota".');
-    const rows=parseCSV(await res.text());
+    const [flotaRes]=await Promise.all([fetch(csvUrl(SHEET_NAME)),loadInputs()]);
+    if(!flotaRes.ok)throw new Error('HTTP '+flotaRes.status+' — verifica que el Sheet sea público y la hoja se llame "Flota".');
+    const rows=parseCSV(await flotaRes.text());
     if(!rows.length)throw new Error('Sin datos en hoja "Flota".');
     DATA=rows;
     autoDetectCols(rows[0]);
@@ -684,7 +678,7 @@ function drawKPIs(rows,t){
   document.getElementById('kpiSection').innerHTML=chips.join('');
 }
 
-/* ── Clientes (sin mix, alertas enriquecidas) ── */
+/* ── Clientes (asignación vs contrato + alertas enriquecidas) ── */
 function drawClientes(rows){
   const byC={};
   rows.forEach(r=>{const k=(r[C.cliente]||'Sin asignar').trim();if(!byC[k])byC[k]=[];byC[k].push(r);});
@@ -692,11 +686,22 @@ function drawClientes(rows){
   document.getElementById('cntClientes').textContent=clientes.length+(clientes.length===1?' cliente':' clientes');
   const tbody=document.getElementById('clientesTbody');
   tbody.innerHTML='';
-  if(!clientes.length){tbody.innerHTML='<tr><td colspan="3" class="no-data">Sin datos</td></tr>';return;}
+  if(!clientes.length){tbody.innerHTML='<tr><td colspan="5" class="no-data">Sin datos</td></tr>';return;}
   clientes.forEach(cl=>{
+    const asignados=cl.units.length;
+    const contrato=CONTRATO_MAP[cl.name.toLowerCase()]??null;
+    const dif=contrato!==null?asignados-contrato:null;
+
+    let contratoCell=contrato!==null?`<span style="font-weight:600">${contrato}</span>`:`<span style="color:var(--muted)">–</span>`;
+    let difCell='<span style="color:var(--muted)">–</span>';
+    if(dif!==null){
+      if(dif===0) difCell=`<span class="pill green">= exacto</span>`;
+      else if(dif>0) difCell=`<span class="pill amber">+${dif} sobra</span>`;
+      else difCell=`<span class="pill red">${dif} falta</span>`;
+    }
+
     const cor=cl.units.filter(u=>getCat(u[C.estatus])==='cor').length;
     const mto=cl.units.filter(u=>getCat(u[C.estatus])==='mto').length;
-    // Unidades ineficientes (col Q)
     const inef=C.unidadesInef?cl.units.filter(u=>isIneficiente(u)):[];
 
     let alertasTop='';
@@ -705,23 +710,21 @@ function drawClientes(rows){
 
     let inefHtml='';
     if(inef.length>0){
-      // Agrupar por estatus
       const byEst={};
       inef.forEach(u=>{const est=(u[C.estatus]||'–').trim();byEst[est]=(byEst[est]||0)+1;});
       const parts=Object.entries(byEst).map(([est,n])=>{
         const cfg=getStatusCfg(est);
-        return`<span class="inef-unit-item"><span class="badge b-inef-est" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${est}</span><span class="badge b-inef">✗ inef ×${n}</span></span>`;
+        return`<span class="inef-unit-item"><span class="badge b-inef-est" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${est}</span><span class="badge b-inef">✗ sin mov ×${n}</span></span>`;
       }).join('');
       inefHtml=`<div class="inef-units">${parts}</div>`;
     }
 
     if(!alertasTop&&!inefHtml)alertasTop='<span style="color:var(--muted);font-size:.7rem">–</span>';
-
     const alertasCell=`<div class="alertas-cell"><div class="alertas-row">${alertasTop}</div>${inefHtml}</div>`;
 
     const tr=document.createElement('tr');
     tr.className='cli-row';
-    tr.innerHTML=`<td style="font-weight:600">${cl.name}<span class="hint">▶ ver</span></td><td class="r" style="font-weight:700;color:var(--navy)">${cl.units.length}</td><td>${alertasCell}</td>`;
+    tr.innerHTML=`<td style="font-weight:600">${cl.name}<span class="hint">▶ ver</span></td><td class="r">${contratoCell}</td><td class="r" style="font-weight:700;color:var(--navy)">${asignados}</td><td class="r">${difCell}</td><td>${alertasCell}</td>`;
     tr.addEventListener('click',()=>openModal(cl));
     tbody.appendChild(tr);
   });
@@ -812,7 +815,7 @@ function drawIneficiencia(rows){
     </div>`;
   }).join('');
 
-  drawScatter(conDatos);
+  drawBarChart(conDatos);
 
   // Tabla top ineficientes con sort
   renderIneffHeaders();
@@ -830,7 +833,7 @@ function drawIneficiencia(rows){
     }
     if(typeof av==='number')return INEFF_SORT.dir==='asc'?av-bv:bv-av;
     return INEFF_SORT.dir==='asc'?av.localeCompare(bv,'es'):bv.localeCompare(av,'es');
-  }).slice(0,20);
+  }).slice(0,10);
 
   document.getElementById('cntIneff').textContent=`${filtRango.length} unidad${filtRango.length===1?'':'es'}${ACTIVE_RANGO?' · '+ACTIVE_RANGO:''}`;
   const tb=document.getElementById('ineffTbody');
@@ -861,37 +864,27 @@ function drawIneficiencia(rows){
   }).join('');
 }
 
-function drawScatter(rows){
-  const good=[],warn=[],bad=[];
-  rows.forEach(r=>{
-    const x=numVal(r[C.kmGps]),y=numVal(r[C.kmBus]);
-    if(x<=0&&y<=0)return;
-    const rn=rangoInef(pctVal(r[C.pctInef]));
-    const pt={x,y,id:r[C.id]||'–'};
-    if(rn==='verde')good.push(pt);
-    else if(rn==='amarillo')warn.push(pt);
-    else bad.push(pt);
-  });
-  const maxVal=Math.max(100,...rows.map(r=>Math.max(numVal(r[C.kmGps]),numVal(r[C.kmBus]))));
-  const axMax=Math.ceil(maxVal*1.05/100)*100;
-  if(scatterInst){scatterInst.destroy();scatterInst=null;}
-  scatterInst=new Chart(document.getElementById('scatterChart'),{
-    type:'scatter',
-    data:{datasets:[
-      {label:'Eficientes',  data:good,backgroundColor:'#639922',pointRadius:3.5,pointHoverRadius:6},
-      {label:'Revisar',     data:warn,backgroundColor:'#BA7517',pointRadius:3.5,pointHoverRadius:6},
-      {label:'Ineficientes',data:bad, backgroundColor:'#E24B4A',pointRadius:4,  pointHoverRadius:7},
-      {label:'Paridad',type:'line',data:[{x:0,y:0},{x:axMax,y:axMax}],borderColor:'#1A2236',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false,showLine:true},
-    ]},
+function drawBarChart(rows){
+  // Top 15 por % inef, ordenado desc
+  const withData=rows.filter(r=>numVal(r[C.kmGps])>0||numVal(r[C.kmBus])>0);
+  const sorted=[...withData].sort((a,b)=>pctVal(b[C.pctInef])-pctVal(a[C.pctInef])).slice(0,15);
+  const labels=sorted.map(r=>r[C.id]||'–');
+  const data=sorted.map(r=>parseFloat((pctVal(r[C.pctInef])*100).toFixed(1)));
+  const colors=sorted.map(r=>{const rn=rangoInef(pctVal(r[C.pctInef]));return rn==='rojo'?'#E24B4A':rn==='amarillo'?'#BA7517':'#639922';});
+  if(barInst){barInst.destroy();barInst=null;}
+  barInst=new Chart(document.getElementById('barChart'),{
+    type:'bar',
+    data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:3,borderSkipped:false}]},
     options:{
+      indexAxis:'y',
       responsive:true,maintainAspectRatio:false,
       plugins:{
-        legend:{position:'bottom',labels:{font:{size:10,family:'Inter'},color:'#6b7a99',boxWidth:10,padding:10}},
-        tooltip:{callbacks:{label:ctx=>{const d=ctx.raw;if(d&&d.id)return` ${d.id}: GPS ${d.x.toFixed(1)} / Bus ${d.y.toFixed(1)}`;return ctx.formattedValue;}}}
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>`${ctx.parsed.x.toFixed(1)}% ineficiencia`}}
       },
       scales:{
-        x:{title:{display:true,text:'GPS km',font:{size:10,family:'Inter'},color:'#6b7a99'},ticks:{font:{size:9,family:'Inter'},color:'#6b7a99'},grid:{color:'#eef1f7'},min:0,max:axMax},
-        y:{title:{display:true,text:'Bustrax km',font:{size:10,family:'Inter'},color:'#6b7a99'},ticks:{font:{size:9,family:'Inter'},color:'#6b7a99'},grid:{color:'#eef1f7'},min:0,max:axMax}
+        x:{title:{display:true,text:'% ineficiencia',font:{size:9,family:'Inter'},color:'#6b7a99'},ticks:{font:{size:9,family:'Inter'},color:'#6b7a99',callback:v=>v+'%'},grid:{color:'#eef1f7'},min:0},
+        y:{ticks:{font:{size:9,family:'Inter'},color:'#1a2236'},grid:{display:false}}
       }
     }
   });
@@ -904,16 +897,12 @@ let INACT_SORT_COL='id', INACT_SORT_DIR='asc';
 
 function renderInactivasHeaders(){
   const cols=[
-    {key:'id',    label:'IDS',      align:''},
-    {key:'cli',   label:'Cliente',  align:''},
-    {key:'tipo',  label:'Tipo',     align:''},
-    {key:'marca', label:'Marca',    align:''},
-    {key:'anio',  label:'Año',      align:''},
-    {key:'est',   label:'Estatus',  align:''},
-    {key:'inef',  label:'Col Q',    align:''},
-    {key:'jefe',  label:'Jefe',     align:''},
-    {key:'ger',   label:'Gerente',  align:''},
-    {key:'nota',  label:'Nota',     align:''},
+    {key:'id',    label:'IDS',     align:''},
+    {key:'cli',   label:'Cliente', align:''},
+    {key:'tipo',  label:'Tipo',    align:''},
+    {key:'marca', label:'Marca',   align:''},
+    {key:'anio',  label:'Año',     align:''},
+    {key:'est',   label:'Estatus', align:''},
   ];
   document.getElementById('inactivasThead').innerHTML=`<tr>${cols.map(c=>{
     const arr=INACT_SORT_COL===c.key?`<span class="sort-arrow active ${INACT_SORT_DIR}"></span>`:`<span class="sort-arrow"></span>`;
@@ -928,39 +917,18 @@ function sortInact(col){
 }
 
 function drawInactivas(rows){
-  const hasCol=!!C.unidadesInef;
-  const section=document.getElementById('inactivasSection');
-  const card=document.getElementById('inactivasCard');
-
-  if(!hasCol){
-    // Mostrar sección pero con mensaje
-    document.getElementById('inactivasSub').textContent='Columna "Unidades ineficientes" no encontrada en la hoja';
+  if(!C.unidadesInef){
+    document.getElementById('inactivasSub').textContent='Columna "Unidades ineficientes" no encontrada';
     renderInactivasHeaders();
     document.getElementById('cntInactivas').textContent='–';
-    document.getElementById('inactivasTbody').innerHTML='<tr><td colspan="10" class="no-data">Agrega una columna "Unidades ineficientes" en tu hoja Flota (col Q) para ver este análisis.</td></tr>';
-    populateInactFilters([]);
+    document.getElementById('inactivasTbody').innerHTML='<tr><td colspan="6" class="no-data">Agrega una columna "Unidades ineficientes" en tu hoja Flota para ver este análisis.</td></tr>';
     return;
   }
 
   const inactivas=rows.filter(r=>isIneficiente(r));
-  document.getElementById('inactivasSub').textContent=`Col: ${C.unidadesInef} · sin movimiento 10 días`;
+  document.getElementById('inactivasSub').textContent=`${inactivas.length} unidad${inactivas.length!==1?'es':''} sin movimiento en los últimos 10 días`;
 
-  // Populate filter dropdowns
-  populateInactFilters(inactivas);
-
-  // Apply local filters
-  const filtEst=document.getElementById('inactFiltEst')?.value||'';
-  const filtCli=document.getElementById('inactFiltCli')?.value||'';
-  const filtJef=document.getElementById('inactFiltJef')?.value||'';
-  const filtered=inactivas.filter(r=>{
-    if(filtEst&&(r[C.estatus]||'').trim()!==filtEst)return false;
-    if(filtCli&&(r[C.cliente]||'').trim()!==filtCli)return false;
-    if(filtJef&&(r[C.jefe]||'').trim()!==filtJef)return false;
-    return true;
-  });
-
-  // Sort
-  const sorted=[...filtered].sort((a,b)=>{
+  const sorted=[...inactivas].sort((a,b)=>{
     let av,bv;
     switch(INACT_SORT_COL){
       case 'id':    av=a[C.id]||'';bv=b[C.id]||'';break;
@@ -969,64 +937,31 @@ function drawInactivas(rows){
       case 'marca': av=(a[C.marca]||'');bv=(b[C.marca]||'');break;
       case 'anio':  av=numVal(a[C.anio]);bv=numVal(b[C.anio]);break;
       case 'est':   av=(a[C.estatus]||'');bv=(b[C.estatus]||'');break;
-      case 'inef':  av=(a[C.unidadesInef]||'');bv=(b[C.unidadesInef]||'');break;
-      case 'jefe':  av=(a[C.jefe]||'');bv=(b[C.jefe]||'');break;
-      case 'ger':   av=(a[C.gerente]||'');bv=(b[C.gerente]||'');break;
       default:      av=(a[C.id]||'');bv=(b[C.id]||'');
     }
     if(typeof av==='number')return INACT_SORT_DIR==='asc'?av-bv:bv-av;
     return INACT_SORT_DIR==='asc'?av.localeCompare(bv,'es'):bv.localeCompare(av,'es');
   });
 
-  document.getElementById('cntInactivas').textContent=`${inactivas.length} ineficiente${inactivas.length!==1?'s':''}${filtered.length!==inactivas.length?' · '+filtered.length+' visible':''}`;
+  document.getElementById('cntInactivas').textContent=`${inactivas.length} unidad${inactivas.length!==1?'es':''}`;
   renderInactivasHeaders();
 
   const tbody=document.getElementById('inactivasTbody');
   if(!sorted.length){
-    tbody.innerHTML='<tr><td colspan="10" class="no-data">Sin unidades ineficientes con este filtro</td></tr>';
+    tbody.innerHTML='<tr><td colspan="6" class="no-data">Sin unidades sin movimiento</td></tr>';
     return;
   }
   tbody.innerHTML=sorted.map(r=>{
     const cfg=getStatusCfg(r[C.estatus]);
-    const nota=(r[C.comentario]||'').trim();
-    const inefVal=(r[C.unidadesInef]||'').trim();
-    const jefe=(r[C.jefe]||'').trim();
-    const ger=(r[C.gerente]||'').trim();
     return`<tr>
       <td style="font-weight:600">${r[C.id]||'–'}</td>
       <td>${(r[C.cliente]||'–').trim()}</td>
       <td>${r[C.tipo]||'–'}</td>
       <td>${r[C.marca]||'–'} ${r[C.modelo]||''}</td>
       <td>${r[C.anio]||'–'}</td>
-      <td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${r[C.estatus]||'–'}</span> <span class="pill red" style="font-size:.55rem">ineficiente</span></td>
-      <td style="font-weight:600;color:#A32D2D">${inefVal}</td>
-      <td>${jefe&&!jefe.toUpperCase().includes('SIN ASIG')?jefe:'<span style="color:var(--muted);font-style:italic">sin asig.</span>'}</td>
-      <td>${ger&&!ger.toUpperCase().includes('SIN ASIG')?ger:'–'}</td>
-      <td style="max-width:180px;white-space:normal;font-size:.7rem;color:var(--muted)">${nota&&nota.toLowerCase()!=='ningun comentario'?nota:'–'}</td>
+      <td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${r[C.estatus]||'–'}</span></td>
     </tr>`;
   }).join('');
-}
-
-function populateInactFilters(inactivas){
-  const estSel=document.getElementById('inactFiltEst');
-  const cliSel=document.getElementById('inactFiltCli');
-  const jefSel=document.getElementById('inactFiltJef');
-  if(!estSel)return;
-  const curEst=estSel.value,curCli=cliSel.value,curJef=jefSel.value;
-  const estList=uniq(inactivas.map(r=>(r[C.estatus]||'').trim()));
-  const cliList=uniq(inactivas.map(r=>(r[C.cliente]||'').trim()));
-  const jefList=uniq(inactivas.map(r=>(r[C.jefe]||'').trim()));
-  const fill=(sel,list,cur)=>{sel.innerHTML='<option value="">Todos</option>'+list.map(v=>`<option value="${v}"${cur===v?' selected':''}>${v}</option>`).join('');};
-  fill(estSel,estList,curEst);
-  fill(cliSel,cliList,curCli);
-  fill(jefSel,jefList,curJef);
-}
-
-function clearInactFilt(){
-  document.getElementById('inactFiltEst').value='';
-  document.getElementById('inactFiltCli').value='';
-  document.getElementById('inactFiltJef').value='';
-  draw();
 }
 
 /* ── Modal ── */
@@ -1035,30 +970,23 @@ function openModal(cl){
   const cor=cl.units.filter(u=>getCat(u[C.estatus])==='cor').length;
   const mto=cl.units.filter(u=>getCat(u[C.estatus])==='mto').length;
   const inef=C.unidadesInef?cl.units.filter(u=>isIneficiente(u)).length:0;
-  const parts=[cor?`${cor} en corralón`:'',mto?`${mto} en mantenimiento`:'',inef?`${inef} ineficiente${inef!==1?'s':''}`:''].filter(Boolean).join(' · ');
+  const parts=[cor?`${cor} en corralón`:'',mto?`${mto} en mantenimiento`:'',inef?`${inef} sin movimiento`:''].filter(Boolean).join(' · ');
   document.getElementById('modalSub').textContent=`${cl.units.length} unidades${parts?' · ⚠ '+parts:''}`;
   const orden=ALL_STATUSES.map(s=>s.key.toLowerCase());
   const sorted=[...cl.units].sort((a,b)=>{const ia=orden.indexOf((a[C.estatus]||'').toLowerCase()),ib=orden.indexOf((b[C.estatus]||'').toLowerCase());return(ia<0?99:ia)-(ib<0?99:ib);});
   let rows='';
   sorted.forEach(u=>{
     const cfg=getStatusCfg(u[C.estatus]);
-    const nota=(u[C.comentario]||'').trim();
-    const jefe=(u[C.jefe]||'').trim();
-    const ger=(u[C.gerente]||'').trim();
-    const inefVal=C.unidadesInef?(u[C.unidadesInef]||'').trim():'';
     rows+=`<tr>
       <td style="font-weight:600">${u[C.id]||'–'}</td>
       <td>${u[C.tipo]||'–'}</td>
       <td>${u[C.marca]||'–'}</td>
       <td>${u[C.modelo]||'–'}</td>
       <td>${u[C.anio]||'–'}</td>
-      <td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${u[C.estatus]||'–'}</span>${inefVal?'<span class="pill red" style="margin-left:4px;font-size:.52rem">inef</span>':''}</td>
-      <td>${nota&&nota.toLowerCase()!=='ningun comentario'?nota:'–'}</td>
-      <td>${jefe&&jefe!=='SIN ASIGNACION'?jefe:'–'}</td>
-      <td>${ger&&ger!=='SIN ASIGNACION'?ger:'–'}</td>
+      <td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${u[C.estatus]||'–'}</span></td>
     </tr>`;
   });
-  document.getElementById('modalBody').innerHTML=`<table class="modal-table"><thead><tr><th>IDS</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Año</th><th>Estatus</th><th>Comentario</th><th>Jefe</th><th>Gerente</th></tr></thead><tbody>${rows||'<tr><td colspan="9" class="no-data">Sin unidades</td></tr>'}</tbody></table>`;
+  document.getElementById('modalBody').innerHTML=`<table class="modal-table"><thead><tr><th>IDS</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Año</th><th>Estatus</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="no-data">Sin unidades</td></tr>'}</tbody></table>`;
   document.getElementById('unitModal').classList.add('open');
 }
 
