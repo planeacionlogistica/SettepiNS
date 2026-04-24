@@ -903,9 +903,9 @@ function drawInactivas(rows){
     return;
   }
 
-  // Solo las que están sin movimiento Y con estatus Operando (pool disponible para reasignar)
-  const inactivas=rows.filter(r=>isIneficiente(r)&&(r[C.estatus]||'').trim().toLowerCase()==='operando');
-  document.getElementById('inactivasSub').textContent=`Pool disponible: ${inactivas.length} unidad${inactivas.length!==1?'es':''} operando sin movimiento en 10 días`;
+  // Todas las unidades marcadas en col Q (sin movimiento, cualquier estatus)
+  const inactivas=rows.filter(r=>isIneficiente(r));
+  document.getElementById('inactivasSub').textContent=`${inactivas.length} unidad${inactivas.length!==1?'es':''} sin movimiento en los últimos 10 días`;
 
   const sorted=[...inactivas].sort((a,b)=>{
     let av,bv;
