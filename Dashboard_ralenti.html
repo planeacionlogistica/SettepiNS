@@ -332,6 +332,26 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   </div>
 </div>
 
+
+<!-- ══ MODAL DETALLE CLIENTE ══ -->
+<div class="modal-overlay" id="cliModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div><h3 id="cliModalTitle">Detalle de cliente</h3><span id="cliModalSub"></span></div>
+      <button class="modal-close" onclick="document.getElementById('cliModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <table class="modal-table">
+        <thead><tr>
+          <th>#</th><th>Unidad</th><th>Operador</th><th class="r">Eventos</th><th class="r">Horas</th><th class="r">Km</th><th class="r">Litros est.</th><th class="r">Costo est.</th>
+        </tr></thead>
+        <tbody id="cliModalBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot" id="cliModalFoot"></div>
+  </div>
+</div>
+
 <script>
 const SHEET_ID   = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const SHEET_NAME = 'Ralenti';
@@ -447,7 +467,14 @@ document.addEventListener('click',e=>{
   }
 });
 
-function uniq(arr){return[...new Set(arr.filter(v=>v&&String(v).trim()))].sort();}
+function isValidVal(v){
+  if(!v) return false;
+  const s=String(v).trim();
+  if(!s) return false;
+  if(/^#(N\/A|REF!|VALUE!|DIV\/0!|NAME\?|NUM!|ERROR!)$/i.test(s)) return false;
+  return true;
+}
+function uniq(arr){return[...new Set(arr.filter(isValidVal).map(v=>String(v).trim()))].sort();}
 
 function cascadeSelects(){
   const f=getF();
@@ -716,7 +743,8 @@ function drawTableCli(ded){
   document.getElementById('cntCli').textContent=tCliData.length+(tCliData.length===1?' cliente':' clientes');
   document.getElementById('tCliBody').innerHTML=tCliData.length?tCliData.map((r,i)=>{
     const bg=i<3?badges[i]:'#e5e7eb',fg=i<3?'#fff':'#6b7a99';
-    return`<tr><td><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td><td style="font-weight:600">${r.k}</td><td class="r" style="color:var(--navy);font-weight:600">${r.units}</td><td class="r" style="color:#0891b2;font-weight:700">${fmtH(r.hrs)}</td><td class="r" style="color:var(--muted)">${r.km.toFixed(1)} km</td></tr>`;
+    const safeC=r.k.replace(/'/g,"\\'");
+    return`<tr class="row-clickable" onclick="openCliDetail('${safeC}')"><td><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td><td class="unit-cell" style="font-weight:600">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td><td class="r" style="color:var(--navy);font-weight:600">${r.units}</td><td class="r" style="color:#0891b2;font-weight:700">${fmtH(r.hrs)}</td><td class="r" style="color:var(--muted)">${r.km.toFixed(1)} km</td></tr>`;
   }).join(''):'<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.8rem">Sin resultados</td></tr>';
 }
 
@@ -736,6 +764,50 @@ function drawTableUnits(ded){
     const safeK=r.k.replace(/'/g,"\\'");
     return`<tr class="row-clickable" onclick="openUnitDetail('${safeK}')"><td><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td><td class="unit-cell" style="font-weight:600">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td><td style="font-size:.7rem;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.operador}">${r.operador}</td><td class="r" style="font-size:.72rem;color:var(--muted)">${r.hora}</td><td class="r" style="color:#0891b2;font-weight:700">${fmtH(r.hrs)}</td></tr>`;
   }).join(''):'<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.8rem">Sin resultados</td></tr>';
+}
+
+
+let currentCliDetail=null;
+function openCliDetail(cliente){
+  currentCliDetail=cliente;
+  const rows=filterRows().filter(r=>(r[C.cliente]||'').trim()===cliente);
+  const ded=deduped(rows);
+  // Agrupar por unidad
+  const by={};
+  ded.forEach(r=>{
+    const k=String(r[C.unidad]||'').trim();
+    if(!by[k])by[k]={operador:'',eventos:0,hrs:0,km:0,maxH:0};
+    const h=parseHoras(r[C.horas])||0;
+    by[k].eventos++;
+    by[k].hrs+=h;
+    by[k].km+=parseKm(r[C.km]);
+    if(h>=by[k].maxH){by[k].maxH=h;by[k].operador=(r[C.driver]||'–').trim();}
+  });
+  const units=Object.entries(by).map(([k,d])=>({k,...d})).sort((a,b)=>b.hrs-a.hrs);
+  const totalHrs=units.reduce((s,r)=>s+r.hrs,0);
+  const totalKm=units.reduce((s,r)=>s+r.km,0);
+  const badges=['#f59e0b','#9ca3af','#b45309'];
+  document.getElementById('cliModalTitle').textContent='Cliente: '+cliente;
+  document.getElementById('cliModalSub').textContent=`${units.length} unidades · ${ded.length} eventos · ${fmtH(totalHrs)} · ${totalKm.toFixed(1)} km`;
+  document.getElementById('cliModalBody').innerHTML=units.length?units.map((r,i)=>{
+    const bg=i<3?badges[i]:'#e5e7eb',fg=i<3?'#fff':'#6b7a99';
+    const lts=(r.hrs*LITROS_HR).toFixed(1);
+    const costo=Math.round(r.hrs*LITROS_HR*PRECIO_LT);
+    return`<tr>
+      <td><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td>
+      <td style="font-weight:600">${r.k}</td>
+      <td style="font-size:.72rem;color:var(--muted);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.operador}">${r.operador}</td>
+      <td class="r" style="color:var(--navy)">${r.eventos}</td>
+      <td class="r" style="color:#0891b2;font-weight:700">${fmtH(r.hrs)}</td>
+      <td class="r" style="color:var(--muted)">${r.km.toFixed(1)}</td>
+      <td class="r" style="color:#d97706">${lts} L</td>
+      <td class="r" style="color:#e53e3e;font-weight:600">$${costo.toLocaleString('es-MX')}</td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="8" style="text-align:center;padding:1.5rem;color:var(--muted)">Sin datos</td></tr>';
+  const totalLts=(totalHrs*LITROS_HR).toFixed(1);
+  const totalCosto=Math.round(totalHrs*LITROS_HR*PRECIO_LT);
+  document.getElementById('cliModalFoot').innerHTML=`<b>Total:</b> ${fmtH(totalHrs)} · ${totalKm.toFixed(1)} km · ${totalLts} L estimados · <b style="color:#e53e3e">$${totalCosto.toLocaleString('es-MX')}</b>`;
+  document.getElementById('cliModal').classList.add('open');
 }
 
 let currentUnitDetail=null;
