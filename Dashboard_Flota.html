@@ -307,7 +307,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
               <th class="r">Contrato</th>
               <th class="r">Asignados</th>
               <th class="r">Diferencia</th>
-              <th>Alertas</th>
             </tr>
           </thead>
           <tbody id="clientesTbody"></tbody>
@@ -348,12 +347,12 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     <div class="ineff-grid">
       <div class="table-card" style="box-shadow:none;border:1px solid var(--border);">
         <div style="padding:.9rem 1.1rem .5rem;border-bottom:1px solid var(--border);">
-          <div class="chart-title" style="font-size:.92rem;font-weight:700;color:var(--text)">Top ineficiencia · GPS vs Bustrax</div>
-          <div style="font-size:.68rem;color:var(--muted)">% km GPS no cobrado en Bustrax · clic en semáforo para filtrar</div>
+          <div class="chart-title" style="font-size:.92rem;font-weight:700;color:var(--text)">GPS km vs Bustrax km</div>
+          <div style="font-size:.68rem;color:var(--muted)">Cada punto es una unidad · línea punteada = paridad</div>
         </div>
         <div style="padding:.75rem 1rem;">
           <div class="scatter-wrap">
-            <canvas id="barChart" role="img" aria-label="Bar chart ineficiencia"></canvas>
+            <canvas id="scatterChart" role="img" aria-label="Dispersión GPS vs Bustrax"></canvas>
           </div>
         </div>
       </div>
@@ -467,7 +466,7 @@ function hexToRgb(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(
 function uniq(arr){return[...new Set(arr.filter(v=>v&&String(v).trim()))].sort();}
 function isIneficiente(r){const v=(r[C.unidadesInef]||'').trim();return v&&v.toLowerCase()!=='no'&&v!=='0'&&v!=='';}
 
-let DATA=[], barInst=null, ACTIVE_RANGO='';
+let DATA=[], scatterInst=null, ACTIVE_RANGO='';
 let CONTRATO_MAP={};
 let INEFF_SORT={col:'pct',dir:'desc'};
 let INACT_SORT_COL='id', INACT_SORT_DIR='asc';
@@ -686,7 +685,7 @@ function drawClientes(rows){
   document.getElementById('cntClientes').textContent=clientes.length+(clientes.length===1?' cliente':' clientes');
   const tbody=document.getElementById('clientesTbody');
   tbody.innerHTML='';
-  if(!clientes.length){tbody.innerHTML='<tr><td colspan="5" class="no-data">Sin datos</td></tr>';return;}
+  if(!clientes.length){tbody.innerHTML='<tr><td colspan="4" class="no-data">Sin datos</td></tr>';return;}
   clientes.forEach(cl=>{
     const asignados=cl.units.length;
     const contrato=CONTRATO_MAP[cl.name.toLowerCase()]??null;
@@ -700,31 +699,9 @@ function drawClientes(rows){
       else difCell=`<span class="pill red">${dif} falta</span>`;
     }
 
-    const cor=cl.units.filter(u=>getCat(u[C.estatus])==='cor').length;
-    const mto=cl.units.filter(u=>getCat(u[C.estatus])==='mto').length;
-    const inef=C.unidadesInef?cl.units.filter(u=>isIneficiente(u)):[];
-
-    let alertasTop='';
-    if(cor>0)alertasTop+=`<span class="badge b-cor">${cor} corralón</span>`;
-    if(mto>0)alertasTop+=`<span class="badge b-mto">${mto} mtto</span>`;
-
-    let inefHtml='';
-    if(inef.length>0){
-      const byEst={};
-      inef.forEach(u=>{const est=(u[C.estatus]||'–').trim();byEst[est]=(byEst[est]||0)+1;});
-      const parts=Object.entries(byEst).map(([est,n])=>{
-        const cfg=getStatusCfg(est);
-        return`<span class="inef-unit-item"><span class="badge b-inef-est" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${est}</span><span class="badge b-inef">✗ sin mov ×${n}</span></span>`;
-      }).join('');
-      inefHtml=`<div class="inef-units">${parts}</div>`;
-    }
-
-    if(!alertasTop&&!inefHtml)alertasTop='<span style="color:var(--muted);font-size:.7rem">–</span>';
-    const alertasCell=`<div class="alertas-cell"><div class="alertas-row">${alertasTop}</div>${inefHtml}</div>`;
-
     const tr=document.createElement('tr');
     tr.className='cli-row';
-    tr.innerHTML=`<td style="font-weight:600">${cl.name}<span class="hint">▶ ver</span></td><td class="r">${contratoCell}</td><td class="r" style="font-weight:700;color:var(--navy)">${asignados}</td><td class="r">${difCell}</td><td>${alertasCell}</td>`;
+    tr.innerHTML=`<td style="font-weight:600">${cl.name}<span class="hint">▶ ver</span></td><td class="r">${contratoCell}</td><td class="r" style="font-weight:700;color:var(--navy)">${asignados}</td><td class="r">${difCell}</td>`;
     tr.addEventListener('click',()=>openModal(cl));
     tbody.appendChild(tr);
   });
@@ -815,7 +792,7 @@ function drawIneficiencia(rows){
     </div>`;
   }).join('');
 
-  drawBarChart(conDatos);
+  drawScatter(conDatos);
 
   // Tabla top ineficientes con sort
   renderIneffHeaders();
@@ -864,27 +841,37 @@ function drawIneficiencia(rows){
   }).join('');
 }
 
-function drawBarChart(rows){
-  // Top 15 por % inef, ordenado desc
-  const withData=rows.filter(r=>numVal(r[C.kmGps])>0||numVal(r[C.kmBus])>0);
-  const sorted=[...withData].sort((a,b)=>pctVal(b[C.pctInef])-pctVal(a[C.pctInef])).slice(0,15);
-  const labels=sorted.map(r=>r[C.id]||'–');
-  const data=sorted.map(r=>parseFloat((pctVal(r[C.pctInef])*100).toFixed(1)));
-  const colors=sorted.map(r=>{const rn=rangoInef(pctVal(r[C.pctInef]));return rn==='rojo'?'#E24B4A':rn==='amarillo'?'#BA7517':'#639922';});
-  if(barInst){barInst.destroy();barInst=null;}
-  barInst=new Chart(document.getElementById('barChart'),{
-    type:'bar',
-    data:{labels,datasets:[{data,backgroundColor:colors,borderRadius:3,borderSkipped:false}]},
+function drawScatter(rows){
+  const good=[],warn=[],bad=[];
+  rows.forEach(r=>{
+    const x=numVal(r[C.kmGps]),y=numVal(r[C.kmBus]);
+    if(x<=0&&y<=0)return;
+    const rn=rangoInef(pctVal(r[C.pctInef]));
+    const pt={x,y,id:r[C.id]||'–'};
+    if(rn==='verde')good.push(pt);
+    else if(rn==='amarillo')warn.push(pt);
+    else bad.push(pt);
+  });
+  const maxVal=Math.max(100,...rows.map(r=>Math.max(numVal(r[C.kmGps]),numVal(r[C.kmBus]))));
+  const axMax=Math.ceil(maxVal*1.05/100)*100;
+  if(scatterInst){scatterInst.destroy();scatterInst=null;}
+  scatterInst=new Chart(document.getElementById('scatterChart'),{
+    type:'scatter',
+    data:{datasets:[
+      {label:'Eficientes',  data:good,backgroundColor:'#639922',pointRadius:3.5,pointHoverRadius:6},
+      {label:'Revisar',     data:warn,backgroundColor:'#BA7517',pointRadius:3.5,pointHoverRadius:6},
+      {label:'Ineficientes',data:bad, backgroundColor:'#E24B4A',pointRadius:4,  pointHoverRadius:7},
+      {label:'Paridad',type:'line',data:[{x:0,y:0},{x:axMax,y:axMax}],borderColor:'#1A2236',borderWidth:1.5,borderDash:[5,4],pointRadius:0,fill:false,showLine:true},
+    ]},
     options:{
-      indexAxis:'y',
       responsive:true,maintainAspectRatio:false,
       plugins:{
-        legend:{display:false},
-        tooltip:{callbacks:{label:ctx=>`${ctx.parsed.x.toFixed(1)}% ineficiencia`}}
+        legend:{position:'bottom',labels:{font:{size:10,family:'Inter'},color:'#6b7a99',boxWidth:10,padding:10}},
+        tooltip:{callbacks:{label:ctx=>{const d=ctx.raw;if(d&&d.id)return` ${d.id}: GPS ${d.x.toFixed(1)} / Bus ${d.y.toFixed(1)}`;return ctx.formattedValue;}}}
       },
       scales:{
-        x:{title:{display:true,text:'% ineficiencia',font:{size:9,family:'Inter'},color:'#6b7a99'},ticks:{font:{size:9,family:'Inter'},color:'#6b7a99',callback:v=>v+'%'},grid:{color:'#eef1f7'},min:0},
-        y:{ticks:{font:{size:9,family:'Inter'},color:'#1a2236'},grid:{display:false}}
+        x:{title:{display:true,text:'GPS km',font:{size:10,family:'Inter'},color:'#6b7a99'},ticks:{font:{size:9,family:'Inter'},color:'#6b7a99'},grid:{color:'#eef1f7'},min:0,max:axMax},
+        y:{title:{display:true,text:'Bustrax km',font:{size:10,family:'Inter'},color:'#6b7a99'},ticks:{font:{size:9,family:'Inter'},color:'#6b7a99'},grid:{color:'#eef1f7'},min:0,max:axMax}
       }
     }
   });
@@ -923,8 +910,9 @@ function drawInactivas(rows){
     return;
   }
 
-  const inactivas=rows.filter(r=>isIneficiente(r));
-  document.getElementById('inactivasSub').textContent=`${inactivas.length} unidad${inactivas.length!==1?'es':''} sin movimiento en los últimos 10 días`;
+  // Solo las que están sin movimiento Y con estatus Operando (pool disponible para reasignar)
+  const inactivas=rows.filter(r=>isIneficiente(r)&&(r[C.estatus]||'').trim().toLowerCase()==='operando');
+  document.getElementById('inactivasSub').textContent=`Pool disponible: ${inactivas.length} unidad${inactivas.length!==1?'es':''} operando sin movimiento en 10 días`;
 
   const sorted=[...inactivas].sort((a,b)=>{
     let av,bv;
