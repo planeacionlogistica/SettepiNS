@@ -633,8 +633,8 @@ function enrichWithInputs(rows){
     const cli=(r[C.cliente]||'').trim();
     const inp=INPUTS_MAP[cli];
     if(inp){
-      if(inp.jefe&&!r[C.jefe])    r[C.jefe]=inp.jefe;
-      if(inp.gerente&&!r[C.gerente]) r[C.gerente]=inp.gerente;
+      if(inp.jefe)    r[C.jefe]=inp.jefe;
+      if(inp.gerente) r[C.gerente]=inp.gerente;
     }
   });
 }
