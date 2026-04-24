@@ -7,10 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Favicon -->
 <link rel="icon" type="image/svg+xml" href="favicon-traxion.svg">
-
-<!-- Fuente Montserrat (para que se vea igual en todos lados) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap" rel="stylesheet">
 <style>
@@ -40,7 +37,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .fg label{font-size:.6rem;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;}
 .fg select,.fg input[type=date]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:.28rem .4rem;font-size:.72rem;font-family:"Inter",sans-serif;appearance:none;cursor:pointer;outline:none;}
 .fg select:focus,.fg input:focus{border-color:var(--green);box-shadow:0 0 0 2px rgba(126,211,33,.15);}
-/* ── Searchable selects ── */
 .sc-wrap{position:relative;width:100%;}
 .sc-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:.28rem 1.4rem .28rem .4rem;font-size:.72rem;font-family:"Inter",sans-serif;outline:none;transition:border-color .15s;cursor:text;}
 .sc-input:focus,.sc-wrap.open .sc-input{border-color:var(--green);box-shadow:0 0 0 2px rgba(126,211,33,.13);}
@@ -343,17 +339,29 @@ const INPUTS_SHEET = 'Inputs';
 const CHUNK      = 35000;
 const LITROS_HR  = 2;
 const PRECIO_LT  = 22;
-const MESES_NUM = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+const MESES_NUM  = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 
-// Mapa de cliente → { jefe, gerente, horasPerm } cargado de la hoja Inputs
 let INPUTS_MAP = {};
 
 const C = {
-  driver:'Driver Name', unidad:'Vehicle Number', inicio:'START_TIME', fin:'END_TIME', tipo:'Event Type',
-  duracion:'Duration', ubic:'Start Location', lat:'Start Latitude', lng:'Start Longitude',
-  mes:'Mes', sem:'Sem', dia:'Dia',
-  horas:'Horas en ralenti', km:'Kilometros recorrido en ralenti',
-  velocidad:'Velocidad en el evento', cliente:'Cliente', jefe:'Jefe', gerente:'Gerente',
+  driver:   'Driver Name',
+  unidad:   'Vehicle Number',
+  inicio:   'START_TIME',
+  fin:      'END_TIME',
+  tipo:     'Event Type',
+  duracion: 'Duration',
+  ubic:     'Start Location',
+  lat:      'Start Latitude',
+  lng:      'Start Longitude',
+  mes:      'Mes',
+  sem:      'Sem',
+  dia:      'Dia',
+  horas:    'Horas en ralenti',
+  km:       'Kilometros recorrido en ralenti',
+  velocidad:'Velocidad en el evento',
+  cliente:  'Cliente',
+  jefe:     'Jefe',
+  gerente:  'Gerente',
 };
 
 let DATA=[], chartInst=null, chartGroup='dia';
@@ -443,7 +451,6 @@ function uniq(arr){return[...new Set(arr.filter(v=>v&&String(v).trim()))].sort()
 
 function cascadeSelects(){
   const f=getF();
-  // Base: lo que ya está filtrado fijo (mes + fechas)
   const base=DATA.filter(r=>{
     if(f.mes&&(r[C.mes]||'').trim().toLowerCase()!==f.mes.toLowerCase()) return false;
     const d=getFecha(r);
@@ -476,15 +483,30 @@ function parseCSV(text){
   for(let i=1;i<lines.length;i++){if(!lines[i].trim())continue;const cols=parseCSVLine(lines[i]),obj={};hdrs.forEach((h,idx)=>{obj[h]=cols[idx]||'';});if(hdrs.some(h=>obj[h]&&obj[h].trim()))rows.push(obj);}
   return rows;
 }
+
+// ── FIX PRINCIPAL: acepta 0 como valor válido ──────────────────
 function parseHoras(v){
-  if(!v||String(v).trim()===''||String(v).trim()==='-'||String(v).trim()==='0')return null;
+  // null/undefined/vacío/guión → sin dato
+  if(v===null||v===undefined) return null;
   const s=String(v).trim();
+  if(s===''||s==='-') return null;
+
+  // formato hh:mm o hh:mm:ss  → acepta 0:00
   const m=s.match(/^(\d+):(\d{2})(?::(\d{2}))?$/);
-  if(m){const val=parseInt(m[1])+parseInt(m[2])/60+(parseInt(m[3]||0)/3600);return val>0?val:null;}
+  if(m){
+    const val=parseInt(m[1])+parseInt(m[2])/60+(parseInt(m[3]||0)/3600);
+    return val>=0?val:null;
+  }
+
+  // número decimal (ej. 0, 0.5, 1.25)
   const n=parseFloat(s.replace(',','.'));
-  if(!isNaN(n)&&n>0)return n<1?n*24:n;
+  if(!isNaN(n)&&n>=0){
+    // si es fracción <1 asumimos que ya viene en horas (no multiplicar por 24)
+    return n;
+  }
   return null;
 }
+
 function parseKm(v){if(!v||String(v).trim()===''||String(v).trim()==='-')return 0;const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?0:n;}
 function getFecha(r){
   const raw=(r[C.inicio]||'').trim();
@@ -546,8 +568,8 @@ function enrichWithInputs(rows){
     const cli=(r[C.cliente]||'').trim();
     const inp=INPUTS_MAP[cli];
     if(inp){
-      if(inp.jefe)    r[C.jefe]=inp.jefe;
-      if(inp.gerente) r[C.gerente]=inp.gerente;
+      if(inp.jefe&&!r[C.jefe])    r[C.jefe]=inp.jefe;
+      if(inp.gerente&&!r[C.gerente]) r[C.gerente]=inp.gerente;
     }
   });
 }
@@ -564,7 +586,7 @@ async function loadSheet(){
     enrichWithInputs(DATA);
     ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',450);
     cascadeSelects();
-    // Mes actual auto
+    // Auto-seleccionar mes actual
     const mesActual=MESES_NUM[new Date().getMonth()];
     if(SC_VALS.mes.some(v=>v.toLowerCase()===mesActual)){
       scSetVal('mes',mesActual,scLabel('mes',mesActual));
@@ -587,8 +609,8 @@ async function loadSheet(){
 
 function getF(){
   return{
-    mes: SC_SEL.mes,  cli: SC_SEL.cli,  ger: SC_SEL.ger,  jef: SC_SEL.jef,
-    unit:SC_SEL.unit, ope: SC_SEL.ope,  tipo:SC_SEL.tipo,
+    mes: SC_SEL.mes, cli: SC_SEL.cli, ger: SC_SEL.ger, jef: SC_SEL.jef,
+    unit:SC_SEL.unit, ope: SC_SEL.ope, tipo:SC_SEL.tipo,
     fi:document.getElementById('fFi').value,
     ff:document.getElementById('fFf').value,
   };
@@ -607,7 +629,11 @@ function filterRows(){
     return true;
   });
 }
-function deduped(rows){return rows.filter(r=>parseHoras(r[C.horas])!==null);}
+
+// Solo excluye filas sin dato en Horas en ralenti (null), NO las de valor 0
+function deduped(rows){
+  return rows.filter(r=>parseHoras(r[C.horas])!==null);
+}
 
 function draw(){
   const rows=filterRows(),ded=deduped(rows);
@@ -633,7 +659,6 @@ function getGKey(r){
   return(r[C.mes]||'').trim()||getFecha(r).slice(5,7);
 }
 function calcDailyTarget(rows){
-  // Suma de "Horas perm." de todos los clientes presentes en las filas filtradas
   const clientes=new Set(rows.map(r=>(r[C.cliente]||'').trim()).filter(Boolean));
   let total=0;
   clientes.forEach(c=>{const inp=INPUTS_MAP[c];if(inp&&inp.horasPerm)total+=inp.horasPerm;});
@@ -705,18 +730,6 @@ function drawTableUnits(ded){
     const safeK=r.k.replace(/'/g,"\\'");
     return`<tr class="row-clickable" onclick="openUnitDetail('${safeK}')"><td><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td><td class="unit-cell" style="font-weight:600">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td><td style="font-size:.7rem;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.operador}">${r.operador}</td><td class="r" style="font-size:.72rem;color:var(--muted)">${r.hora}</td><td class="r" style="color:#0891b2;font-weight:700">${fmtH(r.hrs)}</td></tr>`;
   }).join(''):'<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.8rem">Sin resultados</td></tr>';
-}
-
-function drawDist(rows){
-  const tipos={'Ralenti mayor a 5 min':0,'Ralenti mayor a 15 min':0,'Ralenti mayor a 20 min':0};
-  rows.forEach(r=>{const t=(r[C.tipo]||'').trim();if(tipos[t]!==undefined)tipos[t]++;});
-  const total=Object.values(tipos).reduce((a,b)=>a+b,0)||1;
-  const colors={'Ralenti mayor a 5 min':'#fcd34d','Ralenti mayor a 15 min':'#fb923c','Ralenti mayor a 20 min':'#f87171'};
-  const labels={'Ralenti mayor a 5 min':'> 5 min','Ralenti mayor a 15 min':'> 15 min','Ralenti mayor a 20 min':'> 20 min'};
-  document.getElementById('distEventos').innerHTML=Object.entries(tipos).map(([t,n])=>{
-    const pct=(n/total*100);
-    return`<div class="dist-row"><div class="dist-label">${labels[t]}</div><div class="dist-bar-wrap"><div class="dist-bar-fill" style="width:${pct.toFixed(0)}%;background:${colors[t]}"></div></div><div class="dist-count">${n.toLocaleString('es-MX')}</div><div class="dist-pct">${pct.toFixed(1)}%</div></div>`;
-  }).join('');
 }
 
 let currentUnitDetail=null;
