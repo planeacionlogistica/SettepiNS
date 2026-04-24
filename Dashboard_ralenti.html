@@ -265,7 +265,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       <div class="chart-hdr">
         <div>
           <div class="chart-title">Horas de Ralentí por Periodo</div>
-          <div class="chart-sub">Eventos deduplicados · el tooltip muestra horas + costo estimado</div>
+          <div class="chart-sub">Eventos deduplicados · línea roja = objetivo (Horas perm. de Inputs)</div>
         </div>
         <div class="grp-btns">
           <button class="grp-btn active" onclick="setGroup('dia')">Día</button>
@@ -290,10 +290,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
 
       <div class="table-card">
-        <div class="table-hdr"><div><div class="table-hdr-title">📊 Distribución por Tipo</div><div class="table-hdr-sub">Todos los eventos</div></div></div>
-        <div id="distEventos"></div>
-
-        <div class="table-hdr" style="border-top:1px solid var(--border);margin-top:.5rem">
+        <div class="table-hdr">
           <div><div class="table-hdr-title">⚡ Top Unidades</div><div class="table-hdr-sub">Clic para ver detalle</div></div>
           <div class="tbl-actions"><span class="table-count" id="cntUnits">–</span><button class="btn-capture" onclick="exportTable('unit')">⬇ Excel</button></div>
         </div>
@@ -342,10 +339,14 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 <script>
 const SHEET_ID   = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const SHEET_NAME = 'Ralenti';
+const INPUTS_SHEET = 'Inputs';
 const CHUNK      = 35000;
 const LITROS_HR  = 2;
 const PRECIO_LT  = 22;
 const MESES_NUM = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+// Mapa de cliente → { jefe, gerente, horasPerm } cargado de la hoja Inputs
+let INPUTS_MAP = {};
 
 const C = {
   driver:'Driver Name', unidad:'Vehicle Number', inicio:'START_TIME', fin:'END_TIME', tipo:'Event Type',
@@ -521,14 +522,46 @@ function ubicLink(r){
 }
 
 window.addEventListener('DOMContentLoaded',loadSheet);
+
+async function loadInputs(){
+  try{
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(INPUTS_SHEET)}`;
+    const res=await fetch(url);
+    if(!res.ok) return;
+    const rows=parseCSV(await res.text());
+    rows.forEach(r=>{
+      const cli=(r['CLIENTE']||'').trim();
+      if(!cli) return;
+      const jefe=(r['JEFE DE OPERACIONES']||'').trim();
+      const gerente=(r['GERENTE OPERACIONES']||'').trim();
+      const horasPermRaw=(r['Horas perm.']||r['Horas perm']||r['Horas permitidas']||'').toString().trim();
+      const horasPerm=parseFloat(horasPermRaw.replace(',','.'))||0;
+      INPUTS_MAP[cli]={jefe,gerente,horasPerm};
+    });
+  }catch(e){console.warn('No se pudo cargar hoja Inputs:',e);}
+}
+
+function enrichWithInputs(rows){
+  rows.forEach(r=>{
+    const cli=(r[C.cliente]||'').trim();
+    const inp=INPUTS_MAP[cli];
+    if(inp){
+      if(inp.jefe)    r[C.jefe]=inp.jefe;
+      if(inp.gerente) r[C.gerente]=inp.gerente;
+    }
+  });
+}
+
 async function loadSheet(){
   const ov=document.getElementById('loadingOverlay'),bn=document.getElementById('errBanner'),em=document.getElementById('errMsg');
   try{
+    await loadInputs();
     const res=await fetch(csvUrl(0));
     if(!res.ok)throw new Error('HTTP '+res.status+' — verifica que el Sheet sea público.');
     const rows=parseCSV(await res.text());
     if(!rows.length)throw new Error('Sin datos en hoja "Ralenti".');
     DATA=[...rows];
+    enrichWithInputs(DATA);
     ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',450);
     cascadeSelects();
     // Mes actual auto
@@ -543,6 +576,7 @@ async function loadSheet(){
       while(true){
         const r2=await fetch(csvUrl(off));if(!r2.ok)break;
         const more=parseCSV(await r2.text());if(!more.length)break;
+        enrichWithInputs(more);
         DATA.push(...more);
         if(more.length<CHUNK)break;off+=CHUNK;
       }
@@ -585,7 +619,7 @@ function draw(){
   document.getElementById('kKm').textContent=fmtN(totalKm)+' km';
   document.getElementById('kLts').textContent=fmtN(totalLts)+' L';
   document.getElementById('kCosto').textContent=fmtM(totalCosto);
-  drawChart(ded);drawTableCli(ded);drawTableUnits(ded);drawDist(rows);
+  drawChart(ded);drawTableCli(ded);drawTableUnits(ded);
 }
 
 function setGroup(g){
@@ -598,6 +632,22 @@ function getGKey(r){
   if(chartGroup==='semana'){const s=(r[C.sem]||'').trim();return s?'Sem '+s:getFecha(r).slice(0,7);}
   return(r[C.mes]||'').trim()||getFecha(r).slice(5,7);
 }
+function calcDailyTarget(rows){
+  // Suma de "Horas perm." de todos los clientes presentes en las filas filtradas
+  const clientes=new Set(rows.map(r=>(r[C.cliente]||'').trim()).filter(Boolean));
+  let total=0;
+  clientes.forEach(c=>{const inp=INPUTS_MAP[c];if(inp&&inp.horasPerm)total+=inp.horasPerm;});
+  return total;
+}
+function daysInBucket(key){
+  if(chartGroup==='dia') return 1;
+  if(chartGroup==='semana') return 7;
+  const idx=MESES_NUM.indexOf(key.toLowerCase());
+  if(idx<0) return 30;
+  const year=new Date().getFullYear();
+  return new Date(year,idx+1,0).getDate();
+}
+
 function drawChart(ded){
   const by={};
   ded.forEach(r=>{const k=getGKey(r)||'?';if(k==='?')return;if(!by[k])by[k]=0;by[k]+=(parseHoras(r[C.horas])||0);});
@@ -611,11 +661,18 @@ function drawChart(ded){
     if(chartGroup==='dia'){const d=new Date(k+'T12:00:00');return isNaN(d)?k:d.toLocaleDateString('es-MX',{day:'2-digit',month:'short'});}
     return k.charAt(0).toUpperCase()+k.slice(1);
   });
+  const dailyTarget=calcDailyTarget(ded);
+  const targets=keys.map(k=>+(dailyTarget*daysInBucket(k)).toFixed(2));
+  const showTarget=dailyTarget>0;
+
   if(chartInst){chartInst.destroy();chartInst=null;}
+  const datasets=[{label:'Horas',data:hrs,backgroundColor:'rgba(8,145,178,.75)',borderColor:'#0891b2',borderWidth:1,borderRadius:4,barPercentage:.75,order:2}];
+  if(showTarget){
+    datasets.push({label:'Objetivo',data:targets,type:'line',borderColor:'#e53e3e',backgroundColor:'rgba(229,62,62,.08)',borderWidth:2,borderDash:[6,4],pointRadius:3,pointHoverRadius:5,pointBackgroundColor:'#e53e3e',pointBorderColor:'#e53e3e',tension:0,fill:false,order:1});
+  }
   chartInst=new Chart(document.getElementById('chartHoras').getContext('2d'),{
-    type:'bar',
-    data:{labels,datasets:[{label:'Horas',data:hrs,backgroundColor:'rgba(8,145,178,.75)',borderColor:'#0891b2',borderWidth:1,borderRadius:4,barPercentage:.75}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#1a2236',borderColor:'#6b7a99',borderWidth:1,titleColor:'#fff',bodyColor:'rgba(255,255,255,.8)',padding:10,callbacks:{label(c){const h=c.raw,hh=Math.floor(h),mm=Math.round((h-hh)*60);return'  '+hh+'h'+(mm>0?' '+mm+'m':'')+' · $'+Math.round(h*LITROS_HR*PRECIO_LT).toLocaleString('es-MX');}}}},scales:{x:{ticks:{color:'#6b7a99',font:{size:10,family:'Inter'}},grid:{color:'rgba(0,0,0,.04)'}},y:{ticks:{color:'#0891b2',font:{size:10},callback:v=>v+'h'},grid:{color:'rgba(0,0,0,.04)'},beginAtZero:true}}},
+    data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:showTarget,position:'top',align:'end',labels:{boxWidth:14,boxHeight:8,font:{size:11,family:'Inter'},color:'#6b7a99'}},tooltip:{backgroundColor:'#1a2236',borderColor:'#6b7a99',borderWidth:1,titleColor:'#fff',bodyColor:'rgba(255,255,255,.8)',padding:10,callbacks:{label(c){const h=c.raw,hh=Math.floor(h),mm=Math.round((h-hh)*60);const lbl=c.dataset.label==='Objetivo'?'Objetivo: ':'  ';if(c.dataset.label==='Objetivo')return lbl+hh+'h'+(mm>0?' '+mm+'m':'');return lbl+hh+'h'+(mm>0?' '+mm+'m':'')+' · $'+Math.round(h*LITROS_HR*PRECIO_LT).toLocaleString('es-MX');}}}},scales:{x:{ticks:{color:'#6b7a99',font:{size:10,family:'Inter'}},grid:{color:'rgba(0,0,0,.04)'}},y:{ticks:{color:'#0891b2',font:{size:10},callback:v=>v+'h'},grid:{color:'rgba(0,0,0,.04)'},beginAtZero:true}}},
     plugins:[{id:'lbl',afterDatasetsDraw(chart){const c2=chart.ctx;chart.getDatasetMeta(0).data.forEach((bar,i)=>{const h=chart.data.datasets[0].data[i];if(!h||bar.height<14)return;const hh=Math.floor(h),mm=Math.round((h-hh)*60);c2.save();c2.font='bold 10px Inter';c2.fillStyle='#fff';c2.textAlign='center';c2.textBaseline='middle';c2.fillText(hh+'h'+(mm>0?' '+mm+'m':''),bar.x,bar.y+bar.height/2);c2.restore();});}}]
   });
 }
