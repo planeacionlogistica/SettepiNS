@@ -416,6 +416,16 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
       </div>
 
       <div class="fg">
+        <label>Operador</label>
+        <div class="sc-wrap" id="sc-ope">
+          <input class="sc-input" type="text" placeholder="Todos" autocomplete="off"
+            id="sc-ope-input" oninput="scFilter('ope')" onfocus="scOpen('ope')" onkeydown="scKey(event,'ope')">
+          <span class="sc-arrow">▼</span>
+          <div class="sc-dropdown" id="sc-ope-dd"></div>
+        </div>
+      </div>
+
+      <div class="fg">
         <label>Desde</label>
         <input type="date" id="fFi" onchange="onFilterChange()">
       </div>
