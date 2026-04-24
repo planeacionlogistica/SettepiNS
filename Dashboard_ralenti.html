@@ -135,7 +135,29 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .evt-15{background:#fed7aa;color:#7c2d12;}
 .evt-20{background:#fecaca;color:#7f1d1d;}
 @media(max-width:1024px){.tables-grid{grid-template-columns:1fr;}.kpi-grid{grid-template-columns:repeat(2,1fr);}}
-@media(max-width:768px){.layout{flex-direction:column;}.sidebar{width:100%;height:auto;position:relative;top:0;}.main{padding:.75rem;}.kpi-grid{grid-template-columns:repeat(2,1fr);}.chart-wrap{height:210px;}}
+@media(max-width:768px){
+  .layout{flex-direction:column;}
+  .sidebar{width:100%;height:auto;position:relative;top:0;overflow:hidden;transition:max-height .3s ease;}
+  .sidebar.sb-collapsed{max-height:44px;}
+  .sidebar.sb-expanded{max-height:900px;}
+  .sb-toggle{display:flex;}
+  .main{padding:.75rem;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .kpi-val{font-size:1.4rem;}
+  .chart-wrap{height:200px;}
+  .modal-box{max-height:92vh;border-radius:10px;}
+  .modal-overlay{padding:.4rem;}
+  .modal-table thead th{font-size:.58rem;padding:.35rem .4rem;}
+  .modal-table tbody td{font-size:.68rem;padding:.32rem .4rem;}
+  .modal-head h3{font-size:.82rem;}
+  .table-hdr-title{font-size:.82rem;}
+  .chart-title{font-size:.85rem;}
+  .kpi-lbl{font-size:.58rem;}
+}
+.sb-toggle{display:none;align-items:center;justify-content:space-between;cursor:pointer;padding:.55rem .4rem;border-bottom:1px solid var(--border);margin-bottom:.3rem;user-select:none;}
+.sb-toggle-lbl{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.sb-toggle-icon{font-size:.75rem;color:var(--muted);transition:transform .3s;}
+.sb-collapsed .sb-toggle-icon{transform:rotate(-90deg);}
 </style>
 </head>
 <body>
@@ -163,7 +185,11 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 </div>
 
 <div class="layout">
-  <aside class="sidebar">
+  <aside class="sidebar sb-collapsed" id="mobileSidebar">
+    <div class="sb-toggle" onclick="toggleSidebar()">
+      <span class="sb-toggle-lbl">⚙ Filtros</span>
+      <span class="sb-toggle-icon">▼</span>
+    </div>
     <div class="sb-title">Filtros<button class="sb-reset" onclick="resetFilters()" title="Limpiar filtros">↺</button></div>
 
     <div class="fg">
@@ -578,15 +604,27 @@ async function loadInputs(){
     const res=await fetch(url);
     if(!res.ok) return;
     const rows=parseCSV(await res.text());
+    if(!rows.length) return;
     rows.forEach(r=>{
-      const cli=(r['CLIENTE']||'').trim();
+      const keys=Object.keys(r);
+      const norm=s=>s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+      const getCol=(...names)=>{
+        for(const name of names){
+          const k=keys.find(k=>norm(k)===norm(name));
+          if(k&&r[k]&&r[k].trim()) return r[k].trim();
+        }
+        return '';
+      };
+      const cliKey=keys.find(k=>norm(k)==='cliente');
+      const cli=cliKey?(r[cliKey]||'').trim():'';
       if(!cli) return;
-      const jefe=(r['Jefe']||r['JEFE DE OPERACIONES']||'').trim();
-      const gerente=(r['Gerente']||r['GERENTE OPERACIONES']||'').trim();
-      const horasPermRaw=(r['Horas perm.']||r['Horas perm']||r['Horas permitidas']||'').toString().trim();
-      const horasPerm=parseFloat(horasPermRaw.replace(',','.'))||0;
+      const jefe    = getCol('Jefe','JEFE','Jefe de Operaciones','JEFE DE OPERACIONES');
+      const gerente = getCol('Gerente','GERENTE','Gerente de Operaciones','Gerente de Logistica','Gerente de Logística','Gerente Operaciones','GERENTE OPERACIONES','GERENTE DE LOGÍSTICA');
+      const horasPermRaw = getCol('Horas perm.','Horas perm','Horas permitidas','HORAS PERM');
+      const horasPerm=parseFloat((horasPermRaw||'0').replace(',','.'))||0;
       INPUTS_MAP[cli]={jefe,gerente,horasPerm};
     });
+    console.log('[Inputs] cargados:',Object.keys(INPUTS_MAP).length, Object.entries(INPUTS_MAP).slice(0,2));
   }catch(e){console.warn('No se pudo cargar hoja Inputs:',e);}
 }
 
@@ -877,6 +915,7 @@ function resetFilters(){
   document.getElementById('fFi').value='';document.getElementById('fFf').value='';
   cascadeSelects();draw();
 }
+function toggleSidebar(){const s=document.getElementById('mobileSidebar');s.classList.toggle('sb-collapsed');s.classList.toggle('sb-expanded');}
 function toggleDropdown(id){const d=document.getElementById(id);document.querySelectorAll('.dropdown').forEach(x=>{if(x.id!==id)x.classList.remove('open');});d.classList.toggle('open');}
 document.addEventListener('click',e=>{if(!e.target.closest('.dropdown'))document.querySelectorAll('.dropdown').forEach(d=>d.classList.remove('open'));});
 </script>
