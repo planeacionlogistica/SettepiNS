@@ -321,7 +321,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       <div class="section-divider-line"></div>
     </div>
 
-    <div class="ineff-kpis">
+    <div class="ineff-kpis" style="grid-template-columns:repeat(3,1fr)">
       <div class="ineff-chip">
         <div class="ineff-chip-lbl">Unidades con datos</div>
         <div class="ineff-chip-val" id="ineffTotal">–</div>
@@ -336,11 +336,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         <div class="ineff-chip-lbl">Km improductivos</div>
         <div class="ineff-chip-val" id="ineffKm">–</div>
         <div class="ineff-chip-sub">GPS no cobrado en Bustrax</div>
-      </div>
-      <div class="ineff-chip green">
-        <div class="ineff-chip-lbl">Pool disponible</div>
-        <div class="ineff-chip-val" id="ineffPool">–</div>
-        <div class="ineff-chip-sub">listas para cliente nuevo</div>
       </div>
     </div>
 
@@ -766,14 +761,12 @@ function drawIneficiencia(rows){
 
   const rojos=conDatos.filter(r=>rangoInef(pctVal(r[C.pctInef]))==='rojo');
   const kmImprod=conDatos.reduce((s,r)=>s+numVal(r[C.kmInef]),0);
-  const pool=conDatos.filter(r=>{const rn=rangoInef(pctVal(r[C.pctInef]));if(rn==='verde')return false;return reasignable(r,rn).cls==='green';});
 
   document.getElementById('ineffTotal').textContent=conDatos.length;
   document.getElementById('ineffTotalSub').textContent=`de ${rows.length} filtradas`;
   document.getElementById('ineffRojo').textContent=rojos.length;
   document.getElementById('ineffRojoSub').textContent=conDatos.length?((rojos.length/conDatos.length*100).toFixed(1)+'% del pool con datos'):'–';
   document.getElementById('ineffKm').textContent=Math.round(kmImprod).toLocaleString('es-MX');
-  document.getElementById('ineffPool').textContent=pool.length;
 
   // Semáforo
   const counts={verde:0,amarillo:0,rojo:0};
