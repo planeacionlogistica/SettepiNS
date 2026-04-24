@@ -304,9 +304,9 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           <thead>
             <tr>
               <th>Cliente</th>
-              <th class="r">Contrato</th>
-              <th class="r">Asignados</th>
-              <th class="r">Diferencia</th>
+              <th class="r" style="text-align:right;width:90px">Contrato</th>
+              <th class="r" style="text-align:right;width:90px">Asignados</th>
+              <th class="r" style="text-align:right;width:70px">Dif</th>
             </tr>
           </thead>
           <tbody id="clientesTbody"></tbody>
@@ -694,9 +694,9 @@ function drawClientes(rows){
     let contratoCell=contrato!==null?`<span style="font-weight:600">${contrato}</span>`:`<span style="color:var(--muted)">–</span>`;
     let difCell='<span style="color:var(--muted)">–</span>';
     if(dif!==null){
-      if(dif===0) difCell=`<span class="pill green">= exacto</span>`;
-      else if(dif>0) difCell=`<span class="pill amber">+${dif} sobra</span>`;
-      else difCell=`<span class="pill red">${dif} falta</span>`;
+      if(dif===0) difCell=`<span style="font-weight:700;color:#3B6D11">0</span>`;
+      else if(dif>0) difCell=`<span style="font-weight:700;color:#854F0B">+${dif}</span>`;
+      else difCell=`<span style="font-weight:700;color:#A32D2D">${dif}</span>`;
     }
 
     const tr=document.createElement('tr');
