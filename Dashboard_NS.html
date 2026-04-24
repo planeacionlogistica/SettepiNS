@@ -299,6 +299,12 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
   </div>
 </div>
 
+<div id="refreshIndicator" style="display:none;position:fixed;top:14px;right:14px;background:#1f2937;color:#84cc16;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:9999;">
+  <span style="display:inline-block;width:10px;height:10px;border:2px solid #84cc16;border-top-color:transparent;border-radius:50%;animation:spinRefresh 0.8s linear infinite;margin-right:6px;vertical-align:middle;"></span>
+  Actualizando datos...
+</div>
+<style>@keyframes spinRefresh{to{transform:rotate(360deg)}}</style>
+
 <div class="mini-modal" id="miniModal">
   <div class="mini-modal-box">
     <div class="mini-spinner"></div>
@@ -1196,6 +1202,9 @@ async function loadSheet(){
         cascadeSelects();
       }
       draw();
+      // Mostrar indicador "Actualizando datos..." mientras se refresca en background
+      const refInd=document.getElementById('refreshIndicator');
+      if(refInd) refInd.style.display='block';
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -1248,6 +1257,9 @@ async function loadSheet(){
       }
       // Guardar caché actualizado (sin bloquear UI)
       setTimeout(()=>cacheSet(DB_KEY, { rows: DATA, months:[...loadedMonths], cachedAt: Date.now() }), 200);
+      // Ocultar indicador de actualización
+      const refInd=document.getElementById('refreshIndicator');
+      if(refInd) refInd.style.display='none';
       return; // listo, terminamos en modo caché
     }
 
@@ -1358,6 +1370,8 @@ async function loadSheet(){
   }catch(e){
     console.error(e);
     if(overlay) overlay.style.display='none';
+    const refInd=document.getElementById('refreshIndicator');
+    if(refInd) refInd.style.display='none';
     if(banner&&errMsg){ errMsg.textContent=e.message; banner.classList.remove('hidden'); }
   }
 }
