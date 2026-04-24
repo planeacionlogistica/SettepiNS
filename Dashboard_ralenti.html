@@ -581,8 +581,8 @@ async function loadInputs(){
     rows.forEach(r=>{
       const cli=(r['CLIENTE']||'').trim();
       if(!cli) return;
-      const jefe=(r['JEFE DE OPERACIONES']||'').trim();
-      const gerente=(r['GERENTE OPERACIONES']||'').trim();
+      const jefe=(r['Jefe']||r['JEFE DE OPERACIONES']||'').trim();
+      const gerente=(r['Gerente']||r['GERENTE OPERACIONES']||'').trim();
       const horasPermRaw=(r['Horas perm.']||r['Horas perm']||r['Horas permitidas']||'').toString().trim();
       const horasPerm=parseFloat(horasPermRaw.replace(',','.'))||0;
       INPUTS_MAP[cli]={jefe,gerente,horasPerm};
