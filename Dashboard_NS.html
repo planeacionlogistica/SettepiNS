@@ -1783,23 +1783,22 @@ function showExportToast(label, count){
 
 function exportCatalogo(){
   if(!DATA||DATA.length===0){ alert('No hay datos cargados.'); return; }
-  // Garantizar que el mapeo de coordinadores esté aplicado sobre DATA
   buildCoordMap();
-  const rows = filterRows('ini');
-  if(!rows.length){ alert('Sin datos con los filtros actuales.'); return; }
+  const rowsAll = filterRows('ini');
+  if(!rowsAll.length){ alert('Sin datos con los filtros actuales.'); return; }
 
-  // DEBUG: verificar si coords están disponibles
-  const sampleCoords = [...new Set(rows.slice(0,20).map(r=>(r[C.coord]||'').trim()))];
-  const sinAsignar   = rows.filter(r=>!(r[C.coord]||'').trim()).length;
-  if(sinAsignar === rows.length){
-    const yn = confirm(
-      `⚠️ Todos los registros (${rows.length}) tienen Coordinador vacío.\n\n` +
-      `COORD_RAW tiene ${COORD_RAW.length} entradas.\n` +
-      `Muestra de keys en row[0]: ${Object.keys(rows[0]).filter(k=>k.toLowerCase().includes('coord')).join(', ')||'ninguna'}\n\n` +
-      `¿Exportar de todos modos con "(Sin asignar)"?`
-    );
-    if(!yn) return;
-  }
+  // Filtro explícito por mes/fechas para garantizar que no se cuele ningún registro de otro periodo
+  const f = getF();
+  const rows = rowsAll.filter(r=>{
+    if(f.mes){ if(normMonth(getFecha(r))!==f.mes) return false; }
+    else {
+      const d=getFecha(r);
+      if(f.fi && d < f.fi) return false;
+      if(f.ff && d > f.ff) return false;
+    }
+    return true;
+  });
+  if(!rows.length){ alert('Sin datos para el periodo filtrado.'); return; }
 
   // Por cada carro, contar viajes por coordinador y quedarse con el mayoritario
   const bycar = {};
