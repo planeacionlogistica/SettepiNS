@@ -862,6 +862,22 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
   </div>
 </div>
 
+<div class="modal-overlay" id="coordModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box" style="max-width:820px">
+    <div class="modal-head">
+      <div><h3 id="coordModalTitle">Coordinador</h3><span id="coordModalSub" style="font-size:.78rem;opacity:.7;margin-left:.6rem"></span></div>
+      <div style="display:flex;align-items:center;gap:.6rem">
+        <button onclick="exportCoordExcel()" id="coordExportBtn"
+          style="background:#7ed321;color:#1a2236;border:none;border-radius:6px;
+                 padding:.28rem .8rem;font-size:.72rem;cursor:pointer;
+                 font-family:'Inter',sans-serif;font-weight:700;white-space:nowrap;">📥 Excel</button>
+        <button class="modal-close" onclick="document.getElementById('coordModal').classList.remove('open')">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="coordModalBody" style="padding:1.2rem 1.4rem;overflow-y:auto"></div>
+  </div>
+</div>
+
 <script>
 const SHEET_ID    = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const SHEET_NAME  = 'NS';
@@ -1605,7 +1621,14 @@ function renderTable(tbl){
     const pctFmt=row.pct.toFixed(1)+'%';
     const bg=i<3?badges[i]:'#e5e7eb';
     const fg=i<3?'#fff':'#6b7a99';
-    const clickAttr=isCliTable?`onclick="openDrill('${row.k.replace(/'/g,"\\'")}','${tbl}')" class="row-clickable"`:'';
+    const isCoordTable=(tbl==='coord'||tbl==='lcoord');
+    const coordK=row.k.replace(/'/g,"\\'");
+    const cliK=row.k.replace(/'/g,"\\'");
+    const clickAttr=isCliTable
+      ?`onclick="openDrill('${cliK}','${tbl}')" class="row-clickable"`
+      :isCoordTable
+      ?`onclick="openCoordModal('${coordK}')" class="row-clickable"`
+      :'';
     // Carros: para cliente usa CARROS_MAP; para gerente/jefe/coord usa conteo de unidades únicas
     const carrosVal=isCliTable
       ? (CARROS_MAP[row.k]!=null?N(CARROS_MAP[row.k]):'–')
@@ -2624,6 +2647,141 @@ function closeAuditModal(){
 }
 
 // ── Modal resumen operador (mes actual) ───────────────────────────
+
+// ── Modal Coordinador ─────────────────────────────────────────────
+let _coordModalData = { coord:'', cars:[] };
+
+function openCoordModal(coord){
+  if(!coord||coord==='(Sin asignar)') return;
+  buildCoordMap();
+  const all = DATA.filter(r=>(r[C.coord]||'').trim()===coord);
+  if(!all.length){ alert('Sin datos para este coordinador.'); return; }
+
+  const totT  = all.reduce((s,r)=>s+countViajes(r[C.viajes]),0);
+  const iniT  = all.filter(r=>countLate(r[C.retardo])===1).length;
+  const lleT  = all.filter(r=>countLate(r[C.llegada])===1).length;
+  const iniEnT= totT-iniT, lleEnT=totT-lleT;
+  const pctIni= totT>0?iniEnT/totT*100:0;
+  const pctLle= totT>0?lleEnT/totT*100:0;
+  const rowsIT= all.filter(r=>countLate(r[C.retardo])===1);
+  const rowsLT= all.filter(r=>countLate(r[C.llegada])===1);
+  const avgMI = rowsIT.length?rowsIT.reduce((s,r)=>s+(parseMin(r[C.minIni])||0),0)/rowsIT.length:null;
+  const avgML = rowsLT.length?rowsLT.reduce((s,r)=>s+(parseMin(r[C.minLle])||0),0)/rowsLT.length:null;
+  const fmtA  = v=>v===null?'–':(v>0?'+':'')+v.toFixed(1)+' min';
+  const cI    = pctIni>=90?'#16a34a':'#e53e3e';
+  const cL    = pctLle>=98?'#16a34a':'#e53e3e';
+
+  // ── Carros asignados: uno por carro, este coord es mayoría ──
+  const allData = DATA; // todos para calcular mayoría global
+  const bycar = {};
+  allData.forEach(r=>{
+    const car=(r[C.car]||'').trim(); if(!car) return;
+    const co =(r[C.coord]||'').trim()||'(Sin asignar)';
+    if(!bycar[car]) bycar[car]={};
+    bycar[car][co]=(bycar[car][co]||0)+countViajes(r[C.viajes]);
+  });
+  // Filtrar carros donde este coord es el mayoritario
+  const misCar = Object.entries(bycar)
+    .filter(([car,coMap])=>{
+      const top=Object.entries(coMap).sort((a,b)=>b[1]-a[1])[0]?.[0];
+      return top===coord;
+    })
+    .map(([car])=>car);
+
+  // Para cada carro mío: cliente, ruta, operador, worker_id más frecuentes
+  function topKey(obj){ return Object.entries(obj).sort((a,b)=>b[1]-a[1])[0]?.[0]||''; }
+  const carRows = misCar.map(car=>{
+    const rows=all.filter(r=>(r[C.car]||'').trim()===car);
+    const cl={},ru={},op={},wi={};
+    rows.forEach(r=>{
+      const v=countViajes(r[C.viajes]);
+      const c=(r[C.cliente]||'').trim(); if(c) cl[c]=(cl[c]||0)+v;
+      const u=(r[C.ruta]||'').trim();   if(u) ru[u]=(ru[u]||0)+v;
+      const o=(r[C.driver]||'').trim(); if(o) op[o]=(op[o]||0)+v;
+      const w=(r[C.workerId]||'').trim();if(w) wi[w]=(wi[w]||0)+v;
+    });
+    return { car, cliente:topKey(cl), ruta:topKey(ru), operador:topKey(op), workerId:topKey(wi), viajes:rows.reduce((s,r)=>s+countViajes(r[C.viajes]),0) };
+  }).sort((a,b)=>a.car.localeCompare(b.car));
+
+  _coordModalData = { coord, cars: carRows };
+
+  const card=(lbl,enT,trd,avg,pct,col)=>`
+    <div style="background:#f7f9ff;border-radius:10px;padding:.85rem 1rem;border-top:3px solid ${col}">
+      <div style="font-size:.62rem;font-weight:700;color:#6b7a99;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">${lbl}</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:.22rem">
+        <span style="font-size:.76rem;color:#374151">En tiempo</span><span style="font-weight:700;color:#16a34a">${N(enT)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:.22rem">
+        <span style="font-size:.76rem;color:#374151">Tarde</span><span style="font-weight:700;color:#e53e3e">${N(trd)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:.22rem">
+        <span style="font-size:.76rem;color:#374151">Prom. retraso</span>
+        <span style="font-weight:600;color:${avg!==null&&avg>0?'#c53030':'#16a34a'}">${fmtA(avg)}</span>
+      </div>
+      <div style="margin-top:.5rem;padding-top:.5rem;border-top:1px solid #dde3f0;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:.76rem;font-weight:600">% Cumpl.</span>
+        <span style="font-size:1.1rem;font-weight:800;color:${col}">${pct.toFixed(1)}%</span>
+      </div>
+    </div>`;
+
+  const carTable = carRows.length ? `
+    <div style="margin-top:.9rem">
+      <div style="font-size:.7rem;font-weight:700;color:#6b7a99;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">
+        Carros asignados · ${carRows.length} unidades
+      </div>
+      <div style="overflow-x:auto;border-radius:8px;border:1px solid #dde3f0">
+        <table style="width:100%;border-collapse:collapse;font-size:.74rem">
+          <thead>
+            <tr style="background:#222d42">
+              <th style="padding:7px 10px;text-align:left;color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap">ID Carro</th>
+              <th style="padding:7px 10px;text-align:left;color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;text-transform:uppercase;white-space:nowrap">Cliente</th>
+              <th style="padding:7px 10px;text-align:left;color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;text-transform:uppercase;white-space:nowrap">Ruta</th>
+              <th style="padding:7px 10px;text-align:left;color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;text-transform:uppercase;white-space:nowrap">Operador</th>
+              <th style="padding:7px 10px;text-align:right;color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;text-transform:uppercase;white-space:nowrap">Nómina</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${carRows.map((r,i)=>`
+              <tr style="background:${i%2===0?'#fff':'#f7f9ff'};border-bottom:1px solid #eee">
+                <td style="padding:6px 10px;font-weight:700;color:#1a2236">${r.car}</td>
+                <td style="padding:6px 10px;color:#374151;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.cliente}">${r.cliente||'–'}</td>
+                <td style="padding:6px 10px;color:#374151;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.ruta}">${r.ruta||'–'}</td>
+                <td style="padding:6px 10px;color:#374151;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.operador}">${r.operador||'–'}</td>
+                <td style="padding:6px 10px;text-align:right;font-family:monospace;color:#6b7a99">${r.workerId||'–'}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>` : `<div style="color:#9ca3af;font-size:.8rem;margin-top:.9rem;text-align:center">Sin carros asignados como mayoría</div>`;
+
+  document.getElementById('coordModalTitle').textContent = coord;
+  document.getElementById('coordModalSub').textContent   = N(totT)+' servicios · '+carRows.length+' carros';
+  document.getElementById('coordModalBody').innerHTML    = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:.8rem">
+      ${card('Inicios',iniEnT,iniT,avgMI,pctIni,cI)}
+      ${card('Llegadas',lleEnT,lleT,avgML,pctLle,cL)}
+    </div>
+    <div style="background:#f7f9ff;border-radius:10px;padding:.7rem 1.1rem;display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
+      <span style="font-size:.8rem;font-weight:600;color:#374151">Total servicios</span>
+      <span style="font-size:1.3rem;font-weight:800;color:#1a2236">${N(totT)}</span>
+    </div>
+    ${carTable}`;
+  document.getElementById('coordModal').classList.add('open');
+}
+
+function exportCoordExcel(){
+  const { coord, cars } = _coordModalData;
+  if(!cars.length){ alert('Sin carros para exportar.'); return; }
+  const wb   = XLSX.utils.book_new();
+  const hdr  = ['ID Carro','Coordinador','Cliente','Ruta / Descripción','Operador','Nómina (worker_id)'];
+  const data = [hdr, ...cars.map(r=>[r.car, coord, r.cliente, r.ruta, r.operador, r.workerId])];
+  const ws   = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:12},{wch:26},{wch:30},{wch:42},{wch:26},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Carros');
+  const fecha = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `Carros_${coord.replace(/\s+/g,'_')}_${fecha}.xlsx`);
+}
+
 function openOperadorModal(driver){
   if(!driver||driver==='–') return;
   const mesActual=getCurrentMonth();
