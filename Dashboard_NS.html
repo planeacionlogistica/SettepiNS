@@ -435,6 +435,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
       </div>
 
       <button class="btn-reset" onclick="resetFilters()">↺ Limpiar filtros</button>
+      <button class="btn-reset" onclick="exportCatalogo()" style="border-color:#7ed321;color:#16a34a">📥 Catálogo Unidades</button>
     </div><!-- /sidebar-filters -->
   </aside>
 
@@ -874,7 +875,7 @@ const C = {
   retardo:'Inicios_Tarde', viajes:'Cantidad de viajes', llegada:'Llegadas_Tarde',
   minIni:'Minutos de Retraso', minLle:'Minutos llegadas', driver:'operador', car:'car', ruta:'des',
   startTime:'start_time', startEta:'start_eta', endTime:'end_time', endEta:'end_eta',
-  id:'id',
+  id:'id', workerId:'worker_id',
 };
 
 let DATA         = [];
@@ -1648,6 +1649,62 @@ function buildTable(rows,field,tbl,isIniPanel){
     pct:d.t>0?d.enT/d.t*100:0,
   }));
   renderTable(tbl);
+}
+
+
+// ── Exportar Catálogo de Unidades (un registro por carro, coordinador mayoritario) ──
+function exportCatalogo(){
+  if(!DATA||DATA.length===0){ alert('No hay datos cargados.'); return; }
+  const rows = filterRows('ini');
+  if(!rows.length){ alert('Sin datos con los filtros actuales.'); return; }
+
+  // Por cada carro, contar viajes por coordinador y quedarse con el mayoritario
+  const bycar = {};
+  rows.forEach(r=>{
+    const carro = (r[C.car]||'').trim(); if(!carro) return;
+    if(!bycar[carro]) bycar[carro]={coords:{}};
+    const coord = (r[C.coord]||'').trim()||'(Sin asignar)';
+    if(!bycar[carro].coords[coord])
+      bycar[carro].coords[coord]={viajes:0,clientes:{},rutas:{},jefes:{},operadores:{},workerIds:{}};
+    const v = countViajes(r[C.viajes]);
+    const d = bycar[carro].coords[coord];
+    d.viajes += v;
+    const cli=(r[C.cliente]||'').trim(); if(cli) d.clientes[cli]=(d.clientes[cli]||0)+v;
+    const ruta=(r[C.ruta]   ||'').trim(); if(ruta) d.rutas[ruta]=(d.rutas[ruta]||0)+v;
+    const jefe=(r[C.jefe]   ||'').trim(); if(jefe) d.jefes[jefe]=(d.jefes[jefe]||0)+v;
+    const ope =(r[C.driver] ||'').trim(); if(ope)  d.operadores[ope]=(d.operadores[ope]||0)+v;
+    const wid =(r[C.workerId]||'').trim(); if(wid) d.workerIds[wid]=(d.workerIds[wid]||0)+v;
+  });
+
+  function top(obj){ return Object.entries(obj).sort((a,b)=>b[1]-a[1])[0]?.[0]||''; }
+
+  const catalog = Object.entries(bycar).map(([carro, data])=>{
+    // Coordinador con más viajes en ese carro
+    const coord = top(Object.fromEntries(
+      Object.entries(data.coords).map(([c,d])=>[c,d.viajes])
+    ));
+    const d = data.coords[coord]||{clientes:{},rutas:{},jefes:{},operadores:{},workerIds:{}};
+    return {
+      carro,
+      coord,
+      cliente:   top(d.clientes),
+      ruta:      top(d.rutas),
+      jefe:      top(d.jefes),
+      operador:  top(d.operadores),
+      workerId:  top(d.workerIds),
+      viajes:    data.coords[coord]?.viajes||0,
+    };
+  }).sort((a,b)=>a.coord.localeCompare(b.coord)||a.carro.localeCompare(b.carro));
+
+  const wb = XLSX.utils.book_new();
+  const header = ['ID Carro','Coordinador','Cliente','Ruta / Descripción','Jefe','Operador','Nómina (worker_id)'];
+  const wsData = [header, ...catalog.map(r=>[r.carro,r.coord,r.cliente,r.ruta,r.jefe,r.operador,r.workerId])];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = [{wch:14},{wch:26},{wch:32},{wch:44},{wch:24},{wch:24},{wch:18}];
+  XLSX.utils.book_append_sheet(wb, ws, 'Catálogo Unidades');
+
+  const fecha = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `Catalogo_Unidades_${fecha}.xlsx`);
 }
 
 // ── Chart ─────────────────────────────────────────────────────────
