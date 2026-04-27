@@ -1655,8 +1655,23 @@ function buildTable(rows,field,tbl,isIniPanel){
 // ── Exportar Catálogo de Unidades (un registro por carro, coordinador mayoritario) ──
 function exportCatalogo(){
   if(!DATA||DATA.length===0){ alert('No hay datos cargados.'); return; }
+  // Garantizar que el mapeo de coordinadores esté aplicado sobre DATA
+  buildCoordMap();
   const rows = filterRows('ini');
   if(!rows.length){ alert('Sin datos con los filtros actuales.'); return; }
+
+  // DEBUG: verificar si coords están disponibles
+  const sampleCoords = [...new Set(rows.slice(0,20).map(r=>(r[C.coord]||'').trim()))];
+  const sinAsignar   = rows.filter(r=>!(r[C.coord]||'').trim()).length;
+  if(sinAsignar === rows.length){
+    const yn = confirm(
+      `⚠️ Todos los registros (${rows.length}) tienen Coordinador vacío.\n\n` +
+      `COORD_RAW tiene ${COORD_RAW.length} entradas.\n` +
+      `Muestra de keys en row[0]: ${Object.keys(rows[0]).filter(k=>k.toLowerCase().includes('coord')).join(', ')||'ninguna'}\n\n` +
+      `¿Exportar de todos modos con "(Sin asignar)"?`
+    );
+    if(!yn) return;
+  }
 
   // Por cada carro, contar viajes por coordinador y quedarse con el mayoritario
   const bycar = {};
