@@ -1738,6 +1738,49 @@ function buildTable(rows,field,tbl,isIniPanel){
 
 
 // ── Exportar Catálogo de Unidades (un registro por carro, coordinador mayoritario) ──
+// ── Descripción del periodo activo para exports ──────────────────
+function getActivePeriod(){
+  const f = getF();
+  const MESES=['Enero','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  let label='', fileTag='';
+  if(f.mes){
+    const [y,m]=f.mes.split('-');
+    label = (MESES[parseInt(m,10)-1]||m)+' '+y;
+    fileTag = f.mes;
+  } else if(f.fi||f.ff){
+    label  = (f.fi||'inicio')+' al '+(f.ff||'hoy');
+    fileTag= (f.fi||'')+'_'+(f.ff||'');
+  } else {
+    const meses=[...loadedMonths].sort();
+    if(meses.length){
+      const [y0,m0]=meses[0].split('-');
+      const [y1,m1]=meses[meses.length-1].split('-');
+      label  = (MESES[parseInt(m0,10)-1]||m0)+' '+y0+' – '+(MESES[parseInt(m1,10)-1]||m1)+' '+y1;
+      fileTag= meses[0]+'_'+meses[meses.length-1];
+    } else {
+      label='Sin filtro de fecha'; fileTag='all';
+    }
+  }
+  return { label, fileTag };
+}
+
+function showExportToast(label, count){
+  let t=document.getElementById('exportToast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='exportToast';
+    t.style.cssText='position:fixed;bottom:24px;right:24px;background:#1a2236;color:#fff;'+
+      'padding:12px 18px;border-radius:10px;font-size:.8rem;font-weight:600;z-index:9999;'+
+      'box-shadow:0 4px 16px rgba(0,0,0,.3);border-left:4px solid #7ed321;opacity:0;transition:opacity .3s';
+    document.body.appendChild(t);
+  }
+  t.innerHTML = '✅ Exportado · <span style="color:#7ed321">'+label+'</span> · '+count+' carros';
+  t.style.opacity='1';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{ t.style.opacity='0'; }, 3500);
+}
+
+
 function exportCatalogo(){
   if(!DATA||DATA.length===0){ alert('No hay datos cargados.'); return; }
   // Garantizar que el mapeo de coordinadores esté aplicado sobre DATA
@@ -1814,8 +1857,9 @@ function exportCatalogo(){
   ws['!cols'] = [{wch:26},{wch:38},{wch:24},{wch:26},{wch:10},{wch:14},{wch:34}];
   XLSX.utils.book_append_sheet(wb, ws, 'Catálogo Unidades');
 
-  const fecha = new Date().toISOString().slice(0,10);
-  XLSX.writeFile(wb, `Catalogo_Unidades_${fecha}.xlsx`);
+  const {label:pLabel, fileTag:pTag} = getActivePeriod();
+  XLSX.writeFile(wb, `Catalogo_Unidades_${pTag}.xlsx`);
+  showExportToast(pLabel, catalogFinal.length);
 }
 
 // ── Chart ─────────────────────────────────────────────────────────
@@ -2862,8 +2906,9 @@ function exportCoordExcel(){
   const ws   = XLSX.utils.aoa_to_sheet(data);
   ws['!cols'] = [{wch:26},{wch:38},{wch:24},{wch:26},{wch:10},{wch:14},{wch:34}];
   XLSX.utils.book_append_sheet(wb, ws, 'Carros');
-  const fecha = new Date().toISOString().slice(0,10);
-  XLSX.writeFile(wb, `Carros_${coord.replace(/\s+/g,'_')}_${fecha}.xlsx`);
+  const {label:pLabel2, fileTag:pTag2} = getActivePeriod();
+  XLSX.writeFile(wb, `Carros_${coord.replace(/\s+/g,'_')}_${pTag2}.xlsx`);
+  showExportToast(pLabel2, carsFiltered.length);
 }
 
 function openOperadorModal(driver){
