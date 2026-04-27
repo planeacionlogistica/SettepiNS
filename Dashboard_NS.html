@@ -436,6 +436,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 
       <button class="btn-reset" onclick="resetFilters()">↺ Limpiar filtros</button>
       <button class="btn-reset" onclick="exportCatalogo()" style="border-color:#7ed321;color:#16a34a">📥 Catálogo Unidades</button>
+      <button class="btn-reset" onclick="clearCacheAndReload()" style="border-color:#e53e3e;color:#e53e3e" title="Borra la caché local y recarga datos frescos del sheet">🔄 Recargar datos</button>
     </div><!-- /sidebar-filters -->
   </aside>
 
@@ -1598,6 +1599,18 @@ function getF(){
     fi:document.getElementById('fFi').value,
     ff:document.getElementById('fFf').value,
   };
+}
+
+async function clearCacheAndReload(){
+  try{
+    await new Promise((res,rej)=>{
+      const req=indexedDB.deleteDatabase('DashboardNS');
+      req.onsuccess=()=>res();
+      req.onerror=()=>rej();
+      req.onblocked=()=>res();
+    });
+  }catch(e){}
+  window.location.reload(true);
 }
 
 function resetFilters(){
