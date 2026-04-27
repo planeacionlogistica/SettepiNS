@@ -1243,7 +1243,7 @@ async function loadSheet(){
 
   // ── IndexedDB Cache helpers (para cargas casi instantáneas en visitas posteriores)
   const DB_NAME='DashboardNS', STORE='ns_cache', DB_KEY='full_data_v1';
-  const CACHE_MAX_AGE_MS = 7*24*60*60*1000; // 7 días → refresh total
+  const CACHE_MAX_AGE_MS = 24*60*60*1000; // 1 día → refresh diario automático
   function openDB(){
     return new Promise(resolve=>{
       if(!self.indexedDB){ resolve(null); return; }
