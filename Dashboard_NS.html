@@ -1803,14 +1803,15 @@ function exportCatalogo(){
     : catalog;
 
   const wb = XLSX.utils.book_new();
-  const header = ['ID Carro','Planta','Marca','Modelo','Año','Tipo','Estatus','Coordinador','Cliente','Ruta / Descripción','Jefe','Operador','Nómina (worker_id)'];
+  const header = ['PLANTA','RUTA','JEFE','COORDINADOR','ID VEH','NOMINA OP','NOMBRE OP'];
   const wsData = [header, ...catalogFinal.map(r=>{
     const f=FLOTA_MAP[r.carro]||{};
-    return [r.carro,f.planta||'',f.marca||'',f.modelo||'',f.año||'',f.tipo||'',f.estatus||'',
-            r.coord,r.cliente,r.ruta,r.jefe,r.operador,r.workerId];
+    return [r.cliente, r.ruta, r.jefe, r.coord, r.carro, r.workerId, r.operador];
   })];
+  // Ordenar por PLANTA → RUTA
+  wsData.slice(1).sort((a,b)=>a[0].localeCompare(b[0])||a[1].localeCompare(b[1]));
   const ws = XLSX.utils.aoa_to_sheet(wsData);
-  ws['!cols'] = [{wch:10},{wch:22},{wch:14},{wch:10},{wch:6},{wch:12},{wch:12},{wch:26},{wch:30},{wch:40},{wch:22},{wch:24},{wch:16}];
+  ws['!cols'] = [{wch:26},{wch:38},{wch:24},{wch:26},{wch:10},{wch:14},{wch:34}];
   XLSX.utils.book_append_sheet(wb, ws, 'Catálogo Unidades');
 
   const fecha = new Date().toISOString().slice(0,10);
@@ -2851,15 +2852,15 @@ function exportCoordExcel(){
   const { coord, cars } = _coordModalData;
   if(!cars.length){ alert('Sin carros para exportar.'); return; }
   const wb   = XLSX.utils.book_new();
-  const hdr  = ['ID Carro','Planta','Marca','Modelo','Año','Tipo','Estatus','Coordinador','Cliente','Ruta / Descripción','Operador','Nómina (worker_id)'];
+  const hdr  = ['PLANTA','RUTA','JEFE','COORDINADOR','ID VEH','NOMINA OP','NOMBRE OP'];
   const carsFiltered = Object.keys(FLOTA_MAP).length ? cars.filter(r=>FLOTA_MAP[r.car]) : cars;
-  const data = [hdr, ...carsFiltered.map(r=>{
+  const dataRows = carsFiltered.map(r=>{
     const f=FLOTA_MAP[r.car]||{};
-    return [r.car,f.planta||'',f.marca||'',f.modelo||'',f.año||'',f.tipo||'',f.estatus||'',
-            coord,r.cliente,r.ruta,r.operador,r.workerId];
-  })];
+    return [r.cliente, r.ruta, r.jefe, coord, r.car, r.workerId, r.operador];
+  }).sort((a,b)=>a[0].localeCompare(b[0])||a[1].localeCompare(b[1]));
+  const data = [hdr, ...dataRows];
   const ws   = XLSX.utils.aoa_to_sheet(data);
-  ws['!cols'] = [{wch:10},{wch:22},{wch:14},{wch:10},{wch:6},{wch:12},{wch:12},{wch:26},{wch:28},{wch:38},{wch:24},{wch:16}];
+  ws['!cols'] = [{wch:26},{wch:38},{wch:24},{wch:26},{wch:10},{wch:14},{wch:34}];
   XLSX.utils.book_append_sheet(wb, ws, 'Carros');
   const fecha = new Date().toISOString().slice(0,10);
   XLSX.writeFile(wb, `Carros_${coord.replace(/\s+/g,'_')}_${fecha}.xlsx`);
