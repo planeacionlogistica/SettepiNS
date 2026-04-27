@@ -899,6 +899,7 @@ let loadedMonths = new Set();
 let myChartIni   = null;
 let myChartLle   = null;
 let CARROS_MAP   = {};   // { 'CON-CONMET': 49, ... }
+let FLOTA_MAP    = {};   // { '4465': {planta,marca,modelo,año,tipo,estatus}, ... }
 let COORD_RAW    = [];   // [ {cc:'CON-CONMET-F1', co:'EFREN PEREZ CRUZ'}, ... ]
 
 // ── Searchable selects ────────────────────────────────────────────
@@ -1099,6 +1100,45 @@ function buildCoordMap(){
     if(coord) r[C.coord]=coord;
   });
 
+  // ── Segundo pase: asignar coordinador a filas que quedaron vacías ──
+  // Para cada carro sin coordinador, buscar cuál coord usó ese carro más veces
+  // entre las filas que SÍ tienen coordinador asignado.
+  const carCoordCount = {};
+  DATA.forEach(r=>{
+    const co  = (r[C.coord]||'').trim();
+    const car = (r[C.car]  ||'').trim();
+    if(!co||!car) return;
+    if(!carCoordCount[car]) carCoordCount[car]={};
+    carCoordCount[car][co]=(carCoordCount[car][co]||0)+countViajes(r[C.viajes]);
+  });
+
+  // Fallback por cliente: si el carro no aparece con ningún coord, usar el coord
+  // más frecuente entre todos los carros de ese mismo cliente
+  const cliCoordCount = {};
+  DATA.forEach(r=>{
+    const co  = (r[C.coord]  ||'').trim();
+    const cli = (r[C.cliente]||'').trim();
+    if(!co||!cli) return;
+    if(!cliCoordCount[cli]) cliCoordCount[cli]={};
+    cliCoordCount[cli][co]=(cliCoordCount[cli][co]||0)+countViajes(r[C.viajes]);
+  });
+
+  function topEntry(obj){
+    if(!obj) return '';
+    const e=Object.entries(obj).sort((a,b)=>b[1]-a[1])[0];
+    return e?e[0]:'';
+  }
+
+  DATA.forEach(r=>{
+    if((r[C.coord]||'').trim()) return; // ya tiene coordinador
+    const car=(r[C.car]||'').trim();
+    const cli=(r[C.cliente]||'').trim();
+    const bycar = car?topEntry(carCoordCount[car]):'';
+    const bycli = cli?topEntry(cliCoordCount[cli]):'';
+    const resolved = bycar||bycli;
+    if(resolved) r[C.coord]=resolved;
+  });
+
   // Refrescar opciones del filtro Coordinador con los nuevos valores
   cascadeSelects();
 }
@@ -1163,9 +1203,31 @@ function findIdRuta(rutaKey, plantaKey){
   return null;
 }
 
+// ── Load Flota sheet (carros activos en la empresa) ──────────────
+async function loadFlota(){
+  try{
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Flota`;
+    const res=await fetch(url); if(!res.ok) return;
+    const rows=parseCSV(await res.text());
+    rows.forEach(r=>{
+      const id=(r['IDS']||r['ID']||r['id']||'').toString().trim();
+      if(!id) return;
+      FLOTA_MAP[id]={
+        planta: (r['PLANTA'] ||'').trim(),
+        marca:  (r['Marca']  ||'').trim(),
+        modelo: (r['Modelo'] ||'').trim(),
+        año:    (r['Año']    ||r['Ano']||'').toString().trim(),
+        tipo:   (r['Tipo']   ||'').trim(),
+        estatus:(r['Estatus']||'').trim(),
+      };
+    });
+    console.log('Flota cargada:',Object.keys(FLOTA_MAP).length,'unidades');
+  }catch(e){ console.warn('Flota error:',e); }
+}
+
 // ── Main loader ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async ()=>{
-  await Promise.all([loadSheet(), loadInputs(), loadMAE()]);
+  await Promise.all([loadSheet(), loadInputs(), loadMAE(), loadFlota()]);
   // Ambas cargas terminaron → asignar coordinadores y redibujar
   buildCoordMap();
   fillAllSelects();
@@ -1734,11 +1796,21 @@ function exportCatalogo(){
     };
   }).sort((a,b)=>a.coord.localeCompare(b.coord)||a.carro.localeCompare(b.carro));
 
+  // Filtrar solo carros que existen en Flota (activos en la empresa)
+  const flotaKeys = Object.keys(FLOTA_MAP);
+  const catalogFinal = flotaKeys.length
+    ? catalog.filter(r=>FLOTA_MAP[r.carro])
+    : catalog;
+
   const wb = XLSX.utils.book_new();
-  const header = ['ID Carro','Coordinador','Cliente','Ruta / Descripción','Jefe','Operador','Nómina (worker_id)'];
-  const wsData = [header, ...catalog.map(r=>[r.carro,r.coord,r.cliente,r.ruta,r.jefe,r.operador,r.workerId])];
+  const header = ['ID Carro','Planta','Marca','Modelo','Año','Tipo','Estatus','Coordinador','Cliente','Ruta / Descripción','Jefe','Operador','Nómina (worker_id)'];
+  const wsData = [header, ...catalogFinal.map(r=>{
+    const f=FLOTA_MAP[r.carro]||{};
+    return [r.carro,f.planta||'',f.marca||'',f.modelo||'',f.año||'',f.tipo||'',f.estatus||'',
+            r.coord,r.cliente,r.ruta,r.jefe,r.operador,r.workerId];
+  })];
   const ws = XLSX.utils.aoa_to_sheet(wsData);
-  ws['!cols'] = [{wch:14},{wch:26},{wch:32},{wch:44},{wch:24},{wch:24},{wch:18}];
+  ws['!cols'] = [{wch:10},{wch:22},{wch:14},{wch:10},{wch:6},{wch:12},{wch:12},{wch:26},{wch:30},{wch:40},{wch:22},{wch:24},{wch:16}];
   XLSX.utils.book_append_sheet(wb, ws, 'Catálogo Unidades');
 
   const fecha = new Date().toISOString().slice(0,10);
@@ -2703,7 +2775,9 @@ function openCoordModal(coord){
     return { car, cliente:topKey(cl), ruta:topKey(ru), operador:topKey(op), workerId:topKey(wi), viajes:rows.reduce((s,r)=>s+countViajes(r[C.viajes]),0) };
   }).sort((a,b)=>a.car.localeCompare(b.car));
 
-  _coordModalData = { coord, cars: carRows };
+  // Filtrar solo carros activos en Flota
+  const carRowsFinal = Object.keys(FLOTA_MAP).length ? carRows.filter(r=>FLOTA_MAP[r.car]) : carRows;
+  _coordModalData = { coord, cars: carRowsFinal };
 
   const card=(lbl,enT,trd,avg,pct,col)=>`
     <div style="background:#f7f9ff;border-radius:10px;padding:.85rem 1rem;border-top:3px solid ${col}">
@@ -2724,7 +2798,7 @@ function openCoordModal(coord){
       </div>
     </div>`;
 
-  const carTable = carRows.length ? `
+  const carTable = carRowsFinal.length ? `
     <div style="margin-top:.9rem">
       <div style="font-size:.7rem;font-weight:700;color:#6b7a99;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">
         Carros asignados · ${carRows.length} unidades
@@ -2734,6 +2808,8 @@ function openCoordModal(coord){
           <thead>
             <tr style="background:#222d42">
               <th style="padding:7px 10px;text-align:left;color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap">ID Carro</th>
+              <th style="padding:7px 10px;text-align:left;color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;text-transform:uppercase;white-space:nowrap">Planta</th>
+              <th style="padding:7px 10px;text-align:left;color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;text-transform:uppercase;white-space:nowrap">Estatus</th>
               <th style="padding:7px 10px;text-align:left;color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;text-transform:uppercase;white-space:nowrap">Cliente</th>
               <th style="padding:7px 10px;text-align:left;color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;text-transform:uppercase;white-space:nowrap">Ruta</th>
               <th style="padding:7px 10px;text-align:left;color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;text-transform:uppercase;white-space:nowrap">Operador</th>
@@ -2741,10 +2817,12 @@ function openCoordModal(coord){
             </tr>
           </thead>
           <tbody>
-            ${carRows.map((r,i)=>`
+            ${carRowsFinal.map((r,i)=>`
               <tr style="background:${i%2===0?'#fff':'#f7f9ff'};border-bottom:1px solid #eee">
                 <td style="padding:6px 10px;font-weight:700;color:#1a2236">${r.car}</td>
-                <td style="padding:6px 10px;color:#374151;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.cliente}">${r.cliente||'–'}</td>
+                <td style="padding:6px 10px;color:#374151;font-size:.7rem;white-space:nowrap">${(FLOTA_MAP[r.car]||{}).planta||'–'}</td>
+                <td style="padding:6px 10px;white-space:nowrap"><span style="font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:10px;background:${(FLOTA_MAP[r.car]||{}).estatus==='Operando'?'#dcfce7':'#fee2e2'};color:${(FLOTA_MAP[r.car]||{}).estatus==='Operando'?'#16a34a':'#e53e3e'}">${(FLOTA_MAP[r.car]||{}).estatus||'–'}</span></td>
+                <td style="padding:6px 10px;color:#374151;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.cliente}">${r.cliente||'–'}</td>
                 <td style="padding:6px 10px;color:#374151;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.ruta}">${r.ruta||'–'}</td>
                 <td style="padding:6px 10px;color:#374151;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.operador}">${r.operador||'–'}</td>
                 <td style="padding:6px 10px;text-align:right;font-family:monospace;color:#6b7a99">${r.workerId||'–'}</td>
@@ -2773,10 +2851,15 @@ function exportCoordExcel(){
   const { coord, cars } = _coordModalData;
   if(!cars.length){ alert('Sin carros para exportar.'); return; }
   const wb   = XLSX.utils.book_new();
-  const hdr  = ['ID Carro','Coordinador','Cliente','Ruta / Descripción','Operador','Nómina (worker_id)'];
-  const data = [hdr, ...cars.map(r=>[r.car, coord, r.cliente, r.ruta, r.operador, r.workerId])];
+  const hdr  = ['ID Carro','Planta','Marca','Modelo','Año','Tipo','Estatus','Coordinador','Cliente','Ruta / Descripción','Operador','Nómina (worker_id)'];
+  const carsFiltered = Object.keys(FLOTA_MAP).length ? cars.filter(r=>FLOTA_MAP[r.car]) : cars;
+  const data = [hdr, ...carsFiltered.map(r=>{
+    const f=FLOTA_MAP[r.car]||{};
+    return [r.car,f.planta||'',f.marca||'',f.modelo||'',f.año||'',f.tipo||'',f.estatus||'',
+            coord,r.cliente,r.ruta,r.operador,r.workerId];
+  })];
   const ws   = XLSX.utils.aoa_to_sheet(data);
-  ws['!cols'] = [{wch:12},{wch:26},{wch:30},{wch:42},{wch:26},{wch:16}];
+  ws['!cols'] = [{wch:10},{wch:22},{wch:14},{wch:10},{wch:6},{wch:12},{wch:12},{wch:26},{wch:28},{wch:38},{wch:24},{wch:16}];
   XLSX.utils.book_append_sheet(wb, ws, 'Carros');
   const fecha = new Date().toISOString().slice(0,10);
   XLSX.writeFile(wb, `Carros_${coord.replace(/\s+/g,'_')}_${fecha}.xlsx`);
