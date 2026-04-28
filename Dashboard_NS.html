@@ -879,11 +879,25 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 </div>
 
 <script>
-const SHEET_ID    = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
-const SHEET_NAME  = 'NS';
-const INPUTS_NAME = 'Inputs';
-const FIRST_CHUNK = 15000;
-const CHUNK       = 50000;
+// ── OneDrive config ───────────────────────────────────────────────
+// Pega aquí el link de compartir de OneDrive (cualquiera con el vínculo)
+const ONEDRIVE_SHARE_URL  = 'https://1drv.ms/x/c/ddb0933aea3a2643/IQBEW7CvYxbdTKetCs_RmJlyAQS4_pS_LI-0XCkeVDR9hQw?e=84OYTq';
+const NS_SHEET_NAME       = 'NS';       // hoja con datos principales
+const INPUTS_SHEET_NAME   = 'Inputs';   // hoja con carros / coordinadores
+const MAE_SHEET_NAME      = 'MAE';      // hoja de rutas / paradas
+const FLOTA_SHEET_NAME    = 'Flota';    // hoja de flota
+
+function getOneDriveDownloadUrl(shareUrl){
+  try{
+    const encoded = btoa(shareUrl).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+    return `https://api.onedrive.com/v1.0/shares/u!${encoded}/root/content`;
+  }catch(e){ return shareUrl; }
+}
+function sheetToObjects(wb, sheetName){
+  const ws = wb.Sheets[sheetName];
+  if(!ws) return [];
+  return XLSX.utils.sheet_to_json(ws, { defval: '', raw: false });
+}
 
 const C = {
   fecha:'start_date', semana:'Semana', udn:'business_unit', cliente:'group',
@@ -1003,17 +1017,7 @@ function parseCSV(text){
   }
   return rows;
 }
-function csvUrl(offset, limit){
-  const tq=encodeURIComponent(`SELECT * LIMIT ${limit} OFFSET ${offset}`);
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
-}
-function countUrl(){
-  const tq=encodeURIComponent(`SELECT COUNT(A)`);
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
-}
-function inputsUrl(){
-  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(INPUTS_NAME)}`;
-}
+// URL functions removed — ahora se usa OneDrive + SheetJS
 
 function parseMin(v){
   if(v===undefined||v===null||String(v).trim()==='') return null;
@@ -1027,15 +1031,12 @@ function minCell(val,decimals=1){
   return `<span class="${cls}">${sign}${val.toFixed(decimals)} min</span>`;
 }
 
-// ── Load Inputs sheet (carros por cliente) ────────────────────────
-async function loadInputs(){
+// ── Load Inputs sheet (carros por cliente + coordinadores) ────────
+function loadInputsFromWB(wb){
   try{
-    const res=await fetch(inputsUrl());
-    if(!res.ok) return;
-    const rows=parseCSV(await res.text());
+    const rows = sheetToObjects(wb, INPUTS_SHEET_NAME);
     rows.forEach(r=>{
       const keys=Object.keys(r);
-      // ── Carros ──
       const cliKey =keys.find(k=>k.trim().toUpperCase()==='CLIENTE');
       const carKey =keys.find(k=>k.toLowerCase().includes('cantidad')&&k.toLowerCase().includes('carro'));
       if(cliKey&&carKey){
@@ -1043,15 +1044,15 @@ async function loadInputs(){
         const carros=parseInt(r[carKey])||0;
         if(cli) CARROS_MAP[cli]=carros||null;
       }
-      // ── Coordinadores por cliente/ruta ──
-      const ccKey  =keys.find(k=>k.trim().toUpperCase().replace(/\s+/g,'').includes('CLIENTECOOR'));
-      const coKey  =keys.find(k=>k.trim().toUpperCase()==='COORDINADOR');
+      const ccKey=keys.find(k=>k.trim().toUpperCase().replace(/\s+/g,'').includes('CLIENTECOOR'));
+      const coKey=keys.find(k=>k.trim().toUpperCase()==='COORDINADOR');
       if(ccKey&&coKey){
         const cc=(r[ccKey]||'').trim();
         const co=(r[coKey]||'').trim();
         if(cc&&co) COORD_RAW.push({cc,co});
       }
     });
+    console.log('Inputs cargado:',Object.keys(CARROS_MAP).length,'clientes,',COORD_RAW.length,'coords');
   }catch(e){ console.warn('No se pudo cargar Inputs:',e); }
 }
 
@@ -1154,11 +1155,10 @@ function normStr(s){
     .toLowerCase().trim().replace(/\s+/g,' ');
 }
 
-async function loadMAE(){
+// ── Load MAE sheet (rutas / paradas) ─────────────────────────────
+function loadMAEFromWB(wb){
   try{
-    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=MAE`;
-    const res=await fetch(url); if(!res.ok) return;
-    const rows=parseCSV(await res.text());
+    const rows = sheetToObjects(wb, MAE_SHEET_NAME);
     rows.forEach(r=>{
       const idRuta=(r['ID Ruta']||r['ID_Ruta']||'').trim();
       const descRuta=(r['Desc Ruta']||r['Desc_Ruta']||'').trim();
@@ -1204,11 +1204,9 @@ function findIdRuta(rutaKey, plantaKey){
 }
 
 // ── Load Flota sheet (carros activos en la empresa) ──────────────
-async function loadFlota(){
+function loadFlotaFromWB(wb){
   try{
-    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Flota`;
-    const res=await fetch(url); if(!res.ok) return;
-    const rows=parseCSV(await res.text());
+    const rows = sheetToObjects(wb, FLOTA_SHEET_NAME);
     rows.forEach(r=>{
       const id=(r['IDS']||r['ID']||r['id']||'').toString().trim();
       if(!id) return;
@@ -1227,251 +1225,64 @@ async function loadFlota(){
 
 // ── Main loader ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async ()=>{
-  await Promise.all([loadSheet(), loadInputs(), loadMAE(), loadFlota()]);
-  // Ambas cargas terminaron → asignar coordinadores y redibujar
-  buildCoordMap();
-  fillAllSelects();
-  // Seleccionar el mes actual por defecto
-  const _now = new Date();
-  const _mesActual = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}`;
-  if(loadedMonths.has(_mesActual)){
-    SC_SEL.mes = _mesActual;
-    const btn = document.getElementById('sc-btn-mes');
-    if(btn) btn.querySelector('.sc-val').textContent = mesLabel(_mesActual);
-  }
-  draw();
-});
-
-async function loadSheet(){
-  const overlay=document.getElementById('loadingOverlay');
-  const loadMsg=document.getElementById('loadingMsg');
-  const banner =document.getElementById('errBanner');
-  const errMsg =document.getElementById('errMsg');
-
-  // ── IndexedDB Cache helpers (para cargas casi instantáneas en visitas posteriores)
-  const DB_NAME='DashboardNS', STORE='ns_cache', DB_KEY='full_data_v1';
-  const CACHE_MAX_AGE_MS = 0; // Sin caché → siempre jala fresco del sheet
-  function openDB(){
-    return new Promise(resolve=>{
-      if(!self.indexedDB){ resolve(null); return; }
-      const req=indexedDB.open(DB_NAME,1);
-      req.onerror=()=>resolve(null);
-      req.onsuccess=()=>resolve(req.result);
-      req.onupgradeneeded=e=>{ const db=e.target.result; if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE); };
-    });
-  }
-  async function cacheGet(key){
-    try{ const db=await openDB(); if(!db) return null;
-      return await new Promise(res=>{
-        const tx=db.transaction(STORE,'readonly'); const r=tx.objectStore(STORE).get(key);
-        r.onsuccess=()=>res(r.result); r.onerror=()=>res(null);
-      });
-    }catch(e){ return null; }
-  }
-  async function cacheSet(key,value){
-    try{ const db=await openDB(); if(!db) return;
-      return await new Promise(res=>{
-        const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(value,key);
-        tx.oncomplete=()=>res(); tx.onerror=()=>res();
-      });
-    }catch(e){}
-  }
-  function rowKey(r){ return r[C.id] || `${r[C.fecha]||''}|${r[C.ruta]||''}|${r[C.driver]||''}|${r[C.startTime]||''}`; }
-
+  const overlay = document.getElementById('loadingOverlay');
+  const loadMsg = document.getElementById('loadingMsg');
+  const banner  = document.getElementById('errBanner');
+  const errMsg  = document.getElementById('errMsg');
   try{
-    loadMsg.innerHTML='Cargando datos...<br>Por favor espera';
+    if(loadMsg) loadMsg.innerHTML='Descargando Excel de OneDrive...<br>Por favor espera';
+    const downloadUrl = getOneDriveDownloadUrl(ONEDRIVE_SHARE_URL);
+    const res = await fetch(downloadUrl);
+    if(!res.ok) throw new Error(
+      'No se pudo descargar el Excel (HTTP '+res.status+'). '+
+      'Verifica que el archivo esté compartido como "Cualquiera con el vínculo puede ver".');
+    if(loadMsg) loadMsg.innerHTML='Procesando datos...<br>Por favor espera';
+    const buffer = await res.arrayBuffer();
+    const wb = XLSX.read(new Uint8Array(buffer), { type:'array', cellDates:true, dateNF:'YYYY-MM-DD' });
 
-    // ═══════════════════════════════════════════════════════════════
-    // FASE 1: Intentar cargar desde caché IndexedDB (casi instantáneo)
-    // ═══════════════════════════════════════════════════════════════
-    let hasCache=false;
-    const cached = await cacheGet(DB_KEY);
-    if(cached && cached.rows && cached.rows.length && (Date.now()-cached.cachedAt < CACHE_MAX_AGE_MS)){
-      DATA = cached.rows;
-      (cached.months||[]).forEach(m=>loadedMonths.add(m));
-      hasCache=true;
-      if(banner) banner.classList.add('hidden');
-      if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',450); }
-      fillAllSelects();
-      const mesActualCache=getCurrentMonth();
-      if(loadedMonths.has(mesActualCache)){
-        scSetVal('mes',mesActualCache,mesLabel(mesActualCache));
-        cascadeSelects();
+    // Hojas auxiliares (sin await — síncronas)
+    loadInputsFromWB(wb);
+    loadMAEFromWB(wb);
+    loadFlotaFromWB(wb);
+
+    // Hoja principal NS
+    const rows = sheetToObjects(wb, NS_SHEET_NAME);
+    if(!rows.length) throw new Error(
+      'La hoja "'+NS_SHEET_NAME+'" está vacía o no existe en el Excel. '+
+      'Hojas disponibles: '+wb.SheetNames.join(', '));
+
+    DATA = rows.map(r=>{
+      // Normalizar fechas (SheetJS puede regresar Date objects)
+      const fv = r[C.fecha];
+      if(fv instanceof Date){
+        const pad=n=>String(n).padStart(2,'0');
+        r[C.fecha]=`${fv.getFullYear()}-${pad(fv.getMonth()+1)}-${pad(fv.getDate())}`;
       }
-      draw();
-      // Mostrar indicador "Actualizando datos..." mientras se refresca en background
-      const refInd=document.getElementById('refreshIndicator');
-      if(refInd) refInd.style.display='block';
-    }
+      return r;
+    }).filter(r=>Object.values(r).some(v=>v!==''&&v!==null&&v!==undefined));
 
-    // ═══════════════════════════════════════════════════════════════
-    // FASE 2: Consultar COUNT actual del sheet (en paralelo si hay caché)
-    // ═══════════════════════════════════════════════════════════════
-    const CACHE_COUNT_KEY = 'ns_total_rows_v1';
-    let cachedCount = 0;
-    try{ cachedCount = parseInt(localStorage.getItem(CACHE_COUNT_KEY) || '0') || 0; }catch(e){}
+    DATA.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
 
-    const countPromise = (async()=>{
-      try{
-        const r = await fetch(countUrl());
-        if(!r.ok) return 0;
-        const t = await r.text();
-        const nums = t.match(/[\d.]+/g);
-        return nums && nums.length ? Math.floor(parseFloat(nums[nums.length-1])) || 0 : 0;
-      }catch(e){ console.warn('COUNT falló', e); return 0; }
-    })();
-
-    // ═══════════════════════════════════════════════════════════════
-    // FASE 3A: MODO CACHÉ → refrescar solo últimas ~3000 filas (~7 días)
-    // ═══════════════════════════════════════════════════════════════
-    if(hasCache){
-      const realCount = await countPromise;
-      if(realCount > 0){
-        try{ localStorage.setItem(CACHE_COUNT_KEY, String(realCount)); }catch(e){}
-        const RECENT_CHUNK = 3000; // cubre aprox 7 días a 350 filas/día
-        const recentOffset = realCount > RECENT_CHUNK ? (realCount - RECENT_CHUNK) : 0;
-        const recentLimit  = Math.min(RECENT_CHUNK, realCount);
-        try{
-          const r = await fetch(csvUrl(recentOffset, recentLimit));
-          if(r.ok){
-            const fresh = parseCSV(await r.text());
-            if(fresh.length){
-              // Dedupe: quitar del caché las filas que vienen frescas (match por id)
-              const freshKeys = new Set(fresh.map(rowKey));
-              DATA = DATA.filter(r => !freshKeys.has(rowKey(r)));
-              DATA.push(...fresh);
-              fresh.forEach(r=>{ const m=normMonth(getFecha(r)); if(m) loadedMonths.add(m); });
-              fillAllSelects();
-              const mesA=getCurrentMonth();
-              if(loadedMonths.has(mesA) && !SC_SEL.mes){
-                scSetVal('mes',mesA,mesLabel(mesA));
-                cascadeSelects();
-              }
-              draw();
-            }
-          }
-        }catch(e){ console.warn('Error refrescando filas recientes', e); }
-      }
-      // Guardar caché actualizado (sin bloquear UI)
-      setTimeout(()=>cacheSet(DB_KEY, { rows: DATA, months:[...loadedMonths], cachedAt: Date.now() }), 200);
-      // Ocultar indicador de actualización
-      const refInd=document.getElementById('refreshIndicator');
-      if(refInd) refInd.style.display='none';
-      return; // listo, terminamos en modo caché
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // FASE 3B: SIN CACHÉ → carga completa desde el final (primera vez)
-    // ═══════════════════════════════════════════════════════════════
-    let totalRows = 0;
-    if(cachedCount > FIRST_CHUNK){
-      totalRows = cachedCount;
-    } else {
-      totalRows = await countPromise;
-    }
-
-    const firstOffset = totalRows > FIRST_CHUNK ? (totalRows - FIRST_CHUNK) : 0;
-    const firstLimit  = totalRows > 0 ? Math.min(FIRST_CHUNK, totalRows) : FIRST_CHUNK;
-
-    const res=await fetch(csvUrl(firstOffset, firstLimit));
-    if(!res.ok) throw new Error('HTTP '+res.status+'. Verifica que el Sheet sea público (Compartir → Cualquier persona con el enlace).');
-    const firstRows=parseCSV(await res.text());
-    if(!firstRows.length) throw new Error('Sin filas válidas. Abre F12 → Console para ver el detalle.');
-    DATA=[...firstRows];
-    firstRows.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
     if(banner) banner.classList.add('hidden');
     if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',450); }
+
+    buildCoordMap();
     fillAllSelects();
-    const mesActual=getCurrentMonth();
-    let mesAutoSelected=false;
+    const mesActual = getCurrentMonth();
     if(loadedMonths.has(mesActual)){
-      scSetVal('mes',mesActual,mesLabel(mesActual));
-      cascadeSelects();
-      mesAutoSelected=true;
-    }
-    draw();
-
-    const realCount = await countPromise;
-    if(realCount > 0){
-      try{ localStorage.setItem(CACHE_COUNT_KEY, String(realCount)); }catch(e){}
-      if(totalRows === 0) totalRows = realCount;
-      const missed = realCount - (firstOffset + firstRows.length);
-      if(missed > 0){
-        try{
-          const rMiss = await fetch(csvUrl(firstOffset + firstRows.length, Math.min(missed, CHUNK)));
-          if(rMiss.ok){
-            const extra = parseCSV(await rMiss.text());
-            if(extra.length){
-              extra.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
-              DATA.push(...extra);
-              fillAllSelects();
-              if(!mesAutoSelected && loadedMonths.has(mesActual)){
-                scSetVal('mes',mesActual,mesLabel(mesActual));
-                cascadeSelects();
-                mesAutoSelected=true;
-              }
-              draw();
-            }
-          }
-        }catch(e){ console.warn('Error cargando filas faltantes', e); }
-      }
-    }
-
-    // Cargar el resto hacia atrás (chunks más viejos)
-    let nextEnd = firstOffset;
-    while(nextEnd > 0){
-      const nextStart = Math.max(0, nextEnd - CHUNK);
-      const limit = nextEnd - nextStart;
-      const r2=await fetch(csvUrl(nextStart, limit));
-      if(!r2.ok) break;
-      const more=parseCSV(await r2.text());
-      if(!more.length) break;
-      more.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
-      DATA.push(...more);
-      fillAllSelects();
-      if(!mesAutoSelected && loadedMonths.has(mesActual)){
-        scSetVal('mes',mesActual,mesLabel(mesActual));
-        cascadeSelects();
-        mesAutoSelected=true;
-      }
-      nextEnd = nextStart;
-    }
-    // Fallback: si no se pudo calcular totalRows y seguimos teniendo FIRST_CHUNK filas, cargar hacia adelante
-    if(totalRows===0 && firstRows.length>=FIRST_CHUNK){
-      let offset=FIRST_CHUNK;
-      while(true){
-        const r2=await fetch(csvUrl(offset, CHUNK));
-        if(!r2.ok) break;
-        const more=parseCSV(await r2.text());
-        if(!more.length) break;
-        more.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
-        DATA.push(...more);
-        fillAllSelects();
-        if(!mesAutoSelected && loadedMonths.has(mesActual)){
-          scSetVal('mes',mesActual,mesLabel(mesActual));
-          cascadeSelects();
-          mesAutoSelected=true;
-        }
-        if(more.length<CHUNK) break;
-        offset+=CHUNK;
-      }
-    }
-    if(!mesAutoSelected && loadedMonths.has(mesActual)){
-      scSetVal('mes',mesActual,mesLabel(mesActual));
+      scSetVal('mes', mesActual, mesLabel(mesActual));
       cascadeSelects();
     }
     draw();
-
-    // Guardar TODO en caché para próximas visitas (sin bloquear UI)
-    setTimeout(()=>cacheSet(DB_KEY, { rows: DATA, months:[...loadedMonths], cachedAt: Date.now() }), 500);
+    console.log('✅ Datos cargados desde OneDrive:',DATA.length,'filas,',loadedMonths.size,'meses');
   }catch(e){
     console.error(e);
     if(overlay) overlay.style.display='none';
-    const refInd=document.getElementById('refreshIndicator');
-    if(refInd) refInd.style.display='none';
     if(banner&&errMsg){ errMsg.textContent=e.message; banner.classList.remove('hidden'); }
   }
-}
+});
+
+
 
 // ── Searchable select logic ───────────────────────────────────────
 function scRenderDD(key){
