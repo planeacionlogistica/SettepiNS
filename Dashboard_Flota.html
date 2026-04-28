@@ -90,6 +90,20 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .kpi-chip-val{font-size:2rem;font-weight:700;line-height:1;letter-spacing:-.02em;}
 .kpi-chip-pct{font-size:.67rem;margin-top:.3rem;}
 .kpi-chip-breakdown{font-size:.6rem;margin-top:.35rem;color:rgba(0,0,0,.45);line-height:1.5;border-top:1px solid rgba(0,0,0,.08);padding-top:.3rem;}
+.kpi-chip.clickable{cursor:pointer;transition:transform .13s,box-shadow .13s;}
+.kpi-chip.clickable:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(26,34,54,.13);}
+.kpi-chip-hint{font-size:.55rem;color:rgba(0,0,0,.3);margin-top:.25rem;font-style:italic;}
+/* Fecha badge */
+.fecha-badge{display:inline-flex;align-items:center;gap:.4rem;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:.28rem .75rem;font-size:.7rem;font-weight:600;color:var(--muted);box-shadow:0 1px 4px rgba(26,34,54,.06);}
+.fecha-badge-dot{width:6px;height:6px;border-radius:50%;background:#84cc16;flex-shrink:0;}
+.kpi-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
+/* Sin movimiento ayer */
+.sinmov-table{width:100%;border-collapse:collapse;}
+.sinmov-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:.42rem .75rem;text-align:left;white-space:nowrap;}
+.sinmov-table tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+.sinmov-table tbody tr:last-child{border-bottom:none;}
+.sinmov-table tbody tr:hover{background:#f7f9ff;}
+.sinmov-table tbody td{padding:.45rem .75rem;font-size:.76rem;color:var(--text);vertical-align:middle;}
 
 /* ── Tabla clientes ── */
 .table-card{background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);}
@@ -287,6 +301,15 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   <main class="main">
     <div class="err hidden" id="errBanner">⚠️ <span id="errMsg"></span></div>
 
+    <!-- KPI header row: título + fecha actualización -->
+    <div class="kpi-header-row">
+      <span style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Estado de flota</span>
+      <div class="fecha-badge" id="fechaBadge" style="display:none">
+        <span class="fecha-badge-dot"></span>
+        <span>Actualizado al día: <b id="fechaVal">–</b></span>
+      </div>
+    </div>
+
     <!-- KPI strip (con mantenimiento agrupado) -->
     <div class="kpi-section" id="kpiSection"></div>
 
@@ -397,6 +420,29 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
     </div>
 
+    <!-- ══════ Unidades sin movimiento ayer (km GPS = 0) ══════ -->
+    <div class="section-divider" id="sinMovSection">
+      <div class="section-divider-title">Sin movimiento ayer</div>
+      <div class="section-divider-sub" id="sinMovSub">Unidades con km GPS = 0</div>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <div class="table-card" id="sinMovCard">
+      <div class="table-hdr">
+        <div>
+          <div class="table-hdr-title">Detalle · sin movimiento ayer</div>
+          <div class="table-hdr-sub">Unidades con cero km GPS registrados</div>
+        </div>
+        <span class="table-count" id="cntSinMov">–</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="sinmov-table">
+          <thead id="sinMovThead"></thead>
+          <tbody id="sinMovTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
   </main>
 </div>
 
@@ -437,7 +483,20 @@ function autoDetectCols(sample){
   C.pctInef = find('% inef','porcentaje inef','% ineficien');
   // Col Q: "Unidades ineficientes"
   C.unidadesInef = hdrs.find(x=>x.toLowerCase().trim()==='unidades ineficientes') || find('unidades inef','u inef','ud inef');
-  console.log('Columnas detectadas:',{kmGps:C.kmGps,kmBus:C.kmBus,kmInef:C.kmInef,pctInef:C.pctInef,unidadesInef:C.unidadesInef});
+  // Fecha actualización (col V o similar)
+  const idxActualizado = hdrs.findIndex(x=>x.toLowerCase().includes('actualizado'));
+  if(idxActualizado>=0){
+    // The date value might be in the next column header, or as row value
+    const nextHdr = hdrs[idxActualizado+1] || '';
+    // If next header looks like a date (short, contains month abbreviation or number)
+    const looksLikeDate = /\d/.test(nextHdr) || /ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic/i.test(nextHdr);
+    C.fechaActualizadoCol = hdrs[idxActualizado];
+    C.fechaNextHdr = looksLikeDate ? nextHdr : '';
+  } else {
+    C.fechaActualizadoCol = '';
+    C.fechaNextHdr = '';
+  }
+  console.log('Columnas detectadas:',{kmGps:C.kmGps,kmBus:C.kmBus,kmInef:C.kmInef,pctInef:C.pctInef,unidadesInef:C.unidadesInef,fechaCol:C.fechaActualizadoCol});
 }
 
 const ALL_STATUSES = [
@@ -582,6 +641,15 @@ window.addEventListener('DOMContentLoaded',async()=>{
     if(!rows.length)throw new Error('Sin datos en hoja "Flota".');
     DATA=rows;
     autoDetectCols(rows[0]);
+    // Fecha actualización
+    const fechaEl=document.getElementById('fechaVal');
+    const badgeEl=document.getElementById('fechaBadge');
+    if(fechaEl&&badgeEl){
+      let fechaStr='';
+      if(C.fechaNextHdr) fechaStr=C.fechaNextHdr;
+      else if(C.fechaActualizadoCol&&rows[0]) fechaStr=rows[0][C.fechaActualizadoCol]||'';
+      if(fechaStr){fechaEl.textContent=fechaStr;badgeEl.style.display='inline-flex';}
+    }
     ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',450);
     cascadeFilters();draw();
   }catch(e){console.error(e);ov.style.display='none';document.getElementById('errMsg').textContent=e.message;document.getElementById('errBanner').classList.remove('hidden');}
@@ -603,19 +671,24 @@ function draw(){
   drawClientes(rows);
   try{drawIneficiencia(rows);}catch(e){console.error('Error en sección ineficiencia:',e);}
   try{drawInactivas(rows);}catch(e){console.error('Error en sección inactivas:',e);}
+  try{drawSinMovimiento(rows);}catch(e){console.error('Error en sección sin movimiento:',e);}
 }
 
 /* ── KPIs agrupados ── */
+let KPI_DATA={};
 function drawKPIs(rows,t){
+  KPI_DATA={};
   const chips=[];
 
   // Operando
   const nOp=statusCount(rows,'Operando');
   const rgbOp=hexToRgb('#639922');
-  chips.push(`<div class="kpi-chip" style="background:rgba(${rgbOp},.08);border-color:rgba(${rgbOp},.2)">
+  KPI_DATA['operando']={title:'Operando',color:'#639922',units:rows.filter(r=>(r[C.estatus]||'').toLowerCase().trim()==='operando')};
+  chips.push(`<div class="kpi-chip clickable" style="background:rgba(${rgbOp},.08);border-color:rgba(${rgbOp},.2)" onclick="openKpiModal('operando')">
     <div class="kpi-chip-lbl" style="color:rgba(${rgbOp},.75)">Operando</div>
     <div class="kpi-chip-val" style="color:#639922">${nOp}</div>
     <div class="kpi-chip-pct" style="color:rgba(${rgbOp},.65)">${pct(nOp,t)} del total</div>
+    <div class="kpi-chip-hint">▶ ver unidades</div>
   </div>`);
 
   // Mantenimiento (grupo)
@@ -626,47 +699,57 @@ function drawKPIs(rows,t){
     return n>0?`${lbl}: <b>${n}</b>`:'';
   }).filter(Boolean).join(' · ');
   const rgbMto=hexToRgb('#BA7517');
-  chips.push(`<div class="kpi-chip" style="background:rgba(${rgbMto},.08);border-color:rgba(${rgbMto},.2)">
+  KPI_DATA['mto']={title:'Mantenimiento',color:'#BA7517',units:rows.filter(r=>MTO_KEYS.map(k=>k.toLowerCase()).includes((r[C.estatus]||'').toLowerCase().trim()))};
+  chips.push(`<div class="kpi-chip clickable" style="background:rgba(${rgbMto},.08);border-color:rgba(${rgbMto},.2)" onclick="openKpiModal('mto')">
     <div class="kpi-chip-lbl" style="color:rgba(${rgbMto},.75)">Mantenimiento</div>
     <div class="kpi-chip-val" style="color:#BA7517">${nMto}</div>
     <div class="kpi-chip-pct" style="color:rgba(${rgbMto},.65)">${pct(nMto,t)} del total</div>
     ${mtoDetails?`<div class="kpi-chip-breakdown" style="color:#BA7517">${mtoDetails}</div>`:''}
+    <div class="kpi-chip-hint">▶ ver unidades</div>
   </div>`);
 
   // Corralón
   const nCor=statusCount(rows,'Corralon');
   const rgbCor=hexToRgb('#E24B4A');
-  chips.push(`<div class="kpi-chip" style="background:rgba(${rgbCor},.08);border-color:rgba(${rgbCor},.2)">
+  KPI_DATA['corralon']={title:'Corralón',color:'#E24B4A',units:rows.filter(r=>(r[C.estatus]||'').toLowerCase().trim()==='corralon')};
+  chips.push(`<div class="kpi-chip clickable" style="background:rgba(${rgbCor},.08);border-color:rgba(${rgbCor},.2)" onclick="openKpiModal('corralon')">
     <div class="kpi-chip-lbl" style="color:rgba(${rgbCor},.75)">Corralón</div>
     <div class="kpi-chip-val" style="color:#E24B4A">${nCor}</div>
     <div class="kpi-chip-pct" style="color:rgba(${rgbCor},.65)">${pct(nCor,t)} del total</div>
+    <div class="kpi-chip-hint">▶ ver unidades</div>
   </div>`);
 
   // Disponible
   const nDis=statusCount(rows,'Disponible');
   const rgbDis=hexToRgb('#378ADD');
-  chips.push(`<div class="kpi-chip" style="background:rgba(${rgbDis},.08);border-color:rgba(${rgbDis},.2)">
+  KPI_DATA['disponible']={title:'Disponible',color:'#378ADD',units:rows.filter(r=>(r[C.estatus]||'').toLowerCase().trim()==='disponible')};
+  chips.push(`<div class="kpi-chip clickable" style="background:rgba(${rgbDis},.08);border-color:rgba(${rgbDis},.2)" onclick="openKpiModal('disponible')">
     <div class="kpi-chip-lbl" style="color:rgba(${rgbDis},.75)">Disponible</div>
     <div class="kpi-chip-val" style="color:#378ADD">${nDis}</div>
     <div class="kpi-chip-pct" style="color:rgba(${rgbDis},.65)">${pct(nDis,t)} del total</div>
+    <div class="kpi-chip-hint">▶ ver unidades</div>
   </div>`);
 
   // Transferencia
   const nTrans=statusCount(rows,'Transferencia');
   const rgbTrans=hexToRgb('#7C3AED');
-  chips.push(`<div class="kpi-chip" style="background:rgba(${rgbTrans},.08);border-color:rgba(${rgbTrans},.2)">
+  KPI_DATA['transferencia']={title:'Transferencia',color:'#7C3AED',units:rows.filter(r=>(r[C.estatus]||'').toLowerCase().trim()==='transferencia')};
+  chips.push(`<div class="kpi-chip clickable" style="background:rgba(${rgbTrans},.08);border-color:rgba(${rgbTrans},.2)" onclick="openKpiModal('transferencia')">
     <div class="kpi-chip-lbl" style="color:rgba(${rgbTrans},.75)">Transferencia</div>
     <div class="kpi-chip-val" style="color:#7C3AED">${nTrans}</div>
     <div class="kpi-chip-pct" style="color:rgba(${rgbTrans},.65)">${pct(nTrans,t)} del total</div>
+    <div class="kpi-chip-hint">▶ ver unidades</div>
   </div>`);
 
   // Pendiente para baja
   const nBaja=statusCount(rows,'Pendiente para baja');
   const rgbBaja=hexToRgb('#6b7a99');
-  chips.push(`<div class="kpi-chip" style="background:rgba(${rgbBaja},.08);border-color:rgba(${rgbBaja},.2)">
+  KPI_DATA['baja']={title:'Pendiente Baja',color:'#6b7a99',units:rows.filter(r=>(r[C.estatus]||'').toLowerCase().trim()==='pendiente para baja')};
+  chips.push(`<div class="kpi-chip clickable" style="background:rgba(${rgbBaja},.08);border-color:rgba(${rgbBaja},.2)" onclick="openKpiModal('baja')">
     <div class="kpi-chip-lbl" style="color:rgba(${rgbBaja},.75)">Pendiente Baja</div>
     <div class="kpi-chip-val" style="color:#6b7a99">${nBaja}</div>
     <div class="kpi-chip-pct" style="color:rgba(${rgbBaja},.65)">${pct(nBaja,t)} del total</div>
+    <div class="kpi-chip-hint">▶ ver unidades</div>
   </div>`);
 
   document.getElementById('kpiSection').innerHTML=chips.join('');
@@ -970,6 +1053,111 @@ function openModal(cl){
 }
 
 function closeModal(){document.getElementById('unitModal').classList.remove('open');}
+
+/* ── Modal de KPI (por estatus) ── */
+function openKpiModal(key){
+  const d=KPI_DATA[key];
+  if(!d)return;
+  const units=d.units||[];
+  document.getElementById('modalTitle').textContent=d.title+' — '+units.length+' unidad'+(units.length!==1?'es':'');
+  // Breakdown por sub-estatus
+  const subCounts={};
+  units.forEach(u=>{const s=(u[C.estatus]||'–').trim();subCounts[s]=(subCounts[s]||0)+1;});
+  const subStr=Object.entries(subCounts).map(([s,n])=>`${s}: ${n}`).join(' · ');
+  document.getElementById('modalSub').textContent=subStr||`${units.length} unidades`;
+  const orden=ALL_STATUSES.map(s=>s.key.toLowerCase());
+  const sorted=[...units].sort((a,b)=>{
+    const ia=orden.indexOf((a[C.estatus]||'').toLowerCase()),ib=orden.indexOf((b[C.estatus]||'').toLowerCase());
+    if(ia!==ib)return(ia<0?99:ia)-(ib<0?99:ib);
+    return(a[C.cliente]||'').localeCompare(b[C.cliente]||'','es');
+  });
+  let rows='';
+  sorted.forEach(u=>{
+    const cfg=getStatusCfg(u[C.estatus]);
+    const jefe=(u[C.jefe]||'').trim()||'–';
+    const cliente=(u[C.cliente]||'–').trim();
+    rows+=`<tr>
+      <td style="font-weight:600">${u[C.id]||'–'}</td>
+      <td>${cliente}</td>
+      <td>${u[C.tipo]||'–'}</td>
+      <td>${u[C.marca]||'–'} ${u[C.modelo]||''}</td>
+      <td>${u[C.anio]||'–'}</td>
+      <td>${jefe}</td>
+      <td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${u[C.estatus]||'–'}</span></td>
+    </tr>`;
+  });
+  document.getElementById('modalBody').innerHTML=`<table class="modal-table"><thead><tr>
+    <th>IDS</th><th>Cliente</th><th>Tipo</th><th>Marca / Modelo</th><th>Año</th><th>Jefe</th><th>Estatus</th>
+  </tr></thead><tbody>${rows||'<tr><td colspan="7" class="no-data">Sin unidades</td></tr>'}</tbody></table>`;
+  document.getElementById('unitModal').classList.add('open');
+}
+
+/* ── Sin movimiento ayer (km GPS = 0) ── */
+let SINMOV_SORT={col:'cli',dir:'asc'};
+function renderSinMovHeaders(){
+  const cols=[
+    {key:'id',   label:'IDS',           align:''},
+    {key:'cli',  label:'Cliente',       align:''},
+    {key:'jefe', label:'Jefe',          align:''},
+    {key:'tipo', label:'Tipo',          align:''},
+    {key:'marca',label:'Marca/Modelo',  align:''},
+    {key:'anio', label:'Año',           align:''},
+    {key:'est',  label:'Estatus',       align:''},
+  ];
+  document.getElementById('sinMovThead').innerHTML=`<tr>${cols.map(c=>{
+    const arr=SINMOV_SORT.col===c.key?`<span class="sort-arrow active ${SINMOV_SORT.dir}"></span>`:`<span class="sort-arrow"></span>`;
+    return`<th class="sort-th${c.align?' '+c.align:''}" onclick="sortSinMov('${c.key}')">${c.label}${arr}</th>`;
+  }).join('')}</tr>`;
+}
+function sortSinMov(col){
+  if(SINMOV_SORT.col===col)SINMOV_SORT.dir=SINMOV_SORT.dir==='asc'?'desc':'asc';
+  else{SINMOV_SORT.col=col;SINMOV_SORT.dir='asc';}
+  draw();
+}
+function drawSinMovimiento(rows){
+  if(!C.kmGps){
+    document.getElementById('sinMovSub').textContent='Columna GPS no encontrada';
+    document.getElementById('cntSinMov').textContent='–';
+    renderSinMovHeaders();
+    document.getElementById('sinMovTbody').innerHTML='<tr><td colspan="7" class="no-data">Sin columna km GPS</td></tr>';
+    return;
+  }
+  // Unidades con km GPS = 0 (sin movimiento)
+  const sinMov=rows.filter(r=>numVal(r[C.kmGps])===0);
+  document.getElementById('sinMovSub').textContent=`${sinMov.length} unidad${sinMov.length!==1?'es':''} con km GPS = 0`;
+  document.getElementById('cntSinMov').textContent=sinMov.length+' unidad'+(sinMov.length!==1?'es':'');
+  renderSinMovHeaders();
+  const sorted=[...sinMov].sort((a,b)=>{
+    let av,bv;
+    switch(SINMOV_SORT.col){
+      case 'id':   av=a[C.id]||'';bv=b[C.id]||'';break;
+      case 'cli':  av=(a[C.cliente]||'');bv=(b[C.cliente]||'');break;
+      case 'jefe': av=(a[C.jefe]||'');bv=(b[C.jefe]||'');break;
+      case 'tipo': av=(a[C.tipo]||'');bv=(b[C.tipo]||'');break;
+      case 'marca':av=(a[C.marca]||'');bv=(b[C.marca]||'');break;
+      case 'anio': av=numVal(a[C.anio]);bv=numVal(b[C.anio]);break;
+      case 'est':  av=(a[C.estatus]||'');bv=(b[C.estatus]||'');break;
+      default:     av=(a[C.cliente]||'');bv=(b[C.cliente]||'');
+    }
+    if(typeof av==='number')return SINMOV_SORT.dir==='asc'?av-bv:bv-av;
+    return SINMOV_SORT.dir==='asc'?av.localeCompare(bv,'es'):bv.localeCompare(av,'es');
+  });
+  const tbody=document.getElementById('sinMovTbody');
+  if(!sorted.length){tbody.innerHTML='<tr><td colspan="7" class="no-data">✅ Sin unidades con km GPS = 0</td></tr>';return;}
+  tbody.innerHTML=sorted.map(r=>{
+    const cfg=getStatusCfg(r[C.estatus]);
+    const jefe=(r[C.jefe]||'').trim()||'<span style="color:var(--muted);font-style:italic">sin asig.</span>';
+    return`<tr>
+      <td style="font-weight:600">${r[C.id]||'–'}</td>
+      <td>${(r[C.cliente]||'–').trim()}</td>
+      <td>${jefe}</td>
+      <td>${r[C.tipo]||'–'}</td>
+      <td>${r[C.marca]||'–'} ${r[C.modelo]||''}</td>
+      <td>${r[C.anio]||'–'}</td>
+      <td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${r[C.estatus]||'–'}</span></td>
+    </tr>`;
+  }).join('');
+}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 function toggleDropdown(id){const d=document.getElementById(id);document.querySelectorAll('.dropdown').forEach(x=>{if(x.id!==id)x.classList.remove('open');});d.classList.toggle('open');}
 document.addEventListener('click',e=>{if(!e.target.closest('.dropdown'))document.querySelectorAll('.dropdown').forEach(d=>d.classList.remove('open'));});
