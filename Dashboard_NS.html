@@ -436,7 +436,6 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 
       <button class="btn-reset" onclick="resetFilters()">↺ Limpiar filtros</button>
       <button class="btn-reset" onclick="exportCatalogo()" style="border-color:#7ed321;color:#16a34a">📥 Catálogo Unidades</button>
-      <button class="btn-reset" onclick="clearCacheAndReload()" style="border-color:#e53e3e;color:#e53e3e" title="Borra la caché local y recarga datos frescos del sheet">🔄 Recargar datos</button>
     </div><!-- /sidebar-filters -->
   </aside>
 
@@ -1232,6 +1231,14 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   // Ambas cargas terminaron → asignar coordinadores y redibujar
   buildCoordMap();
   fillAllSelects();
+  // Seleccionar el mes actual por defecto
+  const _now = new Date();
+  const _mesActual = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}`;
+  if(loadedMonths.has(_mesActual)){
+    SC_SEL.mes = _mesActual;
+    const btn = document.getElementById('sc-btn-mes');
+    if(btn) btn.querySelector('.sc-val').textContent = mesLabel(_mesActual);
+  }
   draw();
 });
 
@@ -1243,7 +1250,7 @@ async function loadSheet(){
 
   // ── IndexedDB Cache helpers (para cargas casi instantáneas en visitas posteriores)
   const DB_NAME='DashboardNS', STORE='ns_cache', DB_KEY='full_data_v1';
-  const CACHE_MAX_AGE_MS = 24*60*60*1000; // 1 día → refresh diario automático
+  const CACHE_MAX_AGE_MS = 0; // Sin caché → siempre jala fresco del sheet
   function openDB(){
     return new Promise(resolve=>{
       if(!self.indexedDB){ resolve(null); return; }
@@ -1599,18 +1606,6 @@ function getF(){
     fi:document.getElementById('fFi').value,
     ff:document.getElementById('fFf').value,
   };
-}
-
-async function clearCacheAndReload(){
-  try{
-    await new Promise((res,rej)=>{
-      const req=indexedDB.deleteDatabase('DashboardNS');
-      req.onsuccess=()=>res();
-      req.onerror=()=>rej();
-      req.onblocked=()=>res();
-    });
-  }catch(e){}
-  window.location.reload(true);
 }
 
 function resetFilters(){
