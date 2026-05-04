@@ -632,7 +632,7 @@ function resetFilters(){
   cascadeFilters();draw();
 }
 
-function csvUrl(sheet){return`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;}
+function csvUrl(sheet){return`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(sheet)}`;}
 function parseLine(line){const cols=[];let cur='',inQ=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=ch;}cols.push(cur.trim());return cols;}
 function parseCSV(text){if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);const lines=text.trim().split(/\r?\n/);if(lines.length<2)return[];const hdrs=parseLine(lines[0]).map(h=>h.replace(/^\uFEFF/,'').trim()),rows=[];for(let i=1;i<lines.length;i++){if(!lines[i].trim())continue;const cols=parseLine(lines[i]),obj={};hdrs.forEach((h,idx)=>{obj[h]=(cols[idx]||'').trim();});if(Object.values(obj).some(v=>v))rows.push(obj);}return rows;}
 
