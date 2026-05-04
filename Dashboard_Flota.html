@@ -476,19 +476,21 @@ const MTO_KEYS = ['Mtto Garcia','Mtto Cienega','Taller Externo','Alto Rezago'];
 function autoDetectCols(sample){
   if(!sample)return;
   const hdrs=Object.keys(sample);
-  const find=(...pats)=>{for(const p of pats){const h=hdrs.find(x=>x.toLowerCase().includes(p.toLowerCase()));if(h)return h;}return '';};
+  // Normaliza header: quita acentos, colapsa espacios, lowercase
+  const norm=s=>(s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+  console.log('🔍 HEADERS RECIBIDOS:', hdrs);
+  const find=(...pats)=>{for(const p of pats){const np=norm(p);const h=hdrs.find(x=>norm(x).includes(np));if(h)return h;}return '';};
   // Auto-detect ID col (acepta IDS, ID, Económico, No Económico, Unidad, etc.)
   const idMatch = hdrs.find(x=>{
-    const t=x.toLowerCase().trim();
-    return t==='ids'||t==='id'||t==='unidad'||t==='no. unidad'||t==='no unidad'
-        ||t==='económico'||t==='economico'||t==='no. económico'||t==='no economico'
-        ||t==='no. economico'||t==='n. económico'||t==='n economico'
-        ||t.includes('económico')||t.includes('economico');
+    const t=norm(x);
+    return t==='ids'||t==='id'||t==='unidad'||t==='no unidad'||t==='no. unidad'
+        ||t==='economico'||t==='no economico'||t==='no. economico'
+        ||t==='n economico'||t==='n. economico'||t.includes('economico');
   });
   if(idMatch) C.id = idMatch;
-  // Auto-detect Año (acepta Año, año, Anio, ANIO, con/sin espacios o caracteres raros)
+  // Auto-detect Año
   const anioMatch = hdrs.find(x=>{
-    const t=x.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const t=norm(x);
     return t==='ano'||t==='anio'||t==='year'||t==='modelo ano'||t==='ano modelo';
   });
   if(anioMatch) C.anio = anioMatch;
@@ -847,7 +849,7 @@ function drawIneficiencia(rows){
     document.getElementById('ineffTotalSub').textContent='columnas no encontradas';
     document.getElementById('ineffRojo').textContent='–';
     document.getElementById('ineffKm').textContent='–';
-    document.getElementById('ineffPool').textContent='–';
+    const _pool=document.getElementById('ineffPool');if(_pool)_pool.textContent='–';
     document.getElementById('semaforoStack').innerHTML='<div style="padding:1rem;background:#FCEBEB;border-radius:10px;color:#A32D2D;font-size:.75rem;line-height:1.4">No encontré las columnas de km GPS / Bustrax en la hoja.<br><br>Encabezados esperados:<br>· "km 10 dias" / "gps"<br>· "bustrax"<br>· "km inef"<br>· "% inef"</div>';
     document.getElementById('cntIneff').textContent='–';
     renderIneffHeaders();
