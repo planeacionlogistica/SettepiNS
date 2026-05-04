@@ -486,7 +486,13 @@ function autoDetectCols(sample){
         ||t.includes('económico')||t.includes('economico');
   });
   if(idMatch) C.id = idMatch;
-  console.log('Columna ID detectada:', C.id);
+  // Auto-detect Año (acepta Año, año, Anio, ANIO, con/sin espacios o caracteres raros)
+  const anioMatch = hdrs.find(x=>{
+    const t=x.toLowerCase().trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    return t==='ano'||t==='anio'||t==='year'||t==='modelo ano'||t==='ano modelo';
+  });
+  if(anioMatch) C.anio = anioMatch;
+  console.log('Columna ID detectada:', C.id, '| Año detectado:', C.anio);
   C.kmGps   = find('km 10 dias','km 10 días','gps','10 dias');
   C.kmBus   = find('bustrax','bus');
   C.kmInef  = find('km inef','km ineficie');
@@ -626,7 +632,7 @@ function resetFilters(){
 
 function csvUrl(sheet){return`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;}
 function parseLine(line){const cols=[];let cur='',inQ=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=ch;}cols.push(cur.trim());return cols;}
-function parseCSV(text){const lines=text.trim().split(/\r?\n/);if(lines.length<2)return[];const hdrs=parseLine(lines[0]),rows=[];for(let i=1;i<lines.length;i++){if(!lines[i].trim())continue;const cols=parseLine(lines[i]),obj={};hdrs.forEach((h,idx)=>{obj[h]=(cols[idx]||'').trim();});if(Object.values(obj).some(v=>v))rows.push(obj);}return rows;}
+function parseCSV(text){if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);const lines=text.trim().split(/\r?\n/);if(lines.length<2)return[];const hdrs=parseLine(lines[0]).map(h=>h.replace(/^\uFEFF/,'').trim()),rows=[];for(let i=1;i<lines.length;i++){if(!lines[i].trim())continue;const cols=parseLine(lines[i]),obj={};hdrs.forEach((h,idx)=>{obj[h]=(cols[idx]||'').trim();});if(Object.values(obj).some(v=>v))rows.push(obj);}return rows;}
 
 async function loadInputs(){
   try{
