@@ -477,6 +477,16 @@ function autoDetectCols(sample){
   if(!sample)return;
   const hdrs=Object.keys(sample);
   const find=(...pats)=>{for(const p of pats){const h=hdrs.find(x=>x.toLowerCase().includes(p.toLowerCase()));if(h)return h;}return '';};
+  // Auto-detect ID col (acepta IDS, ID, Económico, No Económico, Unidad, etc.)
+  const idMatch = hdrs.find(x=>{
+    const t=x.toLowerCase().trim();
+    return t==='ids'||t==='id'||t==='unidad'||t==='no. unidad'||t==='no unidad'
+        ||t==='económico'||t==='economico'||t==='no. económico'||t==='no economico'
+        ||t==='no. economico'||t==='n. económico'||t==='n economico'
+        ||t.includes('económico')||t.includes('economico');
+  });
+  if(idMatch) C.id = idMatch;
+  console.log('Columna ID detectada:', C.id);
   C.kmGps   = find('km 10 dias','km 10 días','gps','10 dias');
   C.kmBus   = find('bustrax','bus');
   C.kmInef  = find('km inef','km ineficie');
