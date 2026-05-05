@@ -142,6 +142,11 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .no-data{text-align:center;padding:2rem;color:var(--muted);font-size:.8rem;}
 .modal-table{width:100%;border-collapse:collapse;}
 .modal-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:.42rem .75rem;text-align:left;position:sticky;top:0;white-space:nowrap;}
+.modal-table thead th.sortable{cursor:pointer;user-select:none;transition:background .15s;}
+.modal-table thead th.sortable:hover{background:#2a3550;}
+.modal-table thead th.sortable.r{text-align:right;}
+.sort-arrow{margin-left:.3rem;font-size:.6rem;opacity:.95;display:inline-block;min-width:8px;color:var(--green);}
+.sort-arrow.empty{opacity:.25;color:rgba(255,255,255,.35);}
 .modal-table tbody tr{border-bottom:1px solid var(--border);}
 .modal-table tbody tr:last-child{border-bottom:none;}
 .modal-table tbody tr:hover{background:#f7f9ff;}
@@ -205,7 +210,20 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .btn-inact-clr{background:transparent;border:1.5px solid var(--border);border-radius:6px;color:var(--muted);padding:.28rem .65rem;font-size:.72rem;font-family:"Inter",sans-serif;font-weight:600;cursor:pointer;}
 .btn-inact-clr:hover{border-color:var(--red);color:var(--red);}
 
-@media(max-width:1200px){.ineff-grid{grid-template-columns:1fr;}.ineff-kpis{grid-template-columns:repeat(2,1fr);}}
+/* ── Composición de flota ── */
+.comp-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin-top:1.1rem;}
+.comp-body{padding:.85rem 1.25rem 1.1rem;}
+.comp-row{display:grid;grid-template-columns:1fr auto;gap:.5rem;align-items:center;padding:.42rem 0;border-bottom:1px solid var(--border);}
+.comp-row:last-child{border-bottom:none;}
+.comp-lbl{font-size:.78rem;color:var(--text);font-weight:500;}
+.comp-val{display:flex;align-items:center;gap:.6rem;font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums;}
+.comp-val b{color:var(--text);font-weight:600;font-size:.82rem;min-width:32px;text-align:right;}
+.comp-bar-wrap{grid-column:1 / -1;height:3px;background:var(--bg);border-radius:2px;overflow:hidden;margin-top:.3rem;}
+.comp-bar{height:100%;background:var(--text);border-radius:2px;transition:width .3s;}
+.comp-bar.dim{background:var(--muted);opacity:.55;}
+.comp-empty{padding:1.5rem 1rem;text-align:center;color:var(--muted);font-size:.78rem;}
+
+@media(max-width:1200px){.ineff-grid{grid-template-columns:1fr;}.ineff-kpis{grid-template-columns:repeat(2,1fr);}.comp-grid{grid-template-columns:1fr;}}
 @media(max-width:900px){.kpi-section{flex-wrap:wrap;}.kpi-chip{min-width:calc(33% - .5rem);}}
 @media(max-width:768px){.layout{flex-direction:column;}.sidebar{width:100%;height:auto;position:relative;top:0;}.main{padding:.75rem;}.ineff-kpis{grid-template-columns:repeat(2,1fr);}}
 </style>
@@ -289,6 +307,12 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
     </div>
 
+    <div class="fg">
+      <label>Buscar unidad</label>
+      <input class="sc-input" type="text" placeholder="ID, marca o modelo" autocomplete="off"
+        id="unitSearch" oninput="onUnitSearch()" style="padding-right:.4rem">
+    </div>
+
     <!-- Toggle solo ineficientes -->
     <label class="sb-toggle" id="togInefLabel">
       <input type="checkbox" id="toggleInef" onchange="onToggleInef()">
@@ -334,6 +358,31 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           </thead>
           <tbody id="clientesTbody"></tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- ══════ Composición de flota ══════ -->
+    <div class="comp-grid">
+      <div class="table-card">
+        <div class="table-hdr">
+          <div>
+            <div class="table-hdr-title">Antigüedad</div>
+            <div class="table-hdr-sub">Distribución por rango de año-modelo</div>
+          </div>
+          <span class="table-count" id="cntAntig">–</span>
+        </div>
+        <div class="comp-body" id="compAntig"></div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-hdr">
+          <div>
+            <div class="table-hdr-title">Tipo de unidad</div>
+            <div class="table-hdr-sub">Distribución por modelo</div>
+          </div>
+          <span class="table-count" id="cntTipo">–</span>
+        </div>
+        <div class="comp-body" id="compTipo"></div>
       </div>
     </div>
 
@@ -615,20 +664,37 @@ function cascadeFilters(){
 
 function filteredData(){
   const soloInef=document.getElementById('toggleInef')?.checked||false;
+  const q=(UNIT_SEARCH||'').toLowerCase().trim();
   return DATA.filter(r=>{
     if(SC_SEL.ger&&(r[C.gerente]||'').trim()!==SC_SEL.ger)return false;
     if(SC_SEL.jef&&(r[C.jefe]||'').trim()!==SC_SEL.jef)return false;
     if(SC_SEL.cli&&(r[C.cliente]||'').trim()!==SC_SEL.cli)return false;
     if(SC_SEL.est&&(r[C.estatus]||'').trim()!==SC_SEL.est)return false;
     if(soloInef&&!isIneficiente(r))return false;
+    if(q){
+      const hay=((r[C.id]||'')+' '+(r[C.marca]||'')+' '+(r[C.modelo]||'')).toLowerCase();
+      if(!hay.includes(q))return false;
+    }
     return true;
   });
+}
+
+let UNIT_SEARCH='';
+let _unitSearchTimer=null;
+function onUnitSearch(){
+  clearTimeout(_unitSearchTimer);
+  _unitSearchTimer=setTimeout(()=>{
+    UNIT_SEARCH=document.getElementById('unitSearch').value;
+    draw();
+  },180);
 }
 
 function resetFilters(){
   SC_KEYS.forEach(k=>{SC_SEL[k]='';const inp=document.getElementById('sc-'+k+'-input');if(inp){inp.value='';inp.setAttribute('data-lbl','');}});
   document.getElementById('toggleInef').checked=false;
   document.getElementById('togInefLabel').classList.remove('active-tog');
+  UNIT_SEARCH='';
+  const us=document.getElementById('unitSearch');if(us)us.value='';
   cascadeFilters();draw();
 }
 
@@ -687,6 +753,7 @@ function draw(){
 
   drawKPIs(rows,t);
   drawClientes(rows);
+  try{drawComposicion(rows);}catch(e){console.error('Error en sección composición:',e);}
   try{drawIneficiencia(rows);}catch(e){console.error('Error en sección ineficiencia:',e);}
   try{drawInactivas(rows);}catch(e){console.error('Error en sección inactivas:',e);}
   try{drawSinMovimiento(rows);}catch(e){console.error('Error en sección sin movimiento:',e);}
@@ -841,6 +908,71 @@ function sortIneff(col){
   if(INEFF_SORT.col===col)INEFF_SORT.dir=INEFF_SORT.dir==='asc'?'desc':'asc';
   else{INEFF_SORT.col=col;INEFF_SORT.dir='desc';}
   draw();
+}
+
+function drawComposicion(rows){
+  // ── Antigüedad: rangos por año-modelo ──
+  const yrNow=new Date().getFullYear();
+  const buckets=[
+    {lbl:'Seminuevo · ≤ 2 años',     min:yrNow-2,  max:yrNow,   n:0},
+    {lbl:'Reciente · 3 a 5 años',    min:yrNow-5,  max:yrNow-3, n:0},
+    {lbl:'Maduro · 6 a 10 años',     min:yrNow-10, max:yrNow-6, n:0},
+    {lbl:'Antiguo · 11 años o más',  min:0,        max:yrNow-11,n:0},
+  ];
+  let sinAnio=0,totalA=0;
+  rows.forEach(r=>{
+    const y=parseInt((r[C.anio]||'').toString().match(/\d{4}/)?.[0]);
+    if(!y){sinAnio++;return;}
+    totalA++;
+    const b=buckets.find(x=>y>=x.min&&y<=x.max);
+    if(b)b.n++;
+  });
+  const maxA=Math.max(1,...buckets.map(b=>b.n));
+  const antigBox=document.getElementById('compAntig');
+  if(totalA===0){antigBox.innerHTML='<div class="comp-empty">Sin datos de año-modelo</div>';}
+  else{
+    antigBox.innerHTML=buckets.map(b=>{
+      const pct=totalA?(b.n/totalA*100):0;
+      const w=maxA?(b.n/maxA*100):0;
+      const dim=b.lbl.startsWith('Antiguo')?' dim':'';
+      return `<div class="comp-row">
+        <span class="comp-lbl">${b.lbl}</span>
+        <span class="comp-val"><b>${b.n}</b><span>${pct.toFixed(1)}%</span></span>
+        <div class="comp-bar-wrap"><div class="comp-bar${dim}" style="width:${w}%"></div></div>
+      </div>`;
+    }).join('')+(sinAnio?`<div class="comp-row"><span class="comp-lbl" style="color:var(--muted)">Sin año capturado</span><span class="comp-val"><b>${sinAnio}</b><span>—</span></span></div>`:'');
+  }
+  document.getElementById('cntAntig').textContent=totalA.toLocaleString('es-MX');
+
+  // ── Tipo: por modelo ──
+  const counts={};
+  rows.forEach(r=>{
+    const m=(r[C.modelo]||'').trim()||'(Sin modelo)';
+    counts[m]=(counts[m]||0)+1;
+  });
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const TOP=8;
+  const top=sorted.slice(0,TOP);
+  const restSum=sorted.slice(TOP).reduce((s,[,n])=>s+n,0);
+  const restCount=sorted.length-TOP;
+  if(restSum>0)top.push([`Otros (${restCount} modelo${restCount!==1?'s':''})`,restSum]);
+  const totalT=rows.length;
+  const maxT=Math.max(1,...top.map(([,n])=>n));
+  const tipoBox=document.getElementById('compTipo');
+  if(totalT===0){tipoBox.innerHTML='<div class="comp-empty">Sin unidades en filtro</div>';}
+  else{
+    tipoBox.innerHTML=top.map(([lbl,n])=>{
+      const pct=totalT?(n/totalT*100):0;
+      const w=maxT?(n/maxT*100):0;
+      const dim=lbl.startsWith('Otros')||lbl==='(Sin modelo)'?' dim':'';
+      return `<div class="comp-row">
+        <span class="comp-lbl">${lbl}</span>
+        <span class="comp-val"><b>${n}</b><span>${pct.toFixed(1)}%</span></span>
+        <div class="comp-bar-wrap"><div class="comp-bar${dim}" style="width:${w}%"></div></div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('cntTipo').textContent=totalT.toLocaleString('es-MX');
 }
 
 function drawIneficiencia(rows){
@@ -1045,6 +1177,65 @@ function drawInactivas(rows){
 }
 
 /* ── Modal ── */
+/* ── Modal con sort genérico por columna ── */
+let MODAL_DATA={rows:[],cols:[],defaultSort:null};
+let MODAL_SORT={key:'',dir:'asc'};
+
+function modalCmpVal(v){
+  const s=(v==null?'':v).toString().trim();
+  if(!s||s==='–')return null;
+  // numérico puro (con coma de miles, decimal, signo)
+  if(/^-?[\d.,]+$/.test(s)){
+    const n=Number(s.replace(/,/g,''));
+    if(isFinite(n))return n;
+  }
+  return s.toLocaleLowerCase('es');
+}
+
+function modalSort(key){
+  if(MODAL_SORT.key===key){
+    MODAL_SORT.dir=MODAL_SORT.dir==='asc'?'desc':'asc';
+  } else {
+    MODAL_SORT.key=key;
+    MODAL_SORT.dir='asc';
+  }
+  renderModalRows();
+}
+
+function renderModalRows(){
+  const {rows,cols,defaultSort}=MODAL_DATA;
+  let arr=rows.slice();
+  if(MODAL_SORT.key){
+    const col=cols.find(c=>c.key===MODAL_SORT.key);
+    if(col){
+      arr.sort((a,b)=>{
+        const va=modalCmpVal(col.getRaw(a)),vb=modalCmpVal(col.getRaw(b));
+        if(va===null&&vb===null)return 0;
+        if(va===null)return 1;   // vacíos siempre al final
+        if(vb===null)return -1;
+        let cmp;
+        if(typeof va==='number'&&typeof vb==='number')cmp=va-vb;
+        else cmp=String(va).localeCompare(String(vb),'es',{numeric:true});
+        return MODAL_SORT.dir==='asc'?cmp:-cmp;
+      });
+    }
+  } else if(defaultSort){
+    arr=defaultSort(arr);
+  }
+  const headHtml=cols.map(c=>{
+    const active=MODAL_SORT.key===c.key;
+    const arrow=active?(MODAL_SORT.dir==='asc'?'▲':'▼'):'↕';
+    const cls=active?'sort-arrow':'sort-arrow empty';
+    const align=c.align==='r'?' r':'';
+    return `<th class="sortable${align}" onclick="modalSort('${c.key}')">${c.label}<span class="${cls}">${arrow}</span></th>`;
+  }).join('');
+  const bodyHtml=arr.length
+    ? arr.map(r=>'<tr>'+cols.map(c=>c.render(r)).join('')+'</tr>').join('')
+    : `<tr><td colspan="${cols.length}" class="no-data">Sin unidades</td></tr>`;
+  document.getElementById('modalBody').innerHTML=
+    `<table class="modal-table"><thead><tr>${headHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`;
+}
+
 function openModal(cl){
   document.getElementById('modalTitle').textContent=cl.name;
   const cor=cl.units.filter(u=>getCat(u[C.estatus])==='cor').length;
@@ -1053,20 +1244,26 @@ function openModal(cl){
   const parts=[cor?`${cor} en corralón`:'',mto?`${mto} en mantenimiento`:'',inef?`${inef} sin movimiento`:''].filter(Boolean).join(' · ');
   document.getElementById('modalSub').textContent=`${cl.units.length} unidades${parts?' · ⚠ '+parts:''}`;
   const orden=ALL_STATUSES.map(s=>s.key.toLowerCase());
-  const sorted=[...cl.units].sort((a,b)=>{const ia=orden.indexOf((a[C.estatus]||'').toLowerCase()),ib=orden.indexOf((b[C.estatus]||'').toLowerCase());return(ia<0?99:ia)-(ib<0?99:ib);});
-  let rows='';
-  sorted.forEach(u=>{
-    const cfg=getStatusCfg(u[C.estatus]);
-    rows+=`<tr>
-      <td style="font-weight:600">${u[C.id]||'–'}</td>
-      <td>${u[C.tipo]||'–'}</td>
-      <td>${u[C.marca]||'–'}</td>
-      <td>${u[C.modelo]||'–'}</td>
-      <td>${u[C.anio]||'–'}</td>
-      <td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${u[C.estatus]||'–'}</span></td>
-    </tr>`;
-  });
-  document.getElementById('modalBody').innerHTML=`<table class="modal-table"><thead><tr><th>IDS</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Año</th><th>Estatus</th></tr></thead><tbody>${rows||'<tr><td colspan="6" class="no-data">Sin unidades</td></tr>'}</tbody></table>`;
+  MODAL_DATA={
+    rows:cl.units,
+    cols:[
+      {key:'id',     label:'IDS',     getRaw:u=>u[C.id],     render:u=>`<td style="font-weight:600">${u[C.id]||'–'}</td>`},
+      {key:'tipo',   label:'Tipo',    getRaw:u=>u[C.tipo],   render:u=>`<td>${u[C.tipo]||'–'}</td>`},
+      {key:'marca',  label:'Marca',   getRaw:u=>u[C.marca],  render:u=>`<td>${u[C.marca]||'–'}</td>`},
+      {key:'modelo', label:'Modelo',  getRaw:u=>u[C.modelo], render:u=>`<td>${u[C.modelo]||'–'}</td>`},
+      {key:'anio',   label:'Año',     getRaw:u=>u[C.anio],   render:u=>`<td>${u[C.anio]||'–'}</td>`},
+      {key:'estatus',label:'Estatus', getRaw:u=>u[C.estatus],render:u=>{
+        const cfg=getStatusCfg(u[C.estatus]);
+        return `<td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${u[C.estatus]||'–'}</span></td>`;
+      }},
+    ],
+    defaultSort:arr=>arr.slice().sort((a,b)=>{
+      const ia=orden.indexOf((a[C.estatus]||'').toLowerCase()),ib=orden.indexOf((b[C.estatus]||'').toLowerCase());
+      return(ia<0?99:ia)-(ib<0?99:ib);
+    }),
+  };
+  MODAL_SORT={key:'',dir:'asc'};
+  renderModalRows();
   document.getElementById('unitModal').classList.add('open');
 }
 
@@ -1078,35 +1275,33 @@ function openKpiModal(key){
   if(!d)return;
   const units=d.units||[];
   document.getElementById('modalTitle').textContent=d.title+' — '+units.length+' unidad'+(units.length!==1?'es':'');
-  // Breakdown por sub-estatus
   const subCounts={};
   units.forEach(u=>{const s=(u[C.estatus]||'–').trim();subCounts[s]=(subCounts[s]||0)+1;});
   const subStr=Object.entries(subCounts).map(([s,n])=>`${s}: ${n}`).join(' · ');
   document.getElementById('modalSub').textContent=subStr||`${units.length} unidades`;
   const orden=ALL_STATUSES.map(s=>s.key.toLowerCase());
-  const sorted=[...units].sort((a,b)=>{
-    const ia=orden.indexOf((a[C.estatus]||'').toLowerCase()),ib=orden.indexOf((b[C.estatus]||'').toLowerCase());
-    if(ia!==ib)return(ia<0?99:ia)-(ib<0?99:ib);
-    return(a[C.cliente]||'').localeCompare(b[C.cliente]||'','es');
-  });
-  let rows='';
-  sorted.forEach(u=>{
-    const cfg=getStatusCfg(u[C.estatus]);
-    const jefe=(u[C.jefe]||'').trim()||'–';
-    const cliente=(u[C.cliente]||'–').trim();
-    rows+=`<tr>
-      <td style="font-weight:600">${u[C.id]||'–'}</td>
-      <td>${cliente}</td>
-      <td>${u[C.tipo]||'–'}</td>
-      <td>${u[C.marca]||'–'} ${u[C.modelo]||''}</td>
-      <td>${u[C.anio]||'–'}</td>
-      <td>${jefe}</td>
-      <td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${u[C.estatus]||'–'}</span></td>
-    </tr>`;
-  });
-  document.getElementById('modalBody').innerHTML=`<table class="modal-table"><thead><tr>
-    <th>IDS</th><th>Cliente</th><th>Tipo</th><th>Marca / Modelo</th><th>Año</th><th>Jefe</th><th>Estatus</th>
-  </tr></thead><tbody>${rows||'<tr><td colspan="7" class="no-data">Sin unidades</td></tr>'}</tbody></table>`;
+  MODAL_DATA={
+    rows:units,
+    cols:[
+      {key:'id',     label:'IDS',           getRaw:u=>u[C.id],      render:u=>`<td style="font-weight:600">${u[C.id]||'–'}</td>`},
+      {key:'cliente',label:'Cliente',       getRaw:u=>u[C.cliente], render:u=>`<td>${(u[C.cliente]||'–').trim()}</td>`},
+      {key:'tipo',   label:'Tipo',          getRaw:u=>u[C.tipo],    render:u=>`<td>${u[C.tipo]||'–'}</td>`},
+      {key:'marca',  label:'Marca / Modelo',getRaw:u=>(u[C.marca]||'')+' '+(u[C.modelo]||''), render:u=>`<td>${u[C.marca]||'–'} ${u[C.modelo]||''}</td>`},
+      {key:'anio',   label:'Año',           getRaw:u=>u[C.anio],    render:u=>`<td>${u[C.anio]||'–'}</td>`},
+      {key:'jefe',   label:'Jefe',          getRaw:u=>u[C.jefe],    render:u=>`<td>${(u[C.jefe]||'').trim()||'–'}</td>`},
+      {key:'estatus',label:'Estatus',       getRaw:u=>u[C.estatus], render:u=>{
+        const cfg=getStatusCfg(u[C.estatus]);
+        return `<td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${u[C.estatus]||'–'}</span></td>`;
+      }},
+    ],
+    defaultSort:arr=>arr.slice().sort((a,b)=>{
+      const ia=orden.indexOf((a[C.estatus]||'').toLowerCase()),ib=orden.indexOf((b[C.estatus]||'').toLowerCase());
+      if(ia!==ib)return(ia<0?99:ia)-(ib<0?99:ib);
+      return(a[C.cliente]||'').localeCompare(b[C.cliente]||'','es');
+    }),
+  };
+  MODAL_SORT={key:'',dir:'asc'};
+  renderModalRows();
   document.getElementById('unitModal').classList.add('open');
 }
 
