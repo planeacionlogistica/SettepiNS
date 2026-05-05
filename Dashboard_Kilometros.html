@@ -220,14 +220,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
   <aside class="sidebar">
     <div class="sb-title">Filtros <button class="sb-reset" onclick="resetFilters()" title="Limpiar">↺</button></div>
 
-    <!-- KM marginal vs permitido -->
-    <div class="sb-km">
-      <div class="sb-km-val" id="sbKmMarginal">–</div>
-      <div class="sb-km-lbl">Km Marginales</div>
-      <div class="sb-km-sub" id="sbKmPermitido">Permitido: –</div>
-      <div class="sb-km-pct" id="sbKmPct">–</div>
-    </div>
-
     <div class="fg">
       <label>Gerente</label>
       <div class="sc-wrap" id="sc-ger">
@@ -327,61 +319,14 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     <div class="rangos-chart-card table-card">
       <div class="table-hdr">
         <div>
-          <div class="table-hdr-title">Distribución por rango de distancia</div>
-          <div class="table-hdr-sub">Operadores por semana · barra roja indica los que superan 15 km (reducir)</div>
+          <div class="table-hdr-title">Evolución por semana · rangos de distancia</div>
+          <div class="table-hdr-sub">Líneas por rango · eje X = semana · objetivo: reducir línea roja (&gt;15 km)</div>
         </div>
         <span class="table-count" id="rangosTotal">–</span>
       </div>
       <div class="rangos-chart-wrap">
         <canvas id="rangosChart"></canvas>
       </div>
-    </div>
-
-    <!-- ══════ Km marginal vs permitido ══════ -->
-    <div class="section-divider">
-      <div class="section-divider-title">Avance vs Presupuesto</div>
-      <div class="section-divider-sub">Km marginal real vs km permitido del mes</div>
-      <div class="section-divider-line"></div>
-    </div>
-
-    <div class="ppto-section">
-      <div class="ppto-header">
-        <div class="ppto-title" id="pptoTitle">Km Marginal vs Km Permitido</div>
-        <div class="ppto-meta" id="pptoMeta">–</div>
-      </div>
-      <div class="ppto-track">
-        <div class="ppto-fill" id="pptoFill" style="width:0%"></div>
-      </div>
-      <div class="ppto-labels">
-        <span>0</span>
-        <span id="pptoLabelMid">–</span>
-        <span id="pptoLabelMax">Meta: –</span>
-      </div>
-      <div class="ppto-stats">
-        <div class="ppto-stat">
-          <div class="ppto-stat-val" id="pptoReal">–</div>
-          <div class="ppto-stat-lbl">Km Marginal Real</div>
-        </div>
-        <div class="ppto-stat">
-          <div class="ppto-stat-val" id="pptoPermitido">–</div>
-          <div class="ppto-stat-lbl">Km Permitido</div>
-        </div>
-        <div class="ppto-stat">
-          <div class="ppto-stat-val" id="pptoDif">–</div>
-          <div class="ppto-stat-lbl">Diferencia</div>
-        </div>
-        <div class="ppto-stat">
-          <div class="ppto-stat-val" id="pptoAvance">–</div>
-          <div class="ppto-stat-lbl">% Avance</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══════ Km por día ══════ -->
-    <div class="section-divider">
-      <div class="section-divider-title">Km por Día</div>
-      <div class="section-divider-sub">Km Servicio + Km Ineficiente acumulado diario</div>
-      <div class="section-divider-line"></div>
     </div>
 
     <!-- ══════ Km por día ══════ -->
@@ -971,28 +916,27 @@ function drawRangos(){
   if(rangosChart)rangosChart.destroy();
 
   rangosChart=new Chart(ctx,{
-    type:'bar',
+    type:'line',
     data:{
       labels,
       datasets:[
-        {label:'< 5 km',data:d0,backgroundColor:'rgba(132,204,22,.75)',stack:'op',borderRadius:2},
-        {label:'5–10 km',data:d1,backgroundColor:'rgba(251,191,36,.75)',stack:'op',borderRadius:2},
-        {label:'10–15 km',data:d2,backgroundColor:'rgba(249,115,22,.75)',stack:'op',borderRadius:2},
-        {label:'> 15 km ⚠️',data:d3,backgroundColor:'rgba(226,75,74,.85)',stack:'op',borderRadius:2},
+        {label:'< 5 km',data:d0,borderColor:'#84cc16',backgroundColor:'rgba(132,204,22,.1)',tension:.3,pointRadius:4,pointHoverRadius:6,fill:false,borderWidth:2},
+        {label:'5–10 km',data:d1,borderColor:'#fbbf24',backgroundColor:'rgba(251,191,36,.1)',tension:.3,pointRadius:4,pointHoverRadius:6,fill:false,borderWidth:2},
+        {label:'10–15 km',data:d2,borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.1)',tension:.3,pointRadius:4,pointHoverRadius:6,fill:false,borderWidth:2},
+        {label:'> 15 km ⚠️',data:d3,borderColor:'#E24B4A',backgroundColor:'rgba(226,75,74,.1)',tension:.3,pointRadius:5,pointHoverRadius:7,fill:false,borderWidth:2.5,borderDash:[]},
       ]
     },
     options:{
       responsive:true,maintainAspectRatio:false,
       plugins:{
-        legend:{labels:{font:{size:11},boxWidth:10,color:'#1a2236'}},
+        legend:{labels:{font:{size:11},boxWidth:12,color:'#1a2236',usePointStyle:true}},
         tooltip:{callbacks:{
           label:ctx=>`${ctx.dataset.label}: ${ctx.raw} operadores`
-        }},
-        annotation:{} // placeholder
+        }}
       },
       scales:{
-        x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},
-        y:{stacked:true,grid:{color:'#eee'},ticks:{font:{size:10},stepSize:1}}
+        x:{grid:{color:'#eee'},ticks:{font:{size:10}},title:{display:true,text:'Semana',font:{size:10},color:'#6b7a99'}},
+        y:{grid:{color:'#eee'},ticks:{font:{size:10},stepSize:1},title:{display:true,text:'Operadores',font:{size:10},color:'#6b7a99'},beginAtZero:true}
       }
     }
   });
