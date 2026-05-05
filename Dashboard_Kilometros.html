@@ -78,12 +78,16 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .err.hidden{display:none;}
 
 /* ── KPI strip ── */
-.kpi-section{display:flex;gap:.7rem;align-items:stretch;}
-.kpi-chip{flex:1;border-radius:10px;padding:.9rem 1rem;display:flex;flex-direction:column;justify-content:space-between;min-width:0;border:1px solid transparent;}
-.kpi-chip-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;}
-.kpi-chip-val{font-size:2rem;font-weight:700;line-height:1;letter-spacing:-.02em;}
-.kpi-chip-sub{font-size:.67rem;margin-top:.3rem;}
-.kpi-chip-breakdown{font-size:.6rem;margin-top:.35rem;color:rgba(0,0,0,.45);line-height:1.5;border-top:1px solid rgba(0,0,0,.08);padding-top:.3rem;}
+.kpi-section{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;align-items:stretch;}
+@media(max-width:1100px){.kpi-section{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.kpi-section{grid-template-columns:1fr;}}
+.kpi-chip{background:var(--navy2);border-radius:10px;padding:1rem 1.1rem;display:flex;flex-direction:column;justify-content:space-between;min-width:0;border:1px solid rgba(255,255,255,.08);}
+.kpi-chip-lbl{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:rgba(255,255,255,.55);margin-bottom:.4rem;}
+.kpi-chip-val{font-size:1.85rem;font-weight:700;line-height:1;letter-spacing:-.02em;color:#84cc16;}
+.kpi-chip-sub{font-size:.65rem;margin-top:.3rem;color:rgba(255,255,255,.6);}
+.kpi-chip-breakdown{font-size:.58rem;margin-top:.35rem;color:rgba(255,255,255,.35);line-height:1.5;border-top:1px solid rgba(255,255,255,.1);padding-top:.3rem;}
+/* override colores de los chips — todos usan el mismo fondo */
+.kpi-chip[style]{background:var(--navy2)!important;border-color:rgba(255,255,255,.08)!important;}
 
 /* Fecha badge */
 .fecha-badge{display:inline-flex;align-items:center;gap:.4rem;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:.28rem .75rem;font-size:.7rem;font-weight:600;color:var(--muted);box-shadow:0 1px 4px rgba(26,34,54,.06);}
@@ -132,17 +136,9 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .bar-track{height:6px;border-radius:3px;background:#eee;overflow:hidden;}
 .bar-fill{height:100%;border-radius:3px;transition:width .3s;}
 
-/* ── Rangos operadores ── */
-.rangos-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;}
-.rango-chip{background:var(--white);border-radius:10px;padding:.85rem 1rem;border:1px solid var(--border);box-shadow:0 2px 10px rgba(26,34,54,.05);display:flex;flex-direction:column;gap:.25rem;}
-.rango-chip-lbl{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);}
-.rango-chip-val{font-size:1.85rem;font-weight:700;line-height:1;letter-spacing:-.02em;}
-.rango-chip-sub{font-size:.65rem;color:var(--muted);}
-.rango-chip.highlight .rango-chip-val{color:#A32D2D;}
-.rango-chip.highlight{border-color:rgba(163,45,45,.2);}
-.rango-chip.good .rango-chip-val{color:#3B6D11;}
-.rango-chip.mid .rango-chip-val{color:#854F0B;}
-.rango-bar{height:4px;border-radius:2px;margin-top:.4rem;}
+/* ── Rangos de operadores — ahora gráfica ── */
+.rangos-chart-card{background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);padding:0;}
+.rangos-chart-wrap{position:relative;width:100%;height:300px;padding:.75rem 1rem;}
 
 /* ── Sem selector ── */
 .sem-selector{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
@@ -189,7 +185,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .ppto-stat-val.red{color:#A32D2D;}
 .ppto-stat-val.green{color:#3B6D11;}
 
-@media(max-width:900px){.rangos-grid{grid-template-columns:repeat(2,1fr);}.kpi-section{flex-wrap:wrap;}}
+@media(max-width:900px){.kpi-section{grid-template-columns:repeat(2,1fr);}.rangos-chart-wrap{height:220px;}}
 @media(max-width:768px){.layout{flex-direction:column;}.sidebar{width:100%;height:auto;position:relative;top:0;}.main{padding:.75rem;}}
 </style>
 </head>
@@ -262,6 +258,16 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       </div>
     </div>
 
+    <div class="fg">
+      <label>Carro / Unidad</label>
+      <div class="sc-wrap" id="sc-car">
+        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off" id="sc-car-input"
+          oninput="scFilter('car')" onfocus="scOpen('car')" onkeydown="scKey(event,'car')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-car-dd"></div>
+      </div>
+    </div>
+
     <button class="btn-reset" onclick="resetFilters()">↺ Limpiar filtros</button>
   </aside>
 
@@ -271,32 +277,33 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     <!-- Header row -->
     <div class="kpi-header-row">
       <span style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Kilómetros</span>
+      <div class="fecha-badge"><span class="fecha-badge-dot"></span><span id="fechaActualizacion">–</span></div>
     </div>
 
     <!-- KPI strip -->
     <div class="kpi-section">
       <!-- KM GPS Total -->
-      <div class="kpi-chip" style="background:#EAF3DE;border-color:#c4e09a;">
-        <div class="kpi-chip-lbl" style="color:#3B6D11;">Km GPS (Tlog)</div>
-        <div class="kpi-chip-val" style="color:#3B6D11;" id="kpiKmGps">–</div>
-        <div class="kpi-chip-sub" style="color:#5a9a25;" id="kpiKmGpsSub">km totales registrados</div>
+      <div class="kpi-chip">
+        <div class="kpi-chip-lbl">Km GPS (Tlog)</div>
+        <div class="kpi-chip-val" id="kpiKmGps">–</div>
+        <div class="kpi-chip-sub" id="kpiKmGpsSub">km totales registrados</div>
       </div>
       <!-- KM Bustrax -->
-      <div class="kpi-chip" style="background:#E6EAF3;border-color:#c5cee0;">
-        <div class="kpi-chip-lbl" style="color:#1A2236;">Km Bustrax (Facturados)</div>
-        <div class="kpi-chip-val" style="color:#1A2236;" id="kpiKmBus">–</div>
-        <div class="kpi-chip-sub" style="color:#6b7a99;" id="kpiKmBusSub">viajes facturados</div>
+      <div class="kpi-chip">
+        <div class="kpi-chip-lbl">Km Bustrax (Facturados)</div>
+        <div class="kpi-chip-val" id="kpiKmBus">–</div>
+        <div class="kpi-chip-sub" id="kpiKmBusSub">viajes facturados</div>
       </div>
       <!-- KM Ineficiente -->
-      <div class="kpi-chip" style="background:#FAEEDA;border-color:#f0c98a;">
-        <div class="kpi-chip-lbl" style="color:#854F0B;">Km Ineficientes</div>
-        <div class="kpi-chip-val" style="color:#854F0B;" id="kpiKmInef">–</div>
-        <div class="kpi-chip-sub" style="color:#a06614;" id="kpiKmInefSub">GPS no cobrado</div>
+      <div class="kpi-chip">
+        <div class="kpi-chip-lbl">Km Ineficientes</div>
+        <div class="kpi-chip-val" id="kpiKmInef" style="color:#f87171">–</div>
+        <div class="kpi-chip-sub" id="kpiKmInefSub">GPS no cobrado</div>
         <div class="kpi-chip-breakdown" id="kpiKmInefPct">–</div>
       </div>
       <!-- Km Marginal vs Permitido -->
-      <div class="kpi-chip" style="background:#f0f2f7;border-color:#dde3f0;" id="kpiPptoChip">
-        <div class="kpi-chip-lbl" style="color:var(--muted);">Km Marginal vs Permitido</div>
+      <div class="kpi-chip" id="kpiPptoChip">
+        <div class="kpi-chip-lbl">Km Marginal vs Permitido</div>
         <div class="kpi-chip-val" id="kpiDifVal">–</div>
         <div class="kpi-chip-sub" id="kpiDifSub">–</div>
         <div class="kpi-chip-breakdown" id="kpiDifPct">–</div>
@@ -316,56 +323,17 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       <span style="font-size:.67rem;color:var(--muted);">Meta: reducir operadores <b>+15 km</b></span>
     </div>
 
-    <div class="rangos-grid" id="rangosGrid">
-      <div class="rango-chip good">
-        <div class="rango-chip-lbl">&lt; 5 km</div>
-        <div class="rango-chip-val" id="r0">–</div>
-        <div class="rango-chip-sub">operadores</div>
-        <div class="rango-bar" style="background:#84cc16;width:0%" id="rb0"></div>
-      </div>
-      <div class="rango-chip mid">
-        <div class="rango-chip-lbl">5 – 10 km</div>
-        <div class="rango-chip-val" id="r1">–</div>
-        <div class="rango-chip-sub">operadores</div>
-        <div class="rango-bar" style="background:#f59e0b;width:0%" id="rb1"></div>
-      </div>
-      <div class="rango-chip mid">
-        <div class="rango-chip-lbl">10 – 15 km</div>
-        <div class="rango-chip-val" id="r2">–</div>
-        <div class="rango-chip-sub">operadores</div>
-        <div class="rango-bar" style="background:#f59e0b;width:0%" id="rb2"></div>
-      </div>
-      <div class="rango-chip highlight">
-        <div class="rango-chip-lbl">&gt; 15 km ⚠️</div>
-        <div class="rango-chip-val" id="r3">–</div>
-        <div class="rango-chip-sub">operadores · reducir</div>
-        <div class="rango-bar" style="background:#E24B4A;width:0%" id="rb3"></div>
-      </div>
-    </div>
-
-    <!-- Tabla rangos por semana -->
-    <div class="table-card" id="rangosTableCard">
+    <!-- Gráfica rangos operadores -->
+    <div class="rangos-chart-card table-card">
       <div class="table-hdr">
         <div>
-          <div class="table-hdr-title">Detalle por semana · rangos de operadores</div>
-          <div class="table-hdr-sub" id="rangosTblSub">Todas las semanas</div>
+          <div class="table-hdr-title">Distribución por rango de distancia</div>
+          <div class="table-hdr-sub">Operadores por semana · barra roja indica los que superan 15 km (reducir)</div>
         </div>
+        <span class="table-count" id="rangosTotal">–</span>
       </div>
-      <div style="overflow-x:auto">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Año</th>
-              <th class="r">Sem</th>
-              <th class="r">&lt; 5 km</th>
-              <th class="r">5–10 km</th>
-              <th class="r">10–15 km</th>
-              <th class="r">&gt; 15 km ⚠️</th>
-              <th class="r">Total</th>
-            </tr>
-          </thead>
-          <tbody id="rangosTbody"></tbody>
-        </table>
+      <div class="rangos-chart-wrap">
+        <canvas id="rangosChart"></canvas>
       </div>
     </div>
 
@@ -416,6 +384,13 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       <div class="section-divider-line"></div>
     </div>
 
+    <!-- ══════ Km por día ══════ -->
+    <div class="section-divider">
+      <div class="section-divider-title">Km por Día</div>
+      <div class="section-divider-sub">Km Servicio + Km Ineficiente · línea roja = meta diaria</div>
+      <div class="section-divider-line"></div>
+    </div>
+
     <div class="table-card">
       <div class="table-hdr">
         <div>
@@ -424,7 +399,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
       </div>
       <div style="padding:.75rem 1rem;">
-        <div class="chart-wrap">
+        <div class="chart-wrap" style="height:300px;">
           <canvas id="kmDiaChart"></canvas>
         </div>
       </div>
@@ -433,7 +408,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     <!-- ══════ Km por cliente ══════ -->
     <div class="section-divider">
       <div class="section-divider-title">Km por Cliente</div>
-      <div class="section-divider-sub">GPS vs Bustrax · ineficiencia por cuenta · clic para ver unidades</div>
+      <div class="section-divider-sub">GPS vs Bustrax · ineficiencia por cuenta · clic en fila para ver unidades</div>
       <div class="section-divider-line"></div>
     </div>
 
@@ -454,10 +429,41 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
               <th class="r" onclick="sortClientes('kmBus')">Km Bustrax <span class="sort-arrow" id="sa-kmBus"></span></th>
               <th class="r" onclick="sortClientes('kmInef')">Km Inef. <span class="sort-arrow" id="sa-kmInef"></span></th>
               <th class="r" onclick="sortClientes('pct')">% Inef. <span class="sort-arrow" id="sa-pct"></span></th>
-              <th>Semáforo</th>
             </tr>
           </thead>
           <tbody id="clientesTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════ Km por Carro ══════ -->
+    <div class="section-divider">
+      <div class="section-divider-title">Km por Carro</div>
+      <div class="section-divider-sub">GPS vs Bustrax · ineficiencia por unidad vehicular</div>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-hdr">
+        <div>
+          <div class="table-hdr-title">Resumen por unidad</div>
+          <div class="table-hdr-sub">Clic en encabezado para ordenar</div>
+        </div>
+        <span class="table-count" id="cntCarros">–</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table sortable" id="carrosTable">
+          <thead>
+            <tr>
+              <th onclick="sortCarros('vehicleId')">Vehicle ID <span class="sort-arrow" id="sc-vehicleId"></span></th>
+              <th onclick="sortCarros('cliente')">Cliente <span class="sort-arrow" id="sc-cliCar"></span></th>
+              <th class="r" onclick="sortCarros('kmTotal')">Km GPS <span class="sort-arrow" id="sc-kmTotalCar"></span></th>
+              <th class="r" onclick="sortCarros('kmBus')">Km Bustrax <span class="sort-arrow" id="sc-kmBusCar"></span></th>
+              <th class="r" onclick="sortCarros('kmInef')">Km Inef. <span class="sort-arrow" id="sc-kmInefCar"></span></th>
+              <th class="r" onclick="sortCarros('pct')">% Inef. <span class="sort-arrow" id="sc-pctCar"></span></th>
+            </tr>
+          </thead>
+          <tbody id="carrosTbody"></tbody>
         </table>
       </div>
     </div>
@@ -529,14 +535,16 @@ let DATA_DIA = [];      // filas por día (cols T-X)
 let DATA_RANGOS = [];   // filas rangos op. (cols AC-AH)
 let KM_PERMITIDO = 0;   // valor de AA7 aprox
 
-let SC_KEYS = ['ger','jef','cli'];
-let SC_SEL  = {ger:'', jef:'', cli:''};
-let SC_VALS = {ger:[], jef:[], cli:[]};
-let SC_FOCUS= {ger:-1, jef:-1, cli:-1};
+let SC_KEYS = ['ger','jef','cli','car'];
+let SC_SEL  = {ger:'', jef:'', cli:'', car:''};
+let SC_VALS = {ger:[], jef:[], cli:[], car:[]};
+let SC_FOCUS= {ger:-1, jef:-1, cli:-1, car:-1};
 
 let CLI_SORT = {col:'pct', dir:'desc'};
+let CAR_SORT = {col:'pct', dir:'desc'};
 let SEM_ACTIVE = null;
 let kmDiaChart = null;
+let rangosChart = null;
 
 // ══════════════════════════════════════════
 //  UTILS
@@ -645,6 +653,8 @@ function cascadeFilters(){
   SC_VALS.jef=uniq(baseGer.map(r=>(r[C.jefe_u]||'').trim()).filter(v=>v&&v!=='SIN ASIGNACION'));
   const baseJef=SC_SEL.jef?baseGer.filter(r=>(r[C.jefe_u]||'').trim()===SC_SEL.jef):baseGer;
   SC_VALS.cli=uniq(baseJef.map(r=>(r[C.cliente_u]||'').trim()).filter(v=>v&&v!=='SIN ASIGNACION'));
+  const baseCli=SC_SEL.cli?baseJef.filter(r=>(r[C.cliente_u]||'').trim()===SC_SEL.cli):baseJef;
+  SC_VALS.car=uniq(baseCli.map(r=>(r[C.vehicleId]||'').trim()).filter(v=>v&&v!=='-'));
 }
 
 function filteredUnidades(){
@@ -652,6 +662,7 @@ function filteredUnidades(){
     if(SC_SEL.ger&&(r[C.gerente_u]||'').trim()!==SC_SEL.ger)return false;
     if(SC_SEL.jef&&(r[C.jefe_u]||'').trim()!==SC_SEL.jef)return false;
     if(SC_SEL.cli&&(r[C.cliente_u]||'').trim()!==SC_SEL.cli)return false;
+    if(SC_SEL.car&&(r[C.vehicleId]||'').trim()!==SC_SEL.car)return false;
     return true;
   });
 }
@@ -859,6 +870,7 @@ function draw(){
   drawPpto(fRows);
   drawDia();
   drawClientes(fCli);
+  drawCarros(fRows);
   updateSidebar(fRows);
 }
 
@@ -909,27 +921,23 @@ function drawKPIs(rows, cliRows){
   if(KM_PERMITIDO>0){
     const pctM=(kmMargAbs/KM_PERMITIDO*100).toFixed(1);
     const over=kmMargAbs>KM_PERMITIDO;
-    valEl.style.color=over?'#A32D2D':'#3B6D11';
+    valEl.style.color=over?'#f87171':'#84cc16';
     subEl.textContent=(over?'⚠️ Excede':'✅ Dentro de')+' km permitido';
-    subEl.style.color=over?'#A32D2D':'#3B6D11';
+    subEl.style.color='';
     pctEl.textContent=pctM+'% del permitido · Meta: '+fmtN(KM_PERMITIDO)+' km';
-    chip.style.background=over?'#FCEBEB':'#EAF3DE';
-    chip.style.borderColor=over?'rgba(163,45,45,.2)':'#c4e09a';
   } else {
     subEl.textContent='km ineficientes acumulados';
     pctEl.textContent='Configure km permitido en hoja';
-    valEl.style.color='var(--text)';
+    valEl.style.color='#84cc16';
   }
 }
 
 // ══════════════════════════════════════════
-//  RANGOS DE OPERADORES
+//  RANGOS DE OPERADORES — Gráfica apilada
 // ══════════════════════════════════════════
 function drawRangos(){
-  // Construir lista de semanas únicas
   const sems=[...new Map(DATA_RANGOS.map(r=>[r.anio+'_'+r.sem, r])).values()].sort((a,b)=>a.anio!==b.anio?a.anio-b.anio:a.sem-b.sem);
 
-  // Si no hay semana activa, tomar la última
   if(SEM_ACTIVE===null&&sems.length>0){
     SEM_ACTIVE=sems[sems.length-1].anio+'_'+sems[sems.length-1].sem;
   }
@@ -941,41 +949,53 @@ function drawRangos(){
     return`<button class="sem-btn${SEM_ACTIVE===key?' active':''}" onclick="setSem('${key}')">${s.anio} S${s.sem}</button>`;
   }).join('');
 
-  // Datos de la semana activa
-  const row=DATA_RANGOS.find(r=>r.anio+'_'+r.sem===SEM_ACTIVE);
-  const r0=row?.r0||0, r1=row?.r1||0, r2=row?.r2||0, r3=row?.r3||0;
-  const total=r0+r1+r2+r3||1;
+  if(!sems.length)return;
 
-  document.getElementById('r0').textContent=r0||'–';
-  document.getElementById('r1').textContent=r1||'–';
-  document.getElementById('r2').textContent=r2||'–';
-  document.getElementById('r3').textContent=r3||'–';
+  // Preparar datos para la gráfica: todas las semanas
+  const labels=sems.map(s=>`S${s.sem}`);
+  const d0=sems.map(s=>(DATA_RANGOS.find(r=>r.anio+'_'+r.sem===s.anio+'_'+s.sem)||{r0:0}).r0);
+  const d1=sems.map(s=>(DATA_RANGOS.find(r=>r.anio+'_'+r.sem===s.anio+'_'+s.sem)||{r1:0}).r1);
+  const d2=sems.map(s=>(DATA_RANGOS.find(r=>r.anio+'_'+r.sem===s.anio+'_'+s.sem)||{r2:0}).r2);
+  const d3=sems.map(s=>(DATA_RANGOS.find(r=>r.anio+'_'+r.sem===s.anio+'_'+s.sem)||{r3:0}).r3);
 
-  // Barras proporcionales
-  ['rb0','rb1','rb2','rb3'].forEach((id,i)=>{
-    const v=[r0,r1,r2,r3][i];
-    const el=document.getElementById(id);
-    if(el)el.style.width=(v/total*100).toFixed(1)+'%';
+  // Total para el badge
+  const activeRow=DATA_RANGOS.find(r=>r.anio+'_'+r.sem===SEM_ACTIVE);
+  if(activeRow){
+    const tot=activeRow.r0+activeRow.r1+activeRow.r2+activeRow.r3;
+    const el=document.getElementById('rangosTotal');
+    if(el)el.textContent=tot+' operadores';
+  }
+
+  const ctx=document.getElementById('rangosChart');
+  if(!ctx)return;
+  if(rangosChart)rangosChart.destroy();
+
+  rangosChart=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'< 5 km',data:d0,backgroundColor:'rgba(132,204,22,.75)',stack:'op',borderRadius:2},
+        {label:'5–10 km',data:d1,backgroundColor:'rgba(251,191,36,.75)',stack:'op',borderRadius:2},
+        {label:'10–15 km',data:d2,backgroundColor:'rgba(249,115,22,.75)',stack:'op',borderRadius:2},
+        {label:'> 15 km ⚠️',data:d3,backgroundColor:'rgba(226,75,74,.85)',stack:'op',borderRadius:2},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{font:{size:11},boxWidth:10,color:'#1a2236'}},
+        tooltip:{callbacks:{
+          label:ctx=>`${ctx.dataset.label}: ${ctx.raw} operadores`
+        }},
+        annotation:{} // placeholder
+      },
+      scales:{
+        x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},
+        y:{stacked:true,grid:{color:'#eee'},ticks:{font:{size:10},stepSize:1}}
+      }
+    }
   });
-
-  document.getElementById('rangosTblSub').textContent=row?`Semana ${row.sem} · ${row.anio}`:'Todas las semanas';
-
-  // Tabla de todas las semanas
-  const tbody=document.getElementById('rangosTbody');
-  tbody.innerHTML=sems.map(s=>{
-    const sr=DATA_RANGOS.find(r=>r.anio+'_'+r.sem===s.anio+'_'+s.sem)||{r0:0,r1:0,r2:0,r3:0};
-    const tot=sr.r0+sr.r1+sr.r2+sr.r3;
-    const isAct=s.anio+'_'+s.sem===SEM_ACTIVE;
-    return`<tr style="${isAct?'background:#f7fbef;font-weight:600':''}" onclick="setSem('${s.anio+'_'+s.sem}')" style="cursor:pointer">
-      <td>${s.anio}</td>
-      <td class="r">${s.sem}</td>
-      <td class="r" style="color:#3B6D11">${sr.r0||'–'}</td>
-      <td class="r" style="color:#854F0B">${sr.r1||'–'}</td>
-      <td class="r" style="color:#854F0B">${sr.r2||'–'}</td>
-      <td class="r" style="color:#A32D2D;font-weight:700">${sr.r3||'–'}</td>
-      <td class="r">${tot||'–'}</td>
-    </tr>`;
-  }).join('')||'<tr><td colspan="7" class="no-data">Sin datos de rangos</td></tr>';
 }
 
 function setSem(key){
@@ -1033,19 +1053,22 @@ function drawDia(){
     data:{
       labels,
       datasets:[
-        {label:'Km Servicio',data:servData,backgroundColor:'rgba(126,211,33,.65)',stack:'km',borderRadius:2},
-        {label:'Km Ineficiente',data:inefData,backgroundColor:'rgba(240,165,60,.7)',stack:'km',borderRadius:2},
-        ...(metaDia?[{label:'Meta diaria',data:metaLine,type:'line',borderColor:'#E24B4A',borderDash:[5,3],borderWidth:1.5,pointRadius:0,tension:0}]:[]),
+        {label:'Km Servicio',data:servData,backgroundColor:'rgba(132,204,22,.7)',stack:'km',borderRadius:3},
+        {label:'Km Ineficiente',data:inefData,backgroundColor:'rgba(249,115,22,.75)',stack:'km',borderRadius:3},
+        ...(metaDia?[{label:'Meta diaria',data:metaLine,type:'line',borderColor:'#E24B4A',borderDash:[5,3],borderWidth:2,pointRadius:0,tension:0}]:[]),
       ]
     },
     options:{
       responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{labels:{font:{size:11},boxWidth:10}},tooltip:{callbacks:{
-        label:ctx=>`${ctx.dataset.label}: ${Math.round(ctx.raw).toLocaleString('es-MX')} km`
-      }}},
+      plugins:{
+        legend:{labels:{font:{size:11},boxWidth:10}},
+        tooltip:{callbacks:{
+          label:ctx=>`${ctx.dataset.label}: ${Math.round(ctx.raw).toLocaleString('es-MX')} km`
+        }}
+      },
       scales:{
-        x:{grid:{display:false},ticks:{font:{size:10},maxRotation:0}},
-        y:{grid:{color:'#eee'},ticks:{font:{size:10},callback:v=>Math.round(v/1000)+'k'}}
+        x:{stacked:true,grid:{display:false},ticks:{font:{size:10},maxRotation:0}},
+        y:{stacked:true,grid:{color:'#eee'},ticks:{font:{size:10},callback:v=>Math.round(v/1000)+'k'}}
       }
     }
   });
@@ -1079,8 +1102,6 @@ function drawClientes(rows){
   if(!sorted.length){tbody.innerHTML='<tr><td colspan="6" class="no-data">Sin datos</td></tr>';return;}
 
   tbody.innerHTML=sorted.map(c=>{
-    const cfg=inefColor(c.pct);
-    const barW=Math.min(c.pct,100).toFixed(1);
     const pilCls=c.pct<=15?'green':c.pct<=35?'amber':'red';
     return`<tr style="cursor:pointer" onclick="openClienteModal(${JSON.stringify(c.cliente).replace(/</g,'&lt;')})">
       <td style="font-weight:600">${c.cliente}</td>
@@ -1089,11 +1110,6 @@ function drawClientes(rows){
       <td class="r">${fmtN(Math.abs(c.kmInef))}</td>
       <td class="r">
         <span class="pill ${pilCls}">${c.pct.toFixed(1)}%</span>
-      </td>
-      <td>
-        <div class="bar-track bar-cell">
-          <div class="bar-fill" style="width:${barW}%;background:${cfg.col}"></div>
-        </div>
       </td>
     </tr>`;
   }).join('');
@@ -1139,6 +1155,54 @@ function openClienteModal(clienteNombre){
   document.getElementById('unitModal').classList.add('open');
 }
 
+// ══════════════════════════════════════════
+//  TABLA POR CARRO
+// ══════════════════════════════════════════
+function sortCarros(col){
+  if(CAR_SORT.col===col)CAR_SORT.dir=CAR_SORT.dir==='asc'?'desc':'asc';
+  else{CAR_SORT.col=col;CAR_SORT.dir='desc';}
+  drawCarros(filteredUnidades());
+}
+
+function drawCarros(rows){
+  const cols=['vehicleId','cliCar','kmTotalCar','kmBusCar','kmInefCar','pctCar'];
+  cols.forEach(c=>{
+    const el=document.getElementById('sc-'+c);
+    if(el)el.className='sort-arrow'+(CAR_SORT.col===c?' active '+CAR_SORT.dir:'');
+  });
+
+  const sorted=[...rows].sort((a,b)=>{
+    let av,bv;
+    switch(CAR_SORT.col){
+      case 'vehicleId': av=a[C.vehicleId]||''; bv=b[C.vehicleId]||''; return CAR_SORT.dir==='asc'?av.localeCompare(bv,'es'):bv.localeCompare(av,'es');
+      case 'cliente': av=a[C.cliente_u]||''; bv=b[C.cliente_u]||''; return CAR_SORT.dir==='asc'?av.localeCompare(bv,'es'):bv.localeCompare(av,'es');
+      case 'kmTotal': av=numVal(a[C.kmTotal_u]); bv=numVal(b[C.kmTotal_u]); break;
+      case 'kmBus':   av=numVal(a[C.bustrax_u]); bv=numVal(b[C.bustrax_u]); break;
+      case 'kmInef':  av=Math.abs(numVal(a[C.kmInef_u])); bv=Math.abs(numVal(b[C.kmInef_u])); break;
+      case 'pct':     av=numVal(a[C.pct_u]); bv=numVal(b[C.pct_u]); break;
+      default:        av=0; bv=0;
+    }
+    return CAR_SORT.dir==='asc'?av-bv:bv-av;
+  });
+
+  document.getElementById('cntCarros').textContent=sorted.length+' unidades';
+  const tbody=document.getElementById('carrosTbody');
+  if(!sorted.length){tbody.innerHTML='<tr><td colspan="6" class="no-data">Sin datos</td></tr>';return;}
+
+  tbody.innerHTML=sorted.map(u=>{
+    const pct=numVal(u[C.pct_u]);
+    const pilCls=pct<=15?'green':pct<=35?'amber':'red';
+    return`<tr>
+      <td style="font-weight:600">${u[C.vehicleId]||'–'}</td>
+      <td>${u[C.cliente_u]||'–'}</td>
+      <td class="r">${fmtN(numVal(u[C.kmTotal_u]))}</td>
+      <td class="r">${fmtN(numVal(u[C.bustrax_u]))}</td>
+      <td class="r">${fmtN(Math.abs(numVal(u[C.kmInef_u])))}</td>
+      <td class="r"><span class="pill ${pilCls}">${u[C.pct_u]||'–'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
 function closeModal(){document.getElementById('unitModal').classList.remove('open');}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 
@@ -1156,6 +1220,14 @@ document.addEventListener('click',e=>{if(!e.target.closest('.dropdown'))document
 //  INIT
 // ══════════════════════════════════════════
 window.addEventListener('DOMContentLoaded',async()=>{
+  // Fecha de última actualización = hoy
+  const hoy=new Date();
+  const fechaEl=document.getElementById('fechaActualizacion');
+  if(fechaEl){
+    const dias=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+    const meses=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    fechaEl.textContent=`Actualizado: ${dias[hoy.getDay()]} ${hoy.getDate()} ${meses[hoy.getMonth()]} ${hoy.getFullYear()}`;
+  }
   const ov=document.getElementById('loadingOverlay');
   try{
     const res=await fetch(csvUrl(SHEET_KM));
