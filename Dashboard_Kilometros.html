@@ -820,20 +820,7 @@ function draw(){
 }
 
 function updateSidebar(rows){
-  const kmInef=rows.reduce((s,r)=>s+numVal(r[C.kmInef_u]),0);
-  const el=document.getElementById('sbKmMarginal');
-  const elP=document.getElementById('sbKmPermitido');
-  const elPct=document.getElementById('sbKmPct');
-  if(el)el.textContent=fmtN(Math.abs(kmInef));
-  if(elP)elP.textContent='Permitido: '+fmtN(KM_PERMITIDO);
-  if(elPct){
-    if(KM_PERMITIDO>0){
-      const pct=(Math.abs(kmInef)/KM_PERMITIDO*100).toFixed(1);
-      const over=Math.abs(kmInef)>KM_PERMITIDO;
-      elPct.textContent=(over?'⚠️ ':'')+pct+'% del permitido';
-      elPct.className='sb-km-pct '+(over?'over':'under');
-    } else {elPct.textContent='–';}
-  }
+  // Sidebar card eliminado — no-op
 }
 
 // ══════════════════════════════════════════
@@ -878,38 +865,31 @@ function drawKPIs(rows, cliRows){
 }
 
 // ══════════════════════════════════════════
-//  RANGOS DE OPERADORES — Gráfica apilada
+//  RANGOS DE OPERADORES — Gráfica de líneas
 // ══════════════════════════════════════════
 function drawRangos(){
-  const sems=[...new Map(DATA_RANGOS.map(r=>[r.anio+'_'+r.sem, r])).values()].sort((a,b)=>a.anio!==b.anio?a.anio-b.anio:a.sem-b.sem);
+  // Solo semanas con al menos un dato real
+  const sems=[...new Map(DATA_RANGOS.map(r=>[r.anio+'_'+r.sem, r])).values()]
+    .filter(r=>(r.r0+r.r1+r.r2+r.r3)>0)
+    .sort((a,b)=>a.anio!==b.anio?a.anio-b.anio:a.sem-b.sem);
 
-  if(SEM_ACTIVE===null&&sems.length>0){
-    SEM_ACTIVE=sems[sems.length-1].anio+'_'+sems[sems.length-1].sem;
-  }
-
-  // Render botones semana
+  // Ocultar selector de semana (ya no se usa con la gráfica de líneas)
   const sel=document.getElementById('semSelector');
-  sel.innerHTML=sems.map(s=>{
-    const key=s.anio+'_'+s.sem;
-    return`<button class="sem-btn${SEM_ACTIVE===key?' active':''}" onclick="setSem('${key}')">${s.anio} S${s.sem}</button>`;
-  }).join('');
+  if(sel)sel.style.display='none';
 
   if(!sems.length)return;
 
-  // Preparar datos para la gráfica: todas las semanas
+  // Labels: solo "S8", "S9"... sin el año adelante
   const labels=sems.map(s=>`S${s.sem}`);
-  const d0=sems.map(s=>(DATA_RANGOS.find(r=>r.anio+'_'+r.sem===s.anio+'_'+s.sem)||{r0:0}).r0);
-  const d1=sems.map(s=>(DATA_RANGOS.find(r=>r.anio+'_'+r.sem===s.anio+'_'+s.sem)||{r1:0}).r1);
-  const d2=sems.map(s=>(DATA_RANGOS.find(r=>r.anio+'_'+r.sem===s.anio+'_'+s.sem)||{r2:0}).r2);
-  const d3=sems.map(s=>(DATA_RANGOS.find(r=>r.anio+'_'+r.sem===s.anio+'_'+s.sem)||{r3:0}).r3);
+  const d0=sems.map(s=>s.r0||0);
+  const d1=sems.map(s=>s.r1||0);
+  const d2=sems.map(s=>s.r2||0);
+  const d3=sems.map(s=>s.r3||0);
 
-  // Total para el badge
-  const activeRow=DATA_RANGOS.find(r=>r.anio+'_'+r.sem===SEM_ACTIVE);
-  if(activeRow){
-    const tot=activeRow.r0+activeRow.r1+activeRow.r2+activeRow.r3;
-    const el=document.getElementById('rangosTotal');
-    if(el)el.textContent=tot+' operadores';
-  }
+  // Total de la última semana
+  const last=sems[sems.length-1];
+  const el=document.getElementById('rangosTotal');
+  if(el)el.textContent=(last.r0+last.r1+last.r2+last.r3)+' operadores S'+last.sem;
 
   const ctx=document.getElementById('rangosChart');
   if(!ctx)return;
@@ -923,16 +903,14 @@ function drawRangos(){
         {label:'< 5 km',data:d0,borderColor:'#84cc16',backgroundColor:'rgba(132,204,22,.1)',tension:.3,pointRadius:4,pointHoverRadius:6,fill:false,borderWidth:2},
         {label:'5–10 km',data:d1,borderColor:'#fbbf24',backgroundColor:'rgba(251,191,36,.1)',tension:.3,pointRadius:4,pointHoverRadius:6,fill:false,borderWidth:2},
         {label:'10–15 km',data:d2,borderColor:'#f97316',backgroundColor:'rgba(249,115,22,.1)',tension:.3,pointRadius:4,pointHoverRadius:6,fill:false,borderWidth:2},
-        {label:'> 15 km ⚠️',data:d3,borderColor:'#E24B4A',backgroundColor:'rgba(226,75,74,.1)',tension:.3,pointRadius:5,pointHoverRadius:7,fill:false,borderWidth:2.5,borderDash:[]},
+        {label:'> 15 km ⚠️',data:d3,borderColor:'#E24B4A',backgroundColor:'rgba(226,75,74,.1)',tension:.3,pointRadius:5,pointHoverRadius:7,fill:false,borderWidth:2.5},
       ]
     },
     options:{
       responsive:true,maintainAspectRatio:false,
       plugins:{
         legend:{labels:{font:{size:11},boxWidth:12,color:'#1a2236',usePointStyle:true}},
-        tooltip:{callbacks:{
-          label:ctx=>`${ctx.dataset.label}: ${ctx.raw} operadores`
-        }}
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw} operadores`}}
       },
       scales:{
         x:{grid:{color:'#eee'},ticks:{font:{size:10}},title:{display:true,text:'Semana',font:{size:10},color:'#6b7a99'}},
@@ -942,77 +920,50 @@ function drawRangos(){
   });
 }
 
-function setSem(key){
-  SEM_ACTIVE=key;
-  drawRangos();
-}
+function setSem(key){SEM_ACTIVE=key;drawRangos();}
 
 // ══════════════════════════════════════════
-//  AVANCE VS PRESUPUESTO
+//  AVANCE VS PRESUPUESTO — eliminado
 // ══════════════════════════════════════════
 function drawPpto(rows){
-  const kmInef=rows.reduce((s,r)=>s+numVal(r[C.kmInef_u]),0);
-  const kmMarg=Math.abs(kmInef);
-  const perm=KM_PERMITIDO;
-
-  document.getElementById('pptoReal').textContent=fmtN(kmMarg);
-  document.getElementById('pptoPermitido').textContent=perm>0?fmtN(perm):'–';
-
-  if(perm>0){
-    const dif=perm-kmMarg;
-    const pct=Math.min(kmMarg/perm*100,120);
-    const over=kmMarg>perm;
-    const fill=document.getElementById('pptoFill');
-    fill.style.width=Math.min(pct,100)+'%';
-    fill.className='ppto-fill'+(over?' over':'');
-    document.getElementById('pptoDif').textContent=(dif>=0?'+':'')+fmtN(dif);
-    document.getElementById('pptoDif').className='ppto-stat-val '+(dif>=0?'green':'red');
-    document.getElementById('pptoAvance').textContent=pct.toFixed(1)+'%';
-    document.getElementById('pptoAvance').className='ppto-stat-val '+(over?'red':'green');
-    document.getElementById('pptoMeta').textContent=over?'⚠️ Excede km permitido':'✅ Dentro del permitido';
-    document.getElementById('pptoLabelMax').textContent='Meta: '+fmtN(perm);
-    document.getElementById('pptoLabelMid').textContent=fmtN(perm/2);
-  } else {
-    document.getElementById('pptoMeta').textContent='Configure km permitido en columna AA de la hoja';
-  }
+  // Sección eliminada del dashboard
 }
 
 // ══════════════════════════════════════════
 //  KM POR DÍA — Chart.js
 // ══════════════════════════════════════════
 function drawDia(){
-  const dias=DATA_DIA.filter(d=>d.dia>0&&(d.kmServ>0||d.kmInef>0));
-  if(!dias.length)return;
+  const dias=DATA_DIA.filter(d=>d.dia>0&&(d.kmServ>0||d.kmInef>0||d.kmTotal>0));
+  const canvasEl=document.getElementById('kmDiaChart');
+  if(!canvasEl)return;
+  if(!dias.length){canvasEl.parentElement.innerHTML='<div class="no-data" style="padding:2rem;text-align:center;color:#6b7a99">Sin datos de km por día</div>';return;}
 
   const labels=dias.map(d=>'Día '+d.dia);
-  const servData=dias.map(d=>d.kmServ||d.kmTotal);
+  const servData=dias.map(d=>d.kmServ>0?d.kmServ:d.kmTotal);
   const inefData=dias.map(d=>Math.abs(d.kmInef));
-  const metaDia=KM_PERMITIDO>0?KM_PERMITIDO/31:null;
-  const metaLine=dias.map(()=>metaDia);
+  const metaDia=KM_PERMITIDO>0?KM_PERMITIDO/dias.length:null;
 
-  const ctx=document.getElementById('kmDiaChart').getContext('2d');
+  const ctx=canvasEl.getContext('2d');
   if(kmDiaChart)kmDiaChart.destroy();
+  const datasets=[
+    {type:'bar',label:'Km Servicio',data:servData,backgroundColor:'rgba(132,204,22,.7)',stack:'km',borderRadius:3,order:2},
+    {type:'bar',label:'Km Ineficiente',data:inefData,backgroundColor:'rgba(249,115,22,.75)',stack:'km',borderRadius:3,order:2},
+  ];
+  if(metaDia){
+    datasets.push({type:'line',label:'Meta diaria',data:dias.map(()=>metaDia),borderColor:'#E24B4A',borderDash:[5,3],borderWidth:2,pointRadius:0,tension:0,order:1});
+  }
   kmDiaChart=new Chart(ctx,{
     type:'bar',
-    data:{
-      labels,
-      datasets:[
-        {label:'Km Servicio',data:servData,backgroundColor:'rgba(132,204,22,.7)',stack:'km',borderRadius:3},
-        {label:'Km Ineficiente',data:inefData,backgroundColor:'rgba(249,115,22,.75)',stack:'km',borderRadius:3},
-        ...(metaDia?[{label:'Meta diaria',data:metaLine,type:'line',borderColor:'#E24B4A',borderDash:[5,3],borderWidth:2,pointRadius:0,tension:0}]:[]),
-      ]
-    },
+    data:{labels,datasets},
     options:{
       responsive:true,maintainAspectRatio:false,
       plugins:{
         legend:{labels:{font:{size:11},boxWidth:10}},
-        tooltip:{callbacks:{
-          label:ctx=>`${ctx.dataset.label}: ${Math.round(ctx.raw).toLocaleString('es-MX')} km`
-        }}
+        tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${Math.round(ctx.raw).toLocaleString('es-MX')} km`}}
       },
       scales:{
-        x:{stacked:true,grid:{display:false},ticks:{font:{size:10},maxRotation:0}},
-        y:{stacked:true,grid:{color:'#eee'},ticks:{font:{size:10},callback:v=>Math.round(v/1000)+'k'}}
+        x:{stacked:true,grid:{display:false},ticks:{font:{size:10},maxRotation:45}},
+        y:{stacked:true,grid:{color:'#eee'},ticks:{font:{size:10},callback:v=>Math.round(v/1000)+'k'},beginAtZero:true}
       }
     }
   });
