@@ -60,7 +60,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .btn-reset:hover{border-color:var(--red);color:var(--red);}
 
 /* ── Main ── */
-.main{flex:1;padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0;}
+.main{flex:1;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.75rem;min-width:0;}
 
 /* ── Loading ── */
 .loading-overlay{position:fixed;inset:0;z-index:999;background:#f0f2f7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;transition:opacity .4s;}
@@ -108,16 +108,19 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .table-count{font-size:.7rem;color:var(--muted);background:var(--bg);border-radius:20px;padding:.2rem .65rem;}
 
 /* ── Data tables ── */
-.data-table{width:100%;border-collapse:collapse;}
-.data-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:.42rem .75rem;text-align:left;}
+.data-table{width:100%;border-collapse:collapse;min-width:500px;}
+.data-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:.42rem .75rem;text-align:left;white-space:nowrap;}
 .data-table thead th.r{text-align:right;}
 .data-table.sortable thead th{cursor:pointer;user-select:none;}
 .data-table.sortable thead th:hover{background:#2d3a52;}
 .data-table tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
 .data-table tbody tr:last-child{border-bottom:none;}
 .data-table tbody tr:hover td{background:#f7f9ff;}
-.data-table tbody td{padding:.52rem .75rem;font-size:.77rem;color:var(--text);vertical-align:middle;}
+.data-table tbody td{padding:.45rem .75rem;font-size:.77rem;color:var(--text);vertical-align:middle;white-space:nowrap;}
 .data-table tbody td.r{text-align:right;font-variant-numeric:tabular-nums;}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.val-pos{color:#3B6D11;font-weight:600;}
+.val-neg{color:#A32D2D;font-weight:600;}
 .sort-arrow{font-size:.52rem;margin-left:3px;opacity:.4;display:inline-block;}
 .sort-arrow.asc::after{content:'↑';}
 .sort-arrow.desc::after{content:'↓';}
@@ -305,14 +308,8 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     <!-- ══════ Rangos de operadores (primero) ══════ -->
     <div class="section-divider">
       <div class="section-divider-title">Rangos de Operadores</div>
-      <div class="section-divider-sub">Distancia domicilio → punto de inicio de ruta</div>
+      <div class="section-divider-sub">Distancia domicilio → punto de inicio · meta: reducir operadores +15 km</div>
       <div class="section-divider-line"></div>
-    </div>
-
-    <!-- Selector semana -->
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;">
-      <div class="sem-selector" id="semSelector"></div>
-      <span style="font-size:.67rem;color:var(--muted);">Meta: reducir operadores <b>+15 km</b></span>
     </div>
 
     <!-- Gráfica rangos operadores -->
@@ -365,7 +362,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
         <span class="table-count" id="cntClientes">–</span>
       </div>
-      <div style="overflow-x:auto">
+      <div class="table-scroll">
         <table class="data-table sortable" id="clientesTable">
           <thead>
             <tr>
@@ -396,7 +393,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
         </div>
         <span class="table-count" id="cntCarros">–</span>
       </div>
-      <div style="overflow-x:auto">
+      <div class="table-scroll">
         <table class="data-table sortable" id="carrosTable">
           <thead>
             <tr>
@@ -930,40 +927,62 @@ function drawPpto(rows){
 }
 
 // ══════════════════════════════════════════
-//  KM POR DÍA — Chart.js
+//  KM POR DÍA — Chart.js (solo Km Total + meta)
 // ══════════════════════════════════════════
 function drawDia(){
-  const dias=DATA_DIA.filter(d=>d.dia>0&&(d.kmServ>0||d.kmInef>0||d.kmTotal>0));
+  const dias=DATA_DIA.filter(d=>d.dia>0&&(d.kmServ>0||d.kmTotal>0));
   const canvasEl=document.getElementById('kmDiaChart');
   if(!canvasEl)return;
-  if(!dias.length){canvasEl.parentElement.innerHTML='<div class="no-data" style="padding:2rem;text-align:center;color:#6b7a99">Sin datos de km por día</div>';return;}
+  if(!dias.length){
+    canvasEl.parentElement.innerHTML='<div style="padding:2rem;text-align:center;color:#6b7a99;font-size:.8rem">Sin datos de km por día</div>';
+    return;
+  }
 
   const labels=dias.map(d=>'Día '+d.dia);
-  const servData=dias.map(d=>d.kmServ>0?d.kmServ:d.kmTotal);
-  const inefData=dias.map(d=>Math.abs(d.kmInef));
+  const totalData=dias.map(d=>d.kmServ>0?d.kmServ:d.kmTotal);
   const metaDia=KM_PERMITIDO>0?KM_PERMITIDO/dias.length:null;
 
   const ctx=canvasEl.getContext('2d');
   if(kmDiaChart)kmDiaChart.destroy();
+
   const datasets=[
-    {type:'bar',label:'Km Servicio',data:servData,backgroundColor:'rgba(132,204,22,.7)',stack:'km',borderRadius:3,order:2},
-    {type:'bar',label:'Km Ineficiente',data:inefData,backgroundColor:'rgba(249,115,22,.75)',stack:'km',borderRadius:3,order:2},
+    {
+      label:'Km Traffilog',
+      data:totalData,
+      borderColor:'#84cc16',
+      backgroundColor:'rgba(132,204,22,.12)',
+      borderWidth:2.5,
+      pointRadius:3,
+      pointHoverRadius:5,
+      tension:.35,
+      fill:true,
+    }
   ];
   if(metaDia){
-    datasets.push({type:'line',label:'Meta diaria',data:dias.map(()=>metaDia),borderColor:'#E24B4A',borderDash:[5,3],borderWidth:2,pointRadius:0,tension:0,order:1});
+    datasets.push({
+      label:'Km Permitido (meta)',
+      data:dias.map(()=>metaDia),
+      borderColor:'#E24B4A',
+      borderDash:[6,4],
+      borderWidth:2,
+      pointRadius:0,
+      tension:0,
+      fill:false,
+    });
   }
+
   kmDiaChart=new Chart(ctx,{
-    type:'bar',
+    type:'line',
     data:{labels,datasets},
     options:{
       responsive:true,maintainAspectRatio:false,
       plugins:{
-        legend:{labels:{font:{size:11},boxWidth:10}},
+        legend:{labels:{font:{size:11},boxWidth:12,usePointStyle:true}},
         tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${Math.round(ctx.raw).toLocaleString('es-MX')} km`}}
       },
       scales:{
-        x:{stacked:true,grid:{display:false},ticks:{font:{size:10},maxRotation:45}},
-        y:{stacked:true,grid:{color:'#eee'},ticks:{font:{size:10},callback:v=>Math.round(v/1000)+'k'},beginAtZero:true}
+        x:{grid:{color:'#f0f0f0'},ticks:{font:{size:10},maxRotation:0}},
+        y:{grid:{color:'#eee'},ticks:{font:{size:10},callback:v=>Math.round(v/1000)+'k'},beginAtZero:true}
       }
     }
   });
@@ -998,14 +1017,15 @@ function drawClientes(rows){
 
   tbody.innerHTML=sorted.map(c=>{
     const pilCls=c.pct<=15?'green':c.pct<=35?'amber':'red';
+    const inef=c.kmInef; // original value (negative = km no cobrado)
+    const inefSign=inef<=0?'-':'+';
+    const inefCls=inef<=0?'val-neg':'val-pos';
     return`<tr style="cursor:pointer" onclick="openClienteModal(${JSON.stringify(c.cliente).replace(/</g,'&lt;')})">
       <td style="font-weight:600">${c.cliente}</td>
       <td class="r">${fmtN(c.kmTotal)}</td>
       <td class="r">${fmtN(c.kmBus)}</td>
-      <td class="r">${fmtN(Math.abs(c.kmInef))}</td>
-      <td class="r">
-        <span class="pill ${pilCls}">${c.pct.toFixed(1)}%</span>
-      </td>
+      <td class="r"><span class="${inefCls}">${inefSign}${fmtN(Math.abs(inef))}</span></td>
+      <td class="r"><span class="pill ${pilCls}">${c.pct.toFixed(1)}%</span></td>
     </tr>`;
   }).join('');
 }
@@ -1087,12 +1107,15 @@ function drawCarros(rows){
   tbody.innerHTML=sorted.map(u=>{
     const pct=numVal(u[C.pct_u]);
     const pilCls=pct<=15?'green':pct<=35?'amber':'red';
+    const inef=numVal(u[C.kmInef_u]);
+    const inefSign=inef<=0?'-':'+';
+    const inefCls=inef<=0?'val-neg':'val-pos';
     return`<tr>
       <td style="font-weight:600">${u[C.vehicleId]||'–'}</td>
       <td>${u[C.cliente_u]||'–'}</td>
       <td class="r">${fmtN(numVal(u[C.kmTotal_u]))}</td>
       <td class="r">${fmtN(numVal(u[C.bustrax_u]))}</td>
-      <td class="r">${fmtN(Math.abs(numVal(u[C.kmInef_u])))}</td>
+      <td class="r"><span class="${inefCls}">${inefSign}${fmtN(Math.abs(inef))}</span></td>
       <td class="r"><span class="pill ${pilCls}">${u[C.pct_u]||'–'}</span></td>
     </tr>`;
   }).join('');
