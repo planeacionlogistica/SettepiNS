@@ -389,7 +389,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
     <!-- ══════ Análisis de ineficiencia GPS/Bustrax ══════ -->
     <div class="section-divider">
       <div class="section-divider-title">Análisis de ineficiencia</div>
-      <div class="section-divider-sub">GPS vs Bustrax · últimos 10 días</div>
       <div class="section-divider-line"></div>
     </div>
 
@@ -432,7 +431,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       <div class="table-hdr">
         <div>
           <div class="table-hdr-title">Top unidades ineficientes</div>
-          <div class="table-hdr-sub">Clic en encabezado para ordenar</div>
         </div>
         <span class="table-count" id="cntIneff">–</span>
       </div>
@@ -480,7 +478,6 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       <div class="table-hdr">
         <div>
           <div class="table-hdr-title">Detalle · sin movimiento ayer</div>
-          <div class="table-hdr-sub">Unidades con cero km GPS registrados</div>
         </div>
         <span class="table-count" id="cntSinMov">–</span>
       </div>
@@ -911,13 +908,13 @@ function sortIneff(col){
 }
 
 function drawComposicion(rows){
-  // ── Antigüedad: rangos por año-modelo ──
+  // ── Antigüedad: rangos dinámicos relativos al año actual ──
   const yrNow=new Date().getFullYear();
   const buckets=[
-    {lbl:'Seminuevo · ≤ 2 años',     min:yrNow-2,  max:yrNow,   n:0},
-    {lbl:'Reciente · 3 a 5 años',    min:yrNow-5,  max:yrNow-3, n:0},
-    {lbl:'Maduro · 6 a 10 años',     min:yrNow-10, max:yrNow-6, n:0},
-    {lbl:'Antiguo · 11 años o más',  min:0,        max:yrNow-11,n:0},
+    {lbl:'3 años',   sub:`${yrNow-3} a ${yrNow}`,   min:yrNow-3, max:yrNow,   n:0},
+    {lbl:'5 años',   sub:`${yrNow-5} a ${yrNow-4}`, min:yrNow-5, max:yrNow-4, n:0},
+    {lbl:'7 años',   sub:`${yrNow-7} a ${yrNow-6}`, min:yrNow-7, max:yrNow-6, n:0},
+    {lbl:'Clásicos', sub:`${yrNow-8} o antes`,      min:0,       max:yrNow-8, n:0},
   ];
   let sinAnio=0,totalA=0;
   rows.forEach(r=>{
@@ -934,9 +931,9 @@ function drawComposicion(rows){
     antigBox.innerHTML=buckets.map(b=>{
       const pct=totalA?(b.n/totalA*100):0;
       const w=maxA?(b.n/maxA*100):0;
-      const dim=b.lbl.startsWith('Antiguo')?' dim':'';
+      const dim=b.lbl==='Clásicos'?' dim':'';
       return `<div class="comp-row">
-        <span class="comp-lbl">${b.lbl}</span>
+        <span class="comp-lbl">${b.lbl} <span style="color:var(--muted);font-weight:400">· ${b.sub}</span></span>
         <span class="comp-val"><b>${b.n}</b><span>${pct.toFixed(1)}%</span></span>
         <div class="comp-bar-wrap"><div class="comp-bar${dim}" style="width:${w}%"></div></div>
       </div>`;
