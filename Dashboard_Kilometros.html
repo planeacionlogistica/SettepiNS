@@ -1,3 +1,1179 @@
-<html>  
-<h2>aqui va el dashboard de kilometros</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kilómetros | Traxión</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon-traxion.svg">
+<style>
+nav{background:#1f2937;padding:15px 30px;display:flex;gap:25px;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);position:sticky;top:0;z-index:300;flex-wrap:wrap;}
+nav>a{color:#e5e7eb;text-decoration:none;font-weight:600;padding:8px 16px;border-radius:8px;transition:all .3s;white-space:nowrap;}
+nav>a:first-child{color:#84cc16;font-weight:800;font-size:18px;}
+nav>a:hover{background:#374151;}
+.dropdown{position:relative;display:inline-block;}
+.dropdown-toggle{color:#e5e7eb;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;background:transparent;border:none;font-size:14px;font-family:inherit;}
+.dropdown-toggle:hover{background:#374151;}
+.dropdown-arrow{font-size:12px;transition:transform .3s;}
+.dropdown.open .dropdown-arrow{transform:rotate(180deg);}
+.dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#374151;min-width:220px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);margin-top:8px;z-index:1000;overflow:hidden;}
+.dropdown.open .dropdown-menu{display:block;}
+.dropdown-menu a{display:block;padding:12px 20px;color:#e5e7eb;text-decoration:none;font-weight:600;transition:all .3s;}
+.dropdown-menu a:hover{background:#4b5563;padding-left:25px;}
+.dropdown-menu a.active{background:#84cc16;color:#1f2937;}
+:root{--navy:#1a2236;--navy2:#222d42;--green:#7ed321;--white:#fff;--bg:#f0f2f7;--border:#dde3f0;--text:#1a2236;--muted:#6b7a99;--red:#e53e3e;--amber:#854F0B;--amber-bg:#FAEEDA;}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;min-height:100vh;}
+.layout{display:flex;align-items:flex-start;min-height:calc(100vh - 58px);}
+
+/* ── Sidebar ── */
+.sidebar{width:180px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);padding:.6rem;display:flex;flex-direction:column;gap:.5rem;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;}
+.sb-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.sb-reset{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.85rem;padding:0;line-height:1;transition:color .15s;}
+.sb-reset:hover{color:var(--red);}
+
+/* KM sidebar card */
+.sb-km{background:var(--navy2);border-radius:8px;padding:.7rem .75rem;text-align:center;margin-bottom:.2rem;}
+.sb-km-val{font-size:1.5rem;font-weight:800;color:#84cc16;line-height:1;letter-spacing:-.03em;}
+.sb-km-lbl{font-size:.58rem;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.07em;margin-top:.2rem;}
+.sb-km-sub{font-size:.62rem;color:rgba(255,255,255,.75);margin-top:.3rem;font-weight:600;}
+.sb-km-pct{font-size:.56rem;margin-top:.2rem;font-weight:700;}
+.sb-km-pct.over{color:#f87171;}
+.sb-km-pct.under{color:#84cc16;}
+
+.fg{display:flex;flex-direction:column;gap:.18rem;}
+.fg label{font-size:.6rem;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;}
+.sc-wrap{position:relative;width:100%;}
+.sc-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:.28rem 1.4rem .28rem .4rem;font-size:.72rem;font-family:"Inter",sans-serif;outline:none;transition:border-color .15s;}
+.sc-input:focus,.sc-wrap.open .sc-input{border-color:var(--green);box-shadow:0 0 0 2px rgba(126,211,33,.13);}
+.sc-arrow{position:absolute;right:.38rem;top:50%;transform:translateY(-50%);font-size:.52rem;color:var(--muted);pointer-events:none;transition:transform .15s;}
+.sc-wrap.open .sc-arrow{transform:translateY(-50%) rotate(180deg);}
+.sc-dropdown{display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--white);border:1.5px solid var(--green);border-radius:6px;box-shadow:0 4px 14px rgba(26,34,54,.15);z-index:500;max-height:170px;overflow-y:auto;padding:2px 0;}
+.sc-wrap.open .sc-dropdown{display:block;}
+.sc-opt{padding:.32rem .55rem;font-size:.72rem;font-family:"Inter",sans-serif;color:var(--text);cursor:pointer;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sc-opt:hover,.sc-opt.focused{background:#f0f4ff;}
+.sc-opt.selected{background:rgba(126,211,33,.15);font-weight:700;color:var(--navy);}
+.sc-opt.sc-none{color:var(--muted);font-style:italic;cursor:default;}
+.sc-opt.sc-none:hover{background:transparent;}
+.btn-reset{width:100%;background:transparent;border:1.5px solid var(--border);border-radius:7px;color:var(--muted);padding:.42rem;font-size:.74rem;font-family:"Inter",sans-serif;font-weight:600;cursor:pointer;margin-top:.3rem;}
+.btn-reset:hover{border-color:var(--red);color:var(--red);}
+
+/* ── Main ── */
+.main{flex:1;padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0;}
+
+/* ── Loading ── */
+.loading-overlay{position:fixed;inset:0;z-index:999;background:#f0f2f7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;transition:opacity .4s;}
+.loading-overlay.hidden{opacity:0;pointer-events:none;}
+.loading-logo span{color:#7ed321;}
+.loading-box{background:#fff;border-radius:16px;padding:2.2rem 3rem;box-shadow:0 4px 24px rgba(26,34,54,.1);display:flex;flex-direction:column;align-items:center;gap:1.1rem;min-width:280px;text-align:center;}
+.loading-spinner{width:48px;height:48px;border-radius:50%;border:4px solid #dde3f0;border-top-color:#7ed321;animation:spin .75s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-title{font-size:.95rem;font-weight:700;color:#1a2236;}
+.loading-sub{font-size:.78rem;color:#6b7a99;}
+.loading-bar-track{width:100%;height:5px;background:#dde3f0;border-radius:3px;overflow:hidden;}
+.loading-bar-fill{height:100%;width:0%;background:#7ed321;border-radius:3px;animation:loadbar 8s ease-out forwards;}
+@keyframes loadbar{0%{width:0%}80%{width:85%}100%{width:95%}}
+.err{background:#fff5f5;border-left:4px solid var(--red);padding:.75rem 1rem;font-size:.8rem;color:#c53030;border-radius:8px;}
+.err.hidden{display:none;}
+
+/* ── KPI strip ── */
+.kpi-section{display:flex;gap:.7rem;align-items:stretch;}
+.kpi-chip{flex:1;border-radius:10px;padding:.9rem 1rem;display:flex;flex-direction:column;justify-content:space-between;min-width:0;border:1px solid transparent;}
+.kpi-chip-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;}
+.kpi-chip-val{font-size:2rem;font-weight:700;line-height:1;letter-spacing:-.02em;}
+.kpi-chip-sub{font-size:.67rem;margin-top:.3rem;}
+.kpi-chip-breakdown{font-size:.6rem;margin-top:.35rem;color:rgba(0,0,0,.45);line-height:1.5;border-top:1px solid rgba(0,0,0,.08);padding-top:.3rem;}
+
+/* Fecha badge */
+.fecha-badge{display:inline-flex;align-items:center;gap:.4rem;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:.28rem .75rem;font-size:.7rem;font-weight:600;color:var(--muted);box-shadow:0 1px 4px rgba(26,34,54,.06);}
+.fecha-badge-dot{width:6px;height:6px;border-radius:50%;background:#84cc16;flex-shrink:0;}
+.kpi-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
+
+/* ── Sección divider ── */
+.section-divider{display:flex;align-items:center;gap:.75rem;margin-top:.5rem;}
+.section-divider-title{font-size:1.05rem;font-weight:700;color:var(--text);white-space:nowrap;}
+.section-divider-sub{font-size:.72rem;color:var(--muted);}
+.section-divider-line{flex:1;height:1px;background:var(--border);}
+
+/* ── Tabla cards ── */
+.table-card{background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);}
+.table-hdr{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);}
+.table-hdr-title{font-size:.9rem;font-weight:700;color:var(--text);}
+.table-hdr-sub{font-size:.68rem;color:var(--muted);margin-top:.1rem;}
+.table-count{font-size:.7rem;color:var(--muted);background:var(--bg);border-radius:20px;padding:.2rem .65rem;}
+
+/* ── Data tables ── */
+.data-table{width:100%;border-collapse:collapse;}
+.data-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:.42rem .75rem;text-align:left;}
+.data-table thead th.r{text-align:right;}
+.data-table.sortable thead th{cursor:pointer;user-select:none;}
+.data-table.sortable thead th:hover{background:#2d3a52;}
+.data-table tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+.data-table tbody tr:last-child{border-bottom:none;}
+.data-table tbody tr:hover td{background:#f7f9ff;}
+.data-table tbody td{padding:.52rem .75rem;font-size:.77rem;color:var(--text);vertical-align:middle;}
+.data-table tbody td.r{text-align:right;font-variant-numeric:tabular-nums;}
+.sort-arrow{font-size:.52rem;margin-left:3px;opacity:.4;display:inline-block;}
+.sort-arrow.asc::after{content:'↑';}
+.sort-arrow.desc::after{content:'↓';}
+.sort-arrow.active{opacity:1;color:#84cc16;}
+
+/* ── Pills ── */
+.pill{display:inline-block;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+.pill.red{background:#FCEBEB;color:#A32D2D;}
+.pill.amber{background:#FAEEDA;color:#854F0B;}
+.pill.green{background:#EAF3DE;color:#3B6D11;}
+.pill.navy{background:#E6EAF3;color:#1A2236;}
+.pill.gray{background:#F1EFE8;color:#5F5E5A;}
+
+/* ── Barra de progreso de ineficiencia (en tabla) ── */
+.bar-cell{width:100px;}
+.bar-track{height:6px;border-radius:3px;background:#eee;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;transition:width .3s;}
+
+/* ── Rangos operadores ── */
+.rangos-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;}
+.rango-chip{background:var(--white);border-radius:10px;padding:.85rem 1rem;border:1px solid var(--border);box-shadow:0 2px 10px rgba(26,34,54,.05);display:flex;flex-direction:column;gap:.25rem;}
+.rango-chip-lbl{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);}
+.rango-chip-val{font-size:1.85rem;font-weight:700;line-height:1;letter-spacing:-.02em;}
+.rango-chip-sub{font-size:.65rem;color:var(--muted);}
+.rango-chip.highlight .rango-chip-val{color:#A32D2D;}
+.rango-chip.highlight{border-color:rgba(163,45,45,.2);}
+.rango-chip.good .rango-chip-val{color:#3B6D11;}
+.rango-chip.mid .rango-chip-val{color:#854F0B;}
+.rango-bar{height:4px;border-radius:2px;margin-top:.4rem;}
+
+/* ── Sem selector ── */
+.sem-selector{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
+.sem-btn{border:1px solid var(--border);background:var(--white);border-radius:6px;padding:.25rem .65rem;font-size:.7rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s;font-family:inherit;}
+.sem-btn:hover{border-color:var(--green);color:var(--navy);}
+.sem-btn.active{background:#84cc16;color:#1a2236;border-color:#84cc16;}
+
+/* ── Chart wrapper ── */
+.chart-wrap{position:relative;width:100%;height:260px;}
+
+/* ── Modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:1rem;z-index:810;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:900px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.25rem;border-bottom:1px solid var(--border);background:var(--navy2);gap:.5rem;}
+.modal-head h3{font-size:.95rem;font-weight:700;color:#fff;margin:0;}
+.modal-sub{font-size:.7rem;color:rgba(255,255,255,.55);display:block;margin-top:.1rem;}
+.modal-close{background:none;border:none;color:rgba(255,255,255,.65);font-size:1.2rem;cursor:pointer;padding:.2rem .55rem;border-radius:4px;line-height:1;}
+.modal-close:hover{color:#fff;}
+.modal-body{overflow-y:auto;padding:0;}
+.no-data{text-align:center;padding:2rem;color:var(--muted);font-size:.8rem;}
+.modal-table{width:100%;border-collapse:collapse;}
+.modal-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:.42rem .75rem;text-align:left;position:sticky;top:0;white-space:nowrap;}
+.modal-table thead th.r{text-align:right;}
+.modal-table tbody tr{border-bottom:1px solid var(--border);}
+.modal-table tbody tr:last-child{border-bottom:none;}
+.modal-table tbody tr:hover{background:#f7f9ff;}
+.modal-table tbody td{padding:.4rem .75rem;font-size:.75rem;color:var(--text);}
+.modal-table tbody td.r{text-align:right;font-variant-numeric:tabular-nums;}
+
+/* ── Presupuesto progress ── */
+.ppto-section{background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);padding:1rem 1.25rem;}
+.ppto-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;}
+.ppto-title{font-size:.9rem;font-weight:700;color:var(--text);}
+.ppto-meta{font-size:.68rem;color:var(--muted);}
+.ppto-track{height:14px;background:#eee;border-radius:7px;overflow:hidden;margin-bottom:.45rem;}
+.ppto-fill{height:100%;border-radius:7px;transition:width .6s ease;background:var(--green);}
+.ppto-fill.over{background:#E24B4A;}
+.ppto-labels{display:flex;justify-content:space-between;font-size:.67rem;color:var(--muted);}
+.ppto-stats{display:flex;gap:2rem;margin-top:.75rem;}
+.ppto-stat{display:flex;flex-direction:column;gap:.1rem;}
+.ppto-stat-val{font-size:1.1rem;font-weight:700;color:var(--text);}
+.ppto-stat-lbl{font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;}
+.ppto-stat-val.red{color:#A32D2D;}
+.ppto-stat-val.green{color:#3B6D11;}
+
+@media(max-width:900px){.rangos-grid{grid-template-columns:repeat(2,1fr);}.kpi-section{flex-wrap:wrap;}}
+@media(max-width:768px){.layout{flex-direction:column;}.sidebar{width:100%;height:auto;position:relative;top:0;}.main{padding:.75rem;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">TRAXIÓN</a>
+  <div class="dropdown" id="dd1">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dd1')">Logística <span class="dropdown-arrow">▼</span></button>
+    <div class="dropdown-menu">
+      <a href="Dashboard_NS.html">Nivel de Servicio</a>
+      <a href="Dashboard_Kilometros.html" class="active">Kilómetros</a>
+      <a href="Dashboard_Flota.html">Flota</a>
+      <a href="Dashboard_ralenti.html">Ralentí</a>
+    </div>
+  </div>
+</nav>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-logo"><span>TRAXIÓN</span></div>
+  <div class="loading-box">
+    <div class="loading-spinner"></div>
+    <div class="loading-title">Cargando Kilómetros...</div>
+    <div class="loading-sub">Conectando con Google Sheets · Hoja: Kilometros</div>
+    <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sb-title">Filtros <button class="sb-reset" onclick="resetFilters()" title="Limpiar">↺</button></div>
+
+    <!-- KM marginal vs permitido -->
+    <div class="sb-km">
+      <div class="sb-km-val" id="sbKmMarginal">–</div>
+      <div class="sb-km-lbl">Km Marginales</div>
+      <div class="sb-km-sub" id="sbKmPermitido">Permitido: –</div>
+      <div class="sb-km-pct" id="sbKmPct">–</div>
+    </div>
+
+    <div class="fg">
+      <label>Gerente</label>
+      <div class="sc-wrap" id="sc-ger">
+        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off" id="sc-ger-input"
+          oninput="scFilter('ger')" onfocus="scOpen('ger')" onkeydown="scKey(event,'ger')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-ger-dd"></div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Jefe</label>
+      <div class="sc-wrap" id="sc-jef">
+        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off" id="sc-jef-input"
+          oninput="scFilter('jef')" onfocus="scOpen('jef')" onkeydown="scKey(event,'jef')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-jef-dd"></div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Cliente</label>
+      <div class="sc-wrap" id="sc-cli">
+        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off" id="sc-cli-input"
+          oninput="scFilter('cli')" onfocus="scOpen('cli')" onkeydown="scKey(event,'cli')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-cli-dd"></div>
+      </div>
+    </div>
+
+    <button class="btn-reset" onclick="resetFilters()">↺ Limpiar filtros</button>
+  </aside>
+
+  <main class="main">
+    <div class="err hidden" id="errBanner">⚠️ <span id="errMsg"></span></div>
+
+    <!-- Header row -->
+    <div class="kpi-header-row">
+      <span style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Kilómetros</span>
+    </div>
+
+    <!-- KPI strip -->
+    <div class="kpi-section">
+      <!-- KM GPS Total -->
+      <div class="kpi-chip" style="background:#EAF3DE;border-color:#c4e09a;">
+        <div class="kpi-chip-lbl" style="color:#3B6D11;">Km GPS (Tlog)</div>
+        <div class="kpi-chip-val" style="color:#3B6D11;" id="kpiKmGps">–</div>
+        <div class="kpi-chip-sub" style="color:#5a9a25;" id="kpiKmGpsSub">km totales registrados</div>
+      </div>
+      <!-- KM Bustrax -->
+      <div class="kpi-chip" style="background:#E6EAF3;border-color:#c5cee0;">
+        <div class="kpi-chip-lbl" style="color:#1A2236;">Km Bustrax (Facturados)</div>
+        <div class="kpi-chip-val" style="color:#1A2236;" id="kpiKmBus">–</div>
+        <div class="kpi-chip-sub" style="color:#6b7a99;" id="kpiKmBusSub">viajes facturados</div>
+      </div>
+      <!-- KM Ineficiente -->
+      <div class="kpi-chip" style="background:#FAEEDA;border-color:#f0c98a;">
+        <div class="kpi-chip-lbl" style="color:#854F0B;">Km Ineficientes</div>
+        <div class="kpi-chip-val" style="color:#854F0B;" id="kpiKmInef">–</div>
+        <div class="kpi-chip-sub" style="color:#a06614;" id="kpiKmInefSub">GPS no cobrado</div>
+        <div class="kpi-chip-breakdown" id="kpiKmInefPct">–</div>
+      </div>
+      <!-- Km Marginal vs Permitido -->
+      <div class="kpi-chip" style="background:#f0f2f7;border-color:#dde3f0;" id="kpiPptoChip">
+        <div class="kpi-chip-lbl" style="color:var(--muted);">Km Marginal vs Permitido</div>
+        <div class="kpi-chip-val" id="kpiDifVal">–</div>
+        <div class="kpi-chip-sub" id="kpiDifSub">–</div>
+        <div class="kpi-chip-breakdown" id="kpiDifPct">–</div>
+      </div>
+    </div>
+
+    <!-- ══════ Rangos de operadores (primero) ══════ -->
+    <div class="section-divider">
+      <div class="section-divider-title">Rangos de Operadores</div>
+      <div class="section-divider-sub">Distancia domicilio → punto de inicio de ruta</div>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <!-- Selector semana -->
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;">
+      <div class="sem-selector" id="semSelector"></div>
+      <span style="font-size:.67rem;color:var(--muted);">Meta: reducir operadores <b>+15 km</b></span>
+    </div>
+
+    <div class="rangos-grid" id="rangosGrid">
+      <div class="rango-chip good">
+        <div class="rango-chip-lbl">&lt; 5 km</div>
+        <div class="rango-chip-val" id="r0">–</div>
+        <div class="rango-chip-sub">operadores</div>
+        <div class="rango-bar" style="background:#84cc16;width:0%" id="rb0"></div>
+      </div>
+      <div class="rango-chip mid">
+        <div class="rango-chip-lbl">5 – 10 km</div>
+        <div class="rango-chip-val" id="r1">–</div>
+        <div class="rango-chip-sub">operadores</div>
+        <div class="rango-bar" style="background:#f59e0b;width:0%" id="rb1"></div>
+      </div>
+      <div class="rango-chip mid">
+        <div class="rango-chip-lbl">10 – 15 km</div>
+        <div class="rango-chip-val" id="r2">–</div>
+        <div class="rango-chip-sub">operadores</div>
+        <div class="rango-bar" style="background:#f59e0b;width:0%" id="rb2"></div>
+      </div>
+      <div class="rango-chip highlight">
+        <div class="rango-chip-lbl">&gt; 15 km ⚠️</div>
+        <div class="rango-chip-val" id="r3">–</div>
+        <div class="rango-chip-sub">operadores · reducir</div>
+        <div class="rango-bar" style="background:#E24B4A;width:0%" id="rb3"></div>
+      </div>
+    </div>
+
+    <!-- Tabla rangos por semana -->
+    <div class="table-card" id="rangosTableCard">
+      <div class="table-hdr">
+        <div>
+          <div class="table-hdr-title">Detalle por semana · rangos de operadores</div>
+          <div class="table-hdr-sub" id="rangosTblSub">Todas las semanas</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Año</th>
+              <th class="r">Sem</th>
+              <th class="r">&lt; 5 km</th>
+              <th class="r">5–10 km</th>
+              <th class="r">10–15 km</th>
+              <th class="r">&gt; 15 km ⚠️</th>
+              <th class="r">Total</th>
+            </tr>
+          </thead>
+          <tbody id="rangosTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ══════ Km marginal vs permitido ══════ -->
+    <div class="section-divider">
+      <div class="section-divider-title">Avance vs Presupuesto</div>
+      <div class="section-divider-sub">Km marginal real vs km permitido del mes</div>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <div class="ppto-section">
+      <div class="ppto-header">
+        <div class="ppto-title" id="pptoTitle">Km Marginal vs Km Permitido</div>
+        <div class="ppto-meta" id="pptoMeta">–</div>
+      </div>
+      <div class="ppto-track">
+        <div class="ppto-fill" id="pptoFill" style="width:0%"></div>
+      </div>
+      <div class="ppto-labels">
+        <span>0</span>
+        <span id="pptoLabelMid">–</span>
+        <span id="pptoLabelMax">Meta: –</span>
+      </div>
+      <div class="ppto-stats">
+        <div class="ppto-stat">
+          <div class="ppto-stat-val" id="pptoReal">–</div>
+          <div class="ppto-stat-lbl">Km Marginal Real</div>
+        </div>
+        <div class="ppto-stat">
+          <div class="ppto-stat-val" id="pptoPermitido">–</div>
+          <div class="ppto-stat-lbl">Km Permitido</div>
+        </div>
+        <div class="ppto-stat">
+          <div class="ppto-stat-val" id="pptoDif">–</div>
+          <div class="ppto-stat-lbl">Diferencia</div>
+        </div>
+        <div class="ppto-stat">
+          <div class="ppto-stat-val" id="pptoAvance">–</div>
+          <div class="ppto-stat-lbl">% Avance</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ Km por día ══════ -->
+    <div class="section-divider">
+      <div class="section-divider-title">Km por Día</div>
+      <div class="section-divider-sub">Km Servicio + Km Ineficiente acumulado diario</div>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-hdr">
+        <div>
+          <div class="table-hdr-title">Evolución diaria de kilómetros</div>
+          <div class="table-hdr-sub">Barras apiladas · línea = meta diaria</div>
+        </div>
+      </div>
+      <div style="padding:.75rem 1rem;">
+        <div class="chart-wrap">
+          <canvas id="kmDiaChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════ Km por cliente ══════ -->
+    <div class="section-divider">
+      <div class="section-divider-title">Km por Cliente</div>
+      <div class="section-divider-sub">GPS vs Bustrax · ineficiencia por cuenta · clic para ver unidades</div>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-hdr">
+        <div>
+          <div class="table-hdr-title">Resumen por cliente</div>
+          <div class="table-hdr-sub">Clic en encabezado para ordenar · clic en fila para ver unidades</div>
+        </div>
+        <span class="table-count" id="cntClientes">–</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table sortable" id="clientesTable">
+          <thead>
+            <tr>
+              <th onclick="sortClientes('cliente')">Cliente <span class="sort-arrow" id="sa-cliente"></span></th>
+              <th class="r" onclick="sortClientes('kmTotal')">Km GPS <span class="sort-arrow" id="sa-kmTotal"></span></th>
+              <th class="r" onclick="sortClientes('kmBus')">Km Bustrax <span class="sort-arrow" id="sa-kmBus"></span></th>
+              <th class="r" onclick="sortClientes('kmInef')">Km Inef. <span class="sort-arrow" id="sa-kmInef"></span></th>
+              <th class="r" onclick="sortClientes('pct')">% Inef. <span class="sort-arrow" id="sa-pct"></span></th>
+              <th>Semáforo</th>
+            </tr>
+          </thead>
+          <tbody id="clientesTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Modal unidades por cliente -->
+<div class="modal-overlay" id="unitModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <h3 id="modalTitle"></h3>
+        <span class="modal-sub" id="modalSub"></span>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════
+const SHEET_ID   = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
+const SHEET_KM   = 'Kilometros';
+
+// Columnas conocidas (por letra → índice 0-based)
+// A=0 B=1 C=2 D=3 E=4 F=5 G=6 H=7 I=8
+// K=10 L=11 M=12 N=13 O=14 P=15 Q=16 R=17
+// T=19 U=20 V=21 W=22 X=23
+// Z=25 AA=26
+// AC=28 AD=29 AE=30 AF=31 AG=32 AH=33
+
+// Columnas de la hoja "Kilometros" detectadas por nombre
+const C = {
+  // Tabla A-I (por unidad)
+  udn_u: 'UDN',
+  gerente_u: 'Gerente',
+  jefe_u: 'Jefe',
+  cliente_u: 'Cliente',
+  vehicleId: 'Vehicle ID',
+  kmTotal_u: 'Km Total',
+  bustrax_u: 'Viajes Bustrax',
+  kmInef_u: 'Km ineficiente',
+  pct_u: '%',
+
+  // Tabla K-R (por cliente) — mismos nombres pero duplicados; los detectamos por posición
+  // Se infieren tras parsear los headers
+
+  // Tabla T-X (por día)
+  dia: 'Dia',
+  kmTotal_d: 'Km Total',
+  kmServ_d: 'Km Servicio',
+  kmInef_d: 'Km ineficiente',
+  permitidos_d: 'Permitidos',
+
+  // Z-AA: presupuesto (fila 1 = etiqueta, fila valor)
+  // AC-AH: rangos operadores
+};
+
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+let DATA_UNIDAD = [];   // filas por unidad (cols A-I)
+let DATA_CLIENTE = [];  // filas por cliente (cols K-R)
+let DATA_DIA = [];      // filas por día (cols T-X)
+let DATA_RANGOS = [];   // filas rangos op. (cols AC-AH)
+let KM_PERMITIDO = 0;   // valor de AA7 aprox
+
+let SC_KEYS = ['ger','jef','cli'];
+let SC_SEL  = {ger:'', jef:'', cli:''};
+let SC_VALS = {ger:[], jef:[], cli:[]};
+let SC_FOCUS= {ger:-1, jef:-1, cli:-1};
+
+let CLI_SORT = {col:'pct', dir:'desc'};
+let SEM_ACTIVE = null;
+let kmDiaChart = null;
+
+// ══════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════
+function csvUrl(sheet){
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(sheet)}`;
+}
+function parseLine(line){
+  const cols=[];let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}
+    else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}
+    else cur+=ch;
+  }
+  cols.push(cur.trim());return cols;
+}
+function parseCSV(text){
+  if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
+  const lines=text.trim().split(/\r?\n/);
+  if(lines.length<2)return[];
+  const hdrs=parseLine(lines[0]).map(h=>h.replace(/^\uFEFF/,'').trim());
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim())continue;
+    const cols=parseLine(lines[i]);
+    const obj={};
+    hdrs.forEach((h,idx)=>{obj[h]=(cols[idx]||'').trim();});
+    if(Object.values(obj).some(v=>v))rows.push(obj);
+  }
+  return rows;
+}
+function numVal(v){
+  if(v===undefined||v===null||v===''||v==='-')return 0;
+  const n=parseFloat(String(v).replace(/[,%$\s]/g,''));
+  return isNaN(n)?0:n;
+}
+function fmtKm(n){
+  if(n===0||isNaN(n))return'–';
+  return Math.round(n).toLocaleString('es-MX')+' km';
+}
+function fmtN(n){return Math.round(n).toLocaleString('es-MX');}
+function pctStr(n,t){return t?(n/t*100).toFixed(1)+'%':'0%';}
+function uniq(arr){return[...new Set(arr.filter(v=>v&&String(v).trim()))].sort();}
+function inefColor(pct){
+  if(pct<=15)return{cls:'green',col:'#3B6D11',bg:'#EAF3DE'};
+  if(pct<=35)return{cls:'amber',col:'#854F0B',bg:'#FAEEDA'};
+  return{cls:'red',col:'#A32D2D',bg:'#FCEBEB'};
+}
+
+// ══════════════════════════════════════════
+//  SEARCHABLE SELECTS
+// ══════════════════════════════════════════
+function scOpen(key){
+  document.querySelectorAll('.sc-wrap.open').forEach(el=>{if(el.id!=='sc-'+key)el.classList.remove('open');});
+  document.getElementById('sc-'+key).classList.add('open');
+  document.getElementById('sc-'+key+'-input').value='';
+  cascadeFilters();scRenderDD(key);
+}
+function scFilter(key){
+  if(SC_SEL[key]!==''){SC_SEL[key]='';cascadeFilters();draw();}
+  document.getElementById('sc-'+key).classList.add('open');
+  scRenderDD(key);
+}
+function scRenderDD(key){
+  const dd=document.getElementById('sc-'+key+'-dd');
+  const q=(document.getElementById('sc-'+key+'-input').value||'').toLowerCase();
+  const filtered=SC_VALS[key].filter(v=>v.toLowerCase().includes(q));
+  SC_FOCUS[key]=-1;
+  dd.innerHTML=`<div class="sc-opt${SC_SEL[key]===''?' selected':''}" data-val="" onmousedown="scSelect(event,'${key}')">Todos</div>`
+    +(filtered.length?filtered.map(v=>`<div class="sc-opt${SC_SEL[key]===v?' selected':''}" data-val="${v.replace(/"/g,'&quot;')}" onmousedown="scSelect(event,'${key}')">${v}</div>`).join('')
+    :'<div class="sc-opt sc-none">Sin resultados</div>');
+}
+function scSelect(e,key){
+  e.preventDefault();
+  const val=e.currentTarget.getAttribute('data-val');
+  SC_SEL[key]=val;
+  const inp=document.getElementById('sc-'+key+'-input');
+  inp.value=val;inp.setAttribute('data-lbl',val);
+  document.getElementById('sc-'+key).classList.remove('open');
+  cascadeFilters();draw();
+}
+function scKey(e,key){
+  const dd=document.getElementById('sc-'+key+'-dd');
+  const opts=[...dd.querySelectorAll('.sc-opt:not(.sc-none)')];
+  if(!opts.length)return;
+  if(e.key==='ArrowDown'){e.preventDefault();SC_FOCUS[key]=Math.min(SC_FOCUS[key]+1,opts.length-1);opts.forEach((o,i)=>o.classList.toggle('focused',i===SC_FOCUS[key]));opts[SC_FOCUS[key]]?.scrollIntoView({block:'nearest'});}
+  else if(e.key==='ArrowUp'){e.preventDefault();SC_FOCUS[key]=Math.max(SC_FOCUS[key]-1,0);opts.forEach((o,i)=>o.classList.toggle('focused',i===SC_FOCUS[key]));opts[SC_FOCUS[key]]?.scrollIntoView({block:'nearest'});}
+  else if(e.key==='Enter'){e.preventDefault();if(SC_FOCUS[key]>=0)opts[SC_FOCUS[key]].dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));}
+  else if(e.key==='Escape'){document.getElementById('sc-'+key+'-input').value=SC_SEL[key];document.getElementById('sc-'+key).classList.remove('open');}
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.sc-wrap')){
+    document.querySelectorAll('.sc-wrap.open').forEach(el=>{
+      el.classList.remove('open');
+      const k=el.id.replace('sc-','');
+      const inp=document.getElementById('sc-'+k+'-input');
+      if(inp)inp.value=SC_SEL[k]||'';
+    });
+  }
+});
+
+function cascadeFilters(){
+  SC_VALS.ger=uniq(DATA_UNIDAD.map(r=>(r[C.gerente_u]||'').trim()).filter(v=>v&&v!=='SIN ASIGNACION'));
+  const baseGer=SC_SEL.ger?DATA_UNIDAD.filter(r=>(r[C.gerente_u]||'').trim()===SC_SEL.ger):DATA_UNIDAD;
+  SC_VALS.jef=uniq(baseGer.map(r=>(r[C.jefe_u]||'').trim()).filter(v=>v&&v!=='SIN ASIGNACION'));
+  const baseJef=SC_SEL.jef?baseGer.filter(r=>(r[C.jefe_u]||'').trim()===SC_SEL.jef):baseGer;
+  SC_VALS.cli=uniq(baseJef.map(r=>(r[C.cliente_u]||'').trim()).filter(v=>v&&v!=='SIN ASIGNACION'));
+}
+
+function filteredUnidades(){
+  return DATA_UNIDAD.filter(r=>{
+    if(SC_SEL.ger&&(r[C.gerente_u]||'').trim()!==SC_SEL.ger)return false;
+    if(SC_SEL.jef&&(r[C.jefe_u]||'').trim()!==SC_SEL.jef)return false;
+    if(SC_SEL.cli&&(r[C.cliente_u]||'').trim()!==SC_SEL.cli)return false;
+    return true;
+  });
+}
+
+// filteredClientes: agrega por cliente desde unidades filtradas
+function filteredClientes(){
+  const rows=filteredUnidades();
+  const map={};
+  rows.forEach(r=>{
+    const cli=(r[C.cliente_u]||'SIN ASIGNACION').trim();
+    if(!map[cli])map[cli]={cliente:cli,kmTotal:0,kmBus:0,kmInef:0,unidades:[]};
+    map[cli].kmTotal+=numVal(r[C.kmTotal_u]);
+    map[cli].kmBus+=numVal(r[C.bustrax_u]);
+    map[cli].kmInef+=numVal(r[C.kmInef_u]);
+    map[cli].unidades.push(r);
+  });
+  return Object.values(map).map(c=>{
+    c.pct=c.kmTotal?Math.abs(c.kmInef)/c.kmTotal*100:0;
+    return c;
+  });
+}
+
+function resetFilters(){
+  SC_KEYS.forEach(k=>{SC_SEL[k]='';const inp=document.getElementById('sc-'+k+'-input');if(inp){inp.value='';inp.setAttribute('data-lbl','');}});
+  cascadeFilters();draw();
+}
+
+// ══════════════════════════════════════════
+//  PARSE DUAL-TABLE CSV
+//  La hoja tiene 2 tablas horizontales:
+//  cols A-I (por unidad) y K-R (por cliente)
+//  y T-X (por día) y AC-AH (rangos op.)
+//  Parseamos el CSV raw por índice de columna
+// ══════════════════════════════════════════
+function parseKmSheet(text){
+  if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
+  const lines=text.trim().split(/\r?\n/);
+  if(lines.length<2)return;
+
+  // Row 0 = headers
+  const hdrs=parseLine(lines[0]).map(h=>h.replace(/^\uFEFF/,'').trim());
+  console.log('Headers Km sheet:', hdrs);
+
+  // Detectar índices por nombre de columna
+  const idx=(name)=>{
+    const n=name.toLowerCase();
+    const i=hdrs.findIndex(h=>h.toLowerCase()===n);
+    return i;
+  };
+  const idxInc=(name)=>{
+    const n=name.toLowerCase();
+    const i=hdrs.findIndex(h=>h.toLowerCase().includes(n));
+    return i;
+  };
+
+  // ── Tabla por UNIDAD (A-I): Vehicle ID, Km Total, Viajes Bustrax, Km ineficiente, %
+  // Buscamos los primeros headers conocidos
+  const iVeh = idxInc('vehicle');
+  const iUdn = idx('udn');
+  const iGer = idx('gerente');
+  const iJef = idx('jefe');
+  const iCli = idx('cliente');
+
+  // Buscar km total, bustrax, km inef, % — puede haber duplicados en K-R
+  // Tomamos el primero (A-I range) y el segundo aparición (K-R range)
+  const allKmTotal = hdrs.reduce((a,h,i)=>{if(h.toLowerCase()==='km total')a.push(i);return a;},[]);
+  const allBustrax = hdrs.reduce((a,h,i)=>{if(h.toLowerCase().includes('viajes bustrax')||h.toLowerCase()==='viajes bustrax')a.push(i);return a;},[]);
+  const allKmInef  = hdrs.reduce((a,h,i)=>{if(h.toLowerCase()==='km ineficiente')a.push(i);return a;},[]);
+  const allPct     = hdrs.reduce((a,h,i)=>{if(h==='%')a.push(i);return a;},[]);
+
+  const iKmTotal_u = allKmTotal[0]??-1;
+  const iBus_u     = allBustrax[0]??-1;
+  const iKmInef_u  = allKmInef[0]??-1;
+  const iPct_u     = allPct[0]??-1;
+
+  // Tabla K-R (segunda aparición = índices 1)
+  // K=10: UDN, L=11:Gerente, M=12:Jefe, N=13:Cliente, O=14:Km Total, P=15:Viajes Bustrax, Q=16:Km inef, R=17:%
+  // Buscamos segunda aparición
+  const iUdn2  = hdrs.indexOf('UDN', iUdn+1);
+  const iGer2  = hdrs.indexOf('Gerente', iGer+1);
+  const iJef2  = hdrs.indexOf('Jefe', iJef+1);
+  const iCli2  = hdrs.indexOf('Cliente', iCli+1);
+  const iKmTotal_c = allKmTotal[1]??-1;
+  const iBus_c     = allBustrax[1]??-1;
+  const iKmInef_c  = allKmInef[1]??-1;
+  const iPct_c     = allPct[1]??-1;
+
+  // Tabla por DÍA (T-X): Dia, Km Total, Km Servicio, Km ineficiente, Permitidos
+  const iDia     = idx('dia');
+  const iKmServ  = idxInc('km servicio');
+  const iPerms   = idx('permitidos');
+  const iKmTotal_d = allKmTotal[2]??-1; // 3ra aparición podría no existir, usar Km Servicio
+  const iKmInef_d  = allKmInef[1]??allKmInef[0]??-1;
+
+  // Tabla rangos (AC-AH): Año, Sem, <5km, 5km a 10km, 10km a 15km, >15km
+  const iAnio   = idxInc('año');
+  const iSem    = idxInc('sem');
+  const iR0     = hdrs.findIndex(h=>h.includes('<5'));
+  const iR1     = hdrs.findIndex(h=>h.includes('5km a 10'));
+  const iR2     = hdrs.findIndex(h=>h.includes('10km a 15'));
+  const iR3     = hdrs.findIndex(h=>h.includes('>15'));
+
+  // Km permitido (AA column): buscamos "km ppto" label en col Z, valor en col AA
+  // row con label "km ppto" → valor en siguiente columna
+  const iZ = idxInc('actualizar');   // col Z header
+  const iAA= iZ+1;
+
+  console.log('Índices detectados:', {iVeh,iUdn,iGer,iJef,iCli,iKmTotal_u,iBus_u,iKmInef_u,iPct_u,iDia,iKmServ,iPerms,iAnio,iSem,iR0,iR1,iR2,iR3});
+
+  DATA_UNIDAD=[];
+  DATA_CLIENTE=[];
+  DATA_DIA=[];
+  DATA_RANGOS=[];
+  KM_PERMITIDO=0;
+
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim())continue;
+    const cols=parseLine(lines[i]);
+    const g=(ii)=>(ii>=0&&ii<cols.length)?(cols[ii]||'').trim():'';
+    const n=(ii)=>numVal(g(ii));
+
+    // Tabla unidad (requiere Vehicle ID)
+    const veh=g(iVeh);
+    if(veh&&veh!=='-'){
+      DATA_UNIDAD.push({
+        [C.udn_u]:    g(iUdn),
+        [C.gerente_u]:g(iGer),
+        [C.jefe_u]:   g(iJef),
+        [C.cliente_u]:g(iCli),
+        [C.vehicleId]:veh,
+        [C.kmTotal_u]:g(iKmTotal_u),
+        [C.bustrax_u]:g(iBus_u),
+        [C.kmInef_u]: g(iKmInef_u),
+        [C.pct_u]:    g(iPct_u),
+      });
+    }
+
+    // Tabla cliente (requiere Cliente en col N)
+    if(iCli2>=0){
+      const cli2=g(iCli2);
+      if(cli2&&cli2!=='-'&&cli2!=='SIN ASIGNACION'){
+        DATA_CLIENTE.push({
+          udn:      g(iUdn2),
+          gerente:  g(iGer2),
+          jefe:     g(iJef2),
+          cliente:  cli2,
+          kmTotal:  n(iKmTotal_c),
+          kmBus:    n(iBus_c),
+          kmInef:   n(iKmInef_c),
+          pct:      n(iPct_c),
+        });
+      }
+    }
+
+    // Tabla día (requiere Dia con número)
+    const dia=g(iDia);
+    if(dia&&!isNaN(parseInt(dia))&&parseInt(dia)>0){
+      const kmServ=iKmServ>=0?n(iKmServ):0;
+      const kmInefD=iKmInef_d>=0?n(iKmInef_d):0;
+      const kmTotalD=iKmTotal_d>=0?n(iKmTotal_d):(kmServ+kmInefD);
+      const perm=iPerms>=0?n(iPerms):0;
+      DATA_DIA.push({dia:parseInt(dia), kmTotal:kmTotalD, kmServ, kmInef:kmInefD, permitidos:perm});
+    }
+
+    // Rangos operadores (requiere Año y Sem)
+    const anio=g(iAnio);
+    const sem=g(iSem);
+    if(anio&&sem&&!isNaN(parseInt(sem))&&parseInt(sem)>0){
+      DATA_RANGOS.push({
+        anio:parseInt(anio),
+        sem:parseInt(sem),
+        r0:iR0>=0?n(iR0):0,
+        r1:iR1>=0?n(iR1):0,
+        r2:iR2>=0?n(iR2):0,
+        r3:iR3>=0?n(iR3):0,
+      });
+    }
+
+    // KM permitido (busco label "km ppto" en col Z)
+    const labelZ=g(iZ);
+    if(labelZ&&labelZ.toLowerCase().includes('km ppto')&&!labelZ.toLowerCase().includes('ing')){
+      const val=n(iAA);
+      if(val>0)KM_PERMITIDO=val;
+    }
+  }
+
+  // Fallback: si no encontramos KM_PERMITIDO en col Z-AA, buscamos en DATA_DIA
+  if(KM_PERMITIDO===0&&DATA_DIA.length>0){
+    const p=DATA_DIA.find(d=>d.permitidos>0);
+    if(p)KM_PERMITIDO=p.permitidos*(31/p.dia||1); // estimado
+  }
+
+  console.log('Parsed:', DATA_UNIDAD.length,'unidades,', DATA_CLIENTE.length,'clientes,', DATA_DIA.length,'días,', DATA_RANGOS.length,'semanas. KM_PERM=',KM_PERMITIDO);
+}
+
+// ══════════════════════════════════════════
+//  DRAW PRINCIPAL
+// ══════════════════════════════════════════
+function draw(){
+  const fRows=filteredUnidades();
+  const fCli=filteredClientes();
+
+  drawKPIs(fRows, fCli);
+  drawRangos();
+  drawPpto(fRows);
+  drawDia();
+  drawClientes(fCli);
+  updateSidebar(fRows);
+}
+
+function updateSidebar(rows){
+  const kmInef=rows.reduce((s,r)=>s+numVal(r[C.kmInef_u]),0);
+  const el=document.getElementById('sbKmMarginal');
+  const elP=document.getElementById('sbKmPermitido');
+  const elPct=document.getElementById('sbKmPct');
+  if(el)el.textContent=fmtN(Math.abs(kmInef));
+  if(elP)elP.textContent='Permitido: '+fmtN(KM_PERMITIDO);
+  if(elPct){
+    if(KM_PERMITIDO>0){
+      const pct=(Math.abs(kmInef)/KM_PERMITIDO*100).toFixed(1);
+      const over=Math.abs(kmInef)>KM_PERMITIDO;
+      elPct.textContent=(over?'⚠️ ':'')+pct+'% del permitido';
+      elPct.className='sb-km-pct '+(over?'over':'under');
+    } else {elPct.textContent='–';}
+  }
+}
+
+// ══════════════════════════════════════════
+//  KPIs
+// ══════════════════════════════════════════
+function drawKPIs(rows, cliRows){
+  const kmGps  = rows.reduce((s,r)=>s+numVal(r[C.kmTotal_u]),0);
+  const kmBus  = rows.reduce((s,r)=>s+numVal(r[C.bustrax_u]),0);
+  const kmInef = rows.reduce((s,r)=>s+numVal(r[C.kmInef_u]),0);
+  const nUnid  = rows.filter(r=>r[C.vehicleId]&&r[C.vehicleId]!=='-').length;
+
+  document.getElementById('kpiKmGps').textContent  = fmtN(kmGps);
+  document.getElementById('kpiKmGpsSub').textContent= nUnid+' unidades · km Tlog';
+  document.getElementById('kpiKmBus').textContent   = fmtN(kmBus);
+  document.getElementById('kpiKmBusSub').textContent= 'km facturados Bustrax';
+  document.getElementById('kpiKmInef').textContent  = fmtN(Math.abs(kmInef));
+
+  const pctInef=kmGps?Math.abs(kmInef)/kmGps*100:0;
+  document.getElementById('kpiKmInefSub').textContent=pctInef.toFixed(1)+'% de GPS no cobrado';
+  document.getElementById('kpiKmInefPct').textContent='GPS: '+fmtN(kmGps)+' · Bustrax: '+fmtN(kmBus);
+
+  // KM Marginal vs Permitido
+  const dif = kmInef; // negativo = km no cobrado (marginal real)
+  const kmMargAbs = Math.abs(dif);
+  const chip = document.getElementById('kpiPptoChip');
+  const valEl= document.getElementById('kpiDifVal');
+  const subEl= document.getElementById('kpiDifSub');
+  const pctEl= document.getElementById('kpiDifPct');
+  valEl.textContent = fmtN(kmMargAbs);
+  if(KM_PERMITIDO>0){
+    const pctM=(kmMargAbs/KM_PERMITIDO*100).toFixed(1);
+    const over=kmMargAbs>KM_PERMITIDO;
+    valEl.style.color=over?'#A32D2D':'#3B6D11';
+    subEl.textContent=(over?'⚠️ Excede':'✅ Dentro de')+' km permitido';
+    subEl.style.color=over?'#A32D2D':'#3B6D11';
+    pctEl.textContent=pctM+'% del permitido · Meta: '+fmtN(KM_PERMITIDO)+' km';
+    chip.style.background=over?'#FCEBEB':'#EAF3DE';
+    chip.style.borderColor=over?'rgba(163,45,45,.2)':'#c4e09a';
+  } else {
+    subEl.textContent='km ineficientes acumulados';
+    pctEl.textContent='Configure km permitido en hoja';
+    valEl.style.color='var(--text)';
+  }
+}
+
+// ══════════════════════════════════════════
+//  RANGOS DE OPERADORES
+// ══════════════════════════════════════════
+function drawRangos(){
+  // Construir lista de semanas únicas
+  const sems=[...new Map(DATA_RANGOS.map(r=>[r.anio+'_'+r.sem, r])).values()].sort((a,b)=>a.anio!==b.anio?a.anio-b.anio:a.sem-b.sem);
+
+  // Si no hay semana activa, tomar la última
+  if(SEM_ACTIVE===null&&sems.length>0){
+    SEM_ACTIVE=sems[sems.length-1].anio+'_'+sems[sems.length-1].sem;
+  }
+
+  // Render botones semana
+  const sel=document.getElementById('semSelector');
+  sel.innerHTML=sems.map(s=>{
+    const key=s.anio+'_'+s.sem;
+    return`<button class="sem-btn${SEM_ACTIVE===key?' active':''}" onclick="setSem('${key}')">${s.anio} S${s.sem}</button>`;
+  }).join('');
+
+  // Datos de la semana activa
+  const row=DATA_RANGOS.find(r=>r.anio+'_'+r.sem===SEM_ACTIVE);
+  const r0=row?.r0||0, r1=row?.r1||0, r2=row?.r2||0, r3=row?.r3||0;
+  const total=r0+r1+r2+r3||1;
+
+  document.getElementById('r0').textContent=r0||'–';
+  document.getElementById('r1').textContent=r1||'–';
+  document.getElementById('r2').textContent=r2||'–';
+  document.getElementById('r3').textContent=r3||'–';
+
+  // Barras proporcionales
+  ['rb0','rb1','rb2','rb3'].forEach((id,i)=>{
+    const v=[r0,r1,r2,r3][i];
+    const el=document.getElementById(id);
+    if(el)el.style.width=(v/total*100).toFixed(1)+'%';
+  });
+
+  document.getElementById('rangosTblSub').textContent=row?`Semana ${row.sem} · ${row.anio}`:'Todas las semanas';
+
+  // Tabla de todas las semanas
+  const tbody=document.getElementById('rangosTbody');
+  tbody.innerHTML=sems.map(s=>{
+    const sr=DATA_RANGOS.find(r=>r.anio+'_'+r.sem===s.anio+'_'+s.sem)||{r0:0,r1:0,r2:0,r3:0};
+    const tot=sr.r0+sr.r1+sr.r2+sr.r3;
+    const isAct=s.anio+'_'+s.sem===SEM_ACTIVE;
+    return`<tr style="${isAct?'background:#f7fbef;font-weight:600':''}" onclick="setSem('${s.anio+'_'+s.sem}')" style="cursor:pointer">
+      <td>${s.anio}</td>
+      <td class="r">${s.sem}</td>
+      <td class="r" style="color:#3B6D11">${sr.r0||'–'}</td>
+      <td class="r" style="color:#854F0B">${sr.r1||'–'}</td>
+      <td class="r" style="color:#854F0B">${sr.r2||'–'}</td>
+      <td class="r" style="color:#A32D2D;font-weight:700">${sr.r3||'–'}</td>
+      <td class="r">${tot||'–'}</td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="7" class="no-data">Sin datos de rangos</td></tr>';
+}
+
+function setSem(key){
+  SEM_ACTIVE=key;
+  drawRangos();
+}
+
+// ══════════════════════════════════════════
+//  AVANCE VS PRESUPUESTO
+// ══════════════════════════════════════════
+function drawPpto(rows){
+  const kmInef=rows.reduce((s,r)=>s+numVal(r[C.kmInef_u]),0);
+  const kmMarg=Math.abs(kmInef);
+  const perm=KM_PERMITIDO;
+
+  document.getElementById('pptoReal').textContent=fmtN(kmMarg);
+  document.getElementById('pptoPermitido').textContent=perm>0?fmtN(perm):'–';
+
+  if(perm>0){
+    const dif=perm-kmMarg;
+    const pct=Math.min(kmMarg/perm*100,120);
+    const over=kmMarg>perm;
+    const fill=document.getElementById('pptoFill');
+    fill.style.width=Math.min(pct,100)+'%';
+    fill.className='ppto-fill'+(over?' over':'');
+    document.getElementById('pptoDif').textContent=(dif>=0?'+':'')+fmtN(dif);
+    document.getElementById('pptoDif').className='ppto-stat-val '+(dif>=0?'green':'red');
+    document.getElementById('pptoAvance').textContent=pct.toFixed(1)+'%';
+    document.getElementById('pptoAvance').className='ppto-stat-val '+(over?'red':'green');
+    document.getElementById('pptoMeta').textContent=over?'⚠️ Excede km permitido':'✅ Dentro del permitido';
+    document.getElementById('pptoLabelMax').textContent='Meta: '+fmtN(perm);
+    document.getElementById('pptoLabelMid').textContent=fmtN(perm/2);
+  } else {
+    document.getElementById('pptoMeta').textContent='Configure km permitido en columna AA de la hoja';
+  }
+}
+
+// ══════════════════════════════════════════
+//  KM POR DÍA — Chart.js
+// ══════════════════════════════════════════
+function drawDia(){
+  const dias=DATA_DIA.filter(d=>d.dia>0&&(d.kmServ>0||d.kmInef>0));
+  if(!dias.length)return;
+
+  const labels=dias.map(d=>'Día '+d.dia);
+  const servData=dias.map(d=>d.kmServ||d.kmTotal);
+  const inefData=dias.map(d=>Math.abs(d.kmInef));
+  const metaDia=KM_PERMITIDO>0?KM_PERMITIDO/31:null;
+  const metaLine=dias.map(()=>metaDia);
+
+  const ctx=document.getElementById('kmDiaChart').getContext('2d');
+  if(kmDiaChart)kmDiaChart.destroy();
+  kmDiaChart=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'Km Servicio',data:servData,backgroundColor:'rgba(126,211,33,.65)',stack:'km',borderRadius:2},
+        {label:'Km Ineficiente',data:inefData,backgroundColor:'rgba(240,165,60,.7)',stack:'km',borderRadius:2},
+        ...(metaDia?[{label:'Meta diaria',data:metaLine,type:'line',borderColor:'#E24B4A',borderDash:[5,3],borderWidth:1.5,pointRadius:0,tension:0}]:[]),
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{font:{size:11},boxWidth:10}},tooltip:{callbacks:{
+        label:ctx=>`${ctx.dataset.label}: ${Math.round(ctx.raw).toLocaleString('es-MX')} km`
+      }}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10},maxRotation:0}},
+        y:{grid:{color:'#eee'},ticks:{font:{size:10},callback:v=>Math.round(v/1000)+'k'}}
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+//  KM POR CLIENTE (tabla)
+// ══════════════════════════════════════════
+function sortClientes(col){
+  if(CLI_SORT.col===col)CLI_SORT.dir=CLI_SORT.dir==='asc'?'desc':'asc';
+  else{CLI_SORT.col=col;CLI_SORT.dir='desc';}
+  drawClientes(filteredClientes());
+}
+
+function drawClientes(rows){
+  // Update sort arrows
+  ['cliente','kmTotal','kmBus','kmInef','pct'].forEach(c=>{
+    const el=document.getElementById('sa-'+c);
+    if(!el)return;
+    el.className='sort-arrow'+(CLI_SORT.col===c?' active '+CLI_SORT.dir:'');
+  });
+
+  const sorted=[...rows].sort((a,b)=>{
+    let av=a[CLI_SORT.col], bv=b[CLI_SORT.col];
+    if(typeof av==='string')return CLI_SORT.dir==='asc'?av.localeCompare(bv,'es'):bv.localeCompare(av,'es');
+    return CLI_SORT.dir==='asc'?av-bv:bv-av;
+  });
+
+  document.getElementById('cntClientes').textContent=sorted.length+' clientes';
+  const tbody=document.getElementById('clientesTbody');
+  if(!sorted.length){tbody.innerHTML='<tr><td colspan="6" class="no-data">Sin datos</td></tr>';return;}
+
+  tbody.innerHTML=sorted.map(c=>{
+    const cfg=inefColor(c.pct);
+    const barW=Math.min(c.pct,100).toFixed(1);
+    const pilCls=c.pct<=15?'green':c.pct<=35?'amber':'red';
+    return`<tr style="cursor:pointer" onclick="openClienteModal(${JSON.stringify(c.cliente).replace(/</g,'&lt;')})">
+      <td style="font-weight:600">${c.cliente}</td>
+      <td class="r">${fmtN(c.kmTotal)}</td>
+      <td class="r">${fmtN(c.kmBus)}</td>
+      <td class="r">${fmtN(Math.abs(c.kmInef))}</td>
+      <td class="r">
+        <span class="pill ${pilCls}">${c.pct.toFixed(1)}%</span>
+      </td>
+      <td>
+        <div class="bar-track bar-cell">
+          <div class="bar-fill" style="width:${barW}%;background:${cfg.col}"></div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+//  MODAL POR CLIENTE (unidades)
+// ══════════════════════════════════════════
+function openClienteModal(clienteNombre){
+  const unidades=DATA_UNIDAD.filter(r=>(r[C.cliente_u]||'').trim()===clienteNombre);
+  document.getElementById('modalTitle').textContent=clienteNombre;
+  document.getElementById('modalSub').textContent=unidades.length+' unidad'+(unidades.length!==1?'es':'');
+
+  const sorted=[...unidades].sort((a,b)=>{
+    const pa=numVal(a[C.pct_u]), pb=numVal(b[C.pct_u]);
+    return pb-pa;
+  });
+
+  const rows=sorted.map(u=>{
+    const pct=numVal(u[C.pct_u]);
+    const cfg=inefColor(pct);
+    const pilCls=pct<=15?'green':pct<=35?'amber':'red';
+    return`<tr>
+      <td style="font-weight:600">${u[C.vehicleId]||'–'}</td>
+      <td class="r">${fmtN(numVal(u[C.kmTotal_u]))}</td>
+      <td class="r">${fmtN(numVal(u[C.bustrax_u]))}</td>
+      <td class="r">${fmtN(Math.abs(numVal(u[C.kmInef_u])))}</td>
+      <td class="r"><span class="pill ${pilCls}">${u[C.pct_u]||'–'}</span></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('modalBody').innerHTML=`
+    <table class="modal-table">
+      <thead><tr>
+        <th>Vehicle ID</th>
+        <th class="r">Km GPS</th>
+        <th class="r">Km Bustrax</th>
+        <th class="r">Km Inef.</th>
+        <th class="r">% Inef.</th>
+      </tr></thead>
+      <tbody>${rows||'<tr><td colspan="5" class="no-data">Sin unidades</td></tr>'}</tbody>
+    </table>`;
+  document.getElementById('unitModal').classList.add('open');
+}
+
+function closeModal(){document.getElementById('unitModal').classList.remove('open');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+
+// ══════════════════════════════════════════
+//  NAV DROPDOWN
+// ══════════════════════════════════════════
+function toggleDropdown(id){
+  const d=document.getElementById(id);
+  document.querySelectorAll('.dropdown').forEach(x=>{if(x.id!==id)x.classList.remove('open');});
+  d.classList.toggle('open');
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.dropdown'))document.querySelectorAll('.dropdown').forEach(d=>d.classList.remove('open'));});
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+window.addEventListener('DOMContentLoaded',async()=>{
+  const ov=document.getElementById('loadingOverlay');
+  try{
+    const res=await fetch(csvUrl(SHEET_KM));
+    if(!res.ok)throw new Error('HTTP '+res.status+' — verifica que el Sheet sea público y la hoja se llame "Kilometros".');
+    const text=await res.text();
+    parseKmSheet(text);
+    if(!DATA_UNIDAD.length)throw new Error('Sin datos en hoja "Kilometros". Verifica que sea pública (Archivo → Compartir → Cualquier persona con el enlace puede ver).');
+    ov.classList.add('hidden');
+    setTimeout(()=>ov.style.display='none',450);
+    cascadeFilters();
+    draw();
+  }catch(e){
+    console.error(e);
+    ov.style.display='none';
+    document.getElementById('errMsg').textContent=e.message;
+    document.getElementById('errBanner').classList.remove('hidden');
+  }
+});
+</script>
+</body>
 </html>
