@@ -582,6 +582,26 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
           <th style="width:34px">#</th><th>Coordinador</th><th style="text-align:right">Carros</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle ok)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('coord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-coord" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="tCoordBody"></tbody></table></div>
       </div>
+
+      <div class="table-card section-end" id="card-oper">
+        <div class="table-hdr">
+          <div><div class="table-hdr-title"><span class="table-hdr-icon">🚛</span><span id="tOperTitle">Resumen por Operador</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
+          <div class="table-hdr-actions"><span class="table-count" id="tOperCount">0 operadores</span><button class="btn-capture" onclick="exportXLSX('oper','Inicios_Operadores')">⬇ Excel</button></div>
+        </div>
+        <div style="overflow-x:auto"><colgroup>
+  <col style="width:34px">
+  <col style="min-width:100px">
+  <col style="width:64px">
+  <col style="width:68px">
+  <col style="width:10%">
+  <col style="width:10%">
+  <col style="width:76px">
+  <col style="width:76px">
+  <col style="width:72px">
+</colgroup><table class="data-table tbl-std"><thead><tr>
+          <th style="width:34px">#</th><th>Operador</th><th style="text-align:right">Carros</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle ok)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('oper')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-oper" style="pointer-events:none">↓</button></div></th>
+        </tr></thead><tbody id="tOperBody"></tbody></table></div>
+      </div>
     </div><!-- /panel-inicios -->
 
     <!-- ═══════════════════ PANEL LLEGADAS ═══════════════════ -->
@@ -718,6 +738,26 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 </colgroup><table class="data-table tbl-std"><thead><tr>
           <th style="width:34px">#</th><th>Coordinador</th><th style="text-align:right">Carros</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini ok · lle tarde)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('lcoord')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-lcoord" style="pointer-events:none">↓</button></div></th>
         </tr></thead><tbody id="ltCoordBody"></tbody></table></div>
+      </div>
+
+      <div class="table-card section-end" id="lcard-oper">
+        <div class="table-hdr">
+          <div><div class="table-hdr-title"><span class="table-hdr-icon">🚛</span><span id="ltOperTitle">Resumen por Operador</span></div><div class="table-hdr-sub">Ordenado por % cumplimiento</div></div>
+          <div class="table-hdr-actions"><span class="table-count" id="ltOperCount">0 operadores</span><button class="btn-capture" onclick="exportXLSX('loper','Llegadas_Operadores')">⬇ Excel</button></div>
+        </div>
+        <div style="overflow-x:auto"><colgroup>
+  <col style="width:34px">
+  <col style="min-width:100px">
+  <col style="width:64px">
+  <col style="width:68px">
+  <col style="width:10%">
+  <col style="width:10%">
+  <col style="width:76px">
+  <col style="width:76px">
+  <col style="width:72px">
+</colgroup><table class="data-table tbl-std"><thead><tr>
+          <th style="width:34px">#</th><th>Operador</th><th style="text-align:right">Carros</th><th style="text-align:right">Servicios</th><th style="text-align:right">En Tiempo</th><th style="text-align:right"><span style="font-weight:500">(ini ok · lle tarde)</span></th><th style="text-align:right"><span style="font-weight:500">(ini tarde · lle tarde)</span></th><th style="text-align:right">Prom. Ini (min)</th><th style="text-align:right">Prom. Lle (min)</th><th style="cursor:pointer" onclick="sortTable('loper')"><div class="th-inner"><span>% Cumpl.</span><button class="sort-btn" id="sort-loper" style="pointer-events:none">↓</button></div></th>
+        </tr></thead><tbody id="ltOperBody"></tbody></table></div>
       </div>
     </div><!-- /panel-llegadas -->
   </main>
@@ -1660,13 +1700,13 @@ function switchTab(tab){
 
 // ── Table sort / render ───────────────────────────────────────────
 const sortState={
-  cli:{col:3,dir:1},ger:{col:3,dir:1},jef:{col:3,dir:1},coord:{col:3,dir:1},
-  lcli:{col:3,dir:1},lger:{col:3,dir:1},ljef:{col:3,dir:1},lcoord:{col:3,dir:1}
+  cli:{col:3,dir:1},ger:{col:3,dir:1},jef:{col:3,dir:1},coord:{col:3,dir:1},oper:{col:3,dir:1},
+  lcli:{col:3,dir:1},lger:{col:3,dir:1},ljef:{col:3,dir:1},lcoord:{col:3,dir:1},loper:{col:3,dir:1}
 };
-const tableData={cli:[],ger:[],jef:[],coord:[],lcli:[],lger:[],ljef:[],lcoord:[]};
-const TABLE_BODY ={cli:'tCliBody',ger:'tGerBody',jef:'tJefBody',coord:'tCoordBody',lcli:'ltCliBody',lger:'ltGerBody',ljef:'ltJefBody',lcoord:'ltCoordBody'};
-const TABLE_CNT  ={cli:'tCliCount',ger:'tGerCount',jef:'tJefCount',coord:'tCoordCount',lcli:'ltCliCount',lger:'ltGerCount',ljef:'ltJefCount',lcoord:'ltCoordCount'};
-const TABLE_WORD ={cli:'cliente',ger:'gerente',jef:'jefe',coord:'coordinador',lcli:'cliente',lger:'gerente',ljef:'jefe',lcoord:'coordinador'};
+const tableData={cli:[],ger:[],jef:[],coord:[],oper:[],lcli:[],lger:[],ljef:[],lcoord:[],loper:[]};
+const TABLE_BODY ={cli:'tCliBody',ger:'tGerBody',jef:'tJefBody',coord:'tCoordBody',oper:'tOperBody',lcli:'ltCliBody',lger:'ltGerBody',ljef:'ltJefBody',lcoord:'ltCoordBody',loper:'ltOperBody'};
+const TABLE_CNT  ={cli:'tCliCount',ger:'tGerCount',jef:'tJefCount',coord:'tCoordCount',oper:'tOperCount',lcli:'ltCliCount',lger:'ltGerCount',ljef:'ltJefCount',lcoord:'ltCoordCount',loper:'ltOperCount'};
+const TABLE_WORD ={cli:'cliente',ger:'gerente',jef:'jefe',coord:'coordinador',oper:'operador',lcli:'cliente',lger:'gerente',ljef:'jefe',lcoord:'coordinador',loper:'operador'};
 
 function sortTable(tbl){ sortState[tbl].dir*=-1; renderTable(tbl); document.getElementById('sort-'+tbl).textContent=sortState[tbl].dir===1?'↑':'↓'; }
 
@@ -1692,12 +1732,15 @@ function renderTable(tbl){
     const bg=i<3?badges[i]:'#e5e7eb';
     const fg=i<3?'#fff':'#6b7a99';
     const isCoordTable=(tbl==='coord'||tbl==='lcoord');
+    const isOperTable=(tbl==='oper'||tbl==='loper');
     const coordK=row.k.replace(/'/g,"\\'");
     const cliK=row.k.replace(/'/g,"\\'");
     const clickAttr=isCliTable
       ?`onclick="openDrill('${cliK}','${tbl}')" class="row-clickable"`
       :isCoordTable
       ?`onclick="openCoordModal('${coordK}')" class="row-clickable"`
+      :isOperTable
+      ?`onclick="openOperadorModal('${coordK}')" class="row-clickable"`
       :'';
     // Carros: para cliente usa CARROS_MAP; para gerente/jefe/coord usa conteo de unidades únicas
     const carrosVal=isCliTable
@@ -2045,10 +2088,10 @@ function draw(){
   lp.textContent=totAll>0?((totAll-totLleT)/totAll*100).toFixed(1)+'%':'–';
   lp.style.color=pctColorLlegadas(totAll>0?(totAll-totLleT)/totAll*100:0);
 
-  ['chartTitle','tCliTitle','tGerTitle','tJefTitle','tCoordTitle'].forEach((id,i)=>
-    document.getElementById(id).textContent=['Inicios Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe','Resumen por Coordinador'][i]+sfx);
-  ['lChartTitle','ltCliTitle','ltGerTitle','ltJefTitle','ltCoordTitle'].forEach((id,i)=>
-    document.getElementById(id).textContent=['Llegadas Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe','Resumen por Coordinador'][i]+sfx);
+  ['chartTitle','tCliTitle','tGerTitle','tJefTitle','tCoordTitle','tOperTitle'].forEach((id,i)=>
+    document.getElementById(id).textContent=['Inicios Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe','Resumen por Coordinador','Resumen por Operador'][i]+sfx);
+  ['lChartTitle','ltCliTitle','ltGerTitle','ltJefTitle','ltCoordTitle','ltOperTitle'].forEach((id,i)=>
+    document.getElementById(id).textContent=['Llegadas Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe','Resumen por Coordinador','Resumen por Operador'][i]+sfx);
 
   myChartIni=buildChart('chart-ini',rowsIni,C.retardo,'Inicios tarde',myChartIni,'ini');
   myChartLle=buildChart('chart-lle',rowsLle,C.llegada,'Llegadas tarde',myChartLle,'lle');
@@ -2057,11 +2100,13 @@ function draw(){
   buildTable(rowsIni,C.gerente,'ger',true);
   buildTable(rowsIni,C.jefe,'jef',true);
   buildTable(rowsIni,C.coord,'coord',true);
+  buildTable(rowsIni,C.driver,'oper',true);
 
   buildTable(rowsLle,C.cliente,'lcli',false);
   buildTable(rowsLle,C.gerente,'lger',false);
   buildTable(rowsLle,C.jefe,'ljef',false);
   buildTable(rowsLle,C.coord,'lcoord',false);
+  buildTable(rowsLle,C.driver,'loper',false);
 }
 
 // ── Excel export ──────────────────────────────────────────────────
