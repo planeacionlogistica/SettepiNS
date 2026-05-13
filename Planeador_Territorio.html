@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Optimizador de Operadores - Traxion Settepi (Rutas Reales + Tiempos)</title>
+<title>Optimizador de Operadores - Traxion Settepi (Rutas + Tiempos)</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -10,599 +10,434 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:'Segoe UI',Arial,sans-serif;color:#1f2937;background:#ffffff;overflow:hidden}
 .app{display:flex;flex-direction:column;height:100vh}
-header{background:#ffffff;color:#1f2937;padding:12px 18px;display:flex;align-items:center;gap:18px;border-bottom:3px solid #84cc16;box-shadow:0 1px 3px rgba(0,0,0,0.05);flex-wrap:wrap}
-header h1{font-size:16px;font-weight:600;letter-spacing:0.3px;color:#1f2937}
-.kpis{display:flex;gap:14px;margin-left:auto;flex-wrap:wrap}
-.kpi{background:#f9fafb;padding:6px 12px;border-radius:6px;min-width:90px;border:1px solid #e5e7eb;border-left:3px solid #84cc16}
-.kpi-label{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px}
-.kpi-val{font-size:18px;font-weight:700;color:#1f2937;line-height:1.2}
-.kpi-val small{font-size:11px;color:#65a30d;font-weight:600}
+header{background:#ffffff;padding:12px 18px;display:flex;align-items:center;gap:18px;border-bottom:3px solid #84cc16;flex-wrap:wrap}
+header h1{font-size:16px;font-weight:600}
+.kpis{display:flex;gap:14px;flex-wrap:wrap}
+.kpi{background:#f9fafb;padding:6px 12px;border-radius:6px;min-width:90px;border-left:3px solid #84cc16}
+.kpi-label{font-size:10px;color:#6b7280;text-transform:uppercase}
+.kpi-val{font-size:18px;font-weight:700}
 main{flex:1;display:flex;overflow:hidden}
-aside{width:400px;background:#ffffff;color:#1f2937;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid #e5e7eb}
+aside{width:400px;background:#fff;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid #e5e7eb}
 .filtros{padding:14px;border-bottom:1px solid #e5e7eb;background:#f9fafb}
-.filtros h3{font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:#6b7280;margin-bottom:10px;font-weight:700}
+.filtros h3{font-size:11px;color:#6b7280;margin-bottom:10px}
 .filtro-row{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
-.filtro-row label{font-size:11px;color:#374151;font-weight:500}
-.filtro-row select,.filtro-row input{background:#ffffff;color:#1f2937;border:1px solid #d1d5db;border-radius:5px;padding:7px 9px;font-size:12px;width:100%}
-.filtro-row select:focus,.filtro-row input:focus{outline:none;border-color:#84cc16;box-shadow:0 0 0 2px rgba(132,204,22,0.15)}
-.toggle{display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:12px;padding:5px 0;color:#374151}
-.toggle input{width:auto;cursor:pointer;accent-color:#84cc16;margin-top:2px;flex-shrink:0}
-.btn-primary{background:#84cc16;color:#1f2937;border:none;padding:9px 14px;border-radius:5px;font-weight:700;cursor:pointer;font-size:12px;width:100%;text-transform:uppercase;letter-spacing:0.4px;margin-top:8px}
+.filtro-row label{font-size:11px;font-weight:500}
+.filtro-row select,.filtro-row input{padding:7px 9px;font-size:12px;border:1px solid #d1d5db;border-radius:5px}
+.btn-primary{background:#84cc16;border:none;padding:9px;border-radius:5px;font-weight:700;cursor:pointer;width:100%;margin-top:8px}
 .btn-primary:hover{background:#a3e635}
-.btn-secondary{background:#ffffff;color:#374151;border:1px solid #d1d5db;padding:8px 12px;border-radius:5px;cursor:pointer;font-size:11px;margin-top:6px;width:100%;font-weight:500}
-.btn-secondary:hover{background:#f3f4f6;border-color:#84cc16}
-.btn-upload{background:#1f2937;color:#fff;border:none;padding:9px 14px;border-radius:5px;font-weight:600;cursor:pointer;font-size:11px;width:100%;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:6px}
-.btn-upload:hover{background:#374151}
-.archivo-info{font-size:10px;color:#6b7280;padding:4px 6px;background:#f3f4f6;border-radius:4px;margin-bottom:8px;text-align:center}
-.umbral-info{font-size:10px;color:#6b7280;font-style:italic;text-align:center;padding:4px 0;margin-bottom:4px}
-.umbral-info b{color:#65a30d;font-weight:700}
-.rango-info{padding:6px 0;text-align:center;font-size:10px;color:#6b7280}
-.rango-info b{color:#374151}
-.lista-swaps{flex:1;overflow-y:auto;background:#ffffff}
-.lista-header{padding:10px 14px;border-bottom:1px solid #e5e7eb;background:#f9fafb;display:flex;justify-content:space-between;align-items:center}
-.lista-header h3{font-size:11px;text-transform:uppercase;color:#6b7280;letter-spacing:0.8px;font-weight:700}
-.lista-count{font-size:11px;color:#65a30d;font-weight:700;background:#ecfccb;padding:2px 8px;border-radius:10px}
-.swap-item{padding:11px 14px;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background 0.15s;border-left:3px solid transparent}
+.btn-upload{background:#1f2937;color:#fff;border:none;padding:9px;border-radius:5px;font-weight:600;cursor:pointer;width:100%;margin-bottom:6px}
+.toggle{display:flex;align-items:center;gap:8px;font-size:12px;margin:8px 0}
+.lista-swaps{flex:1;overflow-y:auto}
+.lista-header{padding:10px 14px;background:#f9fafb;display:flex;justify-content:space-between}
+.swap-item{padding:11px 14px;border-bottom:1px solid #f3f4f6;cursor:pointer;border-left:3px solid transparent}
 .swap-item:hover{background:#f9fafb;border-left-color:#84cc16}
 .swap-item.active{background:#ecfccb;border-left-color:#65a30d}
-.swap-row1{display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap}
-.swap-rank{font-size:11px;color:#9ca3af;font-weight:700;min-width:26px}
-.swap-udns{flex:1;display:flex;align-items:center;gap:5px;flex-wrap:wrap;min-width:0}
-.swap-udns .sep{color:#9ca3af;font-weight:600}
-.swap-ahorro{color:#65a30d;font-weight:700;font-size:14px;white-space:nowrap}
-.swap-tiempo{font-size:11px;color:#6b7280;white-space:nowrap}
-.swap-row2{font-size:11px;color:#374151;line-height:1.4;padding-left:34px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.swap-row2 .cliente-pill{background:#f3f4f6;color:#1f2937;padding:2px 7px;border-radius:10px;font-weight:600;font-size:10px}
+.swap-ahorro{color:#65a30d;font-weight:700}
+.swap-tiempo{font-size:11px;color:#6b7280}
 .udn-tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600}
 .udn-tag.garcia{background:#ffedd5;color:#9a3412}
-.udn-tag.monterrey{background:#dbeafe;color:#1e3a8a}
-.udn-tag.lipu{background:#dcfce7;color:#14532d}
-.udn-tag.otra{background:#fef3c7;color:#78350f}
 .mapa-wrap{flex:1;position:relative}
-#map{height:100%;width:100%;background:#f3f4f6}
-.legenda{position:absolute;bottom:14px;left:14px;background:rgba(255,255,255,0.98);padding:10px 14px;border-radius:6px;font-size:11px;z-index:1000;box-shadow:0 2px 12px rgba(0,0,0,0.12);border-left:3px solid #84cc16}
-.legenda h4{font-size:10px;text-transform:uppercase;color:#6b7280;margin-bottom:6px;letter-spacing:0.5px;font-weight:700}
-.legenda-row{display:flex;align-items:center;gap:8px;font-size:11px;margin:4px 0;color:#374151}
-.line-sample{width:22px;height:0;border-top:2px solid;display:inline-block}
-.line-sample.dashed-red{border-top-style:dashed;border-color:#dc2626;border-top-width:2px}
-.line-sample.solid-green{border-color:#65a30d;border-top-width:3px}
-.empty{padding:30px 18px;text-align:center;color:#6b7280;font-size:12px;line-height:1.5}
-.empty b{color:#1f2937}
-.empty .tip{margin-top:10px;padding:10px;background:#fef9c3;border-radius:5px;border-left:3px solid #ca8a04;color:#713f12;font-style:normal;text-align:left}
-.loading{padding:40px 20px;text-align:center;color:#65a30d;font-size:12px}
-.spinner{display:inline-block;width:20px;height:20px;border:3px solid #e5e7eb;border-top-color:#84cc16;border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:8px}
-.error-msg{padding:14px;text-align:center;color:#991b1b;font-size:12px;background:#fee2e2;margin:10px;border-radius:5px;border-left:3px solid #dc2626}
+#map{height:100%;width:100%}
+.loading{padding:40px;text-align:center;color:#65a30d}
+.spinner{width:24px;height:24px;border:3px solid #e5e7eb;border-top-color:#84cc16;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 10px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.leaflet-popup-content{font-size:11px;line-height:1.5;font-family:inherit}
-.lista-swaps::-webkit-scrollbar{width:7px}
-.lista-swaps::-webkit-scrollbar-track{background:#f9fafb}
-.lista-swaps::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px}
-.toast{position:fixed;top:70px;right:20px;background:#fef9c3;color:#713f12;padding:12px 18px;border-radius:6px;border-left:4px solid #ca8a04;font-size:12px;z-index:2000;box-shadow:0 4px 12px rgba(0,0,0,0.15);max-width:340px;line-height:1.4;display:none}
-.toast.show{display:block;animation:slideIn 0.3s}
-@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
-.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:3000;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px)}
-.modal-backdrop.show{display:flex;animation:fadeIn 0.18s}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.modal{background:#fff;border-radius:10px;width:min(1280px, 96vw);height:min(720px, 92vh);display:flex;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,0.35);overflow:hidden}
-.modal-head{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid #e5e7eb;background:#f9fafb;flex-wrap:wrap}
-.modal-head .rank-big{font-size:18px;font-weight:700;color:#9ca3af;min-width:40px}
-.modal-head .titulo{flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
-.modal-head .udns-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.modal-head .clientes-row{font-size:12px;color:#6b7280;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.modal-head .ahorro-big{font-size:22px;font-weight:700;color:#65a30d;text-align:right;white-space:nowrap}
-.modal-head .tiempo-big{font-size:14px;color:#6b7280;text-align:right;white-space:nowrap}
-.modal-close{background:#fff;border:1px solid #d1d5db;width:32px;height:32px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6b7280;flex-shrink:0}
-.modal-close:hover{background:#f3f4f6;color:#1f2937}
+.progress-bar{height:4px;background:#e5e7eb;border-radius:2px;overflow:hidden;margin:10px 0}
+.progress-fill{height:100%;background:#84cc16;width:0%;transition:width 0.3s}
+.toast{position:fixed;bottom:20px;right:20px;background:#1f2937;color:white;padding:12px 18px;border-radius:8px;font-size:12px;z-index:2000;display:none}
+.toast.show{display:block}
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:3000;display:none;align-items:center;justify-content:center}
+.modal-backdrop.show{display:flex}
+.modal{background:#fff;border-radius:10px;width:min(1200px,95vw);height:min(700px,90vh);display:flex;flex-direction:column;overflow:hidden}
+.modal-head{padding:14px 20px;border-bottom:1px solid #e5e7eb;display:flex;gap:14px;align-items:center}
 .modal-body{flex:1;display:flex;overflow:hidden}
-.modal-tabla{width:48%;padding:18px;overflow-y:auto;background:#fff;border-right:1px solid #e5e7eb}
-.modal-mapa-wrap{flex:1;position:relative;background:#f3f4f6}
+.modal-tabla{width:50%;padding:16px;overflow-y:auto}
+.modal-mapa-wrap{flex:1}
 #modal-map{height:100%;width:100%}
-.tabla-comp{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
-.tabla-comp th{text-align:left;padding:8px 10px;background:#1f2937;color:#fff;font-size:11px;font-weight:600;letter-spacing:0.4px;text-transform:uppercase}
-.tabla-comp th.col-A{background:#ea580c}
-.tabla-comp th.col-B{background:#1e3a8a}
-.tabla-comp th.col-campo{background:#374151;width:35%}
-.tabla-comp td{padding:9px 10px;border-bottom:1px solid #f3f4f6;vertical-align:top}
-.tabla-comp .campo{font-weight:600;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.3px;background:#f9fafb}
-.tabla-comp .val{color:#1f2937}
-.tabla-comp .val.nombre{font-weight:700}
-.tabla-comp .val.ruta-actual{color:#9ca3af}
-.tabla-comp .val.ruta-nueva{color:#65a30d;font-weight:600}
-.tabla-comp .val.km-actual{color:#9ca3af;font-weight:600}
-.tabla-comp .val.km-nuevo{color:#65a30d;font-weight:700}
-.tabla-comp .val.delta{color:#65a30d;font-weight:700;font-size:13px}
-.tabla-comp .badge-letra-tabla{display:inline-block;background:#fff;color:#1f2937;font-size:10px;font-weight:700;width:18px;height:18px;border-radius:50%;text-align:center;line-height:14px;border:2px solid;margin-right:4px;vertical-align:middle}
-.modal-resumen{margin-top:14px;padding:12px 14px;background:#ecfccb;border-radius:8px;border-left:4px solid #65a30d}
-.modal-resumen h4{font-size:11px;text-transform:uppercase;color:#365314;font-weight:700;margin-bottom:6px;letter-spacing:0.4px}
-.modal-resumen .resumen-row{display:flex;justify-content:space-between;font-size:12px;color:#1f2937;padding:2px 0}
-.modal-resumen .resumen-row b{color:#365314;font-weight:700}
-.modal-resumen .resumen-row.total{margin-top:6px;padding-top:6px;border-top:1px dashed #84cc16;font-weight:700;font-size:13px;color:#365314}
-.modal-warn{margin-top:10px;padding:8px 12px;background:#fef3c7;border-radius:6px;border-left:3px solid #ca8a04;color:#713f12;font-size:11px;line-height:1.5}
+.modal-close{cursor:pointer;background:#f3f4f6;border:none;padding:6px 12px;border-radius:5px}
+.tabla-comp{width:100%;font-size:12px;border-collapse:collapse}
+.tabla-comp td,.tabla-comp th{padding:8px;border-bottom:1px solid #e5e7eb;text-align:left}
+.modal-resumen{margin-top:16px;padding:12px;background:#ecfccb;border-radius:8px}
+.error-msg{color:#991b1b;background:#fee2e2;padding:12px;margin:10px;border-radius:5px}
 </style>
 </head>
 <body>
 <div class="app">
 <header>
-  <h1>Optimizador de Operadores · Settepi (Rutas Reales + Tiempos)</h1>
+  <h1>🚛 Optimizador de Operadores · Settepi (Rutas + Tiempos)</h1>
   <div class="kpis">
     <div class="kpi"><div class="kpi-label">Km Actual</div><div class="kpi-val" id="kpi-actual">—</div></div>
     <div class="kpi"><div class="kpi-label">Km Optimizado</div><div class="kpi-val" id="kpi-opt">—</div></div>
-    <div class="kpi"><div class="kpi-label">Ahorro (km)</div><div class="kpi-val" id="kpi-ahorro">— <small id="kpi-pct"></small></div></div>
-    <div class="kpi"><div class="kpi-label">Ahorro (min)</div><div class="kpi-val" id="kpi-tiempo">—</div></div>
+    <div class="kpi"><div class="kpi-label">⏱ Ahorro min</div><div class="kpi-val" id="kpi-tiempo">—</div></div>
     <div class="kpi"><div class="kpi-label">Swaps</div><div class="kpi-val" id="kpi-swaps">—</div></div>
   </div>
 </header>
 <main>
 <aside>
   <div class="filtros">
-    <button class="btn-upload" id="btn-upload">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M12 4v12M5 11l7-7 7 7M5 20h14" stroke-linecap="round"/></svg>
-      Cargar Excel
-    </button>
+    <button class="btn-upload" id="btn-upload">📂 Cargar Excel</button>
     <input type="file" id="file-input" accept=".xlsx,.xlsm" style="display:none">
-    <div class="archivo-info" id="archivo-info">Datos: Asignacion_Garcia.xlsx (ejemplo)</div>
-    
-    <h3>Filtros</h3>
+    <div class="archivo-info" id="archivo-info" style="font-size:10px;color:#6b7280;margin-bottom:8px">Datos de ejemplo precargados</div>
     <div class="filtro-row">
-      <label>UDN</label>
-      <select id="f-udn"><option value="">Todas las UDN</option></select>
-    </div>
-    <div class="filtro-row">
-      <label>Rango de ahorro (km)</label>
+      <label>Rango mínimo ahorro (km)</label>
       <select id="f-rango">
-        <option value="0">Todos los ahorros</option>
+        <option value="0">Todos</option>
         <option value="5">≥ 5 km</option>
         <option value="10">≥ 10 km</option>
-        <option value="13" selected>≥ 13 km (recomendado)</option>
-        <option value="15">≥ 15 km</option>
+        <option value="13" selected>≥ 13 km</option>
         <option value="20">≥ 20 km</option>
         <option value="30">≥ 30 km</option>
-        <option value="50">≥ 50 km</option>
       </select>
     </div>
-    <label class="toggle"><input type="checkbox" id="f-mismocliente" checked> Solo mismo cliente</label>
-    <label class="toggle" id="lbl-mismaudn" style="display:none"><input type="checkbox" id="f-mismaudn" checked> Solo misma UDN</label>
-    <button class="btn-primary" id="btn-recalc">Recalcular (con rutas reales)</button>
-    <button class="btn-secondary" id="btn-interudn" style="display:none">Buscar intercambios entre UDNs</button>
-    <div class="rango-info" id="rango-info"></div>
+    <label class="toggle"><input type="checkbox" id="f-mismocliente" checked> 🔄 Solo mismo cliente</label>
+    <button class="btn-primary" id="btn-recalc">🔄 Recalcular rutas reales</button>
+    <div class="progress-bar" id="progress-bar" style="display:none"><div class="progress-fill" id="progress-fill"></div></div>
   </div>
-  <div class="lista-header">
-    <h3>Intercambios sugeridos</h3>
-    <span class="lista-count" id="lista-count"></span>
-  </div>
-  <div class="lista-swaps" id="lista">
-    <div class="loading"><div class="spinner"></div>Iniciando...</div>
-  </div>
+  <div class="lista-header"><h3>📋 Intercambios sugeridos</h3><span id="lista-count"></span></div>
+  <div class="lista-swaps" id="lista"><div class="loading"><div class="spinner"></div>Cargando datos de ejemplo...</div></div>
 </aside>
-<div class="mapa-wrap">
-  <div id="map"></div>
-  <div class="legenda" id="legenda"></div>
-</div>
+<div class="mapa-wrap"><div id="map"></div></div>
 </main>
 </div>
 
-<!-- Modal -->
-<div class="modal-backdrop" id="modal-bd">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="rank-big" id="modal-rank">#1</div>
-      <div class="titulo">
-        <div class="udns-row" id="modal-udns"></div>
-        <div class="clientes-row" id="modal-clientes"></div>
-      </div>
-      <div class="ahorro-big" id="modal-ahorro"></div>
-      <div class="tiempo-big" id="modal-tiempo"></div>
-      <button class="modal-close" id="modal-close">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="modal-tabla" id="modal-tabla"></div>
-      <div class="modal-mapa-wrap"><div id="modal-map"></div></div>
-    </div>
-  </div>
-</div>
+<div class="modal-backdrop" id="modal-bd"><div class="modal"><div class="modal-head"><div id="modal-title">Intercambio</div><button class="modal-close" id="modal-close">✕</button></div><div class="modal-body"><div class="modal-tabla" id="modal-tabla"></div><div class="modal-mapa-wrap"><div id="modal-map"></div></div></div></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
-const URL_OSRM = 'https://router.project-osrm.org/route/v1/driving/';
-const CACHE_RUTAS = new Map();
-let DATOS = null;
-let mapa, layerOps, layerPIs, layerLineas, layerSeleccion;
-let modalMapa = null, modalLayer = null;
-let swapsActuales = [], swapSeleccionado = null;
-let kmTotalActual = 0, tiempoTotalActual = 0;
+// DATOS DE EJEMPLO (con operadores reales de García)
+const DATOS_EJEMPLO = {
+  ops: [
+    {i:0, nom:"19201490", nombre:"HERNANDEZ HERNANDEZ JOSE", udn:"Settepi Garcia", cliente:"CON-CONMET", cliente_short:"CONMET", ruta:"F2-SAN FRANCISCO", olat:25.839445, olon:-100.399406, plat:25.818034, plon:-100.413957},
+    {i:1, nom:"19201767", nombre:"RUIZ DELGADO CEBERO", udn:"Settepi Garcia", cliente:"VTE-VERTEX MTY", cliente_short:"VERTEX", ruta:"GARCIA", olat:25.793845, olon:-100.601418, plat:25.811904, plon:-100.6243},
+    {i:2, nom:"19206300", nombre:"GARCIA DOÑEZ ARMANDO", udn:"Settepi Garcia", cliente:"CON-CONMET", cliente_short:"CONMET", ruta:"F2-ACUEDUCTO", olat:25.730473, olon:-100.321673, plat:25.764102, plon:-100.322587},
+    {i:3, nom:"19206717", nombre:"RAMIREZ GUADALUPE", udn:"Settepi Garcia", cliente:"ALC-ALCALI", cliente_short:"ALCALI", ruta:"ESCOBEDO FIJO", olat:25.799471, olon:-100.36912, plat:25.780129, plon:-100.292243},
+    {i:4, nom:"19207749", nombre:"LOMAS CARDENAS JORGE", udn:"Settepi Garcia", cliente:"EMC-EMPAQUES", cliente_short:"EMPAQUES", ruta:"CAPELLANIA", olat:25.809726, olon:-100.637035, plat:25.806342, plon:-100.612375},
+    {i:5, nom:"19208139", nombre:"VELAZQUEZ CRUZ ALAN", udn:"Settepi Garcia", cliente:"NAV-NAVISTAR", cliente_short:"NAVISTAR", ruta:"N1-VILLAS DEL ARCO", olat:25.863675, olon:-100.310638, plat:25.876713, plon:-100.319303}
+  ],
+  udns: ["Settepi Garcia"]
+};
 
-async function obtenerRuta(lon1, lat1, lon2, lat2) {
-  const key = `${lat1},${lon1}|${lat2},${lon2}`;
-  if (CACHE_RUTAS.has(key)) return CACHE_RUTAS.get(key);
-  const url = `${URL_OSRM}${lon1},${lat1};${lon2},${lat2}?overview=false&geometries=polyline`;
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
-      const route = data.routes[0];
-      const resultado = { km: route.distance / 1000, minutos: route.duration / 60 };
-      CACHE_RUTAS.set(key, resultado);
-      return resultado;
-    }
-  } catch(e) { console.warn('Error OSRM:', e); }
-  return null;
-}
+let DATOS_ACTUALES = null;
+let swapsActuales = [];
+let mapaPrincipal, capaSwaps;
 
-function haversine(lat1,lon1,lat2,lon2){
-  const R=6371, toRad=d=>d*Math.PI/180;
+function escapeHTML(s) { return String(s||'').replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+function haversine(lat1,lon1,lat2,lon2) {
+  const R=6371, toRad=x=>x*Math.PI/180;
   const dlat=toRad(lat2-lat1), dlon=toRad(lon2-lon1);
   const a=Math.sin(dlat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dlon/2)**2;
-  return 2*R*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-function fmtNum(n, dec=1){return (n||0).toLocaleString('es-MX',{maximumFractionDigits:dec})}
-function fmtTiempo(min){return min>=60?`${Math.floor(min/60)}h ${Math.round(min%60)}min`:`${Math.round(min)} min`}
-
-function colorUDN(udn){
-  const u = (udn||'').toLowerCase();
-  if(u.includes('garcia')) return '#ea580c';
-  if(u.includes('lipu')) return '#16a34a';
-  if(u.includes('monterrey')) return '#1e3a8a';
-  return '#6b7280';
-}
-function udnClass(udn){
-  const u = (udn||'').toLowerCase();
-  if(u.includes('garcia')) return 'garcia';
-  if(u.includes('lipu')) return 'lipu';
-  if(u.includes('monterrey')) return 'monterrey';
-  return 'otra';
-}
-function udnTag(udn){return `<span class="udn-tag ${udnClass(udn)}">${escapeHTML(udn)}</span>`;}
-function escapeHTML(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function showError(msg){console.error(msg);document.getElementById('lista').innerHTML=`<div class="error-msg"><b>Error:</b>${escapeHTML(msg)}</div>`;}
-function showToast(msg, ms=5000){
-  const t = document.getElementById('toast');t.innerHTML = msg;t.classList.add('show');
-  clearTimeout(t._timer);t._timer = setTimeout(()=>t.classList.remove('show'), ms);
+// Obtener ruta real de OSRM (con timeout y fallback a lineal)
+async function obtenerRutaReal(lon1, lat1, lon2, lat2) {
+  const url = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    const res = await fetch(url, { signal: controller.signal });
+    clearTimeout(timeout);
+    const data = await res.json();
+    if (data.code === 'Ok' && data.routes && data.routes[0]) {
+      const km = data.routes[0].distance / 1000;
+      const minutos = data.routes[0].duration / 60;
+      return { km, minutos, real: true };
+    }
+  } catch(e) { console.warn("OSRM falló, usando lineal:", e); }
+  // Fallback a distancia lineal
+  const km = haversine(lat1, lon1, lat2, lon2);
+  return { km, minutos: km * 2.2, real: false };
 }
 
-function initMapa(){
-  mapa = L.map('map',{zoomControl:true}).setView([25.78,-100.45],11);
-  const calles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd', attribution:'© OSM'});
-  calles.addTo(mapa);
-  layerLineas = L.layerGroup().addTo(mapa);
-  layerOps = L.layerGroup().addTo(mapa);
-  layerPIs = L.layerGroup().addTo(mapa);
-  layerSeleccion = L.layerGroup().addTo(mapa);
-}
-
-function pintarMapa(){
-  layerOps.clearLayers();layerPIs.clearLayers();layerLineas.clearLayers();
-  if(!DATOS) return;
-  const ops = DATOS.ops;
-  ops.forEach(o=>{
-    const color = colorUDN(o.udn);
-    L.circleMarker([o.olat,o.olon],{radius:5,color:'#fff',weight:1.2,fillColor:color,fillOpacity:0.95})
-      .bindTooltip(`<b>${escapeHTML(o.nombre||o.nom)}</b><br>${escapeHTML(o.udn)}`,{direction:'top'}).addTo(layerOps);
-    L.circleMarker([o.plat,o.plon],{radius:4,color:color,weight:2,fillColor:'#fff',fillOpacity:1})
-      .bindTooltip(`${escapeHTML(o.ruta)}<br>${escapeHTML(o.cliente_short||o.cliente)}`,{direction:'top'}).addTo(layerPIs);
-    L.polyline([[o.olat,o.olon],[o.plat,o.plon]],{color,weight:1.5,opacity:0.4}).addTo(layerLineas);
-  });
-}
-
-function pintarSwapMapaPrincipal(idx){
-  layerSeleccion.clearLayers();
-  const s = swapsActuales[idx];
-  if(!s || !s.rutasReales) return;
-  const {A,B, rutasReales} = s;
-  L.polyline([[A.olat,A.olon],[A.plat,A.plon]],{color:'#dc2626',weight:3,dashArray:'6,6',opacity:0.9}).addTo(layerSeleccion);
-  L.polyline([[B.olat,B.olon],[B.plat,B.plon]],{color:'#dc2626',weight:3,dashArray:'6,6',opacity:0.9}).addTo(layerSeleccion);
-  if(rutasReales.A_B) L.polyline([[A.olat,A.olon],[B.plat,B.plon]],{color:'#65a30d',weight:4,opacity:0.95}).addTo(layerSeleccion);
-  if(rutasReales.B_A) L.polyline([[B.olat,B.olon],[A.plat,A.plon]],{color:'#65a30d',weight:4,opacity:0.95}).addTo(layerSeleccion);
-}
-
-async function calcularSwaps(){
-  const f = getFiltros();
-  let ops = DATOS.ops.filter(o=>!(f.udn && o.udn!==f.udn));
+async function calcularSwapsConRutas() {
+  const listaDiv = document.getElementById('lista');
+  const progressBar = document.getElementById('progress-bar');
+  const progressFill = document.getElementById('progress-fill');
   
-  const grupos = {};
-  ops.forEach(o=>{
-    let k = '';
-    if(f.mismaUDN) k += o.udn;
-    if(f.mismoCliente) k += '|' + o.cliente;
-    if(!grupos[k]) grupos[k] = [];
-    grupos[k].push(o);
-  });
+  const mismoCliente = document.getElementById('f-mismocliente').checked;
+  const minAhorro = parseInt(document.getElementById('f-rango').value) || 0;
   
-  const candidatos = [];
-  let kmActualTotal = 0, tiempoActualTotal = 0;
+  let ops = [...DATOS_ACTUALES.ops];
   
-  // Primero calcular km y tiempos actuales (lineal, pero con tiempo lineal aproximado)
-  for(const o of ops){
-    const km = haversine(o.olat,o.olon,o.plat,o.plon);
-    o._kmAct = km;
-    o._tiempoAct = km * 2.5; // tiempo lineal aproximado (min) suponiendo 40km/h
-    kmActualTotal += km;
-    tiempoActualActual += o._tiempoAct;
+  // Calcular distancia actual (lineal)
+  for (let op of ops) {
+    op._kmActual = haversine(op.olat, op.olon, op.plat, op.plon);
+    op._minActual = op._kmActual * 2.2;
   }
   
-  for(const g of Object.values(grupos)){
-    for(let i=0;i<g.length;i++){
-      for(let j=i+1;j<g.length;j++){
-        const A=g[i], B=g[j];
-        if(A.ruta===B.ruta && A.cliente===B.cliente) continue;
-        
-        const rutaAB = await obtenerRuta(A.olon, A.olat, B.plon, B.plat);
-        const rutaBA = await obtenerRuta(B.olon, B.olat, A.plon, A.plat);
-        
-        if(!rutaAB || !rutaBA) continue;
-        
-        const kmA_new = rutaAB.km;
-        const kmB_new = rutaBA.km;
-        const tiempoA_new = rutaAB.minutos;
-        const tiempoB_new = rutaBA.minutos;
-        const ahorroKm = (A._kmAct + B._kmAct) - (kmA_new + kmB_new);
-        const ahorroMin = (A._tiempoAct + B._tiempoAct) - (tiempoA_new + tiempoB_new);
-        
-        if(ahorroKm >= f.minAhorro){
-          candidatos.push({
-            A, B,
-            kmA_new, kmB_new,
-            tiempoA_new, tiempoB_new,
-            ahorroKm, ahorroMin,
-            rutasReales: { A_B: rutaAB, B_A: rutaBA }
-          });
-        }
-        
-        await new Promise(r => setTimeout(r, 50)); // rate limiting
+  const kmTotalActual = ops.reduce((s,o)=>s+o._kmActual,0);
+  const minTotalActual = ops.reduce((s,o)=>s+o._minActual,0);
+  
+  // Generar pares candidatos (mismo cliente si está activo)
+  const grupos = new Map();
+  for (let op of ops) {
+    let key = mismoCliente ? op.cliente : 'todos';
+    if (!grupos.has(key)) grupos.set(key, []);
+    grupos.get(key).push(op);
+  }
+  
+  const candidatos = [];
+  let totalPares = 0;
+  
+  for (let [_, grupo] of grupos) {
+    for (let i = 0; i < grupo.length; i++) {
+      for (let j = i+1; j < grupo.length; j++) {
+        totalPares++;
       }
     }
   }
   
-  candidatos.sort((a,b)=>b.ahorroKm - a.ahorroKm);
+  progressBar.style.display = 'block';
+  let procesados = 0;
+  
+  for (let [_, grupo] of grupos) {
+    for (let i = 0; i < grupo.length; i++) {
+      for (let j = i+1; j < grupo.length; j++) {
+        const A = grupo[i], B = grupo[j];
+        procesados++;
+        progressFill.style.width = (procesados / totalPares * 100) + '%';
+        
+        listaDiv.innerHTML = `<div class="loading"><div class="spinner"></div>Calculando rutas... ${Math.round(procesados/totalPares*100)}%<br><small>${procesados}/${totalPares} pares</small></div>`;
+        
+        // Obtener rutas reales para el swap
+        const rutaA_B = await obtenerRutaReal(A.olon, A.olat, B.plon, B.plat);
+        const rutaB_A = await obtenerRutaReal(B.olon, B.olat, A.plon, A.plat);
+        
+        const kmNuevoTotal = rutaA_B.km + rutaB_A.km;
+        const kmActualTotal = A._kmActual + B._kmActual;
+        const ahorroKm = kmActualTotal - kmNuevoTotal;
+        
+        if (ahorroKm >= minAhorro) {
+          candidatos.push({
+            A, B,
+            kmA_nuevo: rutaA_B.km,
+            kmB_nuevo: rutaB_A.km,
+            minA_nuevo: rutaA_B.minutos,
+            minB_nuevo: rutaB_A.minutos,
+            ahorroKm: ahorroKm,
+            ahorroMin: (A._minActual + B._minActual) - (rutaA_B.minutos + rutaB_A.minutos),
+            rutasReales: { realA: rutaA_B.real, realB: rutaB_A.real }
+          });
+        }
+        
+        // Pequeña pausa para no saturar OSRM
+        await new Promise(r => setTimeout(r, 200));
+      }
+    }
+  }
+  
+  progressBar.style.display = 'none';
+  
+  // Ordenar y seleccionar mejores (sin repetir operadores)
+  candidatos.sort((a,b) => b.ahorroKm - a.ahorroKm);
   const usados = new Set();
   const swaps = [];
-  for(const c of candidatos){
-    if(usados.has(c.A.i)||usados.has(c.B.i)) continue;
-    usados.add(c.A.i); usados.add(c.B.i);
-    swaps.push(c);
+  for (let c of candidatos) {
+    if (!usados.has(c.A.i) && !usados.has(c.B.i)) {
+      usados.add(c.A.i);
+      usados.add(c.B.i);
+      swaps.push(c);
+    }
   }
   
   swapsActuales = swaps;
   const kmAhorrado = swaps.reduce((s,c)=>s+c.ahorroKm,0);
   const minAhorrado = swaps.reduce((s,c)=>s+c.ahorroMin,0);
   
-  document.getElementById('kpi-actual').textContent = fmtNum(kmActualTotal)+' km';
-  document.getElementById('kpi-opt').textContent = fmtNum(kmActualTotal-kmAhorrado)+' km';
-  document.getElementById('kpi-ahorro').innerHTML = fmtNum(kmAhorrado)+' km <small>'+(kmActualTotal?fmtNum(100*kmAhorrado/kmActualTotal)+'%':'')+'</small>';
-  document.getElementById('kpi-tiempo').innerHTML = fmtTiempo(minAhorrado);
-  document.getElementById('kpi-swaps').textContent = swaps.length;
-  renderLista();
+  document.getElementById('kpi-actual').innerHTML = kmTotalActual.toFixed(1) + ' km';
+  document.getElementById('kpi-opt').innerHTML = (kmTotalActual - kmAhorrado).toFixed(1) + ' km';
+  document.getElementById('kpi-tiempo').innerHTML = Math.round(minAhorrado) + ' min';
+  document.getElementById('kpi-swaps').innerHTML = swaps.length;
+  
+  renderListaSwaps();
+  pintarMapaPrincipal();
 }
 
-function getFiltros(){
-  const rangoSelect = document.getElementById('f-rango').value;
-  let minAhorro = parseInt(rangoSelect) || 0;
-  if(minAhorro === 0) minAhorro = 0;
-  return {
-    udn: document.getElementById('f-udn').value,
-    minAhorro: minAhorro,
-    mismoCliente: document.getElementById('f-mismocliente').checked,
-    mismaUDN: document.getElementById('f-mismaudn').checked,
-  };
-}
-
-function renderLista(){
-  const cont = document.getElementById('lista');
-  document.getElementById('lista-count').textContent = swapsActuales.length+' opciones';
-  if(swapsActuales.length===0){
-    cont.innerHTML = `<div class="empty"><b>Sin intercambios con ahorro ≥ ${getFiltros().minAhorro} km</b><br>Prueba relajar el rango o cargar más datos.</div>`;
+function renderListaSwaps() {
+  const container = document.getElementById('lista');
+  document.getElementById('lista-count').innerHTML = swapsActuales.length;
+  
+  if (swapsActuales.length === 0) {
+    container.innerHTML = '<div class="empty" style="padding:40px;text-align:center">❌ No se encontraron intercambios con el filtro actual</div>';
     return;
   }
+  
   let html = '';
-  swapsActuales.slice(0,300).forEach((s,idx)=>{
+  for (let i = 0; i < swapsActuales.length; i++) {
+    const s = swapsActuales[i];
     html += `
-      <div class="swap-item" data-idx="${idx}">
-        <div class="swap-row1">
-          <span class="swap-rank">#${idx+1}</span>
-          <span class="swap-udns">${udnTag(s.A.udn)}<span class="sep">↔</span>${udnTag(s.B.udn)}</span>
+      <div class="swap-item" data-idx="${i}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span><strong>#${i+1}</strong> ${escapeHTML(s.A.nombre?.split(' ')[0] || s.A.nom)} ↔ ${escapeHTML(s.B.nombre?.split(' ')[0] || s.B.nom)}</span>
           <span class="swap-ahorro">-${s.ahorroKm.toFixed(1)} km</span>
-          <span class="swap-tiempo">⏱ -${fmtTiempo(s.ahorroMin)}</span>
         </div>
-        <div class="swap-row2">
-          <span class="cliente-pill">${escapeHTML(s.A.cliente_short||s.A.cliente)}</span>
-          <span>↔</span>
-          <span class="cliente-pill">${escapeHTML(s.B.cliente_short||s.B.cliente)}</span>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-top:5px">
+          <span>${escapeHTML(s.A.cliente_short)} ↔ ${escapeHTML(s.B.cliente_short)}</span>
+          <span class="swap-tiempo">⏱ -${Math.round(s.ahorroMin)} min</span>
         </div>
-      </div>`;
-  });
-  cont.innerHTML = html;
-  cont.querySelectorAll('.swap-item').forEach(el=>{
-    el.addEventListener('click',()=>abrirModal(parseInt(el.dataset.idx)));
+        ${!s.rutasReales.realA || !s.rutasReales.realB ? '<div style="font-size:9px;color:#f59e0b;margin-top:4px">⚠ Ruta estimada (lineal)</div>' : ''}
+      </div>
+    `;
+  }
+  container.innerHTML = html;
+  
+  document.querySelectorAll('.swap-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.idx);
+      abrirModal(idx);
+      document.querySelectorAll('.swap-item').forEach(e => e.classList.remove('active'));
+      el.classList.add('active');
+    });
   });
 }
 
-function abrirModal(idx){
+function pintarMapaPrincipal() {
+  if (!mapaPrincipal) return;
+  if (capaSwaps) mapaPrincipal.removeLayer(capaSwaps);
+  capaSwaps = L.layerGroup().addTo(mapaPrincipal);
+  
+  for (let op of DATOS_ACTUALES.ops) {
+    const color = '#ea580c';
+    L.circleMarker([op.olat, op.olon], {radius:6, color:'white', weight:2, fillColor:color, fillOpacity:0.9})
+      .bindTooltip(`🏠 ${escapeHTML(op.nombre || op.nom)}`, {sticky:true}).addTo(capaSwaps);
+    L.circleMarker([op.plat, op.plon], {radius:5, color:color, weight:2, fillColor:'white', fillOpacity:1})
+      .bindTooltip(`🏭 ${escapeHTML(op.ruta)}`, {sticky:true}).addTo(capaSwaps);
+    L.polyline([[op.olat,op.olon],[op.plat,op.plon]], {color:'#9ca3af', weight:1.5, opacity:0.4}).addTo(capaSwaps);
+  }
+}
+
+function abrirModal(idx) {
   const s = swapsActuales[idx];
-  if(!s) return;
-  swapSeleccionado = s;
-  const {A,B, kmA_new, kmB_new, tiempoA_new, tiempoB_new, ahorroKm, ahorroMin, rutasReales} = s;
+  if (!s) return;
+  const {A,B, kmA_nuevo, kmB_nuevo, minA_nuevo, minB_nuevo, ahorroKm, ahorroMin} = s;
   
-  document.querySelectorAll('.swap-item').forEach(el=>el.classList.remove('active'));
-  document.querySelector(`.swap-item[data-idx="${idx}"]`)?.classList.add('active');
-  pintarSwapMapaPrincipal(idx);
-  
-  const pct = ((ahorroKm)/(A._kmAct+B._kmAct)*100);
-  document.getElementById('modal-rank').textContent = '#'+(idx+1);
-  document.getElementById('modal-udns').innerHTML = `${udnTag(A.udn)} ↔ ${udnTag(B.udn)}`;
-  document.getElementById('modal-clientes').innerHTML = `<b>${escapeHTML(A.cliente_short||A.cliente)}</b> ↔ <b>${escapeHTML(B.cliente_short||B.cliente)}</b>`;
-  document.getElementById('modal-ahorro').innerHTML = `-${ahorroKm.toFixed(1)} km <small>${pct.toFixed(0)}%</small>`;
-  document.getElementById('modal-tiempo').innerHTML = `⏱ -${fmtTiempo(ahorroMin)}`;
-  
-  const cA = colorUDN(A.udn), cB = colorUDN(B.udn);
-  const pctA = A._kmAct>0?Math.round((A._kmAct-kmA_new)/A._kmAct*100):0;
-  const pctB = B._kmAct>0?Math.round((B._kmAct-kmB_new)/B._kmAct*100):0;
-  
-  document.getElementById('modal-tabla').innerHTML = `
+  const htmlTabla = `
     <table class="tabla-comp">
-      <thead><tr><th class="col-campo">Campo</th><th class="col-A" style="background:${cA}">A</th><th class="col-B" style="background:${cB}">B</th></tr></thead>
-      <tbody>
-        <tr><td class="campo">Operador</td><td class="val nombre">${escapeHTML(A.nombre||A.nom)}</td><td class="val nombre">${escapeHTML(B.nombre||B.nom)}</td></tr>
-        <tr><td class="campo">UDN</td><td>${escapeHTML(A.udn)}</td><td>${escapeHTML(B.udn)}</td></tr>
-        <tr><td class="campo">Cliente</td><td>${escapeHTML(A.cliente)}</td><td>${escapeHTML(B.cliente)}</td></tr>
-        <tr><td class="campo">Ruta actual</td><td class="ruta-actual">${escapeHTML(A.ruta)}</td><td class="ruta-actual">${escapeHTML(B.ruta)}</td></tr>
-        <tr><td class="campo">Ruta propuesta</td><td class="ruta-nueva">${escapeHTML(B.ruta)}</td><td class="ruta-nueva">${escapeHTML(A.ruta)}</td></tr>
-        <tr><td class="campo">Km actuales</td><td class="km-actual">${A._kmAct.toFixed(1)} km</td><td class="km-actual">${B._kmAct.toFixed(1)} km</td></tr>
-        <tr><td class="campo">Km propuestos</td><td class="km-nuevo">${kmA_new.toFixed(1)} km</td><td class="km-nuevo">${kmB_new.toFixed(1)} km</td></tr>
-        <tr><td class="campo">Reducción km</td><td class="delta">-${(A._kmAct-kmA_new).toFixed(1)} km (${pctA}%)</td><td class="delta">-${(B._kmAct-kmB_new).toFixed(1)} km (${pctB}%)</td></tr>
-        <tr><td class="campo">Tiempo actual</td><td>${fmtTiempo(A._tiempoAct)}</td><td>${fmtTiempo(B._tiempoAct)}</td></tr>
-        <tr><td class="campo">Tiempo propuesto</td><td>${fmtTiempo(tiempoA_new)}</td><td>${fmtTiempo(tiempoB_new)}</td></tr>
-      </tbody>
+      <tr><th>Campo</th><th>Operador A</th><th>Operador B</th></tr>
+      <tr><td>Nombre</td><td><strong>${escapeHTML(A.nombre || A.nom)}</strong></td><td><strong>${escapeHTML(B.nombre || B.nom)}</strong></td></tr>
+      <tr><td>UDN</td><td>${escapeHTML(A.udn)}</td><td>${escapeHTML(B.udn)}</td></tr>
+      <tr><td>Cliente</td><td>${escapeHTML(A.cliente_short)}</td><td>${escapeHTML(B.cliente_short)}</td></tr>
+      <tr><td>Ruta actual</td><td>${escapeHTML(A.ruta)}</td><td>${escapeHTML(B.ruta)}</td></tr>
+      <tr><td>Km actual</td><td>${A._kmActual.toFixed(1)} km</td><td>${B._kmActual.toFixed(1)} km</td></tr>
+      <tr><td>Km propuesto</td><td style="color:#65a30d;font-weight:bold">${kmA_nuevo.toFixed(1)} km</td><td style="color:#65a30d;font-weight:bold">${kmB_nuevo.toFixed(1)} km</td></tr>
+      <tr><td>Tiempo actual</td><td>${Math.round(A._minActual)} min</td><td>${Math.round(B._minActual)} min</td></tr>
+      <tr><td>Tiempo propuesto</td><td style="color:#65a30d">${Math.round(minA_nuevo)} min</td><td style="color:#65a30d">${Math.round(minB_nuevo)} min</td></tr>
     </table>
     <div class="modal-resumen">
-      <h4>Resumen del intercambio</h4>
-      <div class="resumen-row"><span>Km actuales (A+B)</span><b>${(A._kmAct+B._kmAct).toFixed(1)} km</b></div>
-      <div class="resumen-row"><span>Km propuestos (A+B)</span><b>${(kmA_new+kmB_new).toFixed(1)} km</b></div>
-      <div class="resumen-row"><span>Tiempo actual (A+B)</span><b>${fmtTiempo(A._tiempoAct+B._tiempoAct)}</b></div>
-      <div class="resumen-row"><span>Tiempo propuesto (A+B)</span><b>${fmtTiempo(tiempoA_new+tiempoB_new)}</b></div>
-      <div class="resumen-row total"><span>AHORRO TOTAL</span><b>-${ahorroKm.toFixed(1)} km · -${fmtTiempo(ahorroMin)}</b></div>
+      <strong>📊 Resumen del intercambio</strong><br>
+      Ahorro total: <strong style="color:#65a30d">-${ahorroKm.toFixed(1)} km · -${Math.round(ahorroMin)} minutos</strong><br>
+      Reducción: ${((ahorroKm/(A._kmActual+B._kmActual))*100).toFixed(0)}% menos distancia
     </div>
   `;
   
+  document.getElementById('modal-title').innerHTML = `🔄 Intercambio #${idx+1}`;
+  document.getElementById('modal-tabla').innerHTML = htmlTabla;
   document.getElementById('modal-bd').classList.add('show');
   
-  setTimeout(()=>{
-    if(!modalMapa){
-      modalMapa = L.map('modal-map',{zoomControl:true});
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd'}).addTo(modalMapa);
-      modalLayer = L.layerGroup().addTo(modalMapa);
-    }
-    modalMapa.invalidateSize();
-    pintarMapaModal(s);
+  setTimeout(() => {
+    if (window.modalMap) window.modalMap.remove();
+    const modalMap = L.map('modal-map').setView([25.78, -100.45], 12);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {subdomains:'abcd'}).addTo(modalMap);
+    
+    const colorA = '#ea580c', colorB = '#1e3a8a';
+    L.polyline([[A.olat,A.olon],[A.plat,A.plon]], {color:'#dc2626', weight:3, dashArray:'6,6'}).addTo(modalMap);
+    L.polyline([[B.olat,B.olon],[B.plat,B.plon]], {color:'#dc2626', weight:3, dashArray:'6,6'}).addTo(modalMap);
+    L.polyline([[A.olat,A.olon],[B.plat,B.plon]], {color:'#65a30d', weight:4, opacity:0.9}).addTo(modalMap);
+    L.polyline([[B.olat,B.olon],[A.plat,A.plon]], {color:'#65a30d', weight:4, opacity:0.9}).addTo(modalMap);
+    
+    L.marker([A.olat,A.olon], {icon:L.divIcon({html:`<div style="background:${colorA};width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;border:2px solid white">A</div>`,iconSize:[30,30]})}).addTo(modalMap);
+    L.marker([B.olat,B.olon], {icon:L.divIcon({html:`<div style="background:${colorB};width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;border:2px solid white">B</div>`,iconSize:[30,30]})}).addTo(modalMap);
+    L.marker([A.plat,A.plon], {icon:L.divIcon({html:`<div style="background:#374151;width:26px;height:26px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:12px">A</div>`,iconSize:[26,26]})}).addTo(modalMap);
+    L.marker([B.plat,B.plon], {icon:L.divIcon({html:`<div style="background:#374151;width:26px;height:26px;border-radius:4px;display:flex;align-items:center;justify-content:center;color:white;font-size:12px">B</div>`,iconSize:[26,26]})}).addTo(modalMap);
+    
+    const bounds = L.latLngBounds([[A.olat,A.olon],[A.plat,A.plon],[B.olat,B.olon],[B.plat,B.plon]]);
+    modalMap.fitBounds(bounds, {padding:[50,50]});
+    window.modalMap = modalMap;
   }, 100);
 }
 
-function pintarMapaModal(s){
-  modalLayer.clearLayers();
-  const {A,B, rutasReales} = s;
-  const colorA = colorUDN(A.udn), colorB = colorUDN(B.udn);
-  
-  L.polyline([[A.olat,A.olon],[A.plat,A.plon]],{color:'#dc2626',weight:3,dashArray:'8,6'}).addTo(modalLayer);
-  L.polyline([[B.olat,B.olon],[B.plat,B.plon]],{color:'#dc2626',weight:3,dashArray:'8,6'}).addTo(modalLayer);
-  if(rutasReales.A_B) L.polyline([[A.olat,A.olon],[B.plat,B.plon]],{color:'#65a30d',weight:5}).addTo(modalLayer);
-  if(rutasReales.B_A) L.polyline([[B.olat,B.olon],[A.plat,A.plon]],{color:'#65a30d',weight:5}).addTo(modalLayer);
-  
-  L.marker([A.olat,A.olon],{icon:L.divIcon({html:`<div style="background:${colorA};border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;border:2px solid white;">A</div>`,iconSize:[32,32],className:''})}).bindPopup(`Hogar A<br>${escapeHTML(A.nombre||A.nom)}`).addTo(modalLayer);
-  L.marker([B.olat,B.olon],{icon:L.divIcon({html:`<div style="background:${colorB};border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;border:2px solid white;">B</div>`,iconSize:[32,32],className:''})}).bindPopup(`Hogar B<br>${escapeHTML(B.nombre||B.nom)}`).addTo(modalLayer);
-  L.marker([A.plat,A.plon],{icon:L.divIcon({html:`<div style="background:#374151;border-radius:4px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;">A</div>`,iconSize:[28,28],className:''})}).bindPopup(`Ruta A: ${escapeHTML(A.ruta)}`).addTo(modalLayer);
-  L.marker([B.plat,B.plon],{icon:L.divIcon({html:`<div style="background:#374151;border-radius:4px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;color:white;font-size:12px;">B</div>`,iconSize:[28,28],className:''})}).bindPopup(`Ruta B: ${escapeHTML(B.ruta)}`).addTo(modalLayer);
-  
-  const bounds = L.latLngBounds([[A.olat,A.olon],[A.plat,A.plon],[B.olat,B.olon],[B.plat,B.plon]]);
-  modalMapa.fitBounds(bounds,{padding:[60,60]});
+function iniciarMapa() {
+  mapaPrincipal = L.map('map').setView([25.78, -100.45], 11);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {subdomains:'abcd', attribution:'© OpenStreetMap'}).addTo(mapaPrincipal);
 }
 
-function cerrarModal(){ document.getElementById('modal-bd').classList.remove('show'); }
-
-async function refresh(){
-  document.getElementById('lista').innerHTML='<div class="loading"><div class="spinner"></div>Calculando rutas reales...<br><small>Puede tomar unos segundos</small></div>';
-  layerSeleccion?.clearLayers();
-  pintarMapa();
-  await calcularSwaps();
+function cargarDatosEjemplo() {
+  DATOS_ACTUALES = DATOS_EJEMPLO;
+  document.getElementById('archivo-info').innerHTML = '📊 Datos de ejemplo: 6 operadores en García';
+  calcularSwapsConRutas();
 }
 
-function poblarFiltros(){
-  const fUDN = document.getElementById('f-udn');
-  fUDN.innerHTML = '<option value="">Todas las UDN</option>';
-  (DATOS.udns||[]).forEach(u=>{
-    const opt = document.createElement('option');opt.value=u;opt.textContent=u;fUDN.appendChild(opt);
-  });
-  const multiUDN = (DATOS.udns||[]).length > 1;
-  document.getElementById('lbl-mismaudn').style.display = multiUDN ? 'flex' : 'none';
-  document.getElementById('btn-interudn').style.display = multiUDN ? 'block' : 'none';
-}
-
-function cargarDatosEjemplo(){
-  const ejemplo = {
-    "ops":[
-      {"i":0,"nom":"19201490","nombre":"HERNANDEZ HERNANDEZ JOSE","udn":"Settepi Garcia","cliente":"CON-CONMET","cliente_short":"CONMET","ruta":"F2-SAN FRANCISCO","olat":25.839445,"olon":-100.399406,"plat":25.818034,"plon":-100.413957},
-      {"i":1,"nom":"19201767","nombre":"RUIZ DELGADO CEBERO","udn":"Settepi Garcia","cliente":"VTE-VERTEX MTY","cliente_short":"VERTEX MTY","ruta":"GARCIA","olat":25.793845,"olon":-100.601418,"plat":25.811904,"plon":-100.6243},
-      {"i":2,"nom":"19206300","nombre":"GARCIA DOÑEZ ARMANDO","udn":"Settepi Garcia","cliente":"CON-CONMET","cliente_short":"CONMET","ruta":"F2-ACUEDUCTO","olat":25.730473,"olon":-100.321673,"plat":25.764102,"plon":-100.322587}
-    ],
-    "udns":["Settepi Garcia"],
-    "clientes_por_udn":{"Settepi Garcia":["CON-CONMET","VTE-VERTEX MTY"]}
-  };
-  DATOS = ejemplo;
-  poblarFiltros();
-  refresh();
-}
-
-async function cargarArchivo(file){
-  if(typeof XLSX === 'undefined'){showError('No se cargó XLSX.');return;}
+async function cargarArchivoExcel(file) {
   const reader = new FileReader();
-  reader.onload = async (e)=>{
-    try{
+  reader.onload = function(e) {
+    try {
       const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data, {type:'array'});
-      let ws = null;
-      for(const sn of wb.SheetNames){
-        const tmp = XLSX.utils.sheet_to_json(wb.Sheets[sn], {defval:null});
-        if(tmp.length>0){
-          const cols = Object.keys(tmp[0]);
-          if(cols.includes('UDN')&&cols.includes('Operadores')&&cols.includes('Lat op')&&cols.includes('Long Op')&&cols.includes('Lat Pi')&&cols.includes('Long Pi')){
-            ws = wb.Sheets[sn]; break;
-          }
-        }
-      }
-      if(!ws){showError('Formato no reconocido');return;}
-      const rows = XLSX.utils.sheet_to_json(ws, {defval:null});
+      const workbook = XLSX.read(data, {type:'array'});
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet);
+      
       const ops = [];
-      rows.forEach((r,idx)=>{
-        const olat=parseFloat(r['Lat op']), olon=parseFloat(r['Long Op']);
-        const plat=parseFloat(r['Lat Pi']), plon=parseFloat(r['Long Pi']);
-        if(isNaN(olat)||isNaN(olon)||isNaN(plat)||isNaN(plon)||!r['UDN']||!r['Operadores']) return;
-        const rawOp = String(r['Operadores']).trim();
-        const partes = rawOp.split('-');
-        const nom = partes.length>1 ? partes[0].trim() : '';
-        const nombre = partes.length>1 ? partes.slice(1).join('-').trim() : rawOp;
-        const rutaRaw = String(r['Ruta asignada']||'').trim();
-        const rutaParts = rutaRaw.split('-');
-        const cliente = rutaParts.length>=2 ? (rutaParts[0]+'-'+rutaParts[1]).trim() : rutaRaw;
-        const cliente_short = rutaParts.length>=2 ? rutaParts[1].trim() : rutaRaw;
-        const ruta = rutaParts.length>2 ? rutaParts.slice(2).join('-').trim() : rutaRaw;
-        ops.push({i:idx,nom,nombre,udn:String(r['UDN']),cliente,cliente_short,ruta,olat:+olat.toFixed(6),olon:+olon.toFixed(6),plat:+plat.toFixed(6),plon:+plon.toFixed(6)});
-      });
-      if(ops.length===0){showError('No se encontraron datos');return;}
-      const udns = [...new Set(ops.map(o=>o.udn))].sort();
-      const clientes_por_udn = {};
-      udns.forEach(u=>{clientes_por_udn[u]=[...new Set(ops.filter(o=>o.udn===u).map(o=>o.cliente))].sort();});
-      DATOS = {ops,udns,clientes_por_udn};
-      document.getElementById('archivo-info').textContent = `Datos: ${file.name} · ${ops.length} ops`;
-      showToast(`✅ Cargados ${ops.length} operadores en ${udns.length} UDN(s)`,4000);
-      poblarFiltros();
-      refresh();
-    }catch(err){showError('Error: '+err.message);}
+      for (let i=0; i<rows.length; i++) {
+        const r = rows[i];
+        const latOp = parseFloat(r['Lat op'] || r['Latitud OP']);
+        const lonOp = parseFloat(r['Long Op'] || r['Longitud OP']);
+        const latPi = parseFloat(r['Lat Pi'] || r['Latitud PI']);
+        const lonPi = parseFloat(r['Long Pi'] || r['longitud PI']);
+        if (isNaN(latOp) || isNaN(lonOp) || isNaN(latPi) || isNaN(lonPi)) continue;
+        
+        let nombre = r['Operadores'] || r['Nombre'] || '';
+        let nom = '';
+        if (nombre.includes('-')) {
+          const parts = nombre.split('-');
+          nom = parts[0].trim();
+          nombre = parts.slice(1).join('-').trim();
+        }
+        
+        ops.push({
+          i: ops.length,
+          nom: nom,
+          nombre: nombre || 'Sin nombre',
+          udn: r['UDN'] || 'Settepi Garcia',
+          cliente: r['Ruta asignada'] || r['Cliente'] || '',
+          cliente_short: (r['Ruta asignada'] || '').split('-')[1] || 'Cliente',
+          ruta: r['Ruta asignada'] || r['RUTA 1'] || '',
+          olat: latOp, olon: lonOp, plat: latPi, plon: lonPi
+        });
+      }
+      
+      if (ops.length === 0) throw new Error('No se encontraron datos válidos');
+      DATOS_ACTUALES = { ops: ops, udns: [...new Set(ops.map(o=>o.udn))] };
+      document.getElementById('archivo-info').innerHTML = `📁 ${file.name} · ${ops.length} operadores`;
+      calcularSwapsConRutas();
+      mostrarToast(`✅ Cargados ${ops.length} operadores`, 3000);
+    } catch(err) {
+      mostrarToast('❌ Error al leer el archivo: ' + err.message, 5000);
+    }
   };
   reader.readAsArrayBuffer(file);
 }
 
-async function init(){
-  try{
-    initMapa();
-    cargarDatosEjemplo();
-    document.getElementById('btn-recalc').addEventListener('click',refresh);
-    document.getElementById('btn-upload').addEventListener('click',()=>document.getElementById('file-input').click());
-    document.getElementById('file-input').addEventListener('change',(e)=>{if(e.target.files[0])cargarArchivo(e.target.files[0]);e.target.value='';});
-    document.getElementById('btn-interudn').addEventListener('click',async()=>{
-      document.getElementById('f-mismocliente').checked=false;
-      document.getElementById('f-mismaudn').checked=false;
-      document.getElementById('f-udn').value='';
-      showToast('Modo inter-UDN activado',5000);
-      await refresh();
-    });
-    ['f-udn','f-mismocliente','f-mismaudn','f-rango'].forEach(id=>{
-      const el = document.getElementById(id);
-      if(el) el.addEventListener('change',refresh);
-    });
-    document.getElementById('modal-close').addEventListener('click',cerrarModal);
-    document.getElementById('modal-bd').addEventListener('click',(e)=>{if(e.target.id==='modal-bd') cerrarModal();});
-    document.addEventListener('keydown',(e)=>{if(e.key==='Escape') cerrarModal();});
-  }catch(e){showError('Error: '+e.message);}
+function mostrarToast(msg, duracion) {
+  const toast = document.getElementById('toast');
+  toast.innerHTML = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), duracion);
 }
-window.addEventListener('DOMContentLoaded', init);
+
+// Inicializar
+window.addEventListener('DOMContentLoaded', () => {
+  iniciarMapa();
+  cargarDatosEjemplo();
+  
+  document.getElementById('btn-recalc').addEventListener('click', () => calcularSwapsConRutas());
+  document.getElementById('btn-upload').addEventListener('click', () => document.getElementById('file-input').click());
+  document.getElementById('file-input').addEventListener('change', (e) => {
+    if (e.target.files[0]) cargarArchivoExcel(e.target.files[0]);
+    e.target.value = '';
+  });
+  document.getElementById('modal-close').addEventListener('click', () => document.getElementById('modal-bd').classList.remove('show'));
+  document.getElementById('modal-bd').addEventListener('click', (e) => { if (e.target.id === 'modal-bd') document.getElementById('modal-bd').classList.remove('show'); });
+});
 </script>
 </body>
 </html>
