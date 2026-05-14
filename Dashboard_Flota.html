@@ -508,6 +508,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 <script>
 const SHEET_ID   = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const SHEET_NAME = 'Flota';
+const ODDO_SHEET = 'Oddo';   // hoja de validación cruzada (Odoo ERP)
 
 /* ──────────────────────────────────────────────────────────────
    ⚙️  CONFIGURA AQUÍ LA URL DE TU WEB APP DE APPS SCRIPT
@@ -731,10 +732,59 @@ async function loadInputs(){
   }catch(e){console.warn('Inputs no cargó:',e);}
 }
 
+/* ── Carga hoja Oddo: map Vehicle ID → Status ── */
+let ODDO_MAP={};      // { '4559': 'Mantenimiento', ... }
+let ODDO_LOADED=false;
+async function loadOddo(){
+  try{
+    const res=await fetch(csvUrl(ODDO_SHEET));
+    if(!res.ok){console.warn('Hoja Oddo no accesible (HTTP '+res.status+')');return;}
+    const rows=parseCSV(await res.text());
+    if(!rows.length){console.warn('Hoja Oddo vacía');return;}
+    const hdrs=Object.keys(rows[0]);
+    const norm=s=>(s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+
+    // Detectar columna Vehicle ID (la que cruza con Flota.IDS)
+    const idCol=hdrs.find(h=>{
+      const t=norm(h);
+      return t==='vehicle id'||t==='vehicleid'||t==='id vehicle'||t==='ids'||t==='id';
+    })||hdrs.find(h=>norm(h).includes('vehicle'));
+
+    // Detectar columna Status / Estatus
+    const stCol=hdrs.find(h=>{
+      const t=norm(h);
+      return t==='status'||t==='estatus'||t==='estado';
+    });
+
+    if(!idCol||!stCol){
+      console.warn('Oddo: no se detectó Vehicle ID o Status. Headers:',hdrs);
+      return;
+    }
+    rows.forEach(r=>{
+      const id=(r[idCol]||'').toString().trim();
+      const st=(r[stCol]||'').toString().trim();
+      if(id)ODDO_MAP[id]=st;
+    });
+    ODDO_LOADED=true;
+    console.log('Oddo cargado: '+Object.keys(ODDO_MAP).length+' unidades (col ID: "'+idCol+'", col Status: "'+stCol+'")');
+  }catch(e){console.warn('Oddo no cargó:',e);}
+}
+
+// Resuelve estado de la orden Oddo para una unidad por su IDS
+function getOddoOrden(unitId){
+  const id=String(unitId||'').trim();
+  if(!ODDO_LOADED)return {label:'–',cls:'gray',state:'noload',tip:'Hoja Oddo no se cargó'};
+  if(!id)return {label:'–',cls:'gray',state:'noid'};
+  if(!Object.prototype.hasOwnProperty.call(ODDO_MAP,id))return {label:'Sin registro',cls:'gray',state:'missing',tip:'Unidad no aparece en Oddo'};
+  const st=(ODDO_MAP[id]||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  if(st.includes('mantenimiento')||st.includes('alto rezago'))return {label:'Abierta',cls:'green',state:'open',tip:'Oddo: '+ODDO_MAP[id]};
+  return {label:'Abrir Orden',cls:'red',state:'pending',tip:'Oddo dice: '+(ODDO_MAP[id]||'(vacío)')};
+}
+
 window.addEventListener('DOMContentLoaded',async()=>{
   const ov=document.getElementById('loadingOverlay');
   try{
-    const [flotaRes]=await Promise.all([fetch(csvUrl(SHEET_NAME)),loadInputs()]);
+    const [flotaRes]=await Promise.all([fetch(csvUrl(SHEET_NAME)),loadInputs(),loadOddo()]);
     if(!flotaRes.ok)throw new Error('HTTP '+flotaRes.status+' — verifica que el Sheet sea público y la hoja se llame "Flota".');
     const rows=parseCSV(await flotaRes.text());
     if(!rows.length)throw new Error('Sin datos en hoja "Flota".');
@@ -1351,13 +1401,12 @@ function openKpiModal(key){
       {key:'anio',   label:'Año',           getRaw:u=>u[C.anio],    render:u=>`<td>${u[C.anio]||'–'}</td>`},
       {key:'jefe',   label:'Jefe',          getRaw:u=>u[C.jefe],    render:u=>`<td>${(u[C.jefe]||'').trim()||'–'}</td>`},
       {key:'dias',   label:'Días en taller',align:'r',
-        getRaw:u=>C.diasEnTaller?u[C.diasEnTaller]:'',
+        getRaw:u=>{const d=calcDiasEnTaller(u);return d===''?null:d;},
         render:u=>{
-          const v=C.diasEnTaller?(u[C.diasEnTaller]||'').toString().trim():'';
-          if(!v)return `<td style="text-align:right;color:var(--muted)">–</td>`;
-          const n=numVal(v);
-          const color = n>=15?'#A32D2D':n>=7?'#BA7517':'#3B6D11';
-          return `<td style="text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:${color}">${v}</td>`;
+          const d=calcDiasEnTaller(u);
+          if(d===''||d===null)return `<td style="text-align:right;color:var(--muted)">–</td>`;
+          const color = d>=15?'#A32D2D':d>=7?'#BA7517':'#3B6D11';
+          return `<td style="text-align:right;font-weight:700;font-variant-numeric:tabular-nums;color:${color}">${d}</td>`;
         }},
       {key:'fechaIng',label:'Fecha ingreso',
         getRaw:u=>C.fechaIngreso?u[C.fechaIngreso]:'',
@@ -1379,6 +1428,13 @@ function openKpiModal(key){
         const cfg=getStatusCfg(u[C.estatus]);
         return `<td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${u[C.estatus]||'–'}</span></td>`;
       }},
+      {key:'orden',  label:'Orden Oddo',
+        getRaw:u=>getOddoOrden(u[C.id]).label,
+        render:u=>{
+          const o=getOddoOrden(u[C.id]);
+          const tip=o.tip?` title="${o.tip.replace(/"/g,'&quot;')}"`:'';
+          return `<td><span class="pill ${o.cls}"${tip}>${o.label}</span></td>`;
+        }},
     ];
   } else {
     cols=[
@@ -1558,6 +1614,31 @@ function parseFechaToISO(raw){
     }
   }
   return '';
+}
+
+// Calcula días entre HOY y la Fecha de ingreso de la unidad.
+// Si la fecha original no traía año y el cálculo sale negativo,
+// asume que fue del año anterior (caso: unidad ingresó en dic, hoy es ene).
+function calcDiasEnTaller(u){
+  if(!C.fechaIngreso)return '';
+  const raw=(u[C.fechaIngreso]||'').toString().trim();
+  if(!raw)return '';
+  const iso=parseFechaToISO(raw);
+  if(!iso)return '';
+  const m=iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!m)return '';
+  const fecha=new Date(parseInt(m[1]),parseInt(m[2])-1,parseInt(m[3]));
+  const hoy=new Date();
+  hoy.setHours(0,0,0,0);
+  fecha.setHours(0,0,0,0);
+  let diff=Math.floor((hoy-fecha)/(1000*60*60*24));
+  // Si la fecha original era formato "dd-mmm" sin año y sale negativo, asume año anterior
+  const sinAnio=/^\d{1,2}[\-\s][a-z]{3,}\.?\s*$/i.test(raw);
+  if(diff<0&&sinAnio){
+    fecha.setFullYear(fecha.getFullYear()-1);
+    diff=Math.floor((hoy-fecha)/(1000*60*60*24));
+  }
+  return diff>=0?diff:'';
 }
 
 async function saveEdit(){
