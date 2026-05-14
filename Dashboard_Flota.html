@@ -735,50 +735,86 @@ async function loadInputs(){
 /* ── Carga hoja Oddo: map Vehicle ID → Status ── */
 let ODDO_MAP={};      // { '4559': 'Mantenimiento', ... }
 let ODDO_LOADED=false;
+let ODDO_DEBUG={};    // info para depurar desde consola
 async function loadOddo(){
-  try{
-    const res=await fetch(csvUrl(ODDO_SHEET));
-    if(!res.ok){console.warn('Hoja Oddo no accesible (HTTP '+res.status+')');return;}
-    const rows=parseCSV(await res.text());
-    if(!rows.length){console.warn('Hoja Oddo vacía');return;}
-    const hdrs=Object.keys(rows[0]);
-    const norm=s=>(s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
+  // Intenta varios nombres de pestaña posibles (Oddo / Odoo / oddo / etc.)
+  const candidates=[ODDO_SHEET,'Odoo','oddo','odoo','ODDO','ODOO'];
+  let rows=null,sheetUsed=null,lastError='';
+  for(const sn of candidates){
+    try{
+      const res=await fetch(csvUrl(sn));
+      if(!res.ok){lastError='HTTP '+res.status+' para "'+sn+'"';continue;}
+      const text=await res.text();
+      // Google devuelve HTML cuando la pestaña no existe, detectarlo:
+      if(text.trim().startsWith('<')){lastError='Pestaña "'+sn+'" no existe';continue;}
+      const parsed=parseCSV(text);
+      if(parsed&&parsed.length){rows=parsed;sheetUsed=sn;break;}
+    }catch(e){lastError=String(e);}
+  }
+  if(!rows){
+    console.warn('⚠ Hoja Oddo no se pudo cargar. Último error:',lastError);
+    ODDO_DEBUG={loaded:false,error:lastError};
+    return;
+  }
 
-    // Detectar columna Vehicle ID (la que cruza con Flota.IDS)
-    const idCol=hdrs.find(h=>{
-      const t=norm(h);
-      return t==='vehicle id'||t==='vehicleid'||t==='id vehicle'||t==='ids'||t==='id';
-    })||hdrs.find(h=>norm(h).includes('vehicle'));
+  const hdrs=Object.keys(rows[0]);
+  const norm=s=>(s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim().toLowerCase();
 
-    // Detectar columna Status / Estatus
-    const stCol=hdrs.find(h=>{
-      const t=norm(h);
-      return t==='status'||t==='estatus'||t==='estado';
-    });
+  // Detectar columna Vehicle ID (la que cruza con Flota.IDS)
+  let idCol=hdrs.find(h=>{
+    const t=norm(h);
+    return t==='vehicle id'||t==='vehicleid'||t==='id vehicle'||t==='ids'||t==='id'||t==='id unidad'||t==='id vehiculo';
+  });
+  if(!idCol)idCol=hdrs.find(h=>norm(h).includes('vehicle id'));
+  if(!idCol)idCol=hdrs.find(h=>{const t=norm(h);return t.includes('vehicle')||t==='id';});
 
-    if(!idCol||!stCol){
-      console.warn('Oddo: no se detectó Vehicle ID o Status. Headers:',hdrs);
-      return;
+  // Detectar columna Status / Estatus (en la hoja Oddo)
+  let stCol=hdrs.find(h=>{
+    const t=norm(h);
+    return t==='status'||t==='estatus'||t==='estado';
+  });
+  if(!stCol)stCol=hdrs.find(h=>norm(h).includes('status')||norm(h).includes('estatus'));
+
+  if(!idCol||!stCol){
+    console.warn('⚠ Oddo: no se detectó Vehicle ID o Status. Headers disponibles:',hdrs);
+    ODDO_DEBUG={loaded:false,error:'columnas no detectadas',headers:hdrs,sheetUsed};
+    return;
+  }
+
+  const sampleVals={};
+  rows.forEach(r=>{
+    const id=(r[idCol]||'').toString().trim();
+    const st=(r[stCol]||'').toString().trim();
+    if(id){
+      ODDO_MAP[id]=st;
+      // Cuenta de valores únicos para debug
+      sampleVals[st]=(sampleVals[st]||0)+1;
     }
-    rows.forEach(r=>{
-      const id=(r[idCol]||'').toString().trim();
-      const st=(r[stCol]||'').toString().trim();
-      if(id)ODDO_MAP[id]=st;
-    });
-    ODDO_LOADED=true;
-    console.log('Oddo cargado: '+Object.keys(ODDO_MAP).length+' unidades (col ID: "'+idCol+'", col Status: "'+stCol+'")');
-  }catch(e){console.warn('Oddo no cargó:',e);}
+  });
+  ODDO_LOADED=true;
+  ODDO_DEBUG={loaded:true,sheetUsed,idCol,stCol,totalRows:rows.length,mapped:Object.keys(ODDO_MAP).length,valuesDistribution:sampleVals};
+  console.log('✓ Oddo cargado de pestaña "'+sheetUsed+'": '+Object.keys(ODDO_MAP).length+' unidades');
+  console.log('  · Col ID detectada: "'+idCol+'"');
+  console.log('  · Col Status detectada: "'+stCol+'"');
+  console.log('  · Distribución de status:',sampleVals);
 }
 
-// Resuelve estado de la orden Oddo para una unidad por su IDS
+// Resuelve estado de la orden Oddo para una unidad por su IDS.
+// Status "abierta" en Oddo = Mantenimiento, Alto Rezago Mantenimiento, Taller Externo.
 function getOddoOrden(unitId){
   const id=String(unitId||'').trim();
   if(!ODDO_LOADED)return {label:'–',cls:'gray',state:'noload',tip:'Hoja Oddo no se cargó'};
   if(!id)return {label:'–',cls:'gray',state:'noid'};
   if(!Object.prototype.hasOwnProperty.call(ODDO_MAP,id))return {label:'Sin registro',cls:'gray',state:'missing',tip:'Unidad no aparece en Oddo'};
-  const st=(ODDO_MAP[id]||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
-  if(st.includes('mantenimiento')||st.includes('alto rezago'))return {label:'Abierta',cls:'green',state:'open',tip:'Oddo: '+ODDO_MAP[id]};
-  return {label:'Abrir Orden',cls:'red',state:'pending',tip:'Oddo dice: '+(ODDO_MAP[id]||'(vacío)')};
+  const original=ODDO_MAP[id]||'';
+  const st=original.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+  if(!st)return {label:'Sin registro',cls:'gray',state:'empty',tip:'Status vacío en Oddo'};
+  // Acepta variantes con/sin espacios y "mantto" como sinónimo de mantenimiento
+  const isMantto       = st==='mantenimiento'||st==='mantto';
+  const isAltoRezagoMt = st==='alto rezago mantenimiento'||st==='altorezago mantenimiento'||st==='alto rezago mantto';
+  const isTallerExt    = st==='taller externo'||st==='tallerexterno'||st==='taller ext';
+  if(isMantto||isAltoRezagoMt||isTallerExt)return {label:'Abierta',cls:'green',state:'open',tip:'Oddo: '+original};
+  return {label:'Abrir Orden',cls:'red',state:'pending',tip:'Oddo dice: '+original};
 }
 
 window.addEventListener('DOMContentLoaded',async()=>{
