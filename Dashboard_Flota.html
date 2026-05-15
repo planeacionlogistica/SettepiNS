@@ -768,12 +768,10 @@ async function loadOddo(){
   if(!idCol)idCol=hdrs.find(h=>norm(h).includes('vehicle id'));
   if(!idCol)idCol=hdrs.find(h=>{const t=norm(h);return t.includes('vehicle')||t==='id';});
 
-  // Detectar columna Status / Estatus (en la hoja Oddo)
-  let stCol=hdrs.find(h=>{
-    const t=norm(h);
-    return t==='status'||t==='estatus'||t==='estado';
-  });
-  if(!stCol)stCol=hdrs.find(h=>norm(h).includes('status')||norm(h).includes('estatus'));
+  // Detectar columna Status en hoja Oddo (NO "Estado" que es otro campo)
+  let stCol=hdrs.find(h=>norm(h)==='status');
+  if(!stCol)stCol=hdrs.find(h=>norm(h)==='estatus');
+  if(!stCol)stCol=hdrs.find(h=>norm(h).includes('status'));
 
   if(!idCol||!stCol){
     console.warn('⚠ Oddo: no se detectó Vehicle ID o Status. Headers disponibles:',hdrs);
@@ -1758,10 +1756,6 @@ document.addEventListener('keydown',e=>{
     if(inp&&inp.tagName!=='TEXTAREA'){e.preventDefault();saveEdit();}
   }
 });
-console.log('15780 en ODDO_MAP:', ODDO_MAP['15780']);
-console.log('6773 en ODDO_MAP:', ODDO_MAP['6773']);
-console.log('ODDO_DEBUG:', ODDO_DEBUG);
-console.log('Primeras 5 keys de ODDO_MAP:', Object.keys(ODDO_MAP).slice(0,5));
 </script>
 </body>
 </html>
