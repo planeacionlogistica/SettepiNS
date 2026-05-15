@@ -809,10 +809,10 @@ function getOddoOrden(unitId){
   const original=ODDO_MAP[id]||'';
   const st=original.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
   if(!st)return {label:'Sin registro',cls:'gray',state:'empty',tip:'Status vacío en Oddo'};
-  // Acepta variantes con/sin espacios y "mantto" como sinónimo de mantenimiento
-  const isMantto       = st==='mantenimiento'||st==='mantto';
-  const isAltoRezagoMt = st==='alto rezago mantenimiento'||st==='altorezago mantenimiento'||st==='alto rezago mantto';
-  const isTallerExt    = st==='taller externo'||st==='tallerexterno'||st==='taller ext';
+  // Acepta variantes: comparación exacta + includes para cubrir prefijos/sufijos inesperados
+  const isMantto       = st==='mantenimiento'||st==='mantto'||st.includes('mantenimiento')||st.includes('mantto');
+  const isAltoRezagoMt = st.includes('alto rezago')||st.includes('altorezago');
+  const isTallerExt    = st.includes('taller externo')||st.includes('taller ext');
   if(isMantto||isAltoRezagoMt||isTallerExt)return {label:'Abierta',cls:'green',state:'open',tip:'Oddo: '+original};
   return {label:'Abrir Orden',cls:'red',state:'pending',tip:'Oddo dice: '+original};
 }
@@ -995,7 +995,7 @@ function renderIneffHeaders(){
     {key:'pct',  label:'% Inef',     align:'r'},
     {key:'clima',label:'Clima',      align:''},
     {key:'jefe', label:'Jefe',       align:''},
-    {key:'est',  label:'Estatus',    align:''},
+    {key:'est',  label:'Estatus Log',    align:''},
     {key:'reas', label:'Reasignable',align:''},
   ];
   document.getElementById('ineffThead').innerHTML=`<tr>${cols.map(c=>{
@@ -1213,7 +1213,7 @@ function renderInactivasHeaders(){
     {key:'tipo',  label:'Tipo',    align:''},
     {key:'marca', label:'Marca',   align:''},
     {key:'anio',  label:'Año',     align:''},
-    {key:'est',   label:'Estatus', align:''},
+    {key:'est',   label:'Estatus Log', align:''},
   ];
   document.getElementById('inactivasThead').innerHTML=`<tr>${cols.map(c=>{
     const arr=INACT_SORT_COL===c.key?`<span class="sort-arrow active ${INACT_SORT_DIR}"></span>`:`<span class="sort-arrow"></span>`;
@@ -1356,13 +1356,6 @@ function openModal(cl){
         const cfg=getStatusCfg(u[C.estatus]);
         return `<td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${u[C.estatus]||'–'}</span></td>`;
       }},
-      {key:'orden',  label:'Orden Oddo',
-        getRaw:u=>getOddoOrden(u[C.id]).label,
-        render:u=>{
-          const o=getOddoOrden(u[C.id]);
-          const tip=o.tip?` title="${o.tip.replace(/"/g,'&quot;')}"`:'';
-          return `<td><span class="pill ${o.cls}"${tip}>${o.label}</span></td>`;
-        }},
     ],
     defaultSort:arr=>arr.slice().sort((a,b)=>{
       const ia=orden.indexOf((a[C.estatus]||'').toLowerCase()),ib=orden.indexOf((b[C.estatus]||'').toLowerCase());
@@ -1467,7 +1460,7 @@ function openKpiModal(key){
           const valHtml=v?v:'<span style="color:var(--muted)">–</span>';
           return `<td><div class="edit-cell"><span class="edit-val">${valHtml}</span><button class="edit-icon" title="Editar motivo de falla" onclick="openEditPopup('motivoFalla','${id.replace(/'/g,"\\'")}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button></div></td>`;
         }},
-      {key:'estatus',label:'Estatus',       getRaw:u=>u[C.estatus], render:u=>{
+      {key:'estatus',label:'Estatus Log',       getRaw:u=>u[C.estatus], render:u=>{
         const cfg=getStatusCfg(u[C.estatus]);
         return `<td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${u[C.estatus]||'–'}</span></td>`;
       }},
@@ -1487,7 +1480,7 @@ function openKpiModal(key){
       {key:'marca',  label:'Marca / Modelo',getRaw:u=>(u[C.marca]||'')+' '+(u[C.modelo]||''), render:u=>`<td>${u[C.marca]||'–'} ${u[C.modelo]||''}</td>`},
       {key:'anio',   label:'Año',           getRaw:u=>u[C.anio],    render:u=>`<td>${u[C.anio]||'–'}</td>`},
       {key:'jefe',   label:'Jefe',          getRaw:u=>u[C.jefe],    render:u=>`<td>${(u[C.jefe]||'').trim()||'–'}</td>`},
-      {key:'estatus',label:'Estatus',       getRaw:u=>u[C.estatus], render:u=>{
+      {key:'estatus',label:'Estatus Log',       getRaw:u=>u[C.estatus], render:u=>{
         const cfg=getStatusCfg(u[C.estatus]);
         return `<td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${u[C.estatus]||'–'}</span></td>`;
       }},
@@ -1519,7 +1512,7 @@ function renderSinMovHeaders(){
     {key:'tipo', label:'Tipo',          align:''},
     {key:'marca',label:'Marca/Modelo',  align:''},
     {key:'anio', label:'Año',           align:''},
-    {key:'est',  label:'Estatus',       align:''},
+    {key:'est',  label:'Estatus Log',       align:''},
   ];
   document.getElementById('sinMovThead').innerHTML=`<tr>${cols.map(c=>{
     const arr=SINMOV_SORT.col===c.key?`<span class="sort-arrow active ${SINMOV_SORT.dir}"></span>`:`<span class="sort-arrow"></span>`;
