@@ -1352,7 +1352,7 @@ function openModal(cl){
       {key:'marca',  label:'Marca',   getRaw:u=>u[C.marca],  render:u=>`<td>${u[C.marca]||'–'}</td>`},
       {key:'modelo', label:'Modelo',  getRaw:u=>u[C.modelo], render:u=>`<td>${u[C.modelo]||'–'}</td>`},
       {key:'anio',   label:'Año',     getRaw:u=>u[C.anio],   render:u=>`<td>${u[C.anio]||'–'}</td>`},
-      {key:'estatus',label:'Estatus', getRaw:u=>u[C.estatus],render:u=>{
+      {key:'estatus',label:'Estatus Log', getRaw:u=>u[C.estatus],render:u=>{
         const cfg=getStatusCfg(u[C.estatus]);
         return `<td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${u[C.estatus]||'–'}</span></td>`;
       }},
