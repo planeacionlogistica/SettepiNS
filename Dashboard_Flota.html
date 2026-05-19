@@ -1,119 +1,108 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>Propuestas eficiencias km | Traxión</title>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:'Segoe UI',Arial,sans-serif;color:#1f2937;background:#fff;overflow:hidden}
-.app{display:flex;flex-direction:column;height:100vh}
+html,body{height:100%;font-family:'Segoe UI',Arial,sans-serif;color:#1f2937;background:#f8fafc}
 nav{background:#1f2937;padding:13px 30px;display:flex;gap:25px;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.3)}
-nav>a{color:#e5e7eb;text-decoration:none;font-weight:600;padding:8px 16px;border-radius:8px}
-nav>a:first-child{color:#84cc16;font-weight:800;font-size:18px}
-.dropdown-toggle{background:#374151;color:#fff;border:0;border-radius:7px;padding:9px 14px;font-weight:700}
-header{background:#fff;padding:12px 18px;display:flex;align-items:center;gap:18px;border-bottom:3px solid #84cc16}
+nav>a{color:#84cc16;text-decoration:none;font-weight:900;font-size:18px}
+.dropdown{position:relative}
+.dropdown-toggle{background:#374151;color:#fff;border:0;border-radius:7px;padding:9px 14px;font-weight:700;cursor:pointer}
+.dropdown-menu{display:none;position:absolute;top:42px;left:0;background:#fff;min-width:210px;border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,.22);z-index:20;overflow:hidden}
+.dropdown-menu a{display:block;padding:11px 14px;color:#1f2937;text-decoration:none;font-weight:700;border-bottom:1px solid #f3f4f6}
+.dropdown-menu a:hover{background:#ecfccb}
+.dropdown.open .dropdown-menu{display:block}
+
+header{background:#fff;padding:14px 18px;display:flex;align-items:center;gap:18px;border-bottom:3px solid #84cc16}
 h1{font-size:22px}
 .kpis{display:flex;gap:14px;margin-left:auto}
-.kpi{background:#f9fafb;padding:6px 12px;border-radius:6px;min-width:110px;border:1px solid #e5e7eb;border-left:3px solid #84cc16}
-.kpi-label{font-size:11px;color:#6b7280;font-weight:700;text-transform:uppercase}
-.kpi-val{font-size:18px;font-weight:800}
-main{flex:1;display:flex;min-height:0}
-aside{width:390px;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;min-height:0}
-.filtros{padding:14px;border-bottom:1px solid #e5e7eb;display:grid;gap:10px}
-button{cursor:pointer}
-.btn-upload,.btn-primary{border:0;border-radius:8px;padding:10px 12px;font-weight:800}
-.btn-upload{background:#1f2937;color:#fff}
+.kpi{background:#f9fafb;padding:7px 12px;border-radius:6px;min-width:115px;border:1px solid #e5e7eb;border-left:3px solid #84cc16}
+.kpi-label{font-size:11px;color:#6b7280;font-weight:800;text-transform:uppercase}
+.kpi-val{font-size:18px;font-weight:900}
+
+.toolbar{padding:14px 18px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+button{cursor:pointer;border:0;border-radius:8px;padding:10px 14px;font-weight:900}
+.btn-upload{background:#1f2937;color:white}
 .btn-primary{background:#84cc16;color:#1f2937}
 #archivo-info{font-size:13px;color:#6b7280}
-.lista-swaps{flex:1;overflow-y:auto}
-.swap-item{padding:12px 14px;border-bottom:1px solid #f3f4f6;cursor:pointer}
-.swap-item:hover{background:#f9fafb}
-.swap-item.active{background:#ecfccb}
-.swap-rank{font-size:12px;color:#65a30d;font-weight:900}
-.swap-main{font-weight:800;margin-top:3px}
-.swap-sub{font-size:12px;color:#6b7280;margin-top:3px}
-.swap-ahorro{font-size:18px;font-weight:900;color:#65a30d;margin-top:6px}
-.resumen-wrap{flex:1;overflow:auto;padding:18px;background:#f8fafc}
-.panel{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:14px}
-.panel h2{font-size:18px;margin-bottom:10px}
-table{width:100%;border-collapse:collapse;background:#fff}
-th,td{padding:9px 10px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:13px}
-th{background:#f3f4f6;font-size:12px;text-transform:uppercase;color:#4b5563}
-.num{text-align:right;font-variant-numeric:tabular-nums}
-.empty{padding:30px;text-align:center;color:#6b7280}
-.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:3000;display:none;align-items:center;justify-content:center}
-.modal-backdrop.show{display:flex}
-.modal{background:#fff;width:min(1280px,96vw);height:min(760px,92vh);display:flex;flex-direction:column;border-radius:10px;overflow:hidden}
-.modal-head{height:58px;display:flex;align-items:center;gap:14px;padding:0 16px;border-bottom:1px solid #e5e7eb}
-#modal-rank{font-weight:900;color:#65a30d}
-#modal-ahorro{font-weight:900;margin-right:auto}
-#modal-close{border:0;background:#ef4444;color:#fff;border-radius:7px;padding:8px 11px;font-weight:900}
-.modal-body{flex:1;display:grid;grid-template-columns:420px 1fr;min-height:0}
-#modal-tabla{overflow:auto;padding:14px;border-right:1px solid #e5e7eb}
-#modal-map{height:100%;width:100%}
-.badge{display:inline-block;border-radius:999px;padding:3px 8px;font-size:12px;font-weight:800;background:#ecfccb;color:#3f6212}
+#msg{font-size:13px;font-weight:700;color:#b91c1c}
+
+main{padding:18px;overflow:auto}
+.table-wrap{background:#fff;border:1px solid #d1d5db;overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:1050px}
+th,td{border:1px solid #bdbdbd;padding:6px 7px;font-size:12px;vertical-align:middle}
+th{background:#f3f4f6;font-size:16px;text-align:left;color:#000;font-weight:900}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+td.center{text-align:center}
+tbody tr:nth-child(4n+1),tbody tr:nth-child(4n+2){background:#fff}
+tbody tr:nth-child(4n+3),tbody tr:nth-child(4n+4){background:#f9fafb}
+.empty{padding:28px;text-align:center;color:#6b7280;background:#fff;border:1px dashed #cbd5e1}
+.small{font-size:12px;color:#6b7280;margin-top:10px}
 </style>
 </head>
 
 <body>
 <nav>
   <a href="#">TRAXIÓN</a>
-  <div class="dropdown">
-    <button class="dropdown-toggle">Logística ▼</button>
+
+  <div class="dropdown" id="menu-logistica">
+    <button class="dropdown-toggle" type="button">Logística ▼</button>
+    <div class="dropdown-menu">
+      <a href="#">Optimizador Settepi</a>
+      <a href="#">Cambios propuestos</a>
+      <a href="#">Carga de Excel</a>
+    </div>
   </div>
 </nav>
 
-<div class="app">
 <header>
   <h1>Optimizador de Operadores · Settepi</h1>
   <div class="kpis">
     <div class="kpi"><div class="kpi-label">Km Actual</div><div class="kpi-val" id="kpi-actual">—</div></div>
-    <div class="kpi"><div class="kpi-label">Km Optimizado</div><div class="kpi-val" id="kpi-opt">—</div></div>
+    <div class="kpi"><div class="kpi-label">Km Propuesta</div><div class="kpi-val" id="kpi-prop">—</div></div>
     <div class="kpi"><div class="kpi-label">Ahorro</div><div class="kpi-val" id="kpi-ahorro">—</div></div>
-    <div class="kpi"><div class="kpi-label">Swaps</div><div class="kpi-val" id="kpi-swaps">—</div></div>
+    <div class="kpi"><div class="kpi-label">Cambios</div><div class="kpi-val" id="kpi-cambios">—</div></div>
   </div>
 </header>
 
+<section class="toolbar">
+  <button class="btn-upload" id="btn-upload" type="button">Cargar Excel</button>
+  <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none">
+  <button class="btn-primary" id="btn-recalc" type="button">Recalcular</button>
+  <div id="archivo-info">Carga un Excel para iniciar.</div>
+  <div id="msg"></div>
+</section>
+
 <main>
-  <aside>
-    <div class="filtros">
-      <button class="btn-upload" id="btn-upload">Cargar Excel</button>
-      <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none">
-      <div id="archivo-info">Carga un archivo para iniciar.</div>
-      <button class="btn-primary" id="btn-recalc">Recalcular</button>
-    </div>
-    <div class="lista-swaps" id="lista"></div>
-  </aside>
-
-  <div class="resumen-wrap" id="resumen"></div>
-</main>
-</div>
-
-<div class="modal-backdrop" id="modal-bd">
-  <div class="modal">
-    <div class="modal-head">
-      <div id="modal-rank">#1</div>
-      <div id="modal-ahorro"></div>
-      <button id="modal-close">✕</button>
-    </div>
-    <div class="modal-body">
-      <div id="modal-tabla"></div>
-      <div id="modal-map"></div>
+  <div id="contenido">
+    <div class="empty">
+      Sube tu archivo. La tabla aparecerá aquí con el formato de cambios.
+      <div class="small">
+        Columnas recomendadas: Operador, Ubicación operador, Cliente, Ruta, Coordenadas de la ruta.
+      </div>
     </div>
   </div>
-</div>
+</main>
 
 <script>
-const UMBRAL_AHORRO = 13;
-let DATOS = { ops: [], udns: ["Settepi Garcia"] };
-let SWAPS = [];
-let modalMapa = null;
-let modalLayer = null;
+const UMBRAL_AHORRO = 0;
+let OPS = [];
+let CAMBIOS = [];
+
+function fmt(n){
+  return Number.isFinite(n)
+    ? n.toLocaleString("es-MX", {maximumFractionDigits:1})
+    : "—";
+}
+
+function fmtCoord(lat, lon){
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return "";
+  return `${lat.toFixed(4)},${lon.toFixed(4)}`;
+}
 
 function normalizarTexto(v){
   return String(v || "")
@@ -121,6 +110,16 @@ function normalizarTexto(v){
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g,"")
     .replace(/[^a-z0-9]/g,"");
+}
+
+function escapeHTML(str){
+  return String(str ?? "").replace(/[&<>"']/g, m => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  })[m]);
 }
 
 function numero(v){
@@ -131,61 +130,30 @@ function numero(v){
 
 function encontrar(row, nombres){
   const keys = Object.keys(row);
-  const normalizadas = nombres.map(normalizarTexto);
+  const buscadas = nombres.map(normalizarTexto);
 
   for (const key of keys) {
     const nk = normalizarTexto(key);
-    if (normalizadas.includes(nk)) return row[key];
+    if (buscadas.includes(nk)) return row[key];
   }
 
   for (const key of keys) {
     const nk = normalizarTexto(key);
-    if (normalizadas.some(n => nk.includes(n))) return row[key];
+    if (buscadas.some(b => nk.includes(b))) return row[key];
   }
 
   return "";
 }
 
-function mapearFila(row, i){
-  const nombre = encontrar(row, [
-    "operador","nombre","nombre operador","empleado","conductor","driver"
-  ]) || `Operador ${i + 1}`;
+function parseCoord(valor){
+  const txt = String(valor || "").trim();
+  const match = txt.match(/(-?\d+(?:[.,]\d+)?)\s*[,; ]\s*(-?\d+(?:[.,]\d+)?)/);
+  if (!match) return {lat:NaN, lon:NaN};
 
-  const olat = numero(encontrar(row, [
-    "olat","lat casa","latitud casa","latitud hogar","lat origen","origen lat",
-    "lat domicilio","latitud domicilio","casa lat"
-  ]));
-
-  const olon = numero(encontrar(row, [
-    "olon","lon casa","lng casa","long casa","longitud casa","longitud hogar",
-    "lon origen","origen lon","lon domicilio","longitud domicilio","casa lon"
-  ]));
-
-  const plat = numero(encontrar(row, [
-    "plat","lat ruta","latitud ruta","lat parada","latitud parada","lat destino",
-    "destino lat","ruta lat","base lat"
-  ]));
-
-  const plon = numero(encontrar(row, [
-    "plon","lon ruta","lng ruta","long ruta","longitud ruta","lon parada",
-    "longitud parada","lon destino","destino lon","ruta lon","base lon"
-  ]));
-
-  const ruta = encontrar(row, [
-    "ruta","servicio","turno","parada","destino","base","cliente"
-  ]) || `Ruta ${i + 1}`;
-
-  return { id:i + 1, nombre, ruta, olat, olon, plat, plon };
-}
-
-function escapeHTML(str){
-  return String(str ?? "").replace(/[&<>"']/g, m => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  })[m]);
-}
-
-function fmt(n){
-  return Number.isFinite(n) ? n.toLocaleString("es-MX", {maximumFractionDigits:1}) : "—";
+  return {
+    lat: numero(match[1]),
+    lon: numero(match[2])
+  };
 }
 
 function haversine(lat1, lon1, lat2, lon2){
@@ -193,320 +161,263 @@ function haversine(lat1, lon1, lat2, lon2){
   const toRad = x => x * Math.PI / 180;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
-  const a = Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) *
+    Math.cos(toRad(lat2)) *
     Math.sin(dLon / 2) ** 2;
+
   return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function decodePolyline(str, precision = 5){
-  let index = 0, lat = 0, lng = 0, coordinates = [];
-  const factor = Math.pow(10, precision);
+function mapearFila(row, i){
+  const operador = encontrar(row, [
+    "operador", "nombre", "nombre operador", "conductor", "empleado"
+  ]) || `Operador ${i + 1}`;
 
-  while (index < str.length) {
-    let result = 1, shift = 0, b;
-    do {
-      b = str.charCodeAt(index++) - 63 - 1;
-      result += b << shift;
-      shift += 5;
-    } while (b >= 0x1f);
-    lat += (result & 1) ? ~(result >> 1) : (result >> 1);
+  const cliente = encontrar(row, [
+    "cliente", "empresa", "cuenta"
+  ]) || "";
 
-    result = 1;
-    shift = 0;
-    do {
-      b = str.charCodeAt(index++) - 63 - 1;
-      result += b << shift;
-      shift += 5;
-    } while (b >= 0x1f);
-    lng += (result & 1) ? ~(result >> 1) : (result >> 1);
+  const ruta = encontrar(row, [
+    "ruta", "servicio", "base", "destino", "parada"
+  ]) || "";
 
-    coordinates.push([lat / factor, lng / factor]);
-  }
+  let ubicacion = encontrar(row, [
+    "ubicacion operador", "ubicación operador", "coordenadas operador",
+    "coord operador", "ubicacion casa", "ubicación casa", "casa"
+  ]);
 
-  return coordinates;
-}
+  let coordRuta = encontrar(row, [
+    "coordenadas de la ruta", "coordenadas ruta", "coord ruta",
+    "ubicacion ruta", "ubicación ruta", "coordenadas parada"
+  ]);
 
-async function getRoute(lat1, lon1, lat2, lon2){
-  try {
-    const url = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?geometries=polyline&overview=full`;
-    const response = await fetch(url);
-    const data = await response.json();
+  let opCoord = parseCoord(ubicacion);
+  let rutaCoord = parseCoord(coordRuta);
 
-    if (data.code === "Ok" && data.routes?.[0]?.geometry) {
-      return decodePolyline(data.routes[0].geometry);
-    }
-  } catch(e) {}
+  const olatSep = numero(encontrar(row, ["olat","lat casa","lat operador","latitud operador","latitud casa"]));
+  const olonSep = numero(encontrar(row, ["olon","lon casa","long casa","lon operador","long operador","longitud operador","longitud casa"]));
+  const rlatSep = numero(encontrar(row, ["plat","lat ruta","latitud ruta","lat parada","latitud parada"]));
+  const rlonSep = numero(encontrar(row, ["plon","lon ruta","long ruta","lon parada","longitud ruta","longitud parada"]));
 
-  return [[lat1, lon1], [lat2, lon2]];
+  if (Number.isFinite(olatSep)) opCoord.lat = olatSep;
+  if (Number.isFinite(olonSep)) opCoord.lon = olonSep;
+  if (Number.isFinite(rlatSep)) rutaCoord.lat = rlatSep;
+  if (Number.isFinite(rlonSep)) rutaCoord.lon = rlonSep;
+
+  const kmExcel = numero(encontrar(row, [
+    "km actual", "kilometros actual", "kilómetros actual", "distancia actual"
+  ]));
+
+  const kmActual = Number.isFinite(kmExcel)
+    ? kmExcel
+    : haversine(opCoord.lat, opCoord.lon, rutaCoord.lat, rutaCoord.lon);
+
+  return {
+    id: i + 1,
+    operador,
+    cliente,
+    ruta,
+    olat: opCoord.lat,
+    olon: opCoord.lon,
+    rlat: rutaCoord.lat,
+    rlon: rutaCoord.lon,
+    kmActual
+  };
 }
 
 function cargarArchivo(file){
+  const msg = document.getElementById("msg");
+  msg.textContent = "";
+
   const reader = new FileReader();
 
   reader.onload = e => {
-    const data = new Uint8Array(e.target.result);
-    const workbook = XLSX.read(data, { type:"array" });
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const rows = XLSX.utils.sheet_to_json(sheet, { defval:"" });
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type:"array" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { defval:"" });
 
-    const ops = rows
-      .map(mapearFila)
-      .filter(op =>
-        Number.isFinite(op.olat) &&
-        Number.isFinite(op.olon) &&
-        Number.isFinite(op.plat) &&
-        Number.isFinite(op.plon)
-      );
+      OPS = rows
+        .map(mapearFila)
+        .filter(op =>
+          Number.isFinite(op.olat) &&
+          Number.isFinite(op.olon) &&
+          Number.isFinite(op.rlat) &&
+          Number.isFinite(op.rlon)
+        );
 
-    DATOS.ops = ops;
+      document.getElementById("archivo-info").textContent =
+        `${file.name} · ${OPS.length} filas válidas de ${rows.length}`;
 
-    document.getElementById("archivo-info").textContent =
-      `${file.name} · ${ops.length} operadores válidos de ${rows.length} filas`;
+      if (!OPS.length) {
+        msg.textContent = "No encontré coordenadas válidas. Revisa nombres de columnas o formato lat,lon.";
+      }
 
-    calcularSwaps();
+      calcularCambios();
+    } catch (err) {
+      console.error(err);
+      msg.textContent = "No pude leer el archivo. Revisa que sea Excel válido.";
+    }
   };
 
   reader.readAsArrayBuffer(file);
 }
 
-function calcularSwaps(){
-  const ops = DATOS.ops || [];
-  SWAPS = [];
+function calcularCambios(){
+  CAMBIOS = [];
 
-  for (let i = 0; i < ops.length; i++) {
-    for (let j = i + 1; j < ops.length; j++) {
-      const A = ops[i];
-      const B = ops[j];
+  for (let i = 0; i < OPS.length; i++) {
+    for (let j = i + 1; j < OPS.length; j++) {
+      const A = OPS[i];
+      const B = OPS[j];
 
-      const actualA = haversine(A.olat, A.olon, A.plat, A.plon);
-      const actualB = haversine(B.olat, B.olon, B.plat, B.plon);
-      const nuevoA = haversine(A.olat, A.olon, B.plat, B.plon);
-      const nuevoB = haversine(B.olat, B.olon, A.plat, A.plon);
+      const kmActualA = A.kmActual;
+      const kmActualB = B.kmActual;
 
-      const actual = actualA + actualB;
-      const optimizado = nuevoA + nuevoB;
-      const ahorro = actual - optimizado;
+      const kmPropuestaA = haversine(A.olat, A.olon, B.rlat, B.rlon);
+      const kmPropuestaB = haversine(B.olat, B.olon, A.rlat, A.rlon);
 
-      if (ahorro >= UMBRAL_AHORRO) {
-        SWAPS.push({
-          A, B,
-          actualA, actualB, nuevoA, nuevoB,
-          actual, optimizado, ahorro,
-          pct: actual ? ahorro / actual * 100 : 0
+      const actualTotal = kmActualA + kmActualB;
+      const propuestaTotal = kmPropuestaA + kmPropuestaB;
+      const ahorro = actualTotal - propuestaTotal;
+
+      if (ahorro > UMBRAL_AHORRO) {
+        CAMBIOS.push({
+          A,
+          B,
+          kmActualA,
+          kmActualB,
+          kmPropuestaA,
+          kmPropuestaB,
+          actualTotal,
+          propuestaTotal,
+          ahorro
         });
       }
     }
   }
 
-  SWAPS.sort((a,b) => b.ahorro - a.ahorro);
-  renderTodo();
+  CAMBIOS.sort((a,b) => b.ahorro - a.ahorro);
+  render();
 }
 
-function renderTodo(){
-  const totalActual = SWAPS.reduce((s,x) => s + x.actual, 0);
-  const totalOpt = SWAPS.reduce((s,x) => s + x.optimizado, 0);
-  const totalAhorro = SWAPS.reduce((s,x) => s + x.ahorro, 0);
+function render(){
+  const totalActual = CAMBIOS.reduce((s,c) => s + c.actualTotal, 0);
+  const totalProp = CAMBIOS.reduce((s,c) => s + c.propuestaTotal, 0);
+  const totalAhorro = CAMBIOS.reduce((s,c) => s + c.ahorro, 0);
 
   document.getElementById("kpi-actual").textContent = `${fmt(totalActual)} km`;
-  document.getElementById("kpi-opt").textContent = `${fmt(totalOpt)} km`;
+  document.getElementById("kpi-prop").textContent = `${fmt(totalProp)} km`;
   document.getElementById("kpi-ahorro").textContent = `${fmt(totalAhorro)} km`;
-  document.getElementById("kpi-swaps").textContent = SWAPS.length;
+  document.getElementById("kpi-cambios").textContent = CAMBIOS.length;
 
-  renderLista();
-  renderResumen();
-}
+  const contenido = document.getElementById("contenido");
 
-function renderLista(){
-  const lista = document.getElementById("lista");
-
-  if (!DATOS.ops.length) {
-    lista.innerHTML = `<div class="empty">Sube tu Excel para calcular propuestas.</div>`;
-    return;
-  }
-
-  if (!SWAPS.length) {
-    lista.innerHTML = `<div class="empty">No se encontraron swaps con ahorro mayor a ${UMBRAL_AHORRO} km.</div>`;
-    return;
-  }
-
-  lista.innerHTML = SWAPS.map((s, i) => `
-    <div class="swap-item" onclick="abrirModal(${i})">
-      <div class="swap-rank">#${i + 1}</div>
-      <div class="swap-main">${escapeHTML(s.A.nombre)} ⇄ ${escapeHTML(s.B.nombre)}</div>
-      <div class="swap-sub">${escapeHTML(s.A.ruta)} ⇄ ${escapeHTML(s.B.ruta)}</div>
-      <div class="swap-ahorro">${fmt(s.ahorro)} km</div>
-    </div>
-  `).join("");
-}
-
-function renderResumen(){
-  const resumen = document.getElementById("resumen");
-
-  if (!DATOS.ops.length) {
-    resumen.innerHTML = `
-      <div class="panel">
-        <h2>Sin datos cargados</h2>
-        <p>Sube un Excel con coordenadas de casa y ruta para calcular eficiencias.</p>
+  if (!OPS.length) {
+    contenido.innerHTML = `
+      <div class="empty">
+        Sube tu archivo. La tabla aparecerá aquí con el formato de cambios.
+        <div class="small">
+          Columnas recomendadas: Operador, Ubicación operador, Cliente, Ruta, Coordenadas de la ruta.
+        </div>
       </div>
     `;
     return;
   }
 
-  resumen.innerHTML = `
-    <div class="panel">
-      <h2>Resumen</h2>
-      <table>
-        <tr><th>Dato</th><th class="num">Valor</th></tr>
-        <tr><td>Operadores válidos</td><td class="num">${DATOS.ops.length}</td></tr>
-        <tr><td>Swaps encontrados</td><td class="num">${SWAPS.length}</td></tr>
-        <tr><td>Umbral mínimo</td><td class="num">${UMBRAL_AHORRO} km</td></tr>
-      </table>
-    </div>
+  if (!CAMBIOS.length) {
+    contenido.innerHTML = `
+      <div class="empty">
+        No encontré cambios con ahorro positivo.
+      </div>
+    `;
+    return;
+  }
 
-    <div class="panel">
-      <h2>Mejores propuestas</h2>
+  let filas = "";
+
+  CAMBIOS.forEach((cambio, idx) => {
+    const n = idx + 1;
+
+    filas += `
+      <tr>
+        <td class="center">${n}</td>
+        <td>${escapeHTML(cambio.A.operador)}</td>
+        <td>${escapeHTML(fmtCoord(cambio.A.olat, cambio.A.olon))}</td>
+        <td>${escapeHTML(cambio.B.cliente)}</td>
+        <td>${escapeHTML(cambio.B.ruta)}</td>
+        <td>${escapeHTML(fmtCoord(cambio.B.rlat, cambio.B.rlon))}</td>
+        <td class="num">${fmt(cambio.kmActualA)}</td>
+        <td class="num">${fmt(cambio.kmPropuestaA)}</td>
+      </tr>
+      <tr>
+        <td class="center">${n}</td>
+        <td>${escapeHTML(cambio.B.operador)}</td>
+        <td>${escapeHTML(fmtCoord(cambio.B.olat, cambio.B.olon))}</td>
+        <td>${escapeHTML(cambio.A.cliente)}</td>
+        <td>${escapeHTML(cambio.A.ruta)}</td>
+        <td>${escapeHTML(fmtCoord(cambio.A.rlat, cambio.A.rlon))}</td>
+        <td class="num">${fmt(cambio.kmActualB)}</td>
+        <td class="num">${fmt(cambio.kmPropuestaB)}</td>
+      </tr>
+    `;
+  });
+
+  contenido.innerHTML = `
+    <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>#</th>
-            <th>Operador A</th>
-            <th>Operador B</th>
-            <th class="num">Km actual</th>
-            <th class="num">Km optimizado</th>
-            <th class="num">Ahorro</th>
-            <th class="num">%</th>
+            <th>Cambio</th>
+            <th>Operador</th>
+            <th>Ubicación operador</th>
+            <th>Cliente</th>
+            <th>Ruta</th>
+            <th>Coordenadas de la ruta</th>
+            <th>Km Actual</th>
+            <th>km Propuesta</th>
           </tr>
         </thead>
-        <tbody>
-          ${SWAPS.slice(0, 100).map((s, i) => `
-            <tr onclick="abrirModal(${i})" style="cursor:pointer">
-              <td><span class="badge">#${i + 1}</span></td>
-              <td>${escapeHTML(s.A.nombre)}</td>
-              <td>${escapeHTML(s.B.nombre)}</td>
-              <td class="num">${fmt(s.actual)}</td>
-              <td class="num">${fmt(s.optimizado)}</td>
-              <td class="num">${fmt(s.ahorro)}</td>
-              <td class="num">${fmt(s.pct)}%</td>
-            </tr>
-          `).join("")}
-        </tbody>
+        <tbody>${filas}</tbody>
       </table>
     </div>
   `;
 }
 
-async function pintarMapaModal(s){
-  if (!modalMapa) {
-    modalMapa = L.map("modal-map");
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: "&copy; OpenStreetMap"
-    }).addTo(modalMapa);
-    modalLayer = L.layerGroup().addTo(modalMapa);
-  }
-
-  modalLayer.clearLayers();
-
-  const { A, B } = s;
-
-  const [rutaActualA, rutaActualB, rutaNuevaA, rutaNuevaB] = await Promise.all([
-    getRoute(A.olat, A.olon, A.plat, A.plon),
-    getRoute(B.olat, B.olon, B.plat, B.plon),
-    getRoute(A.olat, A.olon, B.plat, B.plon),
-    getRoute(B.olat, B.olon, A.plat, A.plon)
-  ]);
-
-  L.polyline(rutaActualA, {color:"#dc2626", weight:4, dashArray:"8,5"}).addTo(modalLayer);
-  L.polyline(rutaActualB, {color:"#dc2626", weight:4, dashArray:"8,5"}).addTo(modalLayer);
-  L.polyline(rutaNuevaA, {color:"#65a30d", weight:5}).addTo(modalLayer);
-  L.polyline(rutaNuevaB, {color:"#65a30d", weight:5}).addTo(modalLayer);
-
-  L.marker([A.olat, A.olon]).bindPopup(`Casa: ${escapeHTML(A.nombre)}`).addTo(modalLayer);
-  L.marker([B.olat, B.olon]).bindPopup(`Casa: ${escapeHTML(B.nombre)}`).addTo(modalLayer);
-  L.marker([A.plat, A.plon]).bindPopup(`Ruta actual A: ${escapeHTML(A.ruta)}`).addTo(modalLayer);
-  L.marker([B.plat, B.plon]).bindPopup(`Ruta actual B: ${escapeHTML(B.ruta)}`).addTo(modalLayer);
-
-  const bounds = L.latLngBounds([
-    [A.olat,A.olon],
-    [B.olat,B.olon],
-    [A.plat,A.plon],
-    [B.plat,B.plon]
-  ]);
-
-  modalMapa.invalidateSize();
-  modalMapa.fitBounds(bounds, {padding:[50,50]});
-}
-
-function abrirModal(i){
-  const s = SWAPS[i];
-  if (!s) return;
-
-  document.getElementById("modal-rank").textContent = `#${i + 1}`;
-  document.getElementById("modal-ahorro").textContent =
-    `Ahorro estimado: ${fmt(s.ahorro)} km · ${fmt(s.pct)}%`;
-
-  document.getElementById("modal-tabla").innerHTML = `
-    <h2>Detalle del swap</h2>
-    <table>
-      <tr><th></th><th>Actual</th><th>Propuesto</th></tr>
-      <tr>
-        <td>${escapeHTML(s.A.nombre)}</td>
-        <td>${escapeHTML(s.A.ruta)}<br>${fmt(s.actualA)} km</td>
-        <td>${escapeHTML(s.B.ruta)}<br>${fmt(s.nuevoA)} km</td>
-      </tr>
-      <tr>
-        <td>${escapeHTML(s.B.nombre)}</td>
-        <td>${escapeHTML(s.B.ruta)}<br>${fmt(s.actualB)} km</td>
-        <td>${escapeHTML(s.A.ruta)}<br>${fmt(s.nuevoB)} km</td>
-      </tr>
-      <tr>
-        <td><strong>Total</strong></td>
-        <td><strong>${fmt(s.actual)} km</strong></td>
-        <td><strong>${fmt(s.optimizado)} km</strong></td>
-      </tr>
-      <tr>
-        <td><strong>Ahorro</strong></td>
-        <td colspan="2"><strong>${fmt(s.ahorro)} km</strong></td>
-      </tr>
-    </table>
-
-    <p style="margin-top:14px;font-size:13px;color:#6b7280">
-      Rojo punteado = rutas actuales. Verde = rutas propuestas.
-    </p>
-  `;
-
-  document.getElementById("modal-bd").classList.add("show");
-
-  setTimeout(() => pintarMapaModal(s), 120);
-}
-
 function init(){
+  const dropdown = document.getElementById("menu-logistica");
+  const toggle = dropdown.querySelector(".dropdown-toggle");
+
+  toggle.addEventListener("click", e => {
+    e.stopPropagation();
+    dropdown.classList.toggle("open");
+  });
+
+  document.addEventListener("click", () => {
+    dropdown.classList.remove("open");
+  });
+
   const fileInput = document.getElementById("file-input");
 
-  document.getElementById("btn-upload").onclick = () => fileInput.click();
+  document.getElementById("btn-upload").addEventListener("click", () => {
+    fileInput.click();
+  });
 
-  fileInput.onchange = e => {
-    if (e.target.files?.[0]) cargarArchivo(e.target.files[0]);
-  };
-
-  document.getElementById("btn-recalc").onclick = calcularSwaps;
-
-  document.getElementById("modal-close").onclick = () => {
-    document.getElementById("modal-bd").classList.remove("show");
-  };
-
-  document.getElementById("modal-bd").onclick = e => {
-    if (e.target.id === "modal-bd") {
-      document.getElementById("modal-bd").classList.remove("show");
+  fileInput.addEventListener("change", e => {
+    if (e.target.files && e.target.files[0]) {
+      cargarArchivo(e.target.files[0]);
     }
-  };
+  });
 
-  renderTodo();
+  document.getElementById("btn-recalc").addEventListener("click", calcularCambios);
+
+  render();
 }
 
-window.onload = init;
+window.addEventListener("DOMContentLoaded", init);
 </script>
 </body>
 </html>
