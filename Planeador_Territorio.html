@@ -91,12 +91,19 @@ td.center{text-align:center}
 .modal{background:#fff;width:min(1220px,96vw);height:min(760px,92vh);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 18px 60px rgba(0,0,0,.35)}
 .modal-head{background:#1f2937;color:#fff;display:flex;align-items:flex-start;gap:14px;padding:12px 18px}
 .modal-title{font-weight:900;font-size:18px}
-.modal-sub{color:rgba(255,255,255,.76);font-size:12px;margin-top:3px;display:grid;gap:2px}
+.modal-sub{color:rgba(255,255,255,.82);font-size:12px;margin-top:4px;display:grid;gap:4px;line-height:1.25}
+.modal-sub b{font-weight:900}
 .modal-close{margin-left:auto;border:0;background:#ef4444;color:#fff;border-radius:7px;padding:8px 12px;font-weight:900}
 #modal-map{flex:1;width:100%;height:100%}
-.operator-icon{width:30px;height:30px;border-radius:50%;background:#1f2937;color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid #84cc16;box-shadow:0 2px 8px rgba(0,0,0,.35)}
-.route-pin{width:24px;height:24px;background:#dc2626;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+
+.operator-icon{width:30px;height:30px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.operator-icon.blue{background:#2563eb;border-color:#bfdbfe}
+.operator-icon.orange{background:#f97316;border-color:#fed7aa}
+
+.route-pin{width:24px;height:24px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .route-pin::after{content:"";width:8px;height:8px;background:#fff;border-radius:50%;position:absolute;left:6px;top:6px}
+.route-pin.blue{background:#2563eb}
+.route-pin.orange{background:#f97316}
 
 @media(max-width:900px){
   header{align-items:flex-start}
@@ -162,7 +169,7 @@ td.center{text-align:center}
     <div class="panel-head">
       <div>
         <div class="panel-title">Tabla de cambios</div>
-        <div class="panel-sub">Da click en cualquier cambio para ver el mapa.</div>
+        <div class="panel-sub">Da click en cualquier cambio para ver el mapa. En el mapa: punteado = actual, sólido = propuesta.</div>
       </div>
       <span class="count" id="count">0 cambios</span>
     </div>
@@ -214,7 +221,11 @@ document.addEventListener("click", e => {
 });
 
 function normalizarTexto(v){
-  return String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+  return String(v || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]/g,"");
 }
 
 function encontrar(row, nombres){
@@ -359,7 +370,17 @@ function calcularCambios(){
       const ahorro = actualTotal - propuestaTotal;
 
       if (ahorro >= UMBRAL_AHORRO) {
-        CAMBIOS.push({ A, B, kmActualA, kmActualB, kmPropuestaA, kmPropuestaB, actualTotal, propuestaTotal, ahorro });
+        CAMBIOS.push({
+          A,
+          B,
+          kmActualA,
+          kmActualB,
+          kmPropuestaA,
+          kmPropuestaB,
+          actualTotal,
+          propuestaTotal,
+          ahorro
+        });
       }
     }
   }
@@ -476,7 +497,11 @@ async function getRoute(lat1, lon1, lat2, lon2){
     const data = await response.json();
 
     if (data.code === "Ok" && data.routes?.[0]) {
-      const result = { coords: decodePolyline(data.routes[0].geometry), km: data.routes[0].distance / 1000, calle:true };
+      const result = {
+        coords: decodePolyline(data.routes[0].geometry),
+        km: data.routes[0].distance / 1000,
+        calle:true
+      };
       routeCache.set(key, result);
       return result;
     }
@@ -484,24 +509,28 @@ async function getRoute(lat1, lon1, lat2, lon2){
     console.warn("No se pudo obtener ruta por calle:", e);
   }
 
-  const fallback = { coords:[[lat1, lon1], [lat2, lon2]], km:kmEstimado(lat1, lon1, lat2, lon2), calle:false };
+  const fallback = {
+    coords:[[lat1, lon1], [lat2, lon2]],
+    km:kmEstimado(lat1, lon1, lat2, lon2),
+    calle:false
+  };
   routeCache.set(key, fallback);
   return fallback;
 }
 
-function operatorIcon(label){
+function operatorIcon(label, color){
   return L.divIcon({
     className:"",
-    html:`<div class="operator-icon">${label}</div>`,
+    html:`<div class="operator-icon ${color}">${label}</div>`,
     iconSize:[30,30],
     iconAnchor:[15,15]
   });
 }
 
-function routePinIcon(){
+function routePinIcon(color){
   return L.divIcon({
     className:"",
-    html:`<div class="route-pin"></div>`,
+    html:`<div class="route-pin ${color}"></div>`,
     iconSize:[24,24],
     iconAnchor:[12,24]
   });
@@ -528,8 +557,9 @@ async function abrirModal(idx){
 
   document.getElementById("modal-title").textContent = `Cambio ${idx + 1}`;
   document.getElementById("modal-sub").innerHTML = `
-    <span>${escapeHTML(A.operador)} va a ruta ${escapeHTML(B.ruta)} · ${fmt(cambio.kmPropuestaA)} km estimados</span>
-    <span>${escapeHTML(B.operador)} va a ruta ${escapeHTML(A.ruta)} · ${fmt(cambio.kmPropuestaB)} km estimados</span>
+    <span><b style="color:#93c5fd">Operador 1 azul</b> ${escapeHTML(A.operador)}: actual ${fmt(cambio.kmActualA)} km → propuesta ${fmt(cambio.kmPropuestaA)} km en ruta ${escapeHTML(B.ruta)}</span>
+    <span><b style="color:#fdba74">Operador 2 naranja</b> ${escapeHTML(B.operador)}: actual ${fmt(cambio.kmActualB)} km → propuesta ${fmt(cambio.kmPropuestaB)} km en ruta ${escapeHTML(A.ruta)}</span>
+    <span style="color:rgba(255,255,255,.62)">Línea punteada = ruta actual · Línea sólida = ruta propuesta</span>
   `;
 
   document.getElementById("modal-bd").classList.add("show");
@@ -546,15 +576,54 @@ async function abrirModal(idx){
       getRoute(B.latOp, B.longOp, A.latPi, A.longPi)
     ]);
 
-    L.polyline(actualA.coords, { color:"#dc2626", weight:4, dashArray:"8,6" }).addTo(modalLayer);
-    L.polyline(actualB.coords, { color:"#dc2626", weight:4, dashArray:"8,6" }).addTo(modalLayer);
-    L.polyline(propA.coords, { color:"#65a30d", weight:5 }).addTo(modalLayer);
-    L.polyline(propB.coords, { color:"#65a30d", weight:5 }).addTo(modalLayer);
+    const colorA = "#2563eb";
+    const colorB = "#f97316";
 
-    L.marker([A.latOp, A.longOp], { icon:operatorIcon("A") }).bindPopup(`Operador A: ${escapeHTML(A.operador)}`).addTo(modalLayer);
-    L.marker([B.latOp, B.longOp], { icon:operatorIcon("B") }).bindPopup(`Operador B: ${escapeHTML(B.operador)}`).addTo(modalLayer);
-    L.marker([A.latPi, A.longPi], { icon:routePinIcon() }).bindPopup(`Ruta actual A: ${escapeHTML(A.ruta)}`).addTo(modalLayer);
-    L.marker([B.latPi, B.longPi], { icon:routePinIcon() }).bindPopup(`Ruta actual B: ${escapeHTML(B.ruta)}`).addTo(modalLayer);
+    L.polyline(actualA.coords, {
+      color:colorA,
+      weight:4,
+      dashArray:"8,6"
+    }).bindPopup(`${escapeHTML(A.operador)} · ruta actual`).addTo(modalLayer);
+
+    L.polyline(propA.coords, {
+      color:colorA,
+      weight:6
+    }).bindPopup(`${escapeHTML(A.operador)} · ruta propuesta`).addTo(modalLayer);
+
+    L.polyline(actualB.coords, {
+      color:colorB,
+      weight:4,
+      dashArray:"8,6"
+    }).bindPopup(`${escapeHTML(B.operador)} · ruta actual`).addTo(modalLayer);
+
+    L.polyline(propB.coords, {
+      color:colorB,
+      weight:6
+    }).bindPopup(`${escapeHTML(B.operador)} · ruta propuesta`).addTo(modalLayer);
+
+    L.marker([A.latOp, A.longOp], { icon:operatorIcon("1", "blue") })
+      .bindPopup(`Operador 1: ${escapeHTML(A.operador)}`)
+      .addTo(modalLayer);
+
+    L.marker([B.latOp, B.longOp], { icon:operatorIcon("2", "orange") })
+      .bindPopup(`Operador 2: ${escapeHTML(B.operador)}`)
+      .addTo(modalLayer);
+
+    L.marker([A.latPi, A.longPi], { icon:routePinIcon("blue") })
+      .bindPopup(`Ruta actual del operador 1: ${escapeHTML(A.ruta)}`)
+      .addTo(modalLayer);
+
+    L.marker([B.latPi, B.longPi], { icon:routePinIcon("orange") })
+      .bindPopup(`Ruta actual del operador 2: ${escapeHTML(B.ruta)}`)
+      .addTo(modalLayer);
+
+    const actualRoad = actualA.km + actualB.km;
+    const propRoad = propA.km + propB.km;
+    const ahorroRoad = actualRoad - propRoad;
+
+    document.getElementById("modal-sub").innerHTML += `
+      <span style="color:rgba(255,255,255,.68)">Por calles: actual ${fmt(actualRoad)} km · propuesta ${fmt(propRoad)} km · ahorro ${fmt(ahorroRoad)} km</span>
+    `;
 
     const bounds = L.latLngBounds([
       [A.latOp, A.longOp],
