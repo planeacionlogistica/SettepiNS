@@ -1,3 +1,6 @@
+Sí. Este código deja el **modal solo con el mapa**, y pone un **resumen compacto arriba de la tabla** con datos generales. El cálculo de la tabla sigue siendo lineal; al abrir el mapa calcula calles para ese cambio.
+
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -13,7 +16,6 @@
 <style>
 :root{
   --navy:#1f2937;
-  --navy2:#374151;
   --green:#84cc16;
   --bg:#f0f2f7;
   --white:#fff;
@@ -22,352 +24,87 @@
   --muted:#6b7280;
   --red:#dc2626;
 }
-
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:"Inter",Arial,sans-serif}
 
-nav{
-  background:#1f2937;
-  padding:15px 30px;
-  display:flex;
-  gap:25px;
-  align-items:center;
-  box-shadow:0 2px 8px rgba(0,0,0,0.3);
-  position:sticky;
-  top:0;
-  z-index:300;
-  flex-wrap:wrap;
-}
-nav>a{
-  color:#e5e7eb;
-  text-decoration:none;
-  font-weight:600;
-  padding:8px 16px;
-  border-radius:8px;
-  transition:all .3s;
-  white-space:nowrap;
-}
-nav>a:first-child{
-  color:#84cc16;
-  font-weight:800;
-  font-size:18px;
-}
+nav{background:#1f2937;padding:15px 30px;display:flex;gap:25px;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.3);position:sticky;top:0;z-index:300;flex-wrap:wrap}
+nav>a{color:#e5e7eb;text-decoration:none;font-weight:600;padding:8px 16px;border-radius:8px;transition:all .3s;white-space:nowrap}
+nav>a:first-child{color:#84cc16;font-weight:800;font-size:18px}
 nav>a:hover{background:#374151}
 .dropdown{position:relative;display:inline-block}
-.dropdown-toggle{
-  color:#e5e7eb;
-  font-weight:600;
-  padding:8px 16px;
-  border-radius:8px;
-  cursor:pointer;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  background:transparent;
-  border:none;
-  font-size:14px;
-  font-family:inherit;
-}
+.dropdown-toggle{color:#e5e7eb;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;background:transparent;border:none;font-size:14px;font-family:inherit}
 .dropdown-toggle:hover{background:#374151}
 .dropdown-arrow{font-size:12px;transition:transform .3s}
 .dropdown.open .dropdown-arrow{transform:rotate(180deg)}
-.dropdown-menu{
-  display:none;
-  position:absolute;
-  top:100%;
-  left:0;
-  background:#374151;
-  min-width:220px;
-  border-radius:8px;
-  box-shadow:0 4px 12px rgba(0,0,0,.3);
-  margin-top:8px;
-  z-index:1000;
-  overflow:hidden;
-}
+.dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#374151;min-width:220px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);margin-top:8px;z-index:1000;overflow:hidden}
 .dropdown.open .dropdown-menu{display:block}
-.dropdown-menu a{
-  display:block;
-  padding:12px 20px;
-  color:#e5e7eb;
-  text-decoration:none;
-  font-weight:600;
-  transition:all .3s;
-}
-.dropdown-menu a:hover{
-  background:#4b5563;
-  padding-left:25px;
-}
-.dropdown-menu a.active{
-  background:#84cc16;
-  color:#1f2937;
-}
+.dropdown-menu a{display:block;padding:12px 20px;color:#e5e7eb;text-decoration:none;font-weight:600;transition:all .3s}
+.dropdown-menu a:hover{background:#4b5563;padding-left:25px}
+.dropdown-menu a.active{background:#84cc16;color:#1f2937}
 
-header{
-  background:#fff;
-  border-bottom:3px solid var(--green);
-  padding:16px 22px;
-  display:flex;
-  align-items:center;
-  gap:18px;
-  flex-wrap:wrap;
-}
+header{background:#fff;border-bottom:3px solid var(--green);padding:16px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 h1{font-size:22px;font-weight:800}
 .kpis{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
-.kpi{
-  background:#f9fafb;
-  border:1px solid #e5e7eb;
-  border-left:3px solid var(--green);
-  border-radius:8px;
-  min-width:125px;
-  padding:8px 12px;
-}
-.kpi-label{
-  font-size:11px;
-  color:var(--muted);
-  font-weight:800;
-  text-transform:uppercase;
-}
-.kpi-val{
-  font-size:19px;
-  font-weight:800;
-  margin-top:2px;
-}
+.kpi{background:#f9fafb;border:1px solid #e5e7eb;border-left:3px solid var(--green);border-radius:8px;min-width:125px;padding:8px 12px}
+.kpi-label{font-size:11px;color:var(--muted);font-weight:800;text-transform:uppercase}
+.kpi-val{font-size:19px;font-weight:800;margin-top:2px}
 
-.toolbar{
-  background:#fff;
-  padding:14px 22px;
-  border-bottom:1px solid #e5e7eb;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  flex-wrap:wrap;
-}
+.toolbar{background:#fff;padding:14px 22px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 button{font-family:inherit;cursor:pointer}
-.btn{
-  border:0;
-  border-radius:8px;
-  padding:10px 14px;
-  font-weight:800;
-}
+.btn{border:0;border-radius:8px;padding:10px 14px;font-weight:800}
 .btn-dark{background:#1f2937;color:#fff}
 .btn-green{background:#84cc16;color:#1f2937}
 .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text)}
-.umbral-input{
-  width:110px;
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:9px 10px;
-  font-family:inherit;
-  font-weight:700;
-}
+.umbral-input{width:110px;border:1px solid var(--border);border-radius:8px;padding:9px 10px;font-family:inherit;font-weight:700}
 #archivo-info{font-size:13px;color:var(--muted)}
 #msg{font-size:13px;font-weight:700;color:var(--red)}
 
 main{padding:20px;display:flex;flex-direction:column;gap:14px}
-.panel{
-  background:#fff;
-  border-radius:12px;
-  box-shadow:0 2px 10px rgba(26,34,54,.07);
-  overflow:hidden;
-}
-.panel-head{
-  padding:14px 18px;
-  border-bottom:1px solid #e5e7eb;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-}
+.summary-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.summary-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;box-shadow:0 2px 10px rgba(26,34,54,.05)}
+.summary-label{font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:.04em}
+.summary-value{font-size:18px;font-weight:900;margin-top:3px}
+
+.panel{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);overflow:hidden}
+.panel-head{padding:14px 18px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .panel-title{font-size:15px;font-weight:800}
 .panel-sub{font-size:12px;color:var(--muted);margin-top:2px}
-.count{
-  font-size:12px;
-  color:var(--muted);
-  background:#f3f4f6;
-  border-radius:999px;
-  padding:5px 10px;
-  white-space:nowrap;
-}
+.count{font-size:12px;color:var(--muted);background:#f3f4f6;border-radius:999px;padding:5px 10px;white-space:nowrap}
 
 .table-wrap{overflow:auto}
-table{
-  width:100%;
-  min-width:1120px;
-  border-collapse:collapse;
-}
-th{
-  background:#f3f4f6;
-  color:#000;
-  border:1px solid #bdbdbd;
-  padding:6px 7px;
-  font-size:15px;
-  text-align:left;
-  font-weight:900;
-  white-space:nowrap;
-}
-td{
-  border:1px solid #bdbdbd;
-  padding:6px 7px;
-  font-size:12px;
-  vertical-align:middle;
-}
+table{width:100%;min-width:1120px;border-collapse:collapse}
+th{background:#f3f4f6;color:#000;border:1px solid #bdbdbd;padding:6px 7px;font-size:15px;text-align:left;font-weight:900;white-space:nowrap}
+td{border:1px solid #bdbdbd;padding:6px 7px;font-size:12px;vertical-align:middle}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
 td.center{text-align:center}
-
-.change-row{
-  cursor:pointer;
-  transition:background .15s;
-}
-.change-row:hover td{
-  background:#ecfccb !important;
-}
+.change-row{cursor:pointer;transition:background .15s}
+.change-row:hover td{background:#ecfccb !important}
 .change-0 td{background:#f7fee7}
 .change-1 td{background:#eff6ff}
 .change-2 td{background:#fff7ed}
 .change-3 td{background:#fdf2f8}
 .change-4 td{background:#f0fdf4}
 .change-5 td{background:#f5f3ff}
+.empty{padding:34px;text-align:center;color:var(--muted);font-size:14px}
+.small{margin-top:8px;font-size:12px;color:var(--muted)}
+.badge{display:inline-block;background:#ecfccb;color:#3f6212;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:800}
 
-.empty{
-  padding:34px;
-  text-align:center;
-  color:var(--muted);
-  font-size:14px;
-}
-.small{
-  margin-top:8px;
-  font-size:12px;
-  color:var(--muted);
-}
-.badge{
-  display:inline-block;
-  background:#ecfccb;
-  color:#3f6212;
-  border-radius:999px;
-  padding:2px 8px;
-  font-size:11px;
-  font-weight:800;
-}
-
-.modal-backdrop{
-  position:fixed;
-  inset:0;
-  background:rgba(15,23,42,.58);
-  z-index:2000;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:18px;
-}
+.modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.58);z-index:2000;display:none;align-items:center;justify-content:center;padding:18px}
 .modal-backdrop.show{display:flex}
-.modal{
-  background:#fff;
-  width:min(1220px,96vw);
-  height:min(760px,92vh);
-  border-radius:12px;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-  box-shadow:0 18px 60px rgba(0,0,0,.35);
-}
-.modal-head{
-  height:62px;
-  background:#1f2937;
-  color:#fff;
-  display:flex;
-  align-items:center;
-  gap:14px;
-  padding:0 18px;
-}
+.modal{background:#fff;width:min(1220px,96vw);height:min(760px,92vh);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 18px 60px rgba(0,0,0,.35)}
+.modal-head{height:62px;background:#1f2937;color:#fff;display:flex;align-items:center;gap:14px;padding:0 18px}
 .modal-title{font-weight:900}
-.modal-sub{
-  color:rgba(255,255,255,.68);
-  font-size:12px;
-  margin-top:2px;
-}
-.modal-close{
-  margin-left:auto;
-  border:0;
-  background:#ef4444;
-  color:#fff;
-  border-radius:7px;
-  padding:8px 12px;
-  font-weight:900;
-}
-.modal-body{
-  flex:1;
-  display:grid;
-  grid-template-columns:390px 1fr;
-  min-height:0;
-}
-.modal-info{
-  padding:16px;
-  overflow:auto;
-  border-right:1px solid #e5e7eb;
-}
-#modal-map{
-  width:100%;
-  height:100%;
-}
-.legend{
-  display:grid;
-  gap:8px;
-  margin-top:14px;
-  font-size:13px;
-}
-.legend span{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-}
-.line-sample{
-  width:34px;
-  height:0;
-  border-top:4px solid;
-}
-.line-red{
-  border-color:#dc2626;
-  border-top-style:dashed;
-}
-.line-green{border-color:#65a30d}
-.operator-icon{
-  width:30px;
-  height:30px;
-  border-radius:50%;
-  background:#1f2937;
-  color:#fff;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:17px;
-  border:2px solid #84cc16;
-  box-shadow:0 2px 8px rgba(0,0,0,.35);
-}
-.route-pin{
-  width:24px;
-  height:24px;
-  background:#dc2626;
-  border-radius:50% 50% 50% 0;
-  transform:rotate(-45deg);
-  border:2px solid #fff;
-  box-shadow:0 2px 8px rgba(0,0,0,.35);
-}
-.route-pin::after{
-  content:"";
-  width:8px;
-  height:8px;
-  background:#fff;
-  border-radius:50%;
-  position:absolute;
-  left:6px;
-  top:6px;
-}
+.modal-sub{color:rgba(255,255,255,.68);font-size:12px;margin-top:2px}
+.modal-close{margin-left:auto;border:0;background:#ef4444;color:#fff;border-radius:7px;padding:8px 12px;font-weight:900}
+#modal-map{flex:1;width:100%;height:100%}
+.operator-icon{width:30px;height:30px;border-radius:50%;background:#1f2937;color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid #84cc16;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.route-pin{width:24px;height:24px;background:#dc2626;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.route-pin::after{content:"";width:8px;height:8px;background:#fff;border-radius:50%;position:absolute;left:6px;top:6px}
 
 @media(max-width:900px){
   header{align-items:flex-start}
   .kpis{margin-left:0}
-  .modal-body{grid-template-columns:1fr}
-  .modal-info{max-height:260px;border-right:0;border-bottom:1px solid #e5e7eb}
+  .summary-strip{grid-template-columns:repeat(2,1fr)}
 }
 </style>
 </head>
@@ -392,24 +129,11 @@ td.center{text-align:center}
 
 <header>
   <h1>Cambios propuestos de operadores</h1>
-
   <div class="kpis">
-    <div class="kpi">
-      <div class="kpi-label">Km Actual</div>
-      <div class="kpi-val" id="kpi-actual">—</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">Km Propuesta</div>
-      <div class="kpi-val" id="kpi-prop">—</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">Ahorro</div>
-      <div class="kpi-val" id="kpi-ahorro">—</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">Cambios</div>
-      <div class="kpi-val" id="kpi-cambios">—</div>
-    </div>
+    <div class="kpi"><div class="kpi-label">Km Actual</div><div class="kpi-val" id="kpi-actual">—</div></div>
+    <div class="kpi"><div class="kpi-label">Km Propuesta</div><div class="kpi-val" id="kpi-prop">—</div></div>
+    <div class="kpi"><div class="kpi-label">Ahorro</div><div class="kpi-val" id="kpi-ahorro">—</div></div>
+    <div class="kpi"><div class="kpi-label">Cambios</div><div class="kpi-val" id="kpi-cambios">—</div></div>
   </div>
 </header>
 
@@ -429,11 +153,19 @@ td.center{text-align:center}
 </section>
 
 <main>
+  <section class="summary-strip">
+    <div class="summary-card"><div class="summary-label">Filas válidas</div><div class="summary-value" id="sum-ops">0</div></div>
+    <div class="summary-card"><div class="summary-label">Ahorro mínimo</div><div class="summary-value" id="sum-umbral">0 km</div></div>
+    <div class="summary-card"><div class="summary-label">Mejor cambio</div><div class="summary-value" id="sum-mejor">—</div></div>
+    <div class="summary-card"><div class="summary-label">Promedio ahorro</div><div class="summary-value" id="sum-prom">—</div></div>
+    <div class="summary-card"><div class="summary-label">Tipo de km</div><div class="summary-value" style="font-size:14px">Lineal</div></div>
+  </section>
+
   <section class="panel">
     <div class="panel-head">
       <div>
         <div class="panel-title">Tabla de cambios</div>
-        <div class="panel-sub">Cada cambio muestra 2 renglones. Da click en cualquier renglón para ver el mapa.</div>
+        <div class="panel-sub">Da click en cualquier cambio para ver solo el mapa con rutas por calles.</div>
       </div>
       <span class="count" id="count">0 cambios</span>
     </div>
@@ -456,10 +188,7 @@ td.center{text-align:center}
       </div>
       <button class="modal-close" id="modal-close" type="button">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="modal-info" id="modal-info"></div>
-      <div id="modal-map"></div>
-    </div>
+    <div id="modal-map"></div>
   </div>
 </div>
 
@@ -486,11 +215,7 @@ document.addEventListener("click", e => {
 });
 
 function normalizarTexto(v){
-  return String(v || "")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g,"")
-    .replace(/[^a-z0-9]/g,"");
+  return String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
 }
 
 function encontrar(row, nombres){
@@ -498,8 +223,7 @@ function encontrar(row, nombres){
   const buscadas = nombres.map(normalizarTexto);
 
   for (const key of keys) {
-    const nk = normalizarTexto(key);
-    if (buscadas.includes(nk)) return row[key];
+    if (buscadas.includes(normalizarTexto(key))) return row[key];
   }
 
   for (const key of keys) {
@@ -518,18 +242,12 @@ function numero(v){
 
 function escapeHTML(str){
   return String(str ?? "").replace(/[&<>"']/g, m => ({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#39;"
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
   })[m]);
 }
 
 function fmt(n){
-  return Number.isFinite(n)
-    ? n.toLocaleString("es-MX", { maximumFractionDigits: 1 })
-    : "—";
+  return Number.isFinite(n) ? n.toLocaleString("es-MX", { maximumFractionDigits: 1 }) : "—";
 }
 
 function fmtCoord(lat, lon){
@@ -542,83 +260,31 @@ function haversine(lat1, lon1, lat2, lon2){
   const toRad = x => x * Math.PI / 180;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
-
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) *
-    Math.cos(toRad(lat2)) *
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
     Math.sin(dLon / 2) ** 2;
-
   return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 function limpiarOperador(v){
   const txt = String(v || "").trim();
   const partes = txt.split("-");
-
   if (partes.length > 1 && /^\d+$/.test(partes[0].trim())) {
     return partes.slice(1).join("-").trim();
   }
-
   return txt;
 }
 
 function mapearFila(row, i){
   const udn = encontrar(row, ["UDN", "Unidad de negocio"]) || "";
-
-  const operadorRaw = encontrar(row, [
-    "Operadores",
-    "Operador",
-    "Nombre operador",
-    "Conductor"
-  ]);
-
+  const operadorRaw = encontrar(row, ["Operadores", "Operador", "Nombre operador", "Conductor"]);
   const operador = limpiarOperador(operadorRaw) || `Operador ${i + 1}`;
+  const ruta = encontrar(row, ["Ruta asignada", "Ruta", "Servicio", "Destino"]) || "";
 
-  const ruta = encontrar(row, [
-    "Ruta asignada",
-    "Ruta",
-    "Servicio",
-    "Destino"
-  ]) || "";
-
-  const latOp = numero(encontrar(row, [
-    "Lat op",
-    "Lat operador",
-    "Latitud operador",
-    "Lat casa",
-    "olat"
-  ]));
-
-  const longOp = numero(encontrar(row, [
-    "Long Op",
-    "Lon Op",
-    "Long operador",
-    "Longitud operador",
-    "Lon operador",
-    "Long casa",
-    "olon"
-  ]));
-
-  const latPi = numero(encontrar(row, [
-    "Lat Pi",
-    "Lat ruta",
-    "Latitud ruta",
-    "Lat parada",
-    "plat"
-  ]));
-
-  const longPi = numero(encontrar(row, [
-    "Long Pi",
-    "Lon Pi",
-    "Long ruta",
-    "Longitud ruta",
-    "Lon ruta",
-    "Lon parada",
-    "plon"
-  ]));
-
-  const kmActual = haversine(latOp, longOp, latPi, longPi);
+  const latOp = numero(encontrar(row, ["Lat op", "Lat operador", "Latitud operador", "Lat casa", "olat"]));
+  const longOp = numero(encontrar(row, ["Long Op", "Lon Op", "Long operador", "Longitud operador", "Lon operador", "Long casa", "olon"]));
+  const latPi = numero(encontrar(row, ["Lat Pi", "Lat ruta", "Latitud ruta", "Lat parada", "plat"]));
+  const longPi = numero(encontrar(row, ["Long Pi", "Lon Pi", "Long ruta", "Longitud ruta", "Lon ruta", "Lon parada", "plon"]));
 
   return {
     id: i + 1,
@@ -630,7 +296,7 @@ function mapearFila(row, i){
     longOp,
     latPi,
     longPi,
-    kmActual
+    kmActual: haversine(latOp, longOp, latPi, longPi)
   };
 }
 
@@ -647,20 +313,18 @@ function cargarArchivo(file){
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(sheet, { defval:"" });
 
-      OPS = rows
-        .map(mapearFila)
-        .filter(op =>
-          Number.isFinite(op.latOp) &&
-          Number.isFinite(op.longOp) &&
-          Number.isFinite(op.latPi) &&
-          Number.isFinite(op.longPi)
-        );
+      OPS = rows.map(mapearFila).filter(op =>
+        Number.isFinite(op.latOp) &&
+        Number.isFinite(op.longOp) &&
+        Number.isFinite(op.latPi) &&
+        Number.isFinite(op.longPi)
+      );
 
       document.getElementById("archivo-info").textContent =
         `${file.name} · ${OPS.length} filas válidas de ${rows.length}`;
 
       if (!OPS.length) {
-        msg.textContent = "No encontré coordenadas válidas. Revisa que existan: Lat op, Long Op, Lat Pi y Long Pi.";
+        msg.textContent = "No encontré coordenadas válidas. Revisa: Lat op, Long Op, Lat Pi y Long Pi.";
       }
 
       calcularCambios();
@@ -684,7 +348,6 @@ function calcularCambios(){
 
       const kmActualA = A.kmActual;
       const kmActualB = B.kmActual;
-
       const kmPropuestaA = haversine(A.latOp, A.longOp, B.latPi, B.longPi);
       const kmPropuestaB = haversine(B.latOp, B.longOp, A.latPi, A.longPi);
 
@@ -693,17 +356,7 @@ function calcularCambios(){
       const ahorro = actualTotal - propuestaTotal;
 
       if (ahorro >= UMBRAL_AHORRO) {
-        CAMBIOS.push({
-          A,
-          B,
-          kmActualA,
-          kmActualB,
-          kmPropuestaA,
-          kmPropuestaB,
-          actualTotal,
-          propuestaTotal,
-          ahorro
-        });
+        CAMBIOS.push({ A, B, kmActualA, kmActualB, kmPropuestaA, kmPropuestaB, actualTotal, propuestaTotal, ahorro });
       }
     }
   }
@@ -716,6 +369,8 @@ function render(){
   const totalActual = CAMBIOS.reduce((s,c) => s + c.actualTotal, 0);
   const totalProp = CAMBIOS.reduce((s,c) => s + c.propuestaTotal, 0);
   const totalAhorro = CAMBIOS.reduce((s,c) => s + c.ahorro, 0);
+  const prom = CAMBIOS.length ? totalAhorro / CAMBIOS.length : NaN;
+  const mejor = CAMBIOS[0]?.ahorro;
 
   document.getElementById("kpi-actual").textContent = `${fmt(totalActual)} km`;
   document.getElementById("kpi-prop").textContent = `${fmt(totalProp)} km`;
@@ -723,25 +378,20 @@ function render(){
   document.getElementById("kpi-cambios").textContent = CAMBIOS.length;
   document.getElementById("count").textContent = `${CAMBIOS.length} cambio${CAMBIOS.length === 1 ? "" : "s"}`;
 
+  document.getElementById("sum-ops").textContent = OPS.length;
+  document.getElementById("sum-umbral").textContent = `${fmt(UMBRAL_AHORRO)} km`;
+  document.getElementById("sum-mejor").textContent = Number.isFinite(mejor) ? `${fmt(mejor)} km` : "—";
+  document.getElementById("sum-prom").textContent = Number.isFinite(prom) ? `${fmt(prom)} km` : "—";
+
   const contenido = document.getElementById("contenido");
 
   if (!OPS.length) {
-    contenido.innerHTML = `
-      <div class="empty">
-        Sube tu archivo Excel para calcular los cambios.
-        <div class="small">Formato esperado: UDN | Operadores | Lat op | Long Op | Ruta asignada | Lat Pi | Long Pi</div>
-      </div>
-    `;
+    contenido.innerHTML = `<div class="empty">Sube tu archivo Excel para calcular los cambios.<div class="small">Formato esperado: UDN | Operadores | Lat op | Long Op | Ruta asignada | Lat Pi | Long Pi</div></div>`;
     return;
   }
 
   if (!CAMBIOS.length) {
-    contenido.innerHTML = `
-      <div class="empty">
-        No encontré cambios con ahorro igual o mayor a ${fmt(UMBRAL_AHORRO)} km.
-        <div class="small">Las coordenadas sí se leyeron, pero ningún intercambio cumple el umbral.</div>
-      </div>
-    `;
+    contenido.innerHTML = `<div class="empty">No encontré cambios con ahorro igual o mayor a ${fmt(UMBRAL_AHORRO)} km.<div class="small">Las coordenadas sí se leyeron, pero ningún intercambio cumple el umbral.</div></div>`;
     return;
   }
 
@@ -797,34 +447,17 @@ function render(){
 }
 
 function decodePolyline(str, precision = 5){
-  let index = 0;
-  let lat = 0;
-  let lng = 0;
+  let index = 0, lat = 0, lng = 0;
   const coordinates = [];
   const factor = Math.pow(10, precision);
 
   while (index < str.length) {
-    let result = 1;
-    let shift = 0;
-    let b;
-
-    do {
-      b = str.charCodeAt(index++) - 63 - 1;
-      result += b << shift;
-      shift += 5;
-    } while (b >= 0x1f);
-
+    let result = 1, shift = 0, b;
+    do { b = str.charCodeAt(index++) - 63 - 1; result += b << shift; shift += 5; } while (b >= 0x1f);
     lat += (result & 1) ? ~(result >> 1) : (result >> 1);
 
-    result = 1;
-    shift = 0;
-
-    do {
-      b = str.charCodeAt(index++) - 63 - 1;
-      result += b << shift;
-      shift += 5;
-    } while (b >= 0x1f);
-
+    result = 1; shift = 0;
+    do { b = str.charCodeAt(index++) - 63 - 1; result += b << shift; shift += 5; } while (b >= 0x1f);
     lng += (result & 1) ? ~(result >> 1) : (result >> 1);
 
     coordinates.push([lat / factor, lng / factor]);
@@ -835,7 +468,6 @@ function decodePolyline(str, precision = 5){
 
 async function getRoute(lat1, lon1, lat2, lon2){
   const key = `${lat1},${lon1}|${lat2},${lon2}`;
-
   if (routeCache.has(key)) return routeCache.get(key);
 
   try {
@@ -844,25 +476,15 @@ async function getRoute(lat1, lon1, lat2, lon2){
     const data = await response.json();
 
     if (data.code === "Ok" && data.routes?.[0]) {
-      const result = {
-        coords: decodePolyline(data.routes[0].geometry),
-        km: data.routes[0].distance / 1000,
-        calle: true
-      };
-
+      const result = { coords: decodePolyline(data.routes[0].geometry), km: data.routes[0].distance / 1000, calle:true };
       routeCache.set(key, result);
       return result;
     }
-  } catch (e) {
+  } catch(e) {
     console.warn("No se pudo obtener ruta por calle:", e);
   }
 
-  const fallback = {
-    coords: [[lat1, lon1], [lat2, lon2]],
-    km: haversine(lat1, lon1, lat2, lon2),
-    calle: false
-  };
-
+  const fallback = { coords:[[lat1, lon1], [lat2, lon2]], km:haversine(lat1, lon1, lat2, lon2), calle:false };
   routeCache.set(key, fallback);
   return fallback;
 }
@@ -905,45 +527,7 @@ async function abrirModal(idx){
 
   document.getElementById("modal-title").textContent = `Cambio ${idx + 1}`;
   document.getElementById("modal-sub").textContent =
-    `Ahorro lineal estimado: ${fmt(cambio.ahorro)} km`;
-
-  document.getElementById("modal-info").innerHTML = `
-    <table style="width:100%;border-collapse:collapse;min-width:0">
-      <thead>
-        <tr>
-          <th>Operador</th>
-          <th>Ruta propuesta</th>
-          <th>Km actual</th>
-          <th>Km propuesta</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>${escapeHTML(A.operador)}</td>
-          <td>${escapeHTML(B.ruta)}</td>
-          <td class="num">${fmt(cambio.kmActualA)}</td>
-          <td class="num">${fmt(cambio.kmPropuestaA)}</td>
-        </tr>
-        <tr>
-          <td>${escapeHTML(B.operador)}</td>
-          <td>${escapeHTML(A.ruta)}</td>
-          <td class="num">${fmt(cambio.kmActualB)}</td>
-          <td class="num">${fmt(cambio.kmPropuestaB)}</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="legend">
-      <span><i class="line-sample line-red"></i> Ruta actual</span>
-      <span><i class="line-sample line-green"></i> Ruta propuesta</span>
-      <span><b>A/B</b> Operadores</span>
-      <span><span style="color:#dc2626;font-weight:900">◆</span> Punto de inicio de ruta</span>
-    </div>
-
-    <div class="small" id="modal-road-km" style="margin-top:14px">
-      Calculando kilómetros por calles...
-    </div>
-  `;
+    `Lineal: ahorro ${fmt(cambio.ahorro)} km · Rojo actual · Verde propuesta`;
 
   document.getElementById("modal-bd").classList.add("show");
 
@@ -961,40 +545,21 @@ async function abrirModal(idx){
 
     L.polyline(actualA.coords, { color:"#dc2626", weight:4, dashArray:"8,6" }).addTo(modalLayer);
     L.polyline(actualB.coords, { color:"#dc2626", weight:4, dashArray:"8,6" }).addTo(modalLayer);
-
     L.polyline(propA.coords, { color:"#65a30d", weight:5 }).addTo(modalLayer);
     L.polyline(propB.coords, { color:"#65a30d", weight:5 }).addTo(modalLayer);
 
-    L.marker([A.latOp, A.longOp], { icon:operatorIcon("A") })
-      .bindPopup(`Operador A: ${escapeHTML(A.operador)}`)
-      .addTo(modalLayer);
-
-    L.marker([B.latOp, B.longOp], { icon:operatorIcon("B") })
-      .bindPopup(`Operador B: ${escapeHTML(B.operador)}`)
-      .addTo(modalLayer);
-
-    L.marker([A.latPi, A.longPi], { icon:routePinIcon() })
-      .bindPopup(`Ruta A: ${escapeHTML(A.ruta)}`)
-      .addTo(modalLayer);
-
-    L.marker([B.latPi, B.longPi], { icon:routePinIcon() })
-      .bindPopup(`Ruta B: ${escapeHTML(B.ruta)}`)
-      .addTo(modalLayer);
+    L.marker([A.latOp, A.longOp], { icon:operatorIcon("A") }).bindPopup(`Operador A: ${escapeHTML(A.operador)}`).addTo(modalLayer);
+    L.marker([B.latOp, B.longOp], { icon:operatorIcon("B") }).bindPopup(`Operador B: ${escapeHTML(B.operador)}`).addTo(modalLayer);
+    L.marker([A.latPi, A.longPi], { icon:routePinIcon() }).bindPopup(`Ruta A: ${escapeHTML(A.ruta)}`).addTo(modalLayer);
+    L.marker([B.latPi, B.longPi], { icon:routePinIcon() }).bindPopup(`Ruta B: ${escapeHTML(B.ruta)}`).addTo(modalLayer);
 
     const actualRoad = actualA.km + actualB.km;
     const propRoad = propA.km + propB.km;
     const ahorroRoad = actualRoad - propRoad;
-    const modo = actualA.calle && actualB.calle && propA.calle && propB.calle
-      ? "calculado por calles"
-      : "parcialmente lineal por fallback";
+    const modo = actualA.calle && actualB.calle && propA.calle && propB.calle ? "calles" : "fallback lineal";
 
-    document.getElementById("modal-road-km").innerHTML = `
-      <b>Km por calles:</b><br>
-      Actual: ${fmt(actualRoad)} km<br>
-      Propuesta: ${fmt(propRoad)} km<br>
-      Ahorro por calles: ${fmt(ahorroRoad)} km<br>
-      <span style="color:var(--muted)">Modo: ${modo}</span>
-    `;
+    document.getElementById("modal-sub").textContent =
+      `Calles: actual ${fmt(actualRoad)} km · propuesta ${fmt(propRoad)} km · ahorro ${fmt(ahorroRoad)} km · ${modo}`;
 
     const bounds = L.latLngBounds([
       [A.latOp, A.longOp],
@@ -1019,42 +584,32 @@ function exportarTabla(){
     const n = idx + 1;
 
     rows.push({
-      Cambio: n,
-      Operador: cambio.A.operador,
-      "Ubicación operador": fmtCoord(cambio.A.latOp, cambio.A.longOp),
-      "Cliente / UDN": cambio.B.udn,
-      Ruta: cambio.B.ruta,
-      "Coordenadas de la ruta": fmtCoord(cambio.B.latPi, cambio.B.longPi),
-      "Km Actual": Number(cambio.kmActualA.toFixed(1)),
-      "km Propuesta": Number(cambio.kmPropuestaA.toFixed(1)),
-      "Ahorro total cambio": Number(cambio.ahorro.toFixed(1))
+      Cambio:n,
+      Operador:cambio.A.operador,
+      "Ubicación operador":fmtCoord(cambio.A.latOp, cambio.A.longOp),
+      "Cliente / UDN":cambio.B.udn,
+      Ruta:cambio.B.ruta,
+      "Coordenadas de la ruta":fmtCoord(cambio.B.latPi, cambio.B.longPi),
+      "Km Actual":Number(cambio.kmActualA.toFixed(1)),
+      "km Propuesta":Number(cambio.kmPropuestaA.toFixed(1)),
+      "Ahorro total cambio":Number(cambio.ahorro.toFixed(1))
     });
 
     rows.push({
-      Cambio: n,
-      Operador: cambio.B.operador,
-      "Ubicación operador": fmtCoord(cambio.B.latOp, cambio.B.longOp),
-      "Cliente / UDN": cambio.A.udn,
-      Ruta: cambio.A.ruta,
-      "Coordenadas de la ruta": fmtCoord(cambio.A.latPi, cambio.A.longPi),
-      "Km Actual": Number(cambio.kmActualB.toFixed(1)),
-      "km Propuesta": Number(cambio.kmPropuestaB.toFixed(1)),
-      "Ahorro total cambio": Number(cambio.ahorro.toFixed(1))
+      Cambio:n,
+      Operador:cambio.B.operador,
+      "Ubicación operador":fmtCoord(cambio.B.latOp, cambio.B.longOp),
+      "Cliente / UDN":cambio.A.udn,
+      Ruta:cambio.A.ruta,
+      "Coordenadas de la ruta":fmtCoord(cambio.A.latPi, cambio.A.longPi),
+      "Km Actual":Number(cambio.kmActualB.toFixed(1)),
+      "km Propuesta":Number(cambio.kmPropuestaB.toFixed(1)),
+      "Ahorro total cambio":Number(cambio.ahorro.toFixed(1))
     });
   });
 
   const ws = XLSX.utils.json_to_sheet(rows);
-  ws["!cols"] = [
-    {wch:10},
-    {wch:36},
-    {wch:24},
-    {wch:18},
-    {wch:34},
-    {wch:24},
-    {wch:12},
-    {wch:14},
-    {wch:18}
-  ];
+  ws["!cols"] = [{wch:10},{wch:36},{wch:24},{wch:18},{wch:34},{wch:24},{wch:12},{wch:14},{wch:18}];
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Cambios");
@@ -1064,14 +619,10 @@ function exportarTabla(){
 function init(){
   const fileInput = document.getElementById("file-input");
 
-  document.getElementById("btn-upload").addEventListener("click", () => {
-    fileInput.click();
-  });
+  document.getElementById("btn-upload").addEventListener("click", () => fileInput.click());
 
   fileInput.addEventListener("change", e => {
-    if (e.target.files && e.target.files[0]) {
-      cargarArchivo(e.target.files[0]);
-    }
+    if (e.target.files && e.target.files[0]) cargarArchivo(e.target.files[0]);
   });
 
   document.getElementById("btn-recalc").addEventListener("click", calcularCambios);
@@ -1096,3 +647,4 @@ window.addEventListener("DOMContentLoaded", init);
 
 </body>
 </html>
+```
