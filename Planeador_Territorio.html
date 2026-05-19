@@ -6,6 +6,8 @@
 <title>Cambios operadores | Traxión</title>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
@@ -24,7 +26,6 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:"Inter",Arial,sans-serif}
 
-/* Menu copiado del dashboard */
 nav{
   background:#1f2937;
   padding:15px 30px;
@@ -151,6 +152,14 @@ button{font-family:inherit;cursor:pointer}
 .btn-dark{background:#1f2937;color:#fff}
 .btn-green{background:#84cc16;color:#1f2937}
 .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text)}
+.umbral-input{
+  width:110px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:9px 10px;
+  font-family:inherit;
+  font-weight:700;
+}
 #archivo-info{font-size:13px;color:var(--muted)}
 #msg{font-size:13px;font-weight:700;color:var(--red)}
 
@@ -204,8 +213,20 @@ td{
 }
 td.num{text-align:right;font-variant-numeric:tabular-nums}
 td.center{text-align:center}
-tbody tr:nth-child(4n+3),
-tbody tr:nth-child(4n+4){background:#f9fafb}
+
+.change-row{
+  cursor:pointer;
+  transition:background .15s;
+}
+.change-row:hover td{
+  background:#ecfccb !important;
+}
+.change-0 td{background:#f7fee7}
+.change-1 td{background:#eff6ff}
+.change-2 td{background:#fff7ed}
+.change-3 td{background:#fdf2f8}
+.change-4 td{background:#f0fdf4}
+.change-5 td{background:#f5f3ff}
 
 .empty{
   padding:34px;
@@ -227,9 +248,126 @@ tbody tr:nth-child(4n+4){background:#f9fafb}
   font-size:11px;
   font-weight:800;
 }
+
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,.58);
+  z-index:2000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+.modal-backdrop.show{display:flex}
+.modal{
+  background:#fff;
+  width:min(1220px,96vw);
+  height:min(760px,92vh);
+  border-radius:12px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  box-shadow:0 18px 60px rgba(0,0,0,.35);
+}
+.modal-head{
+  height:62px;
+  background:#1f2937;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  padding:0 18px;
+}
+.modal-title{font-weight:900}
+.modal-sub{
+  color:rgba(255,255,255,.68);
+  font-size:12px;
+  margin-top:2px;
+}
+.modal-close{
+  margin-left:auto;
+  border:0;
+  background:#ef4444;
+  color:#fff;
+  border-radius:7px;
+  padding:8px 12px;
+  font-weight:900;
+}
+.modal-body{
+  flex:1;
+  display:grid;
+  grid-template-columns:390px 1fr;
+  min-height:0;
+}
+.modal-info{
+  padding:16px;
+  overflow:auto;
+  border-right:1px solid #e5e7eb;
+}
+#modal-map{
+  width:100%;
+  height:100%;
+}
+.legend{
+  display:grid;
+  gap:8px;
+  margin-top:14px;
+  font-size:13px;
+}
+.legend span{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+.line-sample{
+  width:34px;
+  height:0;
+  border-top:4px solid;
+}
+.line-red{
+  border-color:#dc2626;
+  border-top-style:dashed;
+}
+.line-green{border-color:#65a30d}
+.operator-icon{
+  width:30px;
+  height:30px;
+  border-radius:50%;
+  background:#1f2937;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:17px;
+  border:2px solid #84cc16;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+.route-pin{
+  width:24px;
+  height:24px;
+  background:#dc2626;
+  border-radius:50% 50% 50% 0;
+  transform:rotate(-45deg);
+  border:2px solid #fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+.route-pin::after{
+  content:"";
+  width:8px;
+  height:8px;
+  background:#fff;
+  border-radius:50%;
+  position:absolute;
+  left:6px;
+  top:6px;
+}
+
 @media(max-width:900px){
   header{align-items:flex-start}
   .kpis{margin-left:0}
+  .modal-body{grid-template-columns:1fr}
+  .modal-info{max-height:260px;border-right:0;border-bottom:1px solid #e5e7eb}
 }
 </style>
 </head>
@@ -280,6 +418,10 @@ tbody tr:nth-child(4n+4){background:#f9fafb}
   <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none">
 
   <button class="btn btn-green" id="btn-recalc" type="button">Recalcular</button>
+
+  <label style="font-size:13px;font-weight:800;color:var(--muted)">Ahorro mínimo km</label>
+  <input class="umbral-input" id="umbral-input" type="number" min="0" step="1" value="0">
+
   <button class="btn btn-outline" id="btn-export" type="button">Exportar tabla</button>
 
   <div id="archivo-info">Carga tu Excel con columnas: UDN, Operadores, Lat op, Long Op, Ruta asignada, Lat Pi, Long Pi.</div>
@@ -291,7 +433,7 @@ tbody tr:nth-child(4n+4){background:#f9fafb}
     <div class="panel-head">
       <div>
         <div class="panel-title">Tabla de cambios</div>
-        <div class="panel-sub">Cada cambio muestra 2 renglones: operador A tomando ruta B y operador B tomando ruta A.</div>
+        <div class="panel-sub">Cada cambio muestra 2 renglones. Da click en cualquier renglón para ver el mapa.</div>
       </div>
       <span class="count" id="count">0 cambios</span>
     </div>
@@ -299,17 +441,35 @@ tbody tr:nth-child(4n+4){background:#f9fafb}
     <div id="contenido">
       <div class="empty">
         Sube tu archivo Excel para calcular los cambios.
-        <div class="small">Formato detectado: UDN | Operadores | Lat op | Long Op | Ruta asignada | Lat Pi | Long Pi</div>
+        <div class="small">Formato esperado: UDN | Operadores | Lat op | Long Op | Ruta asignada | Lat Pi | Long Pi</div>
       </div>
     </div>
   </section>
 </main>
 
-<script>
-const UMBRAL_AHORRO = 0;
+<div class="modal-backdrop" id="modal-bd">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="modal-title">Cambio</div>
+        <div class="modal-sub" id="modal-sub"></div>
+      </div>
+      <button class="modal-close" id="modal-close" type="button">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-info" id="modal-info"></div>
+      <div id="modal-map"></div>
+    </div>
+  </div>
+</div>
 
+<script>
+let UMBRAL_AHORRO = 0;
 let OPS = [];
 let CAMBIOS = [];
+let modalMapa = null;
+let modalLayer = null;
+const routeCache = new Map();
 
 function toggleDropdown(id){
   const d = document.getElementById(id);
@@ -353,12 +513,7 @@ function encontrar(row, nombres){
 function numero(v){
   if (v === null || v === undefined || v === "") return NaN;
   if (typeof v === "number") return v;
-
-  const limpio = String(v)
-    .replace(/\s/g,"")
-    .replace(",", ".");
-
-  return Number(limpio);
+  return Number(String(v).replace(/\s/g,"").replace(",", "."));
 }
 
 function escapeHTML(str){
@@ -399,10 +554,8 @@ function haversine(lat1, lon1, lat2, lon2){
 
 function limpiarOperador(v){
   const txt = String(v || "").trim();
-
-  // Ejemplo: 19206318-VILLARREAL ORTEGON GILBERTO
-  // Conserva el nombre después del primer guion.
   const partes = txt.split("-");
+
   if (partes.length > 1 && /^\d+$/.test(partes[0].trim())) {
     return partes.slice(1).join("-").trim();
   }
@@ -411,10 +564,7 @@ function limpiarOperador(v){
 }
 
 function mapearFila(row, i){
-  const udn = encontrar(row, [
-    "UDN",
-    "Unidad de negocio"
-  ]) || "";
+  const udn = encontrar(row, ["UDN", "Unidad de negocio"]) || "";
 
   const operadorRaw = encontrar(row, [
     "Operadores",
@@ -524,6 +674,7 @@ function cargarArchivo(file){
 }
 
 function calcularCambios(){
+  UMBRAL_AHORRO = Number(document.getElementById("umbral-input")?.value || 0);
   CAMBIOS = [];
 
   for (let i = 0; i < OPS.length; i++) {
@@ -541,7 +692,7 @@ function calcularCambios(){
       const propuestaTotal = kmPropuestaA + kmPropuestaB;
       const ahorro = actualTotal - propuestaTotal;
 
-      if (ahorro > UMBRAL_AHORRO) {
+      if (ahorro >= UMBRAL_AHORRO) {
         CAMBIOS.push({
           A,
           B,
@@ -587,8 +738,8 @@ function render(){
   if (!CAMBIOS.length) {
     contenido.innerHTML = `
       <div class="empty">
-        No encontré cambios con ahorro positivo.
-        <div class="small">Las coordenadas sí se leyeron, pero ningún intercambio reduce kilómetros.</div>
+        No encontré cambios con ahorro igual o mayor a ${fmt(UMBRAL_AHORRO)} km.
+        <div class="small">Las coordenadas sí se leyeron, pero ningún intercambio cumple el umbral.</div>
       </div>
     `;
     return;
@@ -598,9 +749,10 @@ function render(){
 
   CAMBIOS.forEach((cambio, idx) => {
     const n = idx + 1;
+    const colorClass = `change-${idx % 6}`;
 
     filas += `
-      <tr>
+      <tr class="change-row ${colorClass}" onclick="abrirModal(${idx})">
         <td class="center"><span class="badge">${n}</span></td>
         <td>${escapeHTML(cambio.A.operador)}</td>
         <td>${escapeHTML(fmtCoord(cambio.A.latOp, cambio.A.longOp))}</td>
@@ -610,7 +762,7 @@ function render(){
         <td class="num">${fmt(cambio.kmActualA)}</td>
         <td class="num">${fmt(cambio.kmPropuestaA)}</td>
       </tr>
-      <tr>
+      <tr class="change-row ${colorClass}" onclick="abrirModal(${idx})">
         <td class="center"><span class="badge">${n}</span></td>
         <td>${escapeHTML(cambio.B.operador)}</td>
         <td>${escapeHTML(fmtCoord(cambio.B.latOp, cambio.B.longOp))}</td>
@@ -644,6 +796,217 @@ function render(){
   `;
 }
 
+function decodePolyline(str, precision = 5){
+  let index = 0;
+  let lat = 0;
+  let lng = 0;
+  const coordinates = [];
+  const factor = Math.pow(10, precision);
+
+  while (index < str.length) {
+    let result = 1;
+    let shift = 0;
+    let b;
+
+    do {
+      b = str.charCodeAt(index++) - 63 - 1;
+      result += b << shift;
+      shift += 5;
+    } while (b >= 0x1f);
+
+    lat += (result & 1) ? ~(result >> 1) : (result >> 1);
+
+    result = 1;
+    shift = 0;
+
+    do {
+      b = str.charCodeAt(index++) - 63 - 1;
+      result += b << shift;
+      shift += 5;
+    } while (b >= 0x1f);
+
+    lng += (result & 1) ? ~(result >> 1) : (result >> 1);
+
+    coordinates.push([lat / factor, lng / factor]);
+  }
+
+  return coordinates;
+}
+
+async function getRoute(lat1, lon1, lat2, lon2){
+  const key = `${lat1},${lon1}|${lat2},${lon2}`;
+
+  if (routeCache.has(key)) return routeCache.get(key);
+
+  try {
+    const url = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?geometries=polyline&overview=full`;
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.code === "Ok" && data.routes?.[0]) {
+      const result = {
+        coords: decodePolyline(data.routes[0].geometry),
+        km: data.routes[0].distance / 1000,
+        calle: true
+      };
+
+      routeCache.set(key, result);
+      return result;
+    }
+  } catch (e) {
+    console.warn("No se pudo obtener ruta por calle:", e);
+  }
+
+  const fallback = {
+    coords: [[lat1, lon1], [lat2, lon2]],
+    km: haversine(lat1, lon1, lat2, lon2),
+    calle: false
+  };
+
+  routeCache.set(key, fallback);
+  return fallback;
+}
+
+function operatorIcon(label){
+  return L.divIcon({
+    className:"",
+    html:`<div class="operator-icon">${label}</div>`,
+    iconSize:[30,30],
+    iconAnchor:[15,15]
+  });
+}
+
+function routePinIcon(){
+  return L.divIcon({
+    className:"",
+    html:`<div class="route-pin"></div>`,
+    iconSize:[24,24],
+    iconAnchor:[12,24]
+  });
+}
+
+function asegurarMapa(){
+  if (modalMapa) return;
+
+  modalMapa = L.map("modal-map");
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom:19,
+    attribution:"&copy; OpenStreetMap"
+  }).addTo(modalMapa);
+
+  modalLayer = L.layerGroup().addTo(modalMapa);
+}
+
+async function abrirModal(idx){
+  const cambio = CAMBIOS[idx];
+  if (!cambio) return;
+
+  const { A, B } = cambio;
+
+  document.getElementById("modal-title").textContent = `Cambio ${idx + 1}`;
+  document.getElementById("modal-sub").textContent =
+    `Ahorro lineal estimado: ${fmt(cambio.ahorro)} km`;
+
+  document.getElementById("modal-info").innerHTML = `
+    <table style="width:100%;border-collapse:collapse;min-width:0">
+      <thead>
+        <tr>
+          <th>Operador</th>
+          <th>Ruta propuesta</th>
+          <th>Km actual</th>
+          <th>Km propuesta</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>${escapeHTML(A.operador)}</td>
+          <td>${escapeHTML(B.ruta)}</td>
+          <td class="num">${fmt(cambio.kmActualA)}</td>
+          <td class="num">${fmt(cambio.kmPropuestaA)}</td>
+        </tr>
+        <tr>
+          <td>${escapeHTML(B.operador)}</td>
+          <td>${escapeHTML(A.ruta)}</td>
+          <td class="num">${fmt(cambio.kmActualB)}</td>
+          <td class="num">${fmt(cambio.kmPropuestaB)}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="legend">
+      <span><i class="line-sample line-red"></i> Ruta actual</span>
+      <span><i class="line-sample line-green"></i> Ruta propuesta</span>
+      <span><b>A/B</b> Operadores</span>
+      <span><span style="color:#dc2626;font-weight:900">◆</span> Punto de inicio de ruta</span>
+    </div>
+
+    <div class="small" id="modal-road-km" style="margin-top:14px">
+      Calculando kilómetros por calles...
+    </div>
+  `;
+
+  document.getElementById("modal-bd").classList.add("show");
+
+  setTimeout(async () => {
+    asegurarMapa();
+    modalLayer.clearLayers();
+    modalMapa.invalidateSize();
+
+    const [actualA, actualB, propA, propB] = await Promise.all([
+      getRoute(A.latOp, A.longOp, A.latPi, A.longPi),
+      getRoute(B.latOp, B.longOp, B.latPi, B.longPi),
+      getRoute(A.latOp, A.longOp, B.latPi, B.longPi),
+      getRoute(B.latOp, B.longOp, A.latPi, A.longPi)
+    ]);
+
+    L.polyline(actualA.coords, { color:"#dc2626", weight:4, dashArray:"8,6" }).addTo(modalLayer);
+    L.polyline(actualB.coords, { color:"#dc2626", weight:4, dashArray:"8,6" }).addTo(modalLayer);
+
+    L.polyline(propA.coords, { color:"#65a30d", weight:5 }).addTo(modalLayer);
+    L.polyline(propB.coords, { color:"#65a30d", weight:5 }).addTo(modalLayer);
+
+    L.marker([A.latOp, A.longOp], { icon:operatorIcon("A") })
+      .bindPopup(`Operador A: ${escapeHTML(A.operador)}`)
+      .addTo(modalLayer);
+
+    L.marker([B.latOp, B.longOp], { icon:operatorIcon("B") })
+      .bindPopup(`Operador B: ${escapeHTML(B.operador)}`)
+      .addTo(modalLayer);
+
+    L.marker([A.latPi, A.longPi], { icon:routePinIcon() })
+      .bindPopup(`Ruta A: ${escapeHTML(A.ruta)}`)
+      .addTo(modalLayer);
+
+    L.marker([B.latPi, B.longPi], { icon:routePinIcon() })
+      .bindPopup(`Ruta B: ${escapeHTML(B.ruta)}`)
+      .addTo(modalLayer);
+
+    const actualRoad = actualA.km + actualB.km;
+    const propRoad = propA.km + propB.km;
+    const ahorroRoad = actualRoad - propRoad;
+    const modo = actualA.calle && actualB.calle && propA.calle && propB.calle
+      ? "calculado por calles"
+      : "parcialmente lineal por fallback";
+
+    document.getElementById("modal-road-km").innerHTML = `
+      <b>Km por calles:</b><br>
+      Actual: ${fmt(actualRoad)} km<br>
+      Propuesta: ${fmt(propRoad)} km<br>
+      Ahorro por calles: ${fmt(ahorroRoad)} km<br>
+      <span style="color:var(--muted)">Modo: ${modo}</span>
+    `;
+
+    const bounds = L.latLngBounds([
+      [A.latOp, A.longOp],
+      [B.latOp, B.longOp],
+      [A.latPi, A.longPi],
+      [B.latPi, B.longPi]
+    ]);
+
+    modalMapa.fitBounds(bounds, { padding:[50,50] });
+  }, 120);
+}
+
 function exportarTabla(){
   if (!CAMBIOS.length) {
     alert("No hay cambios para exportar.");
@@ -663,7 +1026,8 @@ function exportarTabla(){
       Ruta: cambio.B.ruta,
       "Coordenadas de la ruta": fmtCoord(cambio.B.latPi, cambio.B.longPi),
       "Km Actual": Number(cambio.kmActualA.toFixed(1)),
-      "km Propuesta": Number(cambio.kmPropuestaA.toFixed(1))
+      "km Propuesta": Number(cambio.kmPropuestaA.toFixed(1)),
+      "Ahorro total cambio": Number(cambio.ahorro.toFixed(1))
     });
 
     rows.push({
@@ -674,7 +1038,8 @@ function exportarTabla(){
       Ruta: cambio.A.ruta,
       "Coordenadas de la ruta": fmtCoord(cambio.A.latPi, cambio.A.longPi),
       "Km Actual": Number(cambio.kmActualB.toFixed(1)),
-      "km Propuesta": Number(cambio.kmPropuestaB.toFixed(1))
+      "km Propuesta": Number(cambio.kmPropuestaB.toFixed(1)),
+      "Ahorro total cambio": Number(cambio.ahorro.toFixed(1))
     });
   });
 
@@ -687,7 +1052,8 @@ function exportarTabla(){
     {wch:34},
     {wch:24},
     {wch:12},
-    {wch:14}
+    {wch:14},
+    {wch:18}
   ];
 
   const wb = XLSX.utils.book_new();
@@ -710,6 +1076,17 @@ function init(){
 
   document.getElementById("btn-recalc").addEventListener("click", calcularCambios);
   document.getElementById("btn-export").addEventListener("click", exportarTabla);
+  document.getElementById("umbral-input").addEventListener("change", calcularCambios);
+
+  document.getElementById("modal-close").addEventListener("click", () => {
+    document.getElementById("modal-bd").classList.remove("show");
+  });
+
+  document.getElementById("modal-bd").addEventListener("click", e => {
+    if (e.target.id === "modal-bd") {
+      document.getElementById("modal-bd").classList.remove("show");
+    }
+  });
 
   render();
 }
