@@ -2,107 +2,328 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Propuestas eficiencias km | Traxión</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cambios operadores | Traxión</title>
+
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
+:root{
+  --navy:#1f2937;
+  --navy2:#374151;
+  --green:#84cc16;
+  --bg:#f0f2f7;
+  --white:#fff;
+  --border:#d1d5db;
+  --text:#1f2937;
+  --muted:#6b7280;
+  --red:#dc2626;
+}
+
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:'Segoe UI',Arial,sans-serif;color:#1f2937;background:#f8fafc}
-nav{background:#1f2937;padding:13px 30px;display:flex;gap:25px;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.3)}
-nav>a{color:#84cc16;text-decoration:none;font-weight:900;font-size:18px}
-.dropdown{position:relative}
-.dropdown-toggle{background:#374151;color:#fff;border:0;border-radius:7px;padding:9px 14px;font-weight:700;cursor:pointer}
-.dropdown-menu{display:none;position:absolute;top:42px;left:0;background:#fff;min-width:210px;border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,.22);z-index:20;overflow:hidden}
-.dropdown-menu a{display:block;padding:11px 14px;color:#1f2937;text-decoration:none;font-weight:700;border-bottom:1px solid #f3f4f6}
-.dropdown-menu a:hover{background:#ecfccb}
+html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:"Inter",Arial,sans-serif}
+
+/* Menu copiado del dashboard */
+nav{
+  background:#1f2937;
+  padding:15px 30px;
+  display:flex;
+  gap:25px;
+  align-items:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+  position:sticky;
+  top:0;
+  z-index:300;
+  flex-wrap:wrap;
+}
+nav>a{
+  color:#e5e7eb;
+  text-decoration:none;
+  font-weight:600;
+  padding:8px 16px;
+  border-radius:8px;
+  transition:all .3s;
+  white-space:nowrap;
+}
+nav>a:first-child{
+  color:#84cc16;
+  font-weight:800;
+  font-size:18px;
+}
+nav>a:hover{background:#374151}
+.dropdown{position:relative;display:inline-block}
+.dropdown-toggle{
+  color:#e5e7eb;
+  font-weight:600;
+  padding:8px 16px;
+  border-radius:8px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:transparent;
+  border:none;
+  font-size:14px;
+  font-family:inherit;
+}
+.dropdown-toggle:hover{background:#374151}
+.dropdown-arrow{font-size:12px;transition:transform .3s}
+.dropdown.open .dropdown-arrow{transform:rotate(180deg)}
+.dropdown-menu{
+  display:none;
+  position:absolute;
+  top:100%;
+  left:0;
+  background:#374151;
+  min-width:220px;
+  border-radius:8px;
+  box-shadow:0 4px 12px rgba(0,0,0,.3);
+  margin-top:8px;
+  z-index:1000;
+  overflow:hidden;
+}
 .dropdown.open .dropdown-menu{display:block}
+.dropdown-menu a{
+  display:block;
+  padding:12px 20px;
+  color:#e5e7eb;
+  text-decoration:none;
+  font-weight:600;
+  transition:all .3s;
+}
+.dropdown-menu a:hover{
+  background:#4b5563;
+  padding-left:25px;
+}
+.dropdown-menu a.active{
+  background:#84cc16;
+  color:#1f2937;
+}
 
-header{background:#fff;padding:14px 18px;display:flex;align-items:center;gap:18px;border-bottom:3px solid #84cc16}
-h1{font-size:22px}
-.kpis{display:flex;gap:14px;margin-left:auto}
-.kpi{background:#f9fafb;padding:7px 12px;border-radius:6px;min-width:115px;border:1px solid #e5e7eb;border-left:3px solid #84cc16}
-.kpi-label{font-size:11px;color:#6b7280;font-weight:800;text-transform:uppercase}
-.kpi-val{font-size:18px;font-weight:900}
+header{
+  background:#fff;
+  border-bottom:3px solid var(--green);
+  padding:16px 22px;
+  display:flex;
+  align-items:center;
+  gap:18px;
+  flex-wrap:wrap;
+}
+h1{font-size:22px;font-weight:800}
+.kpis{display:flex;gap:12px;margin-left:auto;flex-wrap:wrap}
+.kpi{
+  background:#f9fafb;
+  border:1px solid #e5e7eb;
+  border-left:3px solid var(--green);
+  border-radius:8px;
+  min-width:125px;
+  padding:8px 12px;
+}
+.kpi-label{
+  font-size:11px;
+  color:var(--muted);
+  font-weight:800;
+  text-transform:uppercase;
+}
+.kpi-val{
+  font-size:19px;
+  font-weight:800;
+  margin-top:2px;
+}
 
-.toolbar{padding:14px 18px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-button{cursor:pointer;border:0;border-radius:8px;padding:10px 14px;font-weight:900}
-.btn-upload{background:#1f2937;color:white}
-.btn-primary{background:#84cc16;color:#1f2937}
-#archivo-info{font-size:13px;color:#6b7280}
-#msg{font-size:13px;font-weight:700;color:#b91c1c}
+.toolbar{
+  background:#fff;
+  padding:14px 22px;
+  border-bottom:1px solid #e5e7eb;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+button{font-family:inherit;cursor:pointer}
+.btn{
+  border:0;
+  border-radius:8px;
+  padding:10px 14px;
+  font-weight:800;
+}
+.btn-dark{background:#1f2937;color:#fff}
+.btn-green{background:#84cc16;color:#1f2937}
+.btn-outline{background:#fff;border:1px solid var(--border);color:var(--text)}
+#archivo-info{font-size:13px;color:var(--muted)}
+#msg{font-size:13px;font-weight:700;color:var(--red)}
 
-main{padding:18px;overflow:auto}
-.table-wrap{background:#fff;border:1px solid #d1d5db;overflow:auto}
-table{width:100%;border-collapse:collapse;min-width:1050px}
-th,td{border:1px solid #bdbdbd;padding:6px 7px;font-size:12px;vertical-align:middle}
-th{background:#f3f4f6;font-size:16px;text-align:left;color:#000;font-weight:900}
+main{padding:20px;display:flex;flex-direction:column;gap:14px}
+.panel{
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 2px 10px rgba(26,34,54,.07);
+  overflow:hidden;
+}
+.panel-head{
+  padding:14px 18px;
+  border-bottom:1px solid #e5e7eb;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.panel-title{font-size:15px;font-weight:800}
+.panel-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.count{
+  font-size:12px;
+  color:var(--muted);
+  background:#f3f4f6;
+  border-radius:999px;
+  padding:5px 10px;
+  white-space:nowrap;
+}
+
+.table-wrap{overflow:auto}
+table{
+  width:100%;
+  min-width:1120px;
+  border-collapse:collapse;
+}
+th{
+  background:#f3f4f6;
+  color:#000;
+  border:1px solid #bdbdbd;
+  padding:6px 7px;
+  font-size:15px;
+  text-align:left;
+  font-weight:900;
+  white-space:nowrap;
+}
+td{
+  border:1px solid #bdbdbd;
+  padding:6px 7px;
+  font-size:12px;
+  vertical-align:middle;
+}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
 td.center{text-align:center}
-tbody tr:nth-child(4n+1),tbody tr:nth-child(4n+2){background:#fff}
-tbody tr:nth-child(4n+3),tbody tr:nth-child(4n+4){background:#f9fafb}
-.empty{padding:28px;text-align:center;color:#6b7280;background:#fff;border:1px dashed #cbd5e1}
-.small{font-size:12px;color:#6b7280;margin-top:10px}
+tbody tr:nth-child(4n+3),
+tbody tr:nth-child(4n+4){background:#f9fafb}
+
+.empty{
+  padding:34px;
+  text-align:center;
+  color:var(--muted);
+  font-size:14px;
+}
+.small{
+  margin-top:8px;
+  font-size:12px;
+  color:var(--muted);
+}
+.badge{
+  display:inline-block;
+  background:#ecfccb;
+  color:#3f6212;
+  border-radius:999px;
+  padding:2px 8px;
+  font-size:11px;
+  font-weight:800;
+}
+@media(max-width:900px){
+  header{align-items:flex-start}
+  .kpis{margin-left:0}
+}
 </style>
 </head>
 
 <body>
-<nav>
-  <a href="#">TRAXIÓN</a>
 
-  <div class="dropdown" id="menu-logistica">
-    <button class="dropdown-toggle" type="button">Logística ▼</button>
+<nav>
+  <a href="index.html">TRAXIÓN</a>
+  <div class="dropdown" id="dd1">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dd1')" type="button">
+      Logística <span class="dropdown-arrow">▼</span>
+    </button>
     <div class="dropdown-menu">
-      <a href="#">Optimizador Settepi</a>
-      <a href="#">Cambios propuestos</a>
-      <a href="#">Carga de Excel</a>
+      <a href="Dashboard_NS.html">Nivel de Servicio</a>
+      <a href="Dashboard_Kilometros.html">Kilómetros</a>
+      <a href="Dashboard_Flota.html">Flota</a>
+      <a href="Dashboard_ralenti.html">Ralentí</a>
+      <a href="Cambios_Operadores.html" class="active">Cambios operadores</a>
     </div>
   </div>
 </nav>
 
 <header>
-  <h1>Optimizador de Operadores · Settepi</h1>
+  <h1>Cambios propuestos de operadores</h1>
+
   <div class="kpis">
-    <div class="kpi"><div class="kpi-label">Km Actual</div><div class="kpi-val" id="kpi-actual">—</div></div>
-    <div class="kpi"><div class="kpi-label">Km Propuesta</div><div class="kpi-val" id="kpi-prop">—</div></div>
-    <div class="kpi"><div class="kpi-label">Ahorro</div><div class="kpi-val" id="kpi-ahorro">—</div></div>
-    <div class="kpi"><div class="kpi-label">Cambios</div><div class="kpi-val" id="kpi-cambios">—</div></div>
+    <div class="kpi">
+      <div class="kpi-label">Km Actual</div>
+      <div class="kpi-val" id="kpi-actual">—</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Km Propuesta</div>
+      <div class="kpi-val" id="kpi-prop">—</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Ahorro</div>
+      <div class="kpi-val" id="kpi-ahorro">—</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Cambios</div>
+      <div class="kpi-val" id="kpi-cambios">—</div>
+    </div>
   </div>
 </header>
 
 <section class="toolbar">
-  <button class="btn-upload" id="btn-upload" type="button">Cargar Excel</button>
+  <button class="btn btn-dark" id="btn-upload" type="button">Cargar Excel</button>
   <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display:none">
-  <button class="btn-primary" id="btn-recalc" type="button">Recalcular</button>
-  <div id="archivo-info">Carga un Excel para iniciar.</div>
+
+  <button class="btn btn-green" id="btn-recalc" type="button">Recalcular</button>
+  <button class="btn btn-outline" id="btn-export" type="button">Exportar tabla</button>
+
+  <div id="archivo-info">Carga tu Excel con columnas: UDN, Operadores, Lat op, Long Op, Ruta asignada, Lat Pi, Long Pi.</div>
   <div id="msg"></div>
 </section>
 
 <main>
-  <div id="contenido">
-    <div class="empty">
-      Sube tu archivo. La tabla aparecerá aquí con el formato de cambios.
-      <div class="small">
-        Columnas recomendadas: Operador, Ubicación operador, Cliente, Ruta, Coordenadas de la ruta.
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <div class="panel-title">Tabla de cambios</div>
+        <div class="panel-sub">Cada cambio muestra 2 renglones: operador A tomando ruta B y operador B tomando ruta A.</div>
+      </div>
+      <span class="count" id="count">0 cambios</span>
+    </div>
+
+    <div id="contenido">
+      <div class="empty">
+        Sube tu archivo Excel para calcular los cambios.
+        <div class="small">Formato detectado: UDN | Operadores | Lat op | Long Op | Ruta asignada | Lat Pi | Long Pi</div>
       </div>
     </div>
-  </div>
+  </section>
 </main>
 
 <script>
 const UMBRAL_AHORRO = 0;
+
 let OPS = [];
 let CAMBIOS = [];
 
-function fmt(n){
-  return Number.isFinite(n)
-    ? n.toLocaleString("es-MX", {maximumFractionDigits:1})
-    : "—";
+function toggleDropdown(id){
+  const d = document.getElementById(id);
+  document.querySelectorAll(".dropdown").forEach(x => {
+    if (x.id !== id) x.classList.remove("open");
+  });
+  d.classList.toggle("open");
 }
 
-function fmtCoord(lat, lon){
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return "";
-  return `${lat.toFixed(4)},${lon.toFixed(4)}`;
-}
+document.addEventListener("click", e => {
+  if (!e.target.closest(".dropdown")) {
+    document.querySelectorAll(".dropdown").forEach(d => d.classList.remove("open"));
+  }
+});
 
 function normalizarTexto(v){
   return String(v || "")
@@ -110,22 +331,6 @@ function normalizarTexto(v){
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g,"")
     .replace(/[^a-z0-9]/g,"");
-}
-
-function escapeHTML(str){
-  return String(str ?? "").replace(/[&<>"']/g, m => ({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#39;"
-  })[m]);
-}
-
-function numero(v){
-  if (v === null || v === undefined || v === "") return NaN;
-  if (typeof v === "number") return v;
-  return Number(String(v).replace(",", ".").trim());
 }
 
 function encontrar(row, nombres){
@@ -145,15 +350,36 @@ function encontrar(row, nombres){
   return "";
 }
 
-function parseCoord(valor){
-  const txt = String(valor || "").trim();
-  const match = txt.match(/(-?\d+(?:[.,]\d+)?)\s*[,; ]\s*(-?\d+(?:[.,]\d+)?)/);
-  if (!match) return {lat:NaN, lon:NaN};
+function numero(v){
+  if (v === null || v === undefined || v === "") return NaN;
+  if (typeof v === "number") return v;
 
-  return {
-    lat: numero(match[1]),
-    lon: numero(match[2])
-  };
+  const limpio = String(v)
+    .replace(/\s/g,"")
+    .replace(",", ".");
+
+  return Number(limpio);
+}
+
+function escapeHTML(str){
+  return String(str ?? "").replace(/[&<>"']/g, m => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#39;"
+  })[m]);
+}
+
+function fmt(n){
+  return Number.isFinite(n)
+    ? n.toLocaleString("es-MX", { maximumFractionDigits: 1 })
+    : "—";
+}
+
+function fmtCoord(lat, lon){
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return "";
+  return `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
 }
 
 function haversine(lat1, lon1, lat2, lon2){
@@ -161,6 +387,7 @@ function haversine(lat1, lon1, lat2, lon2){
   const toRad = x => x * Math.PI / 180;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
+
   const a =
     Math.sin(dLat / 2) ** 2 +
     Math.cos(toRad(lat1)) *
@@ -170,59 +397,89 @@ function haversine(lat1, lon1, lat2, lon2){
   return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function mapearFila(row, i){
-  const operador = encontrar(row, [
-    "operador", "nombre", "nombre operador", "conductor", "empleado"
-  ]) || `Operador ${i + 1}`;
+function limpiarOperador(v){
+  const txt = String(v || "").trim();
 
-  const cliente = encontrar(row, [
-    "cliente", "empresa", "cuenta"
+  // Ejemplo: 19206318-VILLARREAL ORTEGON GILBERTO
+  // Conserva el nombre después del primer guion.
+  const partes = txt.split("-");
+  if (partes.length > 1 && /^\d+$/.test(partes[0].trim())) {
+    return partes.slice(1).join("-").trim();
+  }
+
+  return txt;
+}
+
+function mapearFila(row, i){
+  const udn = encontrar(row, [
+    "UDN",
+    "Unidad de negocio"
   ]) || "";
+
+  const operadorRaw = encontrar(row, [
+    "Operadores",
+    "Operador",
+    "Nombre operador",
+    "Conductor"
+  ]);
+
+  const operador = limpiarOperador(operadorRaw) || `Operador ${i + 1}`;
 
   const ruta = encontrar(row, [
-    "ruta", "servicio", "base", "destino", "parada"
+    "Ruta asignada",
+    "Ruta",
+    "Servicio",
+    "Destino"
   ]) || "";
 
-  let ubicacion = encontrar(row, [
-    "ubicacion operador", "ubicación operador", "coordenadas operador",
-    "coord operador", "ubicacion casa", "ubicación casa", "casa"
-  ]);
-
-  let coordRuta = encontrar(row, [
-    "coordenadas de la ruta", "coordenadas ruta", "coord ruta",
-    "ubicacion ruta", "ubicación ruta", "coordenadas parada"
-  ]);
-
-  let opCoord = parseCoord(ubicacion);
-  let rutaCoord = parseCoord(coordRuta);
-
-  const olatSep = numero(encontrar(row, ["olat","lat casa","lat operador","latitud operador","latitud casa"]));
-  const olonSep = numero(encontrar(row, ["olon","lon casa","long casa","lon operador","long operador","longitud operador","longitud casa"]));
-  const rlatSep = numero(encontrar(row, ["plat","lat ruta","latitud ruta","lat parada","latitud parada"]));
-  const rlonSep = numero(encontrar(row, ["plon","lon ruta","long ruta","lon parada","longitud ruta","longitud parada"]));
-
-  if (Number.isFinite(olatSep)) opCoord.lat = olatSep;
-  if (Number.isFinite(olonSep)) opCoord.lon = olonSep;
-  if (Number.isFinite(rlatSep)) rutaCoord.lat = rlatSep;
-  if (Number.isFinite(rlonSep)) rutaCoord.lon = rlonSep;
-
-  const kmExcel = numero(encontrar(row, [
-    "km actual", "kilometros actual", "kilómetros actual", "distancia actual"
+  const latOp = numero(encontrar(row, [
+    "Lat op",
+    "Lat operador",
+    "Latitud operador",
+    "Lat casa",
+    "olat"
   ]));
 
-  const kmActual = Number.isFinite(kmExcel)
-    ? kmExcel
-    : haversine(opCoord.lat, opCoord.lon, rutaCoord.lat, rutaCoord.lon);
+  const longOp = numero(encontrar(row, [
+    "Long Op",
+    "Lon Op",
+    "Long operador",
+    "Longitud operador",
+    "Lon operador",
+    "Long casa",
+    "olon"
+  ]));
+
+  const latPi = numero(encontrar(row, [
+    "Lat Pi",
+    "Lat ruta",
+    "Latitud ruta",
+    "Lat parada",
+    "plat"
+  ]));
+
+  const longPi = numero(encontrar(row, [
+    "Long Pi",
+    "Lon Pi",
+    "Long ruta",
+    "Longitud ruta",
+    "Lon ruta",
+    "Lon parada",
+    "plon"
+  ]));
+
+  const kmActual = haversine(latOp, longOp, latPi, longPi);
 
   return {
     id: i + 1,
+    udn,
     operador,
-    cliente,
+    operadorRaw,
     ruta,
-    olat: opCoord.lat,
-    olon: opCoord.lon,
-    rlat: rutaCoord.lat,
-    rlon: rutaCoord.lon,
+    latOp,
+    longOp,
+    latPi,
+    longPi,
     kmActual
   };
 }
@@ -243,23 +500,23 @@ function cargarArchivo(file){
       OPS = rows
         .map(mapearFila)
         .filter(op =>
-          Number.isFinite(op.olat) &&
-          Number.isFinite(op.olon) &&
-          Number.isFinite(op.rlat) &&
-          Number.isFinite(op.rlon)
+          Number.isFinite(op.latOp) &&
+          Number.isFinite(op.longOp) &&
+          Number.isFinite(op.latPi) &&
+          Number.isFinite(op.longPi)
         );
 
       document.getElementById("archivo-info").textContent =
         `${file.name} · ${OPS.length} filas válidas de ${rows.length}`;
 
       if (!OPS.length) {
-        msg.textContent = "No encontré coordenadas válidas. Revisa nombres de columnas o formato lat,lon.";
+        msg.textContent = "No encontré coordenadas válidas. Revisa que existan: Lat op, Long Op, Lat Pi y Long Pi.";
       }
 
       calcularCambios();
     } catch (err) {
       console.error(err);
-      msg.textContent = "No pude leer el archivo. Revisa que sea Excel válido.";
+      msg.textContent = "No pude leer el archivo. Revisa que sea un Excel válido.";
     }
   };
 
@@ -277,8 +534,8 @@ function calcularCambios(){
       const kmActualA = A.kmActual;
       const kmActualB = B.kmActual;
 
-      const kmPropuestaA = haversine(A.olat, A.olon, B.rlat, B.rlon);
-      const kmPropuestaB = haversine(B.olat, B.olon, A.rlat, A.rlon);
+      const kmPropuestaA = haversine(A.latOp, A.longOp, B.latPi, B.longPi);
+      const kmPropuestaB = haversine(B.latOp, B.longOp, A.latPi, A.longPi);
 
       const actualTotal = kmActualA + kmActualB;
       const propuestaTotal = kmPropuestaA + kmPropuestaB;
@@ -313,16 +570,15 @@ function render(){
   document.getElementById("kpi-prop").textContent = `${fmt(totalProp)} km`;
   document.getElementById("kpi-ahorro").textContent = `${fmt(totalAhorro)} km`;
   document.getElementById("kpi-cambios").textContent = CAMBIOS.length;
+  document.getElementById("count").textContent = `${CAMBIOS.length} cambio${CAMBIOS.length === 1 ? "" : "s"}`;
 
   const contenido = document.getElementById("contenido");
 
   if (!OPS.length) {
     contenido.innerHTML = `
       <div class="empty">
-        Sube tu archivo. La tabla aparecerá aquí con el formato de cambios.
-        <div class="small">
-          Columnas recomendadas: Operador, Ubicación operador, Cliente, Ruta, Coordenadas de la ruta.
-        </div>
+        Sube tu archivo Excel para calcular los cambios.
+        <div class="small">Formato esperado: UDN | Operadores | Lat op | Long Op | Ruta asignada | Lat Pi | Long Pi</div>
       </div>
     `;
     return;
@@ -332,6 +588,7 @@ function render(){
     contenido.innerHTML = `
       <div class="empty">
         No encontré cambios con ahorro positivo.
+        <div class="small">Las coordenadas sí se leyeron, pero ningún intercambio reduce kilómetros.</div>
       </div>
     `;
     return;
@@ -344,22 +601,22 @@ function render(){
 
     filas += `
       <tr>
-        <td class="center">${n}</td>
+        <td class="center"><span class="badge">${n}</span></td>
         <td>${escapeHTML(cambio.A.operador)}</td>
-        <td>${escapeHTML(fmtCoord(cambio.A.olat, cambio.A.olon))}</td>
-        <td>${escapeHTML(cambio.B.cliente)}</td>
+        <td>${escapeHTML(fmtCoord(cambio.A.latOp, cambio.A.longOp))}</td>
+        <td>${escapeHTML(cambio.B.udn)}</td>
         <td>${escapeHTML(cambio.B.ruta)}</td>
-        <td>${escapeHTML(fmtCoord(cambio.B.rlat, cambio.B.rlon))}</td>
+        <td>${escapeHTML(fmtCoord(cambio.B.latPi, cambio.B.longPi))}</td>
         <td class="num">${fmt(cambio.kmActualA)}</td>
         <td class="num">${fmt(cambio.kmPropuestaA)}</td>
       </tr>
       <tr>
-        <td class="center">${n}</td>
+        <td class="center"><span class="badge">${n}</span></td>
         <td>${escapeHTML(cambio.B.operador)}</td>
-        <td>${escapeHTML(fmtCoord(cambio.B.olat, cambio.B.olon))}</td>
-        <td>${escapeHTML(cambio.A.cliente)}</td>
+        <td>${escapeHTML(fmtCoord(cambio.B.latOp, cambio.B.longOp))}</td>
+        <td>${escapeHTML(cambio.A.udn)}</td>
         <td>${escapeHTML(cambio.A.ruta)}</td>
-        <td>${escapeHTML(fmtCoord(cambio.A.rlat, cambio.A.rlon))}</td>
+        <td>${escapeHTML(fmtCoord(cambio.A.latPi, cambio.A.longPi))}</td>
         <td class="num">${fmt(cambio.kmActualB)}</td>
         <td class="num">${fmt(cambio.kmPropuestaB)}</td>
       </tr>
@@ -368,13 +625,13 @@ function render(){
 
   contenido.innerHTML = `
     <div class="table-wrap">
-      <table>
+      <table id="tabla-cambios">
         <thead>
           <tr>
             <th>Cambio</th>
             <th>Operador</th>
             <th>Ubicación operador</th>
-            <th>Cliente</th>
+            <th>Cliente / UDN</th>
             <th>Ruta</th>
             <th>Coordenadas de la ruta</th>
             <th>Km Actual</th>
@@ -387,19 +644,58 @@ function render(){
   `;
 }
 
+function exportarTabla(){
+  if (!CAMBIOS.length) {
+    alert("No hay cambios para exportar.");
+    return;
+  }
+
+  const rows = [];
+
+  CAMBIOS.forEach((cambio, idx) => {
+    const n = idx + 1;
+
+    rows.push({
+      Cambio: n,
+      Operador: cambio.A.operador,
+      "Ubicación operador": fmtCoord(cambio.A.latOp, cambio.A.longOp),
+      "Cliente / UDN": cambio.B.udn,
+      Ruta: cambio.B.ruta,
+      "Coordenadas de la ruta": fmtCoord(cambio.B.latPi, cambio.B.longPi),
+      "Km Actual": Number(cambio.kmActualA.toFixed(1)),
+      "km Propuesta": Number(cambio.kmPropuestaA.toFixed(1))
+    });
+
+    rows.push({
+      Cambio: n,
+      Operador: cambio.B.operador,
+      "Ubicación operador": fmtCoord(cambio.B.latOp, cambio.B.longOp),
+      "Cliente / UDN": cambio.A.udn,
+      Ruta: cambio.A.ruta,
+      "Coordenadas de la ruta": fmtCoord(cambio.A.latPi, cambio.A.longPi),
+      "Km Actual": Number(cambio.kmActualB.toFixed(1)),
+      "km Propuesta": Number(cambio.kmPropuestaB.toFixed(1))
+    });
+  });
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+  ws["!cols"] = [
+    {wch:10},
+    {wch:36},
+    {wch:24},
+    {wch:18},
+    {wch:34},
+    {wch:24},
+    {wch:12},
+    {wch:14}
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Cambios");
+  XLSX.writeFile(wb, "Cambios_operadores.xlsx");
+}
+
 function init(){
-  const dropdown = document.getElementById("menu-logistica");
-  const toggle = dropdown.querySelector(".dropdown-toggle");
-
-  toggle.addEventListener("click", e => {
-    e.stopPropagation();
-    dropdown.classList.toggle("open");
-  });
-
-  document.addEventListener("click", () => {
-    dropdown.classList.remove("open");
-  });
-
   const fileInput = document.getElementById("file-input");
 
   document.getElementById("btn-upload").addEventListener("click", () => {
@@ -413,11 +709,13 @@ function init(){
   });
 
   document.getElementById("btn-recalc").addEventListener("click", calcularCambios);
+  document.getElementById("btn-export").addEventListener("click", exportarTabla);
 
   render();
 }
 
 window.addEventListener("DOMContentLoaded", init);
 </script>
+
 </body>
 </html>
