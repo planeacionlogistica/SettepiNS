@@ -1,6 +1,3 @@
-Sí. Este código deja el **modal solo con el mapa**, y pone un **resumen compacto arriba de la tabla** con datos generales. El cálculo de la tabla sigue siendo lineal; al abrir el mapa calcula calles para ese cambio.
-
-```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -59,22 +56,22 @@ button{font-family:inherit;cursor:pointer}
 #archivo-info{font-size:13px;color:var(--muted)}
 #msg{font-size:13px;font-weight:700;color:var(--red)}
 
-main{padding:20px;display:flex;flex-direction:column;gap:14px}
+main{padding:18px;display:flex;flex-direction:column;gap:14px}
 .summary-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
 .summary-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:10px 12px;box-shadow:0 2px 10px rgba(26,34,54,.05)}
 .summary-label{font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800;letter-spacing:.04em}
 .summary-value{font-size:18px;font-weight:900;margin-top:3px}
 
 .panel{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);overflow:hidden}
-.panel-head{padding:14px 18px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.panel-head{padding:12px 16px;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;gap:10px}
 .panel-title{font-size:15px;font-weight:800}
 .panel-sub{font-size:12px;color:var(--muted);margin-top:2px}
 .count{font-size:12px;color:var(--muted);background:#f3f4f6;border-radius:999px;padding:5px 10px;white-space:nowrap}
 
 .table-wrap{overflow:auto}
-table{width:100%;min-width:1120px;border-collapse:collapse}
-th{background:#f3f4f6;color:#000;border:1px solid #bdbdbd;padding:6px 7px;font-size:15px;text-align:left;font-weight:900;white-space:nowrap}
-td{border:1px solid #bdbdbd;padding:6px 7px;font-size:12px;vertical-align:middle}
+table{width:100%;min-width:980px;border-collapse:collapse}
+th{background:#f3f4f6;color:#000;border:1px solid #bdbdbd;padding:5px 7px;font-size:13px;text-align:left;font-weight:900;white-space:nowrap}
+td{border:1px solid #bdbdbd;padding:5px 7px;font-size:11px;vertical-align:middle;line-height:1.25}
 td.num{text-align:right;font-variant-numeric:tabular-nums}
 td.center{text-align:center}
 .change-row{cursor:pointer;transition:background .15s}
@@ -92,9 +89,9 @@ td.center{text-align:center}
 .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.58);z-index:2000;display:none;align-items:center;justify-content:center;padding:18px}
 .modal-backdrop.show{display:flex}
 .modal{background:#fff;width:min(1220px,96vw);height:min(760px,92vh);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 18px 60px rgba(0,0,0,.35)}
-.modal-head{height:62px;background:#1f2937;color:#fff;display:flex;align-items:center;gap:14px;padding:0 18px}
-.modal-title{font-weight:900}
-.modal-sub{color:rgba(255,255,255,.68);font-size:12px;margin-top:2px}
+.modal-head{background:#1f2937;color:#fff;display:flex;align-items:flex-start;gap:14px;padding:12px 18px}
+.modal-title{font-weight:900;font-size:18px}
+.modal-sub{color:rgba(255,255,255,.76);font-size:12px;margin-top:3px;display:grid;gap:2px}
 .modal-close{margin-left:auto;border:0;background:#ef4444;color:#fff;border-radius:7px;padding:8px 12px;font-weight:900}
 #modal-map{flex:1;width:100%;height:100%}
 .operator-icon{width:30px;height:30px;border-radius:50%;background:#1f2937;color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid #84cc16;box-shadow:0 2px 8px rgba(0,0,0,.35)}
@@ -158,14 +155,14 @@ td.center{text-align:center}
     <div class="summary-card"><div class="summary-label">Ahorro mínimo</div><div class="summary-value" id="sum-umbral">0 km</div></div>
     <div class="summary-card"><div class="summary-label">Mejor cambio</div><div class="summary-value" id="sum-mejor">—</div></div>
     <div class="summary-card"><div class="summary-label">Promedio ahorro</div><div class="summary-value" id="sum-prom">—</div></div>
-    <div class="summary-card"><div class="summary-label">Tipo de km</div><div class="summary-value" style="font-size:14px">Lineal</div></div>
+    <div class="summary-card"><div class="summary-label">Tipo de km</div><div class="summary-value" style="font-size:14px">Lineal +20%</div></div>
   </section>
 
   <section class="panel">
     <div class="panel-head">
       <div>
         <div class="panel-title">Tabla de cambios</div>
-        <div class="panel-sub">Da click en cualquier cambio para ver solo el mapa con rutas por calles.</div>
+        <div class="panel-sub">Da click en cualquier cambio para ver el mapa.</div>
       </div>
       <span class="count" id="count">0 cambios</span>
     </div>
@@ -193,6 +190,8 @@ td.center{text-align:center}
 </div>
 
 <script>
+const FACTOR_REALIDAD = 1.20;
+
 let UMBRAL_AHORRO = 0;
 let OPS = [];
 let CAMBIOS = [];
@@ -266,6 +265,10 @@ function haversine(lat1, lon1, lat2, lon2){
   return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+function kmEstimado(lat1, lon1, lat2, lon2){
+  return haversine(lat1, lon1, lat2, lon2) * FACTOR_REALIDAD;
+}
+
 function limpiarOperador(v){
   const txt = String(v || "").trim();
   const partes = txt.split("-");
@@ -296,7 +299,7 @@ function mapearFila(row, i){
     longOp,
     latPi,
     longPi,
-    kmActual: haversine(latOp, longOp, latPi, longPi)
+    kmActual: kmEstimado(latOp, longOp, latPi, longPi)
   };
 }
 
@@ -348,8 +351,8 @@ function calcularCambios(){
 
       const kmActualA = A.kmActual;
       const kmActualB = B.kmActual;
-      const kmPropuestaA = haversine(A.latOp, A.longOp, B.latPi, B.longPi);
-      const kmPropuestaB = haversine(B.latOp, B.longOp, A.latPi, A.longPi);
+      const kmPropuestaA = kmEstimado(A.latOp, A.longOp, B.latPi, B.longPi);
+      const kmPropuestaB = kmEstimado(B.latOp, B.longOp, A.latPi, A.longPi);
 
       const actualTotal = kmActualA + kmActualB;
       const propuestaTotal = kmPropuestaA + kmPropuestaB;
@@ -406,7 +409,6 @@ function render(){
         <td class="center"><span class="badge">${n}</span></td>
         <td>${escapeHTML(cambio.A.operador)}</td>
         <td>${escapeHTML(fmtCoord(cambio.A.latOp, cambio.A.longOp))}</td>
-        <td>${escapeHTML(cambio.B.udn)}</td>
         <td>${escapeHTML(cambio.B.ruta)}</td>
         <td>${escapeHTML(fmtCoord(cambio.B.latPi, cambio.B.longPi))}</td>
         <td class="num">${fmt(cambio.kmActualA)}</td>
@@ -416,7 +418,6 @@ function render(){
         <td class="center"><span class="badge">${n}</span></td>
         <td>${escapeHTML(cambio.B.operador)}</td>
         <td>${escapeHTML(fmtCoord(cambio.B.latOp, cambio.B.longOp))}</td>
-        <td>${escapeHTML(cambio.A.udn)}</td>
         <td>${escapeHTML(cambio.A.ruta)}</td>
         <td>${escapeHTML(fmtCoord(cambio.A.latPi, cambio.A.longPi))}</td>
         <td class="num">${fmt(cambio.kmActualB)}</td>
@@ -433,11 +434,10 @@ function render(){
             <th>Cambio</th>
             <th>Operador</th>
             <th>Ubicación operador</th>
-            <th>Cliente / UDN</th>
-            <th>Ruta</th>
-            <th>Coordenadas de la ruta</th>
+            <th>Ruta propuesta</th>
+            <th>Coordenadas ruta</th>
             <th>Km Actual</th>
-            <th>km Propuesta</th>
+            <th>Km Propuesta</th>
           </tr>
         </thead>
         <tbody>${filas}</tbody>
@@ -484,7 +484,7 @@ async function getRoute(lat1, lon1, lat2, lon2){
     console.warn("No se pudo obtener ruta por calle:", e);
   }
 
-  const fallback = { coords:[[lat1, lon1], [lat2, lon2]], km:haversine(lat1, lon1, lat2, lon2), calle:false };
+  const fallback = { coords:[[lat1, lon1], [lat2, lon2]], km:kmEstimado(lat1, lon1, lat2, lon2), calle:false };
   routeCache.set(key, fallback);
   return fallback;
 }
@@ -511,9 +511,10 @@ function asegurarMapa(){
   if (modalMapa) return;
 
   modalMapa = L.map("modal-map");
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom:19,
-    attribution:"&copy; OpenStreetMap"
+
+  L.tileLayer("https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}", {
+    maxZoom:20,
+    attribution:"Google"
   }).addTo(modalMapa);
 
   modalLayer = L.layerGroup().addTo(modalMapa);
@@ -526,8 +527,10 @@ async function abrirModal(idx){
   const { A, B } = cambio;
 
   document.getElementById("modal-title").textContent = `Cambio ${idx + 1}`;
-  document.getElementById("modal-sub").textContent =
-    `Lineal: ahorro ${fmt(cambio.ahorro)} km · Rojo actual · Verde propuesta`;
+  document.getElementById("modal-sub").innerHTML = `
+    <span>${escapeHTML(A.operador)} va a ruta ${escapeHTML(B.ruta)} · ${fmt(cambio.kmPropuestaA)} km estimados</span>
+    <span>${escapeHTML(B.operador)} va a ruta ${escapeHTML(A.ruta)} · ${fmt(cambio.kmPropuestaB)} km estimados</span>
+  `;
 
   document.getElementById("modal-bd").classList.add("show");
 
@@ -550,16 +553,8 @@ async function abrirModal(idx){
 
     L.marker([A.latOp, A.longOp], { icon:operatorIcon("A") }).bindPopup(`Operador A: ${escapeHTML(A.operador)}`).addTo(modalLayer);
     L.marker([B.latOp, B.longOp], { icon:operatorIcon("B") }).bindPopup(`Operador B: ${escapeHTML(B.operador)}`).addTo(modalLayer);
-    L.marker([A.latPi, A.longPi], { icon:routePinIcon() }).bindPopup(`Ruta A: ${escapeHTML(A.ruta)}`).addTo(modalLayer);
-    L.marker([B.latPi, B.longPi], { icon:routePinIcon() }).bindPopup(`Ruta B: ${escapeHTML(B.ruta)}`).addTo(modalLayer);
-
-    const actualRoad = actualA.km + actualB.km;
-    const propRoad = propA.km + propB.km;
-    const ahorroRoad = actualRoad - propRoad;
-    const modo = actualA.calle && actualB.calle && propA.calle && propB.calle ? "calles" : "fallback lineal";
-
-    document.getElementById("modal-sub").textContent =
-      `Calles: actual ${fmt(actualRoad)} km · propuesta ${fmt(propRoad)} km · ahorro ${fmt(ahorroRoad)} km · ${modo}`;
+    L.marker([A.latPi, A.longPi], { icon:routePinIcon() }).bindPopup(`Ruta actual A: ${escapeHTML(A.ruta)}`).addTo(modalLayer);
+    L.marker([B.latPi, B.longPi], { icon:routePinIcon() }).bindPopup(`Ruta actual B: ${escapeHTML(B.ruta)}`).addTo(modalLayer);
 
     const bounds = L.latLngBounds([
       [A.latOp, A.longOp],
@@ -587,11 +582,10 @@ function exportarTabla(){
       Cambio:n,
       Operador:cambio.A.operador,
       "Ubicación operador":fmtCoord(cambio.A.latOp, cambio.A.longOp),
-      "Cliente / UDN":cambio.B.udn,
-      Ruta:cambio.B.ruta,
-      "Coordenadas de la ruta":fmtCoord(cambio.B.latPi, cambio.B.longPi),
+      "Ruta propuesta":cambio.B.ruta,
+      "Coordenadas ruta":fmtCoord(cambio.B.latPi, cambio.B.longPi),
       "Km Actual":Number(cambio.kmActualA.toFixed(1)),
-      "km Propuesta":Number(cambio.kmPropuestaA.toFixed(1)),
+      "Km Propuesta":Number(cambio.kmPropuestaA.toFixed(1)),
       "Ahorro total cambio":Number(cambio.ahorro.toFixed(1))
     });
 
@@ -599,17 +593,16 @@ function exportarTabla(){
       Cambio:n,
       Operador:cambio.B.operador,
       "Ubicación operador":fmtCoord(cambio.B.latOp, cambio.B.longOp),
-      "Cliente / UDN":cambio.A.udn,
-      Ruta:cambio.A.ruta,
-      "Coordenadas de la ruta":fmtCoord(cambio.A.latPi, cambio.A.longPi),
+      "Ruta propuesta":cambio.A.ruta,
+      "Coordenadas ruta":fmtCoord(cambio.A.latPi, cambio.A.longPi),
       "Km Actual":Number(cambio.kmActualB.toFixed(1)),
-      "km Propuesta":Number(cambio.kmPropuestaB.toFixed(1)),
+      "Km Propuesta":Number(cambio.kmPropuestaB.toFixed(1)),
       "Ahorro total cambio":Number(cambio.ahorro.toFixed(1))
     });
   });
 
   const ws = XLSX.utils.json_to_sheet(rows);
-  ws["!cols"] = [{wch:10},{wch:36},{wch:24},{wch:18},{wch:34},{wch:24},{wch:12},{wch:14},{wch:18}];
+  ws["!cols"] = [{wch:10},{wch:36},{wch:24},{wch:42},{wch:24},{wch:12},{wch:14},{wch:18}];
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Cambios");
@@ -647,4 +640,3 @@ window.addEventListener("DOMContentLoaded", init);
 
 </body>
 </html>
-```
