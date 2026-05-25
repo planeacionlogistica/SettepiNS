@@ -1083,19 +1083,25 @@ function parseCSVLine(line){
 }
 function parseCSV(text){
   const lines=text.trim().split(/\r?\n/);
-  if(lines.length<2) return [];
+  if(lines.length<2){ console.warn('[parseCSV] Menos de 2 líneas. Texto recibido (primeros 300 chars):', text.slice(0,300)); return []; }
   const hdrs=parseCSVLine(lines[0]);
-  if(!hdrs.includes(C.udn)){
-    const f=hdrs.find(h=>h==='business_unit'||h.toLowerCase().includes('business')||h.toLowerCase().includes('unidad')||h.toLowerCase().includes('udn')||h.toLowerCase().includes('negocio'));
-    if(f) C.udn=f;
-  }
-  if(!hdrs.includes(C.coord)){
-    const f=hdrs.find(h=>h.toLowerCase().includes('coordinador')||h.toLowerCase().includes('coord'));
-    if(f) C.coord=f;
-  }
-  if(!hdrs.includes(C.turno)){
-    const f=hdrs.find(h=>h.toLowerCase().includes('turno'));
-    if(f) C.turno=f;
+  console.log('[parseCSV] Headers detectados:', hdrs.length, 'columnas. Primeras 5:', hdrs.slice(0,5));
+  // Auto-detección defensiva SOLO si los headers parecen ser de la hoja NS
+  // (evita mutar C con headers de hojas auxiliares que pudieran usar parseCSV)
+  const looksLikeNS = hdrs.includes('start_date') || hdrs.includes('operador') || hdrs.includes('Inicios_Tarde');
+  if(looksLikeNS){
+    if(!hdrs.includes(C.udn)){
+      const f=hdrs.find(h=>h==='business_unit'||h.toLowerCase().includes('business')||h.toLowerCase().includes('unidad')||h.toLowerCase().includes('udn')||h.toLowerCase().includes('negocio'));
+      if(f) C.udn=f;
+    }
+    if(!hdrs.includes(C.coord)){
+      const f=hdrs.find(h=>h.toLowerCase().includes('coordinador')||h.toLowerCase().includes('coord'));
+      if(f) C.coord=f;
+    }
+    if(!hdrs.includes(C.turno)){
+      const f=hdrs.find(h=>h.toLowerCase().includes('turno'));
+      if(f) C.turno=f;
+    }
   }
   const rows=[];
   for(let i=1;i<lines.length;i++){
@@ -1105,6 +1111,7 @@ function parseCSV(text){
     hdrs.forEach((h,idx)=>{obj[h]=cols[idx]!==undefined?cols[idx]:'';});
     if(hdrs.some(h=>obj[h]&&obj[h].trim()!=='')) rows.push(obj);
   }
+  console.log('[parseCSV] Filas válidas:', rows.length, 'de', lines.length-1, 'líneas');
   return rows;
 }
 // Parser simple que NO muta el objeto C (seguro para hojas auxiliares en paralelo)
