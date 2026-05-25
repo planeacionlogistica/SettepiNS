@@ -786,7 +786,6 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
       <table class="modal-table">
         <colgroup>
           <col style="width:36px">
-          <col style="width:60px">
           <col style="width:90px"><col style="width:75px"><col style="width:170px">
           <col style="width:80px"><col style="width:95px">
           <col style="width:80px"><col style="width:95px">
@@ -794,7 +793,6 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
         </colgroup>
         <thead id="detailThead"><tr>
           <th style="width:36px"></th>
-          <th class="r sortable" data-col="kmOp" onclick="sortDetail('kmOp')"><div class="th-inner r">Km<span class="sort-ind">↕</span></div></th>
           <th class="sortable" data-col="fecha" onclick="sortDetail('fecha')"><div class="th-inner">Fecha<span class="sort-ind">↕</span></div></th>
           <th class="sortable" data-col="car" onclick="sortDetail('car')"><div class="th-inner">Unidad<span class="sort-ind">↕</span></div></th>
           <th class="sortable" data-col="driver" onclick="sortDetail('driver')"><div class="th-inner">Operador<span class="sort-ind">↕</span></div></th>
@@ -828,14 +826,12 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
     <div class="modal-body">
       <table class="modal-table">
         <colgroup>
-          <col style="width:60px">
           <col style="width:220px;min-width:160px">
           <col style="width:64px"><col style="width:80px">
           <col style="width:120px"><col style="width:130px">
           <col style="width:72px"><col style="width:72px"><col style="width:78px">
         </colgroup>
         <thead id="drillThead"><tr>
-          <th class="r sortable" data-col="avgKm" onclick="sortDrill('avgKm')"><div class="th-inner r">Km<span class="sort-ind">↕</span></div></th>
           <th class="sortable" data-col="k" onclick="sortDrill('k')"><div class="th-inner">Ruta / Descripción<span class="sort-ind">↕</span></div></th>
           <th class="r sortable" data-col="t" onclick="sortDrill('t')"><div class="th-inner r">Srvs.<span class="sort-ind">↕</span></div></th>
           <th class="r sortable" data-col="enT" onclick="sortDrill('enT')"><div class="th-inner r">En tiempo<span class="sort-ind">↕</span></div></th>
@@ -947,64 +943,6 @@ let myChartLle   = null;
 let CARROS_MAP   = {};   // { 'CON-CONMET': 49, ... }
 let FLOTA_MAP    = {};   // { '4465': {planta,marca,modelo,año,tipo,estatus}, ... }
 let COORD_RAW    = [];   // [ {cc:'CON-CONMET-F1', co:'EFREN PEREZ CRUZ'}, ... ]
-let UBIC_MAP     = {};   // { '19201288': { latOp, lonOp, rutas:{ 'BUENA VISTA COM T1':{latPi,lonPi} } } }
-
-// ── Haversine (km lineales entre dos puntos) ─────────────────────
-function haversineKm(lat1,lon1,lat2,lon2){
-  const R=6371, toRad=x=>x*Math.PI/180;
-  const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
-  const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-// km con factor extra 15% para simular recorrido real
-function kmOperadorRuta(nomina,ruta){
-  const u=UBIC_MAP[String(nomina).trim()];
-  if(!u) return null;
-  const r=u.rutas[(ruta||'').trim()];
-  if(!r) return null;
-  const lineal=haversineKm(u.latOp,u.lonOp,r.latPi,r.lonPi);
-  return +(lineal*1.15).toFixed(1);
-}
-function kmBadge(km){
-  if(km===null) return '<span style="color:#aaa;font-size:.65rem">–</span>';
-  let bg,clr;
-  if(km>=10){ bg='#fee2e2'; clr='#c53030'; }
-  else if(km>=5){ bg='#fef9c3'; clr='#a16207'; }
-  else { bg='#dcfce7'; clr='#15803d'; }
-  return `<span style="background:${bg};color:${clr};font-weight:700;font-size:.72rem;padding:.12rem .4rem;border-radius:4px;white-space:nowrap">${km.toFixed(1)} km</span>`;
-}
-
-// ── Load Ubicaciones sheet ───────────────────────────────────────
-async function loadUbicaciones(){
-  try{
-    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Ubicaciones')}`;
-    const res=await fetch(url); if(!res.ok) return;
-    const text=await res.text();
-    const lines=text.trim().split(/\r?\n/);
-    if(lines.length<2) return;
-    const hdrs=parseCSVLine(lines[0]);
-    for(let i=1;i<lines.length;i++){
-      if(!lines[i].trim()) continue;
-      const cols=parseCSVLine(lines[i]);
-      const r={};
-      hdrs.forEach((h,idx)=>{r[h]=cols[idx]!==undefined?cols[idx]:'';});
-      const nomKey =hdrs.find(k=>k.trim().toLowerCase()==='nombre')||hdrs[0];
-      const latOpK =hdrs.find(k=>/lat\s*op/i.test(k))||hdrs[1];
-      const lonOpK =hdrs.find(k=>/lon.*op/i.test(k))||hdrs[2];
-      const rutaK  =hdrs.find(k=>/ruta/i.test(k))||hdrs[6];
-      const latPiK =hdrs.find(k=>/lat\s*pi/i.test(k))||hdrs[7];
-      const lonPiK =hdrs.find(k=>/lon.*pi/i.test(k))||hdrs[8];
-      const nom=String(r[nomKey]||'').trim();
-      const latOp=parseFloat(r[latOpK]); const lonOp=parseFloat(r[lonOpK]);
-      const ruta=String(r[rutaK]||'').trim();
-      const latPi=parseFloat(r[latPiK]); const lonPi=parseFloat(r[lonPiK]);
-      if(!nom||isNaN(latOp)||isNaN(lonOp)) continue;
-      if(!UBIC_MAP[nom]) UBIC_MAP[nom]={latOp,lonOp,rutas:{}};
-      if(ruta&&!isNaN(latPi)&&!isNaN(lonPi)) UBIC_MAP[nom].rutas[ruta]={latPi,lonPi};
-    }
-    console.log('Ubicaciones cargadas:',Object.keys(UBIC_MAP).length,'operadores');
-  }catch(e){ console.warn('Ubicaciones error:',e); }
-}
 
 // ── Searchable selects ────────────────────────────────────────────
 const SC_KEYS  = ['udn','mes','sem','cli','ger','jef','coord','turno','ruta','ope','car'];
@@ -1083,42 +1021,20 @@ function parseCSVLine(line){
 }
 function parseCSV(text){
   const lines=text.trim().split(/\r?\n/);
-  if(lines.length<2){ console.warn('[parseCSV] Menos de 2 líneas. Texto recibido (primeros 300 chars):', text.slice(0,300)); return []; }
-  const hdrs=parseCSVLine(lines[0]);
-  console.log('[parseCSV] Headers detectados:', hdrs.length, 'columnas. Primeras 5:', hdrs.slice(0,5));
-  // Auto-detección defensiva SOLO si los headers parecen ser de la hoja NS
-  // (evita mutar C con headers de hojas auxiliares que pudieran usar parseCSV)
-  const looksLikeNS = hdrs.includes('start_date') || hdrs.includes('operador') || hdrs.includes('Inicios_Tarde');
-  if(looksLikeNS){
-    if(!hdrs.includes(C.udn)){
-      const f=hdrs.find(h=>h==='business_unit'||h.toLowerCase().includes('business')||h.toLowerCase().includes('unidad')||h.toLowerCase().includes('udn')||h.toLowerCase().includes('negocio'));
-      if(f) C.udn=f;
-    }
-    if(!hdrs.includes(C.coord)){
-      const f=hdrs.find(h=>h.toLowerCase().includes('coordinador')||h.toLowerCase().includes('coord'));
-      if(f) C.coord=f;
-    }
-    if(!hdrs.includes(C.turno)){
-      const f=hdrs.find(h=>h.toLowerCase().includes('turno'));
-      if(f) C.turno=f;
-    }
-  }
-  const rows=[];
-  for(let i=1;i<lines.length;i++){
-    if(!lines[i].trim()) continue;
-    const cols=parseCSVLine(lines[i]);
-    const obj={};
-    hdrs.forEach((h,idx)=>{obj[h]=cols[idx]!==undefined?cols[idx]:'';});
-    if(hdrs.some(h=>obj[h]&&obj[h].trim()!=='')) rows.push(obj);
-  }
-  console.log('[parseCSV] Filas válidas:', rows.length, 'de', lines.length-1, 'líneas');
-  return rows;
-}
-// Parser simple que NO muta el objeto C (seguro para hojas auxiliares en paralelo)
-function parseCSVSimple(text){
-  const lines=text.trim().split(/\r?\n/);
   if(lines.length<2) return [];
   const hdrs=parseCSVLine(lines[0]);
+  if(!hdrs.includes(C.udn)){
+    const f=hdrs.find(h=>h==='business_unit'||h.toLowerCase().includes('business')||h.toLowerCase().includes('unidad')||h.toLowerCase().includes('udn')||h.toLowerCase().includes('negocio'));
+    if(f) C.udn=f;
+  }
+  if(!hdrs.includes(C.coord)){
+    const f=hdrs.find(h=>h.toLowerCase().includes('coordinador')||h.toLowerCase().includes('coord'));
+    if(f) C.coord=f;
+  }
+  if(!hdrs.includes(C.turno)){
+    const f=hdrs.find(h=>h.toLowerCase().includes('turno'));
+    if(f) C.turno=f;
+  }
   const rows=[];
   for(let i=1;i<lines.length;i++){
     if(!lines[i].trim()) continue;
@@ -1158,7 +1074,7 @@ async function loadInputs(){
   try{
     const res=await fetch(inputsUrl());
     if(!res.ok) return;
-    const rows=parseCSVSimple(await res.text());
+    const rows=parseCSV(await res.text());
     rows.forEach(r=>{
       const keys=Object.keys(r);
       // ── Carros ──
@@ -1269,12 +1185,72 @@ function buildCoordMap(){
   cascadeSelects();
 }
 
+// ── MAE: mapa de paradas por ruta ─────────────────────────────────
+// ── MAE: horarios por ruta (solo para Excel) ─────────────────────
+let MAE_MAP={};
+let MAE_HORARIOS={};
+let MAE_IDX=[];
+
+function normStr(s){
+  return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .toLowerCase().trim().replace(/\s+/g,' ');
+}
+
+async function loadMAE(){
+  try{
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=MAE`;
+    const res=await fetch(url); if(!res.ok) return;
+    const rows=parseCSV(await res.text());
+    rows.forEach(r=>{
+      const idRuta=(r['ID Ruta']||r['ID_Ruta']||'').trim();
+      const descRuta=(r['Desc Ruta']||r['Desc_Ruta']||'').trim();
+      const planta=(r['Planta']||r['planta']||'').trim();
+      const tipSer=(r['Tip. Ser.']||r['Tip_Ser']||'').trim();
+      const sec=parseInt(r['Sec'])||0;
+      const lat=parseFloat(r['Lat']||r['lat']);
+      const lng=parseFloat(r['Lng']||r['lng']||r['Lon']);
+      const parada=(r['Parada']||r['parada']||'').trim();
+      if(!idRuta||isNaN(lat)||isNaN(lng)) return;
+      if(!MAE_MAP[idRuta]) MAE_MAP[idRuta]=[];
+      if(!MAE_HORARIOS[idRuta]){
+        const hs={};
+        for(let i=1;i<=10;i++){const v=(r['H'+i]||'').trim();if(v)hs['H'+i]=v;}
+        MAE_HORARIOS[idRuta]={horarios:hs,descRuta,tipSer,planta};
+        MAE_IDX.push({nDesc:normStr(descRuta),nId:normStr(idRuta),idRuta,planta:normStr(planta)});
+      }
+      MAE_MAP[idRuta].push({sec,lat,lng,parada,descRuta,tipSer,planta,idRuta});
+    });
+    Object.values(MAE_MAP).forEach(arr=>arr.sort((a,b)=>a.sec-b.sec));
+    console.log('MAE cargado:',Object.keys(MAE_MAP).length,'rutas');
+  }catch(e){ console.warn('MAE error:',e); }
+}
+
+function findIdRuta(rutaKey, plantaKey){
+  const nk=normStr(rutaKey);
+  const np=plantaKey?normStr(plantaKey):'';
+  const pool=(np?MAE_IDX.filter(x=>x.planta&&x.planta.includes(np.slice(0,6))):[])||[];
+  const cands=pool.length?pool:MAE_IDX;
+  if(MAE_MAP[rutaKey]) return rutaKey;
+  let m=cands.find(x=>x.nId===nk); if(m) return m.idRuta;
+  m=cands.find(x=>x.nDesc===nk); if(m) return m.idRuta;
+  m=cands.find(x=>x.nDesc.includes(nk)||nk.includes(x.nDesc)); if(m) return m.idRuta;
+  const pref=nk.slice(0,Math.min(nk.length,18));
+  m=cands.find(x=>x.nDesc.startsWith(pref)||pref.startsWith(x.nDesc.slice(0,12))); if(m) return m.idRuta;
+  const words=nk.split(' ').filter(w=>w.length>=5);
+  if(words.length){
+    let best=null,bestScore=0;
+    cands.forEach(x=>{const sc=words.filter(w=>x.nDesc.includes(w)).length;if(sc>bestScore){bestScore=sc;best=x;}});
+    if(best&&bestScore>=1) return best.idRuta;
+  }
+  return null;
+}
+
 // ── Load Flota sheet (carros activos en la empresa) ──────────────
 async function loadFlota(){
   try{
     const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Flota`;
     const res=await fetch(url); if(!res.ok) return;
-    const rows=parseCSVSimple(await res.text());
+    const rows=parseCSV(await res.text());
     rows.forEach(r=>{
       const id=(r['IDS']||r['ID']||r['id']||'').toString().trim();
       if(!id) return;
@@ -1293,7 +1269,7 @@ async function loadFlota(){
 
 // ── Main loader ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async ()=>{
-  await Promise.all([loadSheet(), loadInputs(), loadFlota(), loadUbicaciones()]);
+  await Promise.all([loadSheet(), loadInputs(), loadMAE(), loadFlota()]);
   // Ambas cargas terminaron → asignar coordinadores y redibujar
   buildCoordMap();
   fillAllSelects();
@@ -2418,11 +2394,8 @@ function renderDrill(clienteK,tbl){
   const byRuta={};
   rows.forEach(r=>{
     const ruta=(r['des']||'Sin ruta').trim()||'Sin ruta';
-    if(!byRuta[ruta]) byRuta[ruta]={t:0,enT:0,lSolo:0,lAmbos:0,sumMI:0,cMI:0,sumML:0,cML:0,sumKm:0,cKm:0};
+    if(!byRuta[ruta]) byRuta[ruta]={t:0,enT:0,lSolo:0,lAmbos:0,sumMI:0,cMI:0,sumML:0,cML:0};
     byRuta[ruta].t+=countViajes(r[C.viajes]);
-    const wid=(r[C.workerId]||'').trim();
-    const _km=kmOperadorRuta(wid,ruta);
-    if(_km!==null){ byRuta[ruta].sumKm+=_km; byRuta[ruta].cKm++; }
     const iniT=countLate(r[C.retardo])===1, lleT=countLate(r[C.llegada])===1;
     const mI=parseMin(r[C.minIni]), mL=parseMin(r[C.minLle]);
     if(isLlegadas){
@@ -2444,7 +2417,6 @@ function renderDrill(clienteK,tbl){
       pct:d.t>0?d.enT/d.t*100:0,
       avgMI:d.cMI>0?d.sumMI/d.cMI:null,
       avgML:d.cML>0?d.sumML/d.cML:null,
-      avgKm:d.cKm>0?d.sumKm/d.cKm:null,
     }))
     .sort((a,b)=>(a.pct-b.pct)*drillSortDir);
 
@@ -2478,7 +2450,6 @@ function renderDrill(clienteK,tbl){
     const rutaEsc=r.k.replace(/'/g,"\\'");
     const cliEsc=clienteK.replace(/'/g,"\\'");
     return `<tr class="row-ruta-clickable" style="background:${bg}" onclick="openDrillDetail('${rutaEsc}','${cliEsc}','${tbl}')">
-      <td class="r">${kmBadge(r.avgKm)}</td>
       <td class="td-ruta">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td>
       <td class="r" style="color:var(--navy)">${N(r.t)}</td>
       <td class="r" style="color:#16a34a;font-weight:600">${N(r.enT)}</td>
@@ -2543,7 +2514,6 @@ function rerenderDrillBody(){
     const tbl=lastDrillArgs?lastDrillArgs[1]:'cli';
     const fmtMin=v=>{if(v===null)return'<span style="color:#aaa;font-size:.7rem">–</span>';const clr=v>0?'#c53030':v<0?'#16a34a':'#6b7a99';return`<span style="color:${clr};font-weight:600">${v>0?'+':''}${v.toFixed(1)}</span>`;};
     return`<tr class="row-ruta-clickable" style="background:${bg}" onclick="openDrillDetail('${rutaEsc}','${cliEsc}','${tbl}')">
-      <td class="r">${kmBadge(r.avgKm)}</td>
       <td class="td-ruta">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td>
       <td class="r" style="color:var(--navy)">${r.t}</td>
       <td class="r" style="color:#16a34a;font-weight:600">${r.enT}</td>
@@ -2572,7 +2542,6 @@ function rerenderDetailModal(){
     else if(col==='endEta')   { av=String(a[C.endEta]||'');    bv=String(b[C.endEta]||''); }
     else if(col==='car')      { av=String(a['car']||'');        bv=String(b['car']||''); }
     else if(col==='driver')   { av=String(a['driver']||'');     bv=String(b['driver']||''); }
-    else if(col==='kmOp'){ const rk=(lastDetailMeta&&lastDetailMeta.ruta)||''; av=kmOperadorRuta((a[C.workerId]||'').trim(),rk)??-9999; bv=kmOperadorRuta((b[C.workerId]||'').trim(),rk)??-9999; return(av-bv)*dir; }
     else { av=getFecha(a); bv=getFecha(b); }
     return av.localeCompare(bv)*dir;
   });
@@ -2593,11 +2562,8 @@ function rerenderDetailModal(){
     const tripId=(r[C.id]||'').trim();
     const driverEsc=driver.replace(/'/g,"\\'");
     const auditBtn=tripId?`<button onclick="openAuditModal('${tripId}')" style="background:#1a2236;color:#7ed321;border:1px solid #7ed321;border-radius:5px;padding:.15rem .35rem;font-size:.62rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;line-height:1.4" title="Auditoría del viaje">📍</button>`:'';
-    const wid2=(r[C.workerId]||'').trim();
-    const _kmOp2=kmOperadorRuta(wid2,(lastDetailMeta&&lastDetailMeta.ruta)||'');
     return`<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
       <td style="text-align:center;padding:.3rem .4rem">${auditBtn}</td>
-      <td class="r">${kmBadge(_kmOp2)}</td>
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${fechaFmt}</td>
       <td style="text-align:left;font-weight:600">${unidad}</td>
       <td style="text-align:left;cursor:pointer;color:var(--navy);text-decoration:underline dotted;white-space:nowrap" onclick="openOperadorModal('${driverEsc}')" title="Ver resumen del mes">${driver} <span style="font-size:.6rem;opacity:.5">▶</span></td>
@@ -2608,7 +2574,7 @@ function rerenderDetailModal(){
       <td class="r">${minCell(minIni,0)}</td>
       <td class="r">${minCell(minLle,0)}</td>
     </tr>`;
-  }).join('')||'<tr><td colspan="11" class="table-empty">Sin viajes registrados</td></tr>';
+  }).join('')||'<tr><td colspan="10" class="table-empty">Sin viajes registrados</td></tr>';
 }
 
 // ── Export con ExcelJS + logo ──
@@ -3108,11 +3074,8 @@ function openDrillDetail(rutaK,clienteK,tbl){
                   white-space:nowrap;font-family:'Inter',sans-serif;line-height:1.4"
            title="Auditoría del viaje">📍</button>`
       : '';
-    const wid=(r[C.workerId]||'').trim();
-    const _kmOp=kmOperadorRuta(wid,rutaK);
     return `<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
       <td style="text-align:center;padding:.3rem .4rem">${auditBtn}</td>
-      <td class="r">${kmBadge(_kmOp)}</td>
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${fechaFmt}</td>
       <td style="text-align:left;font-weight:600">${unidad}</td>
       <td style="text-align:left;cursor:pointer;color:var(--navy);text-decoration:underline dotted;white-space:nowrap" onclick="openOperadorModal('${driverEsc}')" title="Ver resumen del mes">${driver} <span style="font-size:.6rem;opacity:.5">▶</span></td>
@@ -3123,7 +3086,7 @@ function openDrillDetail(rutaK,clienteK,tbl){
       <td class="r">${minCell(minIni,0)}</td>
       <td class="r">${minCell(minLle,0)}</td>
     </tr>`;
-  }).join('')||'<tr><td colspan="11" class="table-empty">Sin viajes registrados</td></tr>';
+  }).join('')||'<tr><td colspan="10" class="table-empty">Sin viajes registrados</td></tr>';
 
   document.getElementById('drillDetailFoot').textContent=`Servicios: ${totT} viajes · · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
   lastDetailData=[...sorted];
