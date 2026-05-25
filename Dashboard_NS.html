@@ -1247,66 +1247,6 @@ function buildCoordMap(){
   cascadeSelects();
 }
 
-// ── MAE: mapa de paradas por ruta ─────────────────────────────────
-// ── MAE: horarios por ruta (solo para Excel) ─────────────────────
-let MAE_MAP={};
-let MAE_HORARIOS={};
-let MAE_IDX=[];
-
-function normStr(s){
-  return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'')
-    .toLowerCase().trim().replace(/\s+/g,' ');
-}
-
-async function loadMAE(){
-  try{
-    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=MAE`;
-    const res=await fetch(url); if(!res.ok) return;
-    const rows=parseCSV(await res.text());
-    rows.forEach(r=>{
-      const idRuta=(r['ID Ruta']||r['ID_Ruta']||'').trim();
-      const descRuta=(r['Desc Ruta']||r['Desc_Ruta']||'').trim();
-      const planta=(r['Planta']||r['planta']||'').trim();
-      const tipSer=(r['Tip. Ser.']||r['Tip_Ser']||'').trim();
-      const sec=parseInt(r['Sec'])||0;
-      const lat=parseFloat(r['Lat']||r['lat']);
-      const lng=parseFloat(r['Lng']||r['lng']||r['Lon']);
-      const parada=(r['Parada']||r['parada']||'').trim();
-      if(!idRuta||isNaN(lat)||isNaN(lng)) return;
-      if(!MAE_MAP[idRuta]) MAE_MAP[idRuta]=[];
-      if(!MAE_HORARIOS[idRuta]){
-        const hs={};
-        for(let i=1;i<=10;i++){const v=(r['H'+i]||'').trim();if(v)hs['H'+i]=v;}
-        MAE_HORARIOS[idRuta]={horarios:hs,descRuta,tipSer,planta};
-        MAE_IDX.push({nDesc:normStr(descRuta),nId:normStr(idRuta),idRuta,planta:normStr(planta)});
-      }
-      MAE_MAP[idRuta].push({sec,lat,lng,parada,descRuta,tipSer,planta,idRuta});
-    });
-    Object.values(MAE_MAP).forEach(arr=>arr.sort((a,b)=>a.sec-b.sec));
-    console.log('MAE cargado:',Object.keys(MAE_MAP).length,'rutas');
-  }catch(e){ console.warn('MAE error:',e); }
-}
-
-function findIdRuta(rutaKey, plantaKey){
-  const nk=normStr(rutaKey);
-  const np=plantaKey?normStr(plantaKey):'';
-  const pool=(np?MAE_IDX.filter(x=>x.planta&&x.planta.includes(np.slice(0,6))):[])||[];
-  const cands=pool.length?pool:MAE_IDX;
-  if(MAE_MAP[rutaKey]) return rutaKey;
-  let m=cands.find(x=>x.nId===nk); if(m) return m.idRuta;
-  m=cands.find(x=>x.nDesc===nk); if(m) return m.idRuta;
-  m=cands.find(x=>x.nDesc.includes(nk)||nk.includes(x.nDesc)); if(m) return m.idRuta;
-  const pref=nk.slice(0,Math.min(nk.length,18));
-  m=cands.find(x=>x.nDesc.startsWith(pref)||pref.startsWith(x.nDesc.slice(0,12))); if(m) return m.idRuta;
-  const words=nk.split(' ').filter(w=>w.length>=5);
-  if(words.length){
-    let best=null,bestScore=0;
-    cands.forEach(x=>{const sc=words.filter(w=>x.nDesc.includes(w)).length;if(sc>bestScore){bestScore=sc;best=x;}});
-    if(best&&bestScore>=1) return best.idRuta;
-  }
-  return null;
-}
-
 // ── Load Flota sheet (carros activos en la empresa) ──────────────
 async function loadFlota(){
   try{
@@ -1331,7 +1271,7 @@ async function loadFlota(){
 
 // ── Main loader ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async ()=>{
-  await Promise.all([loadSheet(), loadInputs(), loadMAE(), loadFlota(), loadUbicaciones()]);
+  await Promise.all([loadSheet(), loadInputs(), loadFlota(), loadUbicaciones()]);
   // Ambas cargas terminaron → asignar coordinadores y redibujar
   buildCoordMap();
   fillAllSelects();
