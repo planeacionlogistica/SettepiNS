@@ -979,23 +979,29 @@ async function loadUbicaciones(){
   try{
     const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Ubicaciones')}`;
     const res=await fetch(url); if(!res.ok) return;
-    const rows=parseCSV(await res.text());
-    rows.forEach(r=>{
-      const keys=Object.keys(r);
-      const nomKey =keys.find(k=>k.trim().toLowerCase()==='nombre')||keys[0];
-      const latOpK =keys.find(k=>/lat\s*op/i.test(k))||keys[1];
-      const lonOpK =keys.find(k=>/lon.*op/i.test(k))||keys[2];
-      const rutaK  =keys.find(k=>/ruta/i.test(k))||keys[6];
-      const latPiK =keys.find(k=>/lat\s*pi/i.test(k))||keys[7];
-      const lonPiK =keys.find(k=>/lon.*pi/i.test(k))||keys[8];
+    const text=await res.text();
+    const lines=text.trim().split(/\r?\n/);
+    if(lines.length<2) return;
+    const hdrs=parseCSVLine(lines[0]);
+    for(let i=1;i<lines.length;i++){
+      if(!lines[i].trim()) continue;
+      const cols=parseCSVLine(lines[i]);
+      const r={};
+      hdrs.forEach((h,idx)=>{r[h]=cols[idx]!==undefined?cols[idx]:'';});
+      const nomKey =hdrs.find(k=>k.trim().toLowerCase()==='nombre')||hdrs[0];
+      const latOpK =hdrs.find(k=>/lat\s*op/i.test(k))||hdrs[1];
+      const lonOpK =hdrs.find(k=>/lon.*op/i.test(k))||hdrs[2];
+      const rutaK  =hdrs.find(k=>/ruta/i.test(k))||hdrs[6];
+      const latPiK =hdrs.find(k=>/lat\s*pi/i.test(k))||hdrs[7];
+      const lonPiK =hdrs.find(k=>/lon.*pi/i.test(k))||hdrs[8];
       const nom=String(r[nomKey]||'').trim();
       const latOp=parseFloat(r[latOpK]); const lonOp=parseFloat(r[lonOpK]);
       const ruta=String(r[rutaK]||'').trim();
       const latPi=parseFloat(r[latPiK]); const lonPi=parseFloat(r[lonPiK]);
-      if(!nom||isNaN(latOp)||isNaN(lonOp)) return;
+      if(!nom||isNaN(latOp)||isNaN(lonOp)) continue;
       if(!UBIC_MAP[nom]) UBIC_MAP[nom]={latOp,lonOp,rutas:{}};
       if(ruta&&!isNaN(latPi)&&!isNaN(lonPi)) UBIC_MAP[nom].rutas[ruta]={latPi,lonPi};
-    });
+    }
     console.log('Ubicaciones cargadas:',Object.keys(UBIC_MAP).length,'operadores');
   }catch(e){ console.warn('Ubicaciones error:',e); }
 }
