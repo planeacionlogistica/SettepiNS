@@ -957,13 +957,29 @@ function haversineKm(lat1,lon1,lat2,lon2){
   const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
-// km del operador a la pickup de la ruta, con +15% extra para simular recorrido real
+// Normaliza nóminas: '19201288', '19201288.0', '1.92E+07', '19,201,288' -> '19201288'
+function normNomina(v){
+  if(v===undefined||v===null) return '';
+  let s=String(v).trim().replace(/[,\s]/g,'');
+  if(!s) return '';
+  if(/[eE]/.test(s)||/\.\d/.test(s)){
+    const n=parseFloat(s);
+    if(isFinite(n)) s=String(Math.round(n));
+  }
+  return s.replace(/\.0+$/,'');
+}
+// Normaliza nombre de ruta: uppercase, sin acentos, espacios colapsados
+function normRuta(v){
+  if(!v) return '';
+  return String(v).trim().toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/\s+/g,' ');
+}
+// km del operador a la pickup de la ruta = lineal × 1.15
 function kmOperadorRuta(nomina,ruta){
-  if(nomina===undefined||nomina===null||nomina==='') return null;
-  const u=UBIC_MAP[String(nomina).trim()];
-  if(!u) return null;
-  const r=u.rutas[(ruta||'').trim()];
-  if(!r) return null;
+  const k=normNomina(nomina); if(!k) return null;
+  const u=UBIC_MAP[k]; if(!u) return null;
+  const r=u.rutas[normRuta(ruta)]; if(!r) return null;
   const lineal=haversineKm(u.latOp,u.lonOp,r.latPi,r.lonPi);
   if(!isFinite(lineal)) return null;
   return +(lineal*1.15).toFixed(1);
@@ -987,11 +1003,11 @@ async function loadUbicaciones(){
     if(lines.length<2) return;
     const hdrs=parseCSVLine(lines[0]);
     const nomKey =hdrs.find(k=>k.trim().toLowerCase()==='nombre') || hdrs[0];
-    const latOpK =hdrs.find(k=>/^lat\s*o/i.test(k.trim()));
-    const lonOpK =hdrs.find(k=>/^lon.*o/i.test(k.trim()));
-    const rutaK  =hdrs.find(k=>/ruta/i.test(k));
-    const latPiK =hdrs.find(k=>/^lat\s*pi/i.test(k.trim()));
-    const lonPiK =hdrs.find(k=>/^lon.*pi/i.test(k.trim()));
+    const latOpK =hdrs.find(k=>/^lat\s*op?$/i.test(k.trim())) || hdrs.find(k=>/^lat\s*o/i.test(k.trim()));
+    const lonOpK =hdrs.find(k=>/^lo?n?g?\s*op?$/i.test(k.trim())) || hdrs.find(k=>/^lo?n.*o/i.test(k.trim()));
+    const rutaK  =hdrs.find(k=>/^rutas?$/i.test(k.trim())) || hdrs.find(k=>/ruta/i.test(k));
+    const latPiK =hdrs.find(k=>/^lat\s*pi$/i.test(k.trim())) || hdrs.find(k=>/^lat\s*pi/i.test(k.trim()));
+    const lonPiK =hdrs.find(k=>/^lo?n?g?\s*pi$/i.test(k.trim())) || hdrs.find(k=>/^lo?n.*pi/i.test(k.trim()));
     if(!nomKey||!latOpK||!lonOpK||!rutaK||!latPiK||!lonPiK){
       console.warn('[Ubicaciones] headers no encontrados',hdrs); return;
     }
@@ -999,10 +1015,10 @@ async function loadUbicaciones(){
       if(!lines[i].trim()) continue;
       const cols=parseCSVLine(lines[i]);
       const r={}; hdrs.forEach((h,idx)=>r[h]=cols[idx]!==undefined?cols[idx]:'');
-      const nom=String(r[nomKey]||'').trim(); if(!nom) continue;
+      const nom=normNomina(r[nomKey]); if(!nom) continue;
       const latOp=parseFloat(String(r[latOpK]).replace(',','.'));
       const lonOp=parseFloat(String(r[lonOpK]).replace(',','.'));
-      const ruta=String(r[rutaK]||'').trim();
+      const ruta=normRuta(r[rutaK]);
       const latPi=parseFloat(String(r[latPiK]).replace(',','.'));
       const lonPi=parseFloat(String(r[lonPiK]).replace(',','.'));
       if(!isFinite(latOp)||!isFinite(lonOp)) continue;
@@ -1012,7 +1028,7 @@ async function loadUbicaciones(){
         UBIC_MAP[nom].rutas[ruta]={latPi,lonPi};
       }
     }
-    console.log('[Ubicaciones] cargado:',Object.keys(UBIC_MAP).length,'operadores');
+    // log silenciado
   }catch(e){ console.warn('[Ubicaciones] error',e); }
 }
 
@@ -1293,7 +1309,7 @@ async function loadMAE(){
       MAE_MAP[idRuta].push({sec,lat,lng,parada,descRuta,tipSer,planta,idRuta});
     });
     Object.values(MAE_MAP).forEach(arr=>arr.sort((a,b)=>a.sec-b.sec));
-    console.log('MAE cargado:',Object.keys(MAE_MAP).length,'rutas');
+    // log silenciado
   }catch(e){ console.warn('MAE error:',e); }
 }
 
@@ -1335,7 +1351,7 @@ async function loadFlota(){
         estatus:(r['Estatus']||'').trim(),
       };
     });
-    console.log('Flota cargada:',Object.keys(FLOTA_MAP).length,'unidades');
+    // log silenciado
   }catch(e){ console.warn('Flota error:',e); }
 }
 
