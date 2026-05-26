@@ -138,7 +138,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 #drillDetailModal{z-index:820;}
 #drillDetailModal .modal-box{max-width:1150px;}
 #drillDetailModal .modal-body{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-#drillDetailModal .modal-table{table-layout:fixed;min-width:860px;width:100%;border-collapse:collapse;}
+#drillDetailModal .modal-table{table-layout:fixed;min-width:930px;width:100%;border-collapse:collapse;}
 #operadorModal{z-index:830;}
 .modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
 /* ── Drill modal nivel 1 ── */
@@ -786,6 +786,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
       <table class="modal-table">
         <colgroup>
           <col style="width:36px">
+          <col style="width:70px">
           <col style="width:90px"><col style="width:75px"><col style="width:170px">
           <col style="width:80px"><col style="width:95px">
           <col style="width:80px"><col style="width:95px">
@@ -793,6 +794,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
         </colgroup>
         <thead id="detailThead"><tr>
           <th style="width:36px"></th>
+          <th class="r sortable" data-col="kmOp" onclick="sortDetail('kmOp')"><div class="th-inner r">Km<span class="sort-ind">↕</span></div></th>
           <th class="sortable" data-col="fecha" onclick="sortDetail('fecha')"><div class="th-inner">Fecha<span class="sort-ind">↕</span></div></th>
           <th class="sortable" data-col="car" onclick="sortDetail('car')"><div class="th-inner">Unidad<span class="sort-ind">↕</span></div></th>
           <th class="sortable" data-col="driver" onclick="sortDetail('driver')"><div class="th-inner">Operador<span class="sort-ind">↕</span></div></th>
@@ -827,12 +829,14 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
       <table class="modal-table">
         <colgroup>
           <col style="width:220px;min-width:160px">
+          <col style="width:78px">
           <col style="width:64px"><col style="width:80px">
           <col style="width:120px"><col style="width:130px">
           <col style="width:72px"><col style="width:72px"><col style="width:78px">
         </colgroup>
         <thead id="drillThead"><tr>
           <th class="sortable" data-col="k" onclick="sortDrill('k')"><div class="th-inner">Ruta / Descripción<span class="sort-ind">↕</span></div></th>
+          <th class="r sortable" data-col="avgKm" onclick="sortDrill('avgKm')"><div class="th-inner r">Km vacío<span class="sort-ind">↕</span></div></th>
           <th class="r sortable" data-col="t" onclick="sortDrill('t')"><div class="th-inner r">Srvs.<span class="sort-ind">↕</span></div></th>
           <th class="r sortable" data-col="enT" onclick="sortDrill('enT')"><div class="th-inner r">En tiempo<span class="sort-ind">↕</span></div></th>
           <th class="r sortable" data-col="lSolo" id="drillSoloHdr" onclick="sortDrill('lSolo')"><div class="th-inner r">(ini ok · lle tarde)<span class="sort-ind">↕</span></div></th>
@@ -943,6 +947,73 @@ let myChartLle   = null;
 let CARROS_MAP   = {};   // { 'CON-CONMET': 49, ... }
 let FLOTA_MAP    = {};   // { '4465': {planta,marca,modelo,año,tipo,estatus}, ... }
 let COORD_RAW    = [];   // [ {cc:'CON-CONMET-F1', co:'EFREN PEREZ CRUZ'}, ... ]
+let UBIC_MAP     = {};   // { '19201288': { latOp, lonOp, rutas:{ 'BUENA VISTA COM T1':{latPi,lonPi} } } }
+
+// ── Haversine (km lineales entre dos puntos) ─────────────────────
+function haversineKm(lat1,lon1,lat2,lon2){
+  const R=6371, toRad=x=>x*Math.PI/180;
+  const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
+  const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+// km del operador a la pickup de la ruta, con +15% extra para simular recorrido real
+function kmOperadorRuta(nomina,ruta){
+  if(nomina===undefined||nomina===null||nomina==='') return null;
+  const u=UBIC_MAP[String(nomina).trim()];
+  if(!u) return null;
+  const r=u.rutas[(ruta||'').trim()];
+  if(!r) return null;
+  const lineal=haversineKm(u.latOp,u.lonOp,r.latPi,r.lonPi);
+  if(!isFinite(lineal)) return null;
+  return +(lineal*1.15).toFixed(1);
+}
+function kmBadge(km){
+  if(km===null||km===undefined) return '<span style="color:#aaa;font-size:.65rem">–</span>';
+  let bg,clr;
+  if(km>=10){ bg='#fee2e2'; clr='#c53030'; }
+  else if(km>=5){ bg='#fef9c3'; clr='#a16207'; }
+  else { bg='#dcfce7'; clr='#15803d'; }
+  return `<span style="background:${bg};color:${clr};font-weight:700;font-size:.72rem;padding:.12rem .4rem;border-radius:4px;white-space:nowrap">${km.toFixed(1)} km</span>`;
+}
+
+// ── Load Ubicaciones sheet (lat/lon de operador y rutas) ─────────
+async function loadUbicaciones(){
+  try{
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent('Ubicaciones')}`;
+    const res=await fetch(url); if(!res.ok) return;
+    const text=await res.text();
+    const lines=text.trim().split(/\r?\n/);
+    if(lines.length<2) return;
+    const hdrs=parseCSVLine(lines[0]);
+    const nomKey =hdrs.find(k=>k.trim().toLowerCase()==='nombre') || hdrs[0];
+    const latOpK =hdrs.find(k=>/^lat\s*o/i.test(k.trim()));
+    const lonOpK =hdrs.find(k=>/^lon.*o/i.test(k.trim()));
+    const rutaK  =hdrs.find(k=>/ruta/i.test(k));
+    const latPiK =hdrs.find(k=>/^lat\s*pi/i.test(k.trim()));
+    const lonPiK =hdrs.find(k=>/^lon.*pi/i.test(k.trim()));
+    if(!nomKey||!latOpK||!lonOpK||!rutaK||!latPiK||!lonPiK){
+      console.warn('[Ubicaciones] headers no encontrados',hdrs); return;
+    }
+    for(let i=1;i<lines.length;i++){
+      if(!lines[i].trim()) continue;
+      const cols=parseCSVLine(lines[i]);
+      const r={}; hdrs.forEach((h,idx)=>r[h]=cols[idx]!==undefined?cols[idx]:'');
+      const nom=String(r[nomKey]||'').trim(); if(!nom) continue;
+      const latOp=parseFloat(String(r[latOpK]).replace(',','.'));
+      const lonOp=parseFloat(String(r[lonOpK]).replace(',','.'));
+      const ruta=String(r[rutaK]||'').trim();
+      const latPi=parseFloat(String(r[latPiK]).replace(',','.'));
+      const lonPi=parseFloat(String(r[lonPiK]).replace(',','.'));
+      if(!isFinite(latOp)||!isFinite(lonOp)) continue;
+      if(!UBIC_MAP[nom]) UBIC_MAP[nom]={latOp,lonOp,rutas:{}};
+      else { UBIC_MAP[nom].latOp=latOp; UBIC_MAP[nom].lonOp=lonOp; }
+      if(ruta && isFinite(latPi) && isFinite(lonPi)){
+        UBIC_MAP[nom].rutas[ruta]={latPi,lonPi};
+      }
+    }
+    console.log('[Ubicaciones] cargado:',Object.keys(UBIC_MAP).length,'operadores');
+  }catch(e){ console.warn('[Ubicaciones] error',e); }
+}
 
 // ── Searchable selects ────────────────────────────────────────────
 const SC_KEYS  = ['udn','mes','sem','cli','ger','jef','coord','turno','ruta','ope','car'];
@@ -1269,7 +1340,7 @@ async function loadFlota(){
 
 // ── Main loader ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async ()=>{
-  await Promise.all([loadSheet(), loadInputs(), loadMAE(), loadFlota()]);
+  await Promise.all([loadSheet(), loadInputs(), loadMAE(), loadFlota(), loadUbicaciones()]);
   // Ambas cargas terminaron → asignar coordinadores y redibujar
   buildCoordMap();
   fillAllSelects();
@@ -2394,7 +2465,7 @@ function renderDrill(clienteK,tbl){
   const byRuta={};
   rows.forEach(r=>{
     const ruta=(r['des']||'Sin ruta').trim()||'Sin ruta';
-    if(!byRuta[ruta]) byRuta[ruta]={t:0,enT:0,lSolo:0,lAmbos:0,sumMI:0,cMI:0,sumML:0,cML:0};
+    if(!byRuta[ruta]) byRuta[ruta]={t:0,enT:0,lSolo:0,lAmbos:0,sumMI:0,cMI:0,sumML:0,cML:0,sumKm:0,cKm:0};
     byRuta[ruta].t+=countViajes(r[C.viajes]);
     const iniT=countLate(r[C.retardo])===1, lleT=countLate(r[C.llegada])===1;
     const mI=parseMin(r[C.minIni]), mL=parseMin(r[C.minLle]);
@@ -2409,6 +2480,8 @@ function renderDrill(clienteK,tbl){
     }
     if(iniT&&mI!==null){ byRuta[ruta].sumMI+=mI; byRuta[ruta].cMI++; }
     if(lleT&&mL!==null){ byRuta[ruta].sumML+=mL; byRuta[ruta].cML++; }
+    const kmV=kmOperadorRuta(r[C.workerId], ruta);
+    if(kmV!==null){ byRuta[ruta].sumKm+=kmV; byRuta[ruta].cKm++; }
   });
 
   const sorted=Object.entries(byRuta)
@@ -2417,6 +2490,7 @@ function renderDrill(clienteK,tbl){
       pct:d.t>0?d.enT/d.t*100:0,
       avgMI:d.cMI>0?d.sumMI/d.cMI:null,
       avgML:d.cML>0?d.sumML/d.cML:null,
+      avgKm:d.cKm>0?+(d.sumKm/d.cKm).toFixed(1):null,
     }))
     .sort((a,b)=>(a.pct-b.pct)*drillSortDir);
 
@@ -2451,6 +2525,7 @@ function renderDrill(clienteK,tbl){
     const cliEsc=clienteK.replace(/'/g,"\\'");
     return `<tr class="row-ruta-clickable" style="background:${bg}" onclick="openDrillDetail('${rutaEsc}','${cliEsc}','${tbl}')">
       <td class="td-ruta">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td>
+      <td class="r">${kmBadge(r.avgKm)}</td>
       <td class="r" style="color:var(--navy)">${N(r.t)}</td>
       <td class="r" style="color:#16a34a;font-weight:600">${N(r.enT)}</td>
       <td class="r" style="color:#d97706;font-weight:600">${N(r.lSolo)}</td>
@@ -2515,6 +2590,7 @@ function rerenderDrillBody(){
     const fmtMin=v=>{if(v===null)return'<span style="color:#aaa;font-size:.7rem">–</span>';const clr=v>0?'#c53030':v<0?'#16a34a':'#6b7a99';return`<span style="color:${clr};font-weight:600">${v>0?'+':''}${v.toFixed(1)}</span>`;};
     return`<tr class="row-ruta-clickable" style="background:${bg}" onclick="openDrillDetail('${rutaEsc}','${cliEsc}','${tbl}')">
       <td class="td-ruta">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td>
+      <td class="r">${kmBadge(r.avgKm)}</td>
       <td class="r" style="color:var(--navy)">${r.t}</td>
       <td class="r" style="color:#16a34a;font-weight:600">${r.enT}</td>
       <td class="r" style="color:#d97706;font-weight:600">${r.lSolo}</td>
@@ -2529,6 +2605,7 @@ function rerenderDrillBody(){
 function rerenderDetailModal(){
   if(!lastDetailData.length) return;
   const isL=lastDetailMeta.isLlegadas;
+  const rutaActual=lastDetailMeta.ruta||'';
   const lateField=isL?(C.llegada||'llegada'):(C.retardo||'retardo');
   const col=detailSortCol, dir=detailSortDir2;
   const sorted=[...lastDetailData].sort((a,b)=>{
@@ -2536,6 +2613,10 @@ function rerenderDetailModal(){
     if(col==='fecha'){ av=getFecha(a); bv=getFecha(b); }
     else if(col==='minIni'){ av=parseMin(a[C.minIni])??-9999; bv=parseMin(b[C.minIni])??-9999; return(av-bv)*dir; }
     else if(col==='minLle'){ av=parseMin(a[C.minLle])??-9999; bv=parseMin(b[C.minLle])??-9999; return(av-bv)*dir; }
+    else if(col==='kmOp'){
+      const ka=kmOperadorRuta(a[C.workerId],rutaActual); const kb=kmOperadorRuta(b[C.workerId],rutaActual);
+      return ((ka??-9999)-(kb??-9999))*dir;
+    }
     else if(col==='startTime'){ av=String(a[C.startTime]||''); bv=String(b[C.startTime]||''); }
     else if(col==='startEta') { av=String(a[C.startEta]||'');  bv=String(b[C.startEta]||''); }
     else if(col==='endTime')  { av=String(a[C.endTime]||'');   bv=String(b[C.endTime]||''); }
@@ -2562,8 +2643,10 @@ function rerenderDetailModal(){
     const tripId=(r[C.id]||'').trim();
     const driverEsc=driver.replace(/'/g,"\\'");
     const auditBtn=tripId?`<button onclick="openAuditModal('${tripId}')" style="background:#1a2236;color:#7ed321;border:1px solid #7ed321;border-radius:5px;padding:.15rem .35rem;font-size:.62rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;line-height:1.4" title="Auditoría del viaje">📍</button>`:'';
+    const kmOp=kmOperadorRuta(r[C.workerId], rutaActual);
     return`<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
       <td style="text-align:center;padding:.3rem .4rem">${auditBtn}</td>
+      <td class="r">${kmBadge(kmOp)}</td>
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${fechaFmt}</td>
       <td style="text-align:left;font-weight:600">${unidad}</td>
       <td style="text-align:left;cursor:pointer;color:var(--navy);text-decoration:underline dotted;white-space:nowrap" onclick="openOperadorModal('${driverEsc}')" title="Ver resumen del mes">${driver} <span style="font-size:.6rem;opacity:.5">▶</span></td>
@@ -2574,7 +2657,7 @@ function rerenderDetailModal(){
       <td class="r">${minCell(minIni,0)}</td>
       <td class="r">${minCell(minLle,0)}</td>
     </tr>`;
-  }).join('')||'<tr><td colspan="10" class="table-empty">Sin viajes registrados</td></tr>';
+  }).join('')||'<tr><td colspan="11" class="table-empty">Sin viajes registrados</td></tr>';
 }
 
 // ── Export con ExcelJS + logo ──
@@ -3074,8 +3157,10 @@ function openDrillDetail(rutaK,clienteK,tbl){
                   white-space:nowrap;font-family:'Inter',sans-serif;line-height:1.4"
            title="Auditoría del viaje">📍</button>`
       : '';
+    const kmOp=kmOperadorRuta(r[C.workerId], rutaK);
     return `<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
       <td style="text-align:center;padding:.3rem .4rem">${auditBtn}</td>
+      <td class="r">${kmBadge(kmOp)}</td>
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${fechaFmt}</td>
       <td style="text-align:left;font-weight:600">${unidad}</td>
       <td style="text-align:left;cursor:pointer;color:var(--navy);text-decoration:underline dotted;white-space:nowrap" onclick="openOperadorModal('${driverEsc}')" title="Ver resumen del mes">${driver} <span style="font-size:.6rem;opacity:.5">▶</span></td>
@@ -3086,7 +3171,7 @@ function openDrillDetail(rutaK,clienteK,tbl){
       <td class="r">${minCell(minIni,0)}</td>
       <td class="r">${minCell(minLle,0)}</td>
     </tr>`;
-  }).join('')||'<tr><td colspan="10" class="table-empty">Sin viajes registrados</td></tr>';
+  }).join('')||'<tr><td colspan="11" class="table-empty">Sin viajes registrados</td></tr>';
 
   document.getElementById('drillDetailFoot').textContent=`Servicios: ${totT} viajes · · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
   lastDetailData=[...sorted];
