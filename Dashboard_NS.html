@@ -1153,6 +1153,14 @@ function parseCSV(text){
     const f=hdrs.find(h=>h.toLowerCase().includes('turno'));
     if(f) C.turno=f;
   }
+  // Auto-detect worker_id column (puede llamarse Worker_Id, Nomina, employee_id, etc.)
+  if(!hdrs.includes(C.workerId)){
+    const f=hdrs.find(h=>{
+      const x=h.toLowerCase().replace(/[\s_\-.]/g,'');
+      return x==='workerid'||x==='nomina'||x==='employeeid'||x==='empleadoid'||x==='idoperador'||x==='operadorid'||x==='numnomina'||x==='nominaop';
+    });
+    if(f){ C.workerId=f; console.log('[KM] Columna nómina detectada en NS:',f); }
+  }
   const rows=[];
   for(let i=1;i<lines.length;i++){
     if(!lines[i].trim()) continue;
@@ -1390,6 +1398,25 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   await Promise.all([loadSheet(), loadInputs(), loadMAE(), loadFlota(), loadUbicaciones()]);
   // Ambas cargas terminaron → asignar coordinadores y redibujar
   buildCoordMap();
+  // ── Audit KM en vacío: cuántos viajes matchean operador+ruta ──
+  if(DATA.length && Object.keys(UBIC_MAP).length){
+    let ok=0, sinOp=0, sinRuta=0;
+    const sample={ok:null,sinOp:null,sinRuta:null};
+    for(let i=0;i<Math.min(DATA.length,5000);i++){
+      const r=DATA[i];
+      const wid=normNomina(r[C.workerId]);
+      const ruta=normRuta(r['des']);
+      if(!wid||!UBIC_MAP[wid]){ sinOp++; if(!sample.sinOp) sample.sinOp={wid_raw:r[C.workerId],wid_norm:wid,ruta:r['des']}; }
+      else if(!UBIC_MAP[wid].rutas[ruta]){ sinRuta++; if(!sample.sinRuta) sample.sinRuta={wid,ruta,rutas_disp:Object.keys(UBIC_MAP[wid].rutas).slice(0,3)}; }
+      else { ok++; if(!sample.ok) sample.ok={wid,ruta,km:kmOperadorRuta(r[C.workerId],r['des'])}; }
+    }
+    const total=ok+sinOp+sinRuta;
+    const pct=total?Math.round(ok/total*100):0;
+    console.log(`[KM Match] ${ok}/${total} (${pct}%) · sin operador: ${sinOp} · sin ruta: ${sinRuta}`);
+    if(sample.ok) console.log('  ✅ ejemplo OK:',sample.ok);
+    if(sample.sinOp) console.log('  ❌ ejemplo sin operador en Ubicaciones:',sample.sinOp);
+    if(sample.sinRuta) console.log('  ❌ ejemplo sin ruta para ese operador:',sample.sinRuta);
+  }
   fillAllSelects();
   // Seleccionar el mes actual por defecto
   const _now = new Date();
