@@ -15,25 +15,37 @@
 *{box-sizing:border-box}
 body{margin:0;background:#f9fafb;color:var(--ink);font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;}
 
-/* ====== SIDEBAR estilo NS ====== */
-.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:var(--sidebar);color:#fff;padding:20px 0;overflow-y:auto;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,.08)}
-.sidebar-brand{padding:0 22px 20px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:14px}
-.sidebar-brand .title{font-weight:900;font-size:15px;letter-spacing:.06em;text-transform:uppercase}
-.sidebar-brand .title span{color:var(--lime)}
-.sidebar-brand .sub{font-size:11px;color:#9ca3af;margin-top:4px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
-.nav-section{padding:0 12px;margin-bottom:6px}
-.nav-section-title{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;font-weight:800;padding:10px 10px 6px}
-.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:8px;color:#d1d5db;text-decoration:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;margin-bottom:2px}
-.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
-.nav-item.active{background:var(--lime);color:#1f2937;font-weight:800}
-.nav-item.active svg{stroke:#1f2937}
-.nav-item svg{width:18px;height:18px;flex-shrink:0;stroke:#9ca3af}
-.nav-item:hover svg{stroke:#fff}
-.sidebar-foot{padding:14px 22px;border-top:1px solid rgba(255,255,255,.08);margin-top:12px;font-size:10px;color:#6b7280;letter-spacing:.05em;text-transform:uppercase;font-weight:700}
+/* ====== NAVBAR estilo NS ====== */
+nav{background:#1f2937;padding:13px 26px;display:flex;gap:20px;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,.18);position:sticky;top:0;z-index:300;flex-wrap:wrap;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif}
+nav > a{color:#e5e7eb;text-decoration:none;font-weight:700;padding:7px 14px;border-radius:7px;transition:all .2s;white-space:nowrap;font-size:13.5px}
+nav > a:first-child{color:#84cc16;font-weight:900;font-size:17px;letter-spacing:.04em}
+nav > a:hover{background:#374151}
+.dropdown{position:relative;display:inline-block}
+.dropdown-toggle{color:#e5e7eb;font-weight:700;padding:7px 14px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:6px;background:transparent;border:0;font-size:13.5px;font-family:inherit;transition:background .2s}
+.dropdown-toggle:hover{background:#374151}
+.dropdown-arrow{font-size:10px;transition:transform .25s;color:#9ca3af}
+.dropdown.open .dropdown-arrow{transform:rotate(180deg)}
+.dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#374151;min-width:230px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.28);margin-top:8px;z-index:1000;overflow:hidden;padding:4px 0}
+.dropdown.open .dropdown-menu{display:block}
+.dropdown-menu a{display:block;padding:10px 18px;color:#e5e7eb;text-decoration:none;font-weight:600;font-size:13px;transition:all .15s}
+.dropdown-menu a:hover{background:#4b5563;padding-left:22px}
+.dropdown-menu a.active{background:#84cc16;color:#1f2937;font-weight:800}
 
-/* ====== LAYOUT principal ====== */
-.main{margin-left:240px;min-height:100vh}
-.wrapper{max-width:1600px;margin:0 auto;padding:24px}
+/* ====== SIDEBAR de FILTROS estilo NS ====== */
+.layout{display:flex;align-items:flex-start;min-height:calc(100vh - 58px)}
+.sidebar{width:230px;flex-shrink:0;background:#fff;border-right:1px solid #e5e7eb;padding:18px 14px;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto}
+.sb-title{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;padding:0 4px 10px;border-bottom:1px solid #e5e7eb;margin-bottom:12px}
+.sb-reset{background:#f3f4f6;color:#1f2937;border:1px solid #e5e7eb;border-radius:6px;width:26px;height:26px;padding:0;font-size:14px;font-weight:800;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.sb-reset:hover{background:#1f2937;color:#fff;border-color:#1f2937}
+.fg{margin-bottom:11px;display:flex;flex-direction:column}
+.fg label{font-size:10px;font-weight:800;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;padding:0 2px}
+.fg select, .fg input{width:100%;background:#fff;color:#1f2937;border:1px solid #e5e7eb;border-radius:7px;padding:8px 9px;outline:none;font-weight:600;font-size:12.5px;font-family:inherit;cursor:pointer;transition:all .15s}
+.fg select:hover, .fg input:hover{border-color:#9ca3af}
+.fg select:focus, .fg input:focus{border-color:#84cc16;box-shadow:0 0 0 3px rgba(132,204,22,.14)}
+
+/* ====== LAYOUT principal ====== *//* ====== LAYOUT principal ====== */
+.main{flex:1;min-width:0;min-height:calc(100vh - 58px);background:#f9fafb}
+.wrapper{max-width:1500px;margin:0 auto;padding:22px}
 
 /* ====== HEADER ====== */
 .header{display:grid;grid-template-columns:1.45fr .55fr;gap:16px;align-items:stretch;margin-bottom:16px}
@@ -47,16 +59,6 @@ h1{margin:10px 0 6px;font-size:28px;line-height:1.1;letter-spacing:-.02em;color:
 .period{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:center}
 .period .big{font-size:48px;font-weight:900;color:var(--ink);line-height:1}
 .period .label{color:var(--muted);font-size:12px;text-transform:uppercase;font-weight:800;margin-top:4px;letter-spacing:.05em}
-
-/* ====== FILTROS estilo NS dashboard ====== */
-.controls{display:grid;grid-template-columns:repeat(6,minmax(140px,1fr));gap:10px;margin:0 0 16px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
-.controls label{display:block;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
-.control-group{display:flex;flex-direction:column}
-select,input{width:100%;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px 10px;outline:none;font-weight:600;font-size:13px;font-family:inherit;cursor:pointer;transition:border-color .15s}
-select:hover,input:hover{border-color:#9ca3af}
-select:focus,input:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(132,204,22,.12)}
-button{background:var(--sidebar);color:#fff;border:0;border-radius:8px;font-weight:700;padding:9px 14px;cursor:pointer;font-size:13px;font-family:inherit;transition:background .15s;align-self:end}
-button:hover{background:#111827}
 
 /* ====== KPIs ====== */
 .kpis{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-bottom:16px}
@@ -139,65 +141,59 @@ td.num,th.num{text-align:right}
 .footer{color:var(--muted);font-size:11px;text-align:right;margin-top:22px;font-weight:600}
 
 /* ====== Responsive ====== */
-.menu-toggle{display:none;position:fixed;top:14px;left:14px;z-index:101;background:var(--sidebar);color:#fff;border:0;border-radius:8px;padding:9px 11px;cursor:pointer;align-items:center;justify-content:center}
-@media(max-width:1180px){.header,.grid,.grid3,.gridMap{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}.controls{grid-template-columns:1fr 1fr}}
-@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .25s}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.menu-toggle{display:flex}.wrapper{padding-top:60px}}
-@media(max-width:650px){.wrapper{padding:60px 14px 14px}.kpis{grid-template-columns:1fr 1fr}.controls{grid-template-columns:1fr}h1{font-size:22px}#map{height:480px}}
+@media(max-width:1180px){.header,.grid,.grid3,.gridMap{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){.layout{flex-direction:column}.sidebar{width:100%;height:auto;position:relative;top:0;border-right:0;border-bottom:1px solid #e5e7eb;display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:14px}.sb-title{grid-column:1/-1}.fg{margin-bottom:0}}
+@media(max-width:650px){.wrapper{padding:14px}.kpis{grid-template-columns:1fr 1fr}.sidebar{grid-template-columns:1fr}h1{font-size:22px}#map{height:480px}nav{padding:10px 14px;gap:10px}nav>a:first-child{font-size:15px}}
 </style>
 </head>
 <body>
 
-<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Menú">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-</button>
-
-<aside class="sidebar">
-  <div class="sidebar-brand">
-    <div class="title">SETTEPI <span>GARCÍA</span></div>
-    <div class="sub">Seguridad Vial</div>
+<!-- ====== NAVBAR estilo NS ====== -->
+<nav>
+  <a href="index.html">TRAXIÓN</a>
+  <div class="dropdown" id="dd1">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dd1')">Logística <span class="dropdown-arrow">▼</span></button>
+    <div class="dropdown-menu">
+      <a href="Dashboard_NS.html">Nivel de Servicio</a>
+      <a href="Dashboard_Kilometros.html">Kilómetros</a>
+      <a href="Dashboard_Flota.html">Flota</a>
+      <a href="Dashboard_Ralenti.html">Ralentí</a>
+      <a href="Dashboard_CambioManos.html">Cambio de Manos</a>
+      <a href="Auditar_Folios.html">Auditar Folios</a>
+      <a href="#" class="active">Reporte Seguridad Vial</a>
+    </div>
   </div>
+</nav>
 
-  <div class="nav-section">
-    <div class="nav-section-title">Dashboards</div>
-    <a class="nav-item" href="https://planeacionlogistica.github.io/SettepiGarcia/Dashboard_NS.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
-      <span>Nivel de Servicio</span>
-    </a>
-    <a class="nav-item" href="https://planeacionlogistica.github.io/SettepiGarcia/Dashboard_Kilometros.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-      <span>Kilómetros</span>
-    </a>
-    <a class="nav-item" href="https://planeacionlogistica.github.io/SettepiGarcia/Dashboard_Flota.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h2l1-7h12l1 7h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
-      <span>Flota</span>
-    </a>
-    <a class="nav-item" href="https://planeacionlogistica.github.io/SettepiGarcia/Dashboard_Ralenti.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5h4"/></svg>
-      <span>Ralentí</span>
-    </a>
-    <a class="nav-item" href="https://planeacionlogistica.github.io/SettepiGarcia/Dashboard_CambioManos.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8l4 4-4 4"/><path d="M3 12h18"/><path d="M7 16l-4-4 4-4"/></svg>
-      <span>Cambio de Manos</span>
-    </a>
-  </div>
+<div class="layout">
 
-  <div class="nav-section">
-    <div class="nav-section-title">Auditoría</div>
-    <a class="nav-item active">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
-      <span>Reporte Seguridad Vial</span>
-    </a>
-    <a class="nav-item" href="https://planeacionlogistica.github.io/SettepiGarcia/Auditar_Folios.html">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
-      <span>Auditar Folios</span>
-    </a>
-  </div>
+  <!-- ====== SIDEBAR de FILTROS estilo NS ====== -->
+  <aside class="sidebar">
+    <div class="sb-title">Filtros <button class="sb-reset" onclick="resetFilters()" title="Limpiar filtros">↺</button></div>
+    <div class="fg">
+      <label>Gerente</label>
+      <select id="fGerente"><option value="">Todos</option></select>
+    </div>
+    <div class="fg">
+      <label>Jefe de operaciones</label>
+      <select id="fJefe"><option value="">Todos</option></select>
+    </div>
+    <div class="fg">
+      <label>Tipo</label>
+      <select id="fTipo"><option value="">Accidente + Incidencia</option></select>
+    </div>
+    <div class="fg">
+      <label>Responsabilidad</label>
+      <select id="fResp"><option value="">Todas</option></select>
+    </div>
+    <div class="fg">
+      <label>Municipio</label>
+      <select id="fMunicipio"><option value="">Todos</option></select>
+    </div>
+  </aside>
 
-  <div class="sidebar-foot">v1.0 · Mayo 2026</div>
-</aside>
-
-<div class="main">
-<div class="wrapper">
+  <main class="main">
+    <div class="wrapper">
   <section class="header">
     <div class="brand">
       <div class="logo">SETTEPI <span>GARCÍA</span> · SEGURIDAD VIAL</div>
@@ -211,30 +207,6 @@ td.num,th.num{text-align:right}
       <div style="height:12px"></div>
       <div class="subtitle"><b>Registros con coordenada:</b> <span id="geoCount">…</span><br><b>Periodo:</b> cargando…</div>
     </div>
-  </section>
-
-  <section class="controls">
-    <div class="control-group">
-      <label>Gerente</label>
-      <select id="fGerente"><option value="">Todos los gerentes</option></select>
-    </div>
-    <div class="control-group">
-      <label>Jefe de operaciones</label>
-      <select id="fJefe"><option value="">Todos los jefes</option></select>
-    </div>
-    <div class="control-group">
-      <label>Tipo</label>
-      <select id="fTipo"><option value="">Accidente + Incidencia</option></select>
-    </div>
-    <div class="control-group">
-      <label>Responsabilidad</label>
-      <select id="fResp"><option value="">Todas</option></select>
-    </div>
-    <div class="control-group">
-      <label>Municipio</label>
-      <select id="fMunicipio"><option value="">Todos los municipios</option></select>
-    </div>
-    <button onclick="resetFilters()">Limpiar filtros</button>
   </section>
 
   <section class="kpis">
@@ -293,6 +265,7 @@ td.num,th.num{text-align:right}
 
   <div class="footer">Generado para seguimiento ejecutivo · Seguridad Vial · Mayo 2026</div>
 </div>
+  </main>
 </div>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
@@ -301,6 +274,16 @@ td.num,th.num{text-align:right}
 const SHEET_ID  = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const SHEET_TAB = 'Siniestro';
 const csvUrl   = tab => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(tab)}&_cb=${Date.now()}`;
+
+// ====== Navbar dropdown ======
+function toggleDropdown(id){
+  const dd = document.getElementById(id);
+  document.querySelectorAll('.dropdown.open').forEach(d => { if(d!==dd) d.classList.remove('open'); });
+  if(dd) dd.classList.toggle('open');
+}
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.dropdown')) document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+});
 
 let DATA = [];
 let map=null, heatLayer=null, markerLayer=null, googleLayers=null, currentTileLayer=null;
