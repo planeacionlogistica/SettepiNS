@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reporte Ejecutivo Mayo 2026 | Mapa Geográfico de Calor</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+:root {
+  --bg:#f9fafb; --panel:#ffffff; --panel2:#f3f4f6; --ink:#1f2937; --muted:#6b7280;
+  --blue:#3b82f6; --cyan:#06b6d4; --yellow:#eab308; --orange:#f97316; --red:#dc2626; --green:#16a34a;
+  --lime:#84cc16; --sidebar:#1f2937; --sidebar2:#111827;
+  --line:#e5e7eb; --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box}
+body{margin:0;background:#f9fafb;color:var(--ink);font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;}
+
+/* ====== SIDEBAR estilo NS ====== */
+.sidebar{position:fixed;top:0;left:0;width:240px;height:100vh;background:var(--sidebar);color:#fff;padding:20px 0;overflow-y:auto;z-index:100;box-shadow:2px 0 8px rgba(0,0,0,.08)}
+.sidebar-brand{padding:0 22px 20px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:14px}
+.sidebar-brand .title{font-weight:900;font-size:15px;letter-spacing:.06em;text-transform:uppercase}
+.sidebar-brand .title span{color:var(--lime)}
+.sidebar-brand .sub{font-size:11px;color:#9ca3af;margin-top:4px;letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+.nav-section{padding:0 12px;margin-bottom:6px}
+.nav-section-title{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;font-weight:800;padding:10px 10px 6px}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:8px;color:#d1d5db;text-decoration:none;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;margin-bottom:2px}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav-item.active{background:var(--lime);color:#1f2937;font-weight:800}
+.nav-item.active svg{stroke:#1f2937}
+.nav-item svg{width:18px;height:18px;flex-shrink:0;stroke:#9ca3af}
+.nav-item:hover svg{stroke:#fff}
+.sidebar-foot{padding:14px 22px;border-top:1px solid rgba(255,255,255,.08);margin-top:12px;font-size:10px;color:#6b7280;letter-spacing:.05em;text-transform:uppercase;font-weight:700}
+
+/* ====== LAYOUT principal ====== */
+.main{margin-left:240px;min-height:100vh}
+.wrapper{max-width:1600px;margin:0 auto;padding:24px}
+
+/* ====== HEADER ====== */
+.header{display:grid;grid-template-columns:1.45fr .55fr;gap:16px;align-items:stretch;margin-bottom:16px}
+.brand{background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.brand:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--lime)}
+.logo{font-weight:800;letter-spacing:.05em;font-size:12px;color:var(--muted);text-transform:uppercase}
+.logo span{color:var(--lime)}
+h1{margin:10px 0 6px;font-size:28px;line-height:1.1;letter-spacing:-.02em;color:var(--ink)}
+.subtitle{color:var(--muted);font-size:14px;max-width:950px;line-height:1.5}
+.badge{display:inline-flex;gap:8px;align-items:center;background:#f0fdf4;border:1px solid #bbf7d0;color:#166534;padding:6px 12px;border-radius:6px;margin-top:14px;font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.period{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:center}
+.period .big{font-size:48px;font-weight:900;color:var(--ink);line-height:1}
+.period .label{color:var(--muted);font-size:12px;text-transform:uppercase;font-weight:800;margin-top:4px;letter-spacing:.05em}
+
+/* ====== FILTROS estilo NS dashboard ====== */
+.controls{display:grid;grid-template-columns:repeat(6,minmax(140px,1fr));gap:10px;margin:0 0 16px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+.controls label{display:block;font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.control-group{display:flex;flex-direction:column}
+select,input{width:100%;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px 10px;outline:none;font-weight:600;font-size:13px;font-family:inherit;cursor:pointer;transition:border-color .15s}
+select:hover,input:hover{border-color:#9ca3af}
+select:focus,input:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(132,204,22,.12)}
+button{background:var(--sidebar);color:#fff;border:0;border-radius:8px;font-weight:700;padding:9px 14px;cursor:pointer;font-size:13px;font-family:inherit;transition:background .15s;align-self:end}
+button:hover{background:#111827}
+
+/* ====== KPIs ====== */
+.kpis{display:grid;grid-template-columns:repeat(7,1fr);gap:12px;margin-bottom:16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:var(--shadow)}
+.kpi{position:relative;overflow:hidden}
+.kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--muted)}
+.kpi .num{font-size:26px;font-weight:900;margin-bottom:3px;color:var(--ink)}
+.kpi .txt{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:800}
+.kpi.red:before{background:var(--red)} .kpi.red .num{color:var(--red)}
+.kpi.orange:before{background:var(--orange)} .kpi.orange .num{color:var(--orange)}
+.kpi.yellow:before{background:var(--yellow)} .kpi.yellow .num{color:#a16207}
+.kpi.green:before{background:var(--green)} .kpi.green .num{color:var(--green)}
+.kpi.cyan:before{background:var(--cyan)} .kpi.cyan .num{color:#0e7490}
+
+/* ====== Grids ====== */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.gridMap{display:grid;grid-template-columns:1.4fr .6fr;gap:16px;margin-bottom:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+h2{margin:0 0 14px;font-size:15px;letter-spacing:.02em;color:var(--ink);font-weight:800;text-transform:uppercase}
+.note{color:var(--muted);font-size:12px;margin-top:-6px;margin-bottom:12px}
+
+/* ====== Tablas ====== */
+.tablewrap{overflow:auto;border-radius:8px;border:1px solid var(--line);max-height:520px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:9px 11px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;color:var(--ink)}
+th{background:#f9fafb;color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.05em;position:sticky;top:0;z-index:1;font-weight:800}
+tbody tr:hover{background:#f9fafb}
+td.num,th.num{text-align:right}
+
+/* ====== Pills ====== */
+.pill{display:inline-flex;align-items:center;border-radius:6px;padding:3px 8px;font-weight:700;font-size:10.5px;letter-spacing:.03em}
+.pill.acc{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+.pill.inc{background:#cffafe;color:#155e75;border:1px solid #a5f3fc}
+.pill.resp{background:#fee2e2;color:#991b1b;border:1px solid #fecaca}
+.pill.afec{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe}
+.pill.pend{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+
+/* ====== Barras ====== */
+.barrow{display:grid;grid-template-columns:180px 1fr 42px;gap:10px;align-items:center;margin:8px 0}
+.barlabel{font-size:12px;color:var(--ink);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bartrack{height:10px;background:#f3f4f6;border-radius:999px;overflow:hidden}
+.bar{height:100%;background:linear-gradient(90deg,var(--lime),#22c55e,var(--orange),var(--red));border-radius:999px}
+.barval{font-weight:800;text-align:right;color:var(--ink);font-size:13px}
+
+/* ====== Heatmap tables ====== */
+.heat td{text-align:center;font-weight:800;border:1px solid var(--line);color:var(--ink)}
+.heat th{position:static;text-align:center;background:#f3f4f6;color:var(--muted)}
+.heat .rowhead{text-align:left;background:#f9fafb;max-width:220px;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+
+/* ====== Leyendas ====== */
+.legend{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:11px;margin-top:10px;flex-wrap:wrap;font-weight:600}
+.lbox{width:28px;height:10px;border-radius:3px}
+
+/* ====== Mapa ====== */
+#map{height:620px;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#f3f4f6}
+.leaflet-popup-content-wrapper{background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.leaflet-popup-tip{background:#fff;border:1px solid var(--line)}
+.leaflet-popup-content{font-size:12px;line-height:1.5;margin:10px 12px}
+.leaflet-popup-content b{color:var(--ink);font-weight:800}
+.leaflet-container{font-family:Inter,Segoe UI,Roboto,Arial,sans-serif}
+.map-controls{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.map-btn{padding:6px 12px;font-size:11px;font-weight:700;background:#f3f4f6;border:1px solid var(--line);border-radius:6px;color:var(--ink);cursor:pointer;text-transform:uppercase;letter-spacing:.04em;transition:all .15s}
+.map-btn:hover{background:#e5e7eb}
+.map-btn.active{background:var(--sidebar);color:#fff;border-color:var(--sidebar)}
+
+/* ====== Observaciones ====== */
+.obs ul{margin:0;padding-left:18px;color:var(--ink);line-height:1.55;font-size:13px}
+.obs li{margin:0 0 9px}
+.obs b{color:var(--ink);font-weight:800}
+.smallMatrix{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.status{border-radius:8px;padding:12px;background:#f9fafb;border:1px solid var(--line);margin-bottom:10px}
+.status .n{font-weight:900;font-size:22px;color:var(--ink)}
+.status .l{color:var(--muted);font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:.05em}
+
+/* ====== Fallback ====== */
+.fallback{height:360px;position:relative;background:#f9fafb;border:1px dashed #d1d5db;border-radius:10px;overflow:hidden;display:none;margin-top:12px}
+.fallback:before{content:"";position:absolute;inset:22px;background-image:linear-gradient(rgba(0,0,0,.04) 1px, transparent 1px),linear-gradient(90deg, rgba(0,0,0,.04) 1px, transparent 1px);background-size:40px 40px;border-radius:6px}
+.pt{position:absolute;width:16px;height:16px;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 12px rgba(239,68,68,.5);border:2px solid #fff}
+.pt.responsable{background:var(--red)} .pt.afectado{background:var(--blue);box-shadow:0 0 12px rgba(59,130,246,.5)} .pt.pendiente{background:var(--yellow);box-shadow:0 0 12px rgba(234,179,8,.5)}
+.footer{color:var(--muted);font-size:11px;text-align:right;margin-top:22px;font-weight:600}
+
+/* ====== Responsive ====== */
+.menu-toggle{display:none;position:fixed;top:14px;left:14px;z-index:101;background:var(--sidebar);color:#fff;border:0;border-radius:8px;padding:9px 11px;cursor:pointer;align-items:center;justify-content:center}
+@media(max-width:1180px){.header,.grid,.grid3,.gridMap{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}.controls{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.sidebar{transform:translateX(-100%);transition:transform .25s}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.menu-toggle{display:flex}.wrapper{padding-top:60px}}
+@media(max-width:650px){.wrapper{padding:60px 14px 14px}.kpis{grid-template-columns:1fr 1fr}.controls{grid-template-columns:1fr}h1{font-size:22px}#map{height:480px}}
+</style>
+</head>
+<body>
+
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Menú">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="title">SETTEPI <span>GARCÍA</span></div>
+    <div class="sub">Seguridad Vial</div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Dashboards</div>
+    <a class="nav-item" href="https://planeacionlogistica.github.io/SettepiGarcia/Dashboard_NS.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+      <span>Nivel de Servicio</span>
+    </a>
+    <a class="nav-item" href="https://planeacionlogistica.github.io/SettepiGarcia/Dashboard_Kilometros.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      <span>Kilómetros</span>
+    </a>
+    <a class="nav-item" href="https://planeacionlogistica.github.io/SettepiGarcia/Dashboard_Flota.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h2l1-7h12l1 7h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+      <span>Flota</span>
+    </a>
+    <a class="nav-item" href="https://planeacionlogistica.github.io/SettepiGarcia/Dashboard_Ralenti.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5h4"/></svg>
+      <span>Ralentí</span>
+    </a>
+    <a class="nav-item" href="https://planeacionlogistica.github.io/SettepiGarcia/Dashboard_CambioManos.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8l4 4-4 4"/><path d="M3 12h18"/><path d="M7 16l-4-4 4-4"/></svg>
+      <span>Cambio de Manos</span>
+    </a>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-title">Auditoría</div>
+    <a class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+      <span>Reporte Seguridad Vial</span>
+    </a>
+    <a class="nav-item" href="https://planeacionlogistica.github.io/SettepiGarcia/Auditar_Folios.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+      <span>Auditar Folios</span>
+    </a>
+  </div>
+
+  <div class="sidebar-foot">v1.0 · Mayo 2026</div>
+</aside>
+
+<div class="main">
+<div class="wrapper">
+  <section class="header">
+    <div class="brand">
+      <div class="logo">SETTEPI <span>GARCÍA</span> · SEGURIDAD VIAL</div>
+      <h1>Reporte Ejecutivo · Siniestros</h1>
+      <div class="subtitle">Análisis por gerente, jefe de operaciones, tipo, responsabilidad y ubicación geográfica. Los datos se cargan en vivo desde la hoja <b>Siniestro</b> de García Data. El mapa de calor permite ubicar concentración real por coordenadas y priorizar intervención en ruta.</div>
+      <div class="badge">BD Siniestros · vista ejecutiva con mapa geográfico</div>
+    </div>
+    <div class="period">
+      <div class="big" id="periodTotal">…</div>
+      <div class="label">eventos cargados</div>
+      <div style="height:12px"></div>
+      <div class="subtitle"><b>Registros con coordenada:</b> <span id="geoCount">…</span><br><b>Periodo:</b> cargando…</div>
+    </div>
+  </section>
+
+  <section class="controls">
+    <div class="control-group">
+      <label>Gerente</label>
+      <select id="fGerente"><option value="">Todos los gerentes</option></select>
+    </div>
+    <div class="control-group">
+      <label>Jefe de operaciones</label>
+      <select id="fJefe"><option value="">Todos los jefes</option></select>
+    </div>
+    <div class="control-group">
+      <label>Tipo</label>
+      <select id="fTipo"><option value="">Accidente + Incidencia</option></select>
+    </div>
+    <div class="control-group">
+      <label>Responsabilidad</label>
+      <select id="fResp"><option value="">Todas</option></select>
+    </div>
+    <div class="control-group">
+      <label>Municipio</label>
+      <select id="fMunicipio"><option value="">Todos los municipios</option></select>
+    </div>
+    <button onclick="resetFilters()">Limpiar filtros</button>
+  </section>
+
+  <section class="kpis">
+    <div class="card kpi red"><div class="num" id="kTotal">…</div><div class="txt">Total eventos</div></div>
+    <div class="card kpi orange"><div class="num" id="kAcc">…</div><div class="txt">Accidentes</div></div>
+    <div class="card kpi cyan"><div class="num" id="kInc">…</div><div class="txt">Incidencias</div></div>
+    <div class="card kpi red"><div class="num" id="kResp">…</div><div class="txt">Responsables</div></div>
+    <div class="card kpi cyan"><div class="num" id="kAfect">…</div><div class="txt">Afectados</div></div>
+    <div class="card kpi yellow"><div class="num" id="kMonto">—</div><div class="txt">Días antigüedad prom.</div></div>
+    <div class="card kpi green"><div class="num" id="kLes">…</div><div class="txt">Operadores ≤ 90 días</div></div>
+  </section>
+
+  <section class="gridMap">
+    <div class="card">
+      <h2>Mapa de calor geográfico</h2>
+      <div class="note">La intensidad considera concentración, tipo y responsabilidad. Rojo = responsable, azul = afectado, amarillo = pendiente. Los filtros actualizan el mapa.</div>
+      <div class="map-controls">
+        <button type="button" class="map-btn active" onclick="setMapType('roadmap')" id="btnRoad">Mapa</button>
+        <button type="button" class="map-btn" onclick="setMapType('satellite')" id="btnSat">Satélite</button>
+        <button type="button" class="map-btn" onclick="setMapType('hybrid')" id="btnHyb">Híbrido</button>
+        <button type="button" class="map-btn" onclick="setMapType('terrain')" id="btnTer">Terreno</button>
+      </div>
+      <div id="map"></div>
+      <div id="fallbackMap" class="fallback"></div>
+      <div class="legend"><span class="lbox" style="background:#fca5a5"></span>Responsable <span class="lbox" style="background:#1f6feb"></span>Afectado <span class="lbox" style="background:#fde68a"></span>Pendiente <span style="margin-left:10px">Capa roja difusa = concentración / calor geográfico</span></div>
+    </div>
+    <div class="card obs">
+      <h2>Observaciones ejecutivas</h2>
+      <div class="note">Lectura gerencial para orientar acciones, no solo conteo.</div>
+      <ul id="obsList"><li>La mayor concentración por gerencia está en <b>ERIC SANDOVAL</b> con <b>11</b> eventos de 26 (42%).</li><li>A nivel jefatura, <b>MIGUEL GRANADOS</b> concentra <b>7</b> eventos; conviene focalizar revisión de rutas, arranques y retroalimentación directa con su estructura.</li><li>La clasificación más recurrente es <b>INVASIÓN DE CARRIL</b> con <b>8</b> registros; debe tratarse como prioridad de campaña y auditoría de comportamiento.</li><li>La responsabilidad queda prácticamente equilibrada: <b>13</b> responsables vs <b>12</b> afectados y <b>1</b> pendiente; separar gestión disciplinaria de eventos donde la unidad fue afectada evita acciones incorrectas.</li><li>Geográficamente, <b>GARCIA</b> concentra <b>13</b> registros; el mapa permite ubicar corredores y puntos repetitivos para intervención en ruta.</li><li>Se detectan registros con coordenadas alejadas del municipio/calle declarada; antes de presentar a cliente o dirección, validar geocodificación de los puntos atípicos para no desviar el diagnóstico.</li></ul>
+      <div class="smallMatrix" style="margin-top:14px">
+        <div class="status"><div class="n" id="mResp">13</div><div class="l">Responsables</div></div>
+        <div class="status"><div class="n" id="mAfect">12</div><div class="l">Afectados</div></div>
+        <div class="status"><div class="n" id="mTopMun">GARCIA</div><div class="l">Municipio líder</div></div>
+        <div class="status"><div class="n" id="mTopClass">—</div><div class="l">Planta líder</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid3">
+    <div class="card"><h2>Concentración por gerente</h2><div class="note">Ranking por número de eventos filtrados.</div><div id="barsGerente"></div></div>
+    <div class="card"><h2>Concentración por jefe</h2><div class="note">Ranking operativo por jefe de operaciones.</div><div id="barsJefe"></div></div>
+    <div class="card"><h2>Top plantas / clientes</h2><div class="note">Plantas con mayor recurrencia de eventos.</div><div id="barsClas"></div></div>
+  </section>
+
+  <section class="grid">
+    <div class="card"><h2>Mapa de calor · Gerente vs Jefe</h2><div class="note">Matriz complementaria para ver concentración por estructura.</div><div class="tablewrap"><table class="heat" id="heatGJ"></table></div><div class="legend"><span>Bajo</span><span class="lbox" style="background:#e5e7eb"></span><span class="lbox" style="background:#fde68a"></span><span class="lbox" style="background:#fdba74"></span><span class="lbox" style="background:#fca5a5"></span><span>Alto</span></div></div>
+    <div class="card"><h2>Mapa de calor · Jefe vs Responsabilidad</h2><div class="note">Permite separar seguimiento disciplinario, preventivo y cierre de investigación.</div><div class="tablewrap"><table class="heat" id="heatJR"></table></div><div class="legend"><span>Bajo</span><span class="lbox" style="background:#e5e7eb"></span><span class="lbox" style="background:#fde68a"></span><span class="lbox" style="background:#fdba74"></span><span class="lbox" style="background:#fca5a5"></span><span>Alto</span></div></div>
+  </section>
+
+  <section class="card">
+    <h2>Relación ejecutiva de registros</h2>
+    <div class="note">Incluye número de unidad. Se omiten datos personales del operador para mantener foco ejecutivo y evitar exposición innecesaria.</div>
+    <div class="tablewrap" style="max-height:560px"><table id="detail"></table></div>
+  </section>
+
+  <div class="footer">Generado para seguimiento ejecutivo · Seguridad Vial · Mayo 2026</div>
+</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
+<script>
+// ====== Configuración Google Sheets ======
+const SHEET_ID  = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
+const SHEET_TAB = 'Siniestro';
+const csvUrl   = tab => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(tab)}&_cb=${Date.now()}`;
+
+let DATA = [];
+let map=null, heatLayer=null, markerLayer=null, googleLayers=null, currentTileLayer=null;
+
+// ====== Helpers ======
+function uniq(arr){return [...new Set(arr.filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'es'));}
+function money(n){return new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0}).format(n||0)}
+function fillSelect(id, vals){const s=document.getElementById(id); vals.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o)})}
+
+// ====== Parser CSV (maneja comillas y comas embebidas) ======
+function parseCSV(text){
+  const rows=[]; let row=[], cell='', inQ=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQ){
+      if(c==='"' && text[i+1]==='"'){ cell+='"'; i++; }
+      else if(c==='"'){ inQ=false; }
+      else { cell+=c; }
+    } else {
+      if(c==='"'){ inQ=true; }
+      else if(c===','){ row.push(cell); cell=''; }
+      else if(c==='\n'){ row.push(cell); rows.push(row); row=[]; cell=''; }
+      else if(c==='\r'){ /* skip */ }
+      else { cell+=c; }
+    }
+  }
+  if(cell!=='' || row.length){ row.push(cell); rows.push(row); }
+  return rows;
+}
+
+// ====== Normalización de campos ======
+function parseDate(s){
+  if(!s) return {fecha:'', fechaISO:''};
+  s = String(s).trim();
+  let m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);   // DD/MM/YYYY
+  if(m){ const dd=m[1].padStart(2,'0'), mm=m[2].padStart(2,'0'); return {fecha:`${dd}/${mm}/${m[3]}`, fechaISO:`${m[3]}-${mm}-${dd}`}; }
+  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);                       // ISO
+  if(m){ return {fecha:`${m[3]}/${m[2]}/${m[1]}`, fechaISO:`${m[1]}-${m[2]}-${m[3]}`}; }
+  return {fecha:s, fechaISO:''};
+}
+function parseHora(s){
+  if(!s) return '';
+  let t=String(s).trim().toLowerCase().replace(/\s+/g,'').replace(/\./g,'');
+  const isPM=/pm$/.test(t), isAM=/am$/.test(t);
+  t=t.replace(/[ap]m$/,'');
+  const p=t.split(':'); if(p.length<2) return s;
+  let h=parseInt(p[0],10)||0; const mn=parseInt(p[1],10)||0;
+  if(isPM && h<12) h+=12;
+  if(isAM && h===12) h=0;
+  return `${String(h).padStart(2,'0')}:${String(mn).padStart(2,'0')}`;
+}
+function mapResp(s){
+  const v=String(s||'').trim().toUpperCase();
+  if(v==='SI'||v==='SÍ') return 'RESPONSABLE';
+  if(v==='NO') return 'AFECTADO';
+  return 'PENDIENTE';
+}
+function mapTipo(sev){
+  const v=String(sev||'').trim().toUpperCase();
+  if(v==='GRAVE'||v==='MODERADO') return 'ACCIDENTE';
+  if(v==='LEVE') return 'INCIDENCIA';
+  return 'ACCIDENTE';
+}
+function calcHeat(sev){
+  const v=String(sev||'').trim().toUpperCase();
+  if(v==='GRAVE') return 4;
+  if(v==='MODERADO') return 2.5;
+  if(v==='LEVE') return 1.5;
+  return 1.5;
+}
+
+// ====== Mapeo por índice de columna (A=0 ... T=19) ======
+function parseRow(cols){
+  const sev = String(cols[1]||'').trim().toUpperCase();
+  const f = parseDate(cols[4]);
+  const lat = parseFloat(cols[8]);
+  const lng = parseFloat(cols[9]);
+  return {
+    fecha:         f.fecha,
+    fechaISO:      f.fechaISO,
+    hora:          parseHora(cols[5]),
+    gerente:       String(cols[19]||'').trim().toUpperCase(),
+    jefe:          String(cols[18]||'').trim().toUpperCase(),
+    coordinador:   String(cols[17]||'').trim().toUpperCase(),
+    tipo:          mapTipo(sev),
+    severidad:     sev || 'SIN CLASIFICAR',
+    clasificacion: sev || 'SIN CLASIFICAR',
+    responsabilidad: mapResp(cols[0]),
+    planta:        String(cols[11]||'').trim().toUpperCase(),
+    municipio:     String(cols[7]||'').trim().toUpperCase(),
+    calle:         String(cols[6]||'').trim(),
+    unidad:        String(cols[10]||'').trim(),
+    operador:      String(cols[13]||'').trim(),
+    nomina:        String(cols[12]||'').trim(),
+    fechaIngreso:  String(cols[14]||'').trim(),
+    diasAntig:     parseInt(cols[15],10)||0,
+    antiguedad:    String(cols[16]||'').trim(),
+    lat:           isFinite(lat) ? lat : null,
+    lng:           isFinite(lng) ? lng : null,
+    lesionados:    0,
+    monto:         0,
+    heat:          calcHeat(sev),
+    idRu:          String(cols[2]||'').trim(),
+    idEvento:      String(cols[3]||'').trim()
+  };
+}
+
+// ====== Carga desde gviz ======
+async function loadData(){
+  try{
+    const r = await fetch(csvUrl(SHEET_TAB));
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const text = await r.text();
+    const rows = parseCSV(text);
+    if(rows.length<2) return [];
+    // Salteamos fila 0 (headers)
+    const data = rows.slice(1)
+      .filter(r => r.length>1 && (r[4]||r[3]))         // tiene fecha o id evento
+      .map(parseRow)
+      .filter(d => d.fechaISO);                         // solo con fecha válida
+    return data;
+  }catch(e){
+    console.error('Error cargando datos:', e);
+    const obs = document.getElementById('obsList');
+    if(obs) obs.innerHTML = '<li style="color:#dc2626"><b>Error al cargar datos del Sheet:</b> '+e.message+'. Verifica que la pestaña "Siniestro" sea accesible públicamente.</li>';
+    return [];
+  }
+}
+
+function populateFilters(){
+  ['fGerente','fJefe','fTipo','fResp','fMunicipio'].forEach(id=>{
+    const sel=document.getElementById(id);
+    while(sel.options.length>1) sel.remove(1);
+  });
+  fillSelect('fGerente',    uniq(DATA.map(d=>d.gerente)));
+  fillSelect('fJefe',       uniq(DATA.map(d=>d.jefe)));
+  fillSelect('fTipo',       uniq(DATA.map(d=>d.tipo)));
+  fillSelect('fResp',       uniq(DATA.map(d=>d.responsabilidad)));
+  fillSelect('fMunicipio',  uniq(DATA.map(d=>d.municipio)));
+}
+
+// Listeners (los selects ya existen en el DOM)
+['fGerente','fJefe','fTipo','fResp','fMunicipio'].forEach(id=>document.getElementById(id).addEventListener('change', render));
+
+function resetFilters(){['fGerente','fJefe','fTipo','fResp','fMunicipio'].forEach(id=>document.getElementById(id).value='');render();}
+function filtered(){
+  const g=fGerente.value,j=fJefe.value,t=fTipo.value,r=fResp.value,m=fMunicipio.value;
+  return DATA.filter(d=>(!g||d.gerente===g)&&(!j||d.jefe===j)&&(!t||d.tipo===t)&&(!r||d.responsabilidad===r)&&(!m||d.municipio===m));
+}
+function countBy(rows,key){const o={}; rows.forEach(d=>o[d[key]]=(o[d[key]]||0)+1); return Object.entries(o).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'es'));}
+function sumBy(rows,key){const o={}; rows.forEach(d=>o[d[key]]=(o[d[key]]||0)+(d.monto||0)); return Object.entries(o).sort((a,b)=>b[1]-a[1]);}
+function bars(id, items, maxItems=8){
+  const el=document.getElementById(id); el.innerHTML=''; const max=Math.max(1,...items.map(x=>x[1]));
+  items.slice(0,maxItems).forEach(([label,val])=>{
+    el.insertAdjacentHTML('beforeend',`<div class="barrow"><div class="barlabel" title="${label}">${label}</div><div class="bartrack"><div class="bar" style="width:${Math.max(5,val/max*100)}%"></div></div><div class="barval">${val}</div></div>`);
+  });
+  if(!items.length) el.innerHTML='<div class="note">Sin datos con el filtro aplicado.</div>';
+}
+function heatColor(v,max){
+  if(!v) return 'rgba(255,255,255,.025)'; const p=v/max;
+  if(p>.74) return 'rgba(239,68,68,.88)'; if(p>.49) return 'rgba(251,146,60,.84)'; if(p>.24) return 'rgba(250,204,21,.78)'; return 'rgba(34,211,238,.35)';
+}
+function heatTable(id, rows, rowKey, colKey){
+  const table=document.getElementById(id); const rLabels=uniq(rows.map(d=>d[rowKey])); const cLabels=uniq(rows.map(d=>d[colKey]));
+  const grid={}; let max=0; rows.forEach(d=>{const k=d[rowKey]+'||'+d[colKey]; grid[k]=(grid[k]||0)+1; max=Math.max(max,grid[k]);});
+  let h='<thead><tr><th></th>'+cLabels.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>';
+  rLabels.forEach(r=>{h+=`<tr><th class="rowhead">${r}</th>`+cLabels.map(c=>{const v=grid[r+'||'+c]||0; return `<td style="background:${heatColor(v,max)}">${v||''}</td>`}).join('')+'</tr>';});
+  table.innerHTML=h+'</tbody>';
+}
+function pillTipo(t){return `<span class="pill ${t==='ACCIDENTE'?'acc':'inc'}">${t}</span>`}
+function pillResp(r){let c=r==='RESPONSABLE'?'resp':(r==='AFECTADO'?'afec':'pend'); return `<span class="pill ${c}">${r}</span>`}
+function detail(rows){
+  const table=document.getElementById('detail');
+  const ordered=[...rows].sort((a,b)=>a.fechaISO.localeCompare(b.fechaISO)||a.hora.localeCompare(b.hora));
+  let h='<thead><tr><th>Fecha</th><th>Hora</th><th>Unidad</th><th>Operador</th><th>Antig.</th><th>Tipo</th><th>Severidad</th><th>Responsabilidad</th><th>Gerente</th><th>Jefe</th><th>Municipio</th><th>Calle / referencia</th></tr></thead><tbody>';
+  ordered.forEach(d=>{h+=`<tr><td>${d.fecha}</td><td>${d.hora}</td><td><b>${d.unidad}</b></td><td>${d.operador||'—'}</td><td>${d.antiguedad||'—'}</td><td>${pillTipo(d.tipo)}</td><td>${d.severidad||''}</td><td>${pillResp(d.responsabilidad)}</td><td>${d.gerente}</td><td>${d.jefe}</td><td>${d.municipio}</td><td title="${d.calle}">${d.calle}</td></tr>`});
+  table.innerHTML=h+'</tbody>';
+}
+function updateObservations(rows){
+  const total=rows.length, acc=rows.filter(d=>d.tipo==='ACCIDENTE').length, inc=rows.filter(d=>d.tipo==='INCIDENCIA').length;
+  const resp=rows.filter(d=>d.responsabilidad==='RESPONSABLE').length, afect=rows.filter(d=>d.responsabilidad==='AFECTADO').length, pend=rows.filter(d=>d.responsabilidad==='PENDIENTE').length;
+  const grave=rows.filter(d=>d.severidad==='GRAVE').length, mod=rows.filter(d=>d.severidad==='MODERADO').length, leve=rows.filter(d=>d.severidad==='LEVE').length;
+  const novatos=rows.filter(d=>d.diasAntig>0 && d.diasAntig<=90).length;
+  const topGer=countBy(rows,'gerente')[0]||['-',0]; const topJ=countBy(rows,'jefe')[0]||['-',0]; const topP=countBy(rows,'planta')[0]||['-',0]; const topM=countBy(rows,'municipio')[0]||['-',0];
+  const pct=(n,d)=>d?Math.round(n/d*100):0;
+  const obs=[];
+  obs.push(`Filtro actual: <b>${total}</b> eventos; <b>${acc}</b> accidentes y <b>${inc}</b> incidencias. Severidad: <b>${grave}</b> graves, <b>${mod}</b> moderados, <b>${leve}</b> leves.`);
+  if(total) obs.push(`Mayor concentración por gerencia: <b>${topGer[0]}</b> con <b>${topGer[1]}</b> eventos (${pct(topGer[1],total)}%).`);
+  if(total) obs.push(`Jefatura con mayor carga: <b>${topJ[0]}</b> con <b>${topJ[1]}</b> eventos; revisar patrones de ruta, arranques y puntos repetitivos.`);
+  if(total) obs.push(`Planta / cliente líder en eventos: <b>${topP[0]}</b> con <b>${topP[1]}</b> registros; revisar condiciones del corredor y acceso.`);
+  obs.push(`Responsabilidad: <b>${resp}</b> responsables, <b>${afect}</b> afectados y <b>${pend}</b> pendientes. Gestionar sanción solo donde exista responsabilidad documentada.`);
+  if(total) obs.push(`Municipio con mayor concentración: <b>${topM[0]}</b>; validar puntos calientes contra croquis/ruta antes de cerrar acción correctiva.`);
+  if(novatos) obs.push(`<b>${novatos}</b> eventos corresponden a operadores con ≤ 90 días de antigüedad; reforzar capacitación y acompañamiento en ese tramo.`);
+  document.getElementById('obsList').innerHTML=obs.map(o=>`<li>${o}</li>`).join('');
+  document.getElementById('mResp').textContent=resp; document.getElementById('mAfect').textContent=afect;
+  document.getElementById('mTopMun').textContent=topM[0]; document.getElementById('mTopClass').textContent=topP[0];
+}
+function colorResp(r){return r==='RESPONSABLE'?'#dc2626':(r==='AFECTADO'?'#3b82f6':'#eab308')}
+function initMap(){
+  try{
+    map=L.map('map',{scrollWheelZoom:true,zoomControl:true}).setView([25.77,-100.47],10);
+    // Google Maps tiles - tipos: m=roadmap, s=satellite, y=hybrid, p=terrain
+    googleLayers = {
+      roadmap: L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{maxZoom:20,subdomains:['0','1','2','3'],attribution:'&copy; Google Maps'}),
+      satellite: L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{maxZoom:20,subdomains:['0','1','2','3'],attribution:'&copy; Google Maps'}),
+      hybrid: L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',{maxZoom:20,subdomains:['0','1','2','3'],attribution:'&copy; Google Maps'}),
+      terrain: L.tileLayer('https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',{maxZoom:20,subdomains:['0','1','2','3'],attribution:'&copy; Google Maps'})
+    };
+    currentTileLayer = googleLayers.roadmap;
+    currentTileLayer.addTo(map);
+    markerLayer=L.layerGroup().addTo(map);
+  }catch(e){document.getElementById('fallbackMap').style.display='block';}
+}
+function setMapType(type){
+  if(!map||!googleLayers[type]) return;
+  if(currentTileLayer) map.removeLayer(currentTileLayer);
+  currentTileLayer = googleLayers[type];
+  currentTileLayer.addTo(map);
+  // toggle visual active
+  ['btnRoad','btnSat','btnHyb','btnTer'].forEach(id=>{const b=document.getElementById(id);if(b)b.classList.remove('active');});
+  const map_={roadmap:'btnRoad',satellite:'btnSat',hybrid:'btnHyb',terrain:'btnTer'};
+  const btn=document.getElementById(map_[type]); if(btn) btn.classList.add('active');
+}
+function renderFallback(rows){
+ const box=document.getElementById('fallbackMap'); box.innerHTML=''; if(!rows.length) return;
+ const pts=rows.filter(d=>d.lat&&d.lng); if(!pts.length) return;
+ const minLat=Math.min(...pts.map(d=>d.lat)), maxLat=Math.max(...pts.map(d=>d.lat)), minLng=Math.min(...pts.map(d=>d.lng)), maxLng=Math.max(...pts.map(d=>d.lng));
+ pts.forEach(d=>{const x=(d.lng-minLng)/((maxLng-minLng)||1)*88+6; const y=(1-(d.lat-minLat)/((maxLat-minLat)||1))*84+8; const cls=d.responsabilidad.toLowerCase(); box.insertAdjacentHTML('beforeend',`<div class="pt ${cls}" style="left:${x}%;top:${y}%" title="Unidad ${d.unidad} · ${d.clasificacion}"></div>`);});
+}
+function updateMap(rows){
+  const pts=rows.filter(d=>d.lat&&d.lng);
+  document.getElementById('geoCount').textContent=pts.length;
+  if(!map||!window.L||!L.heatLayer){document.getElementById('fallbackMap').style.display='block';renderFallback(rows);return;}
+  markerLayer.clearLayers(); if(heatLayer) map.removeLayer(heatLayer);
+  const heat=pts.map(d=>[d.lat,d.lng,d.heat||1]);
+  heatLayer=L.heatLayer(heat,{radius:32,blur:22,maxZoom:15,max:3.5,gradient:{0.2:'#22d3ee',0.45:'#facc15',0.7:'#fb923c',1:'#ef4444'}}).addTo(map);
+  pts.forEach(d=>{
+    const pop=`<b>Unidad ${d.unidad}</b><br>${d.fecha} ${d.hora}<br><span style="color:#6b7280">${d.tipo} · ${d.severidad}</span><br>Resp: <b>${d.responsabilidad}</b><br>${d.operador?'Op: '+d.operador+(d.antiguedad?' ('+d.antiguedad+')':'')+'<br>':''}${d.planta?'Planta: '+d.planta+'<br>':''}${d.gerente} / ${d.jefe}<br>${d.municipio}<br><span style="color:#6b7280">${d.calle}</span>`;
+    L.circleMarker([d.lat,d.lng],{radius:7,color:'#ffffff',weight:1,fillColor:colorResp(d.responsabilidad),fillOpacity:.95}).bindPopup(pop).addTo(markerLayer);
+  });
+  if(pts.length){const bounds=L.latLngBounds(pts.map(d=>[d.lat,d.lng])); map.fitBounds(bounds.pad(.18));}
+}
+function render(){
+  const rows=filtered();
+  document.getElementById('periodTotal').textContent=rows.length;
+  document.getElementById('kTotal').textContent=rows.length;
+  document.getElementById('kAcc').textContent=rows.filter(d=>d.tipo==='ACCIDENTE').length;
+  document.getElementById('kInc').textContent=rows.filter(d=>d.tipo==='INCIDENCIA').length;
+  document.getElementById('kResp').textContent=rows.filter(d=>d.responsabilidad==='RESPONSABLE').length;
+  document.getElementById('kAfect').textContent=rows.filter(d=>d.responsabilidad==='AFECTADO').length;
+  document.getElementById('kMonto').textContent=(()=>{const v=rows.filter(d=>d.diasAntig>0).map(d=>d.diasAntig);return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length)+' d':'—';})();
+  document.getElementById('kLes').textContent=rows.filter(d=>d.diasAntig>0 && d.diasAntig<=90).length;
+  bars('barsGerente',countBy(rows,'gerente')); bars('barsJefe',countBy(rows,'jefe')); bars('barsClas',countBy(rows,'planta'));
+  heatTable('heatGJ',rows,'gerente','jefe'); heatTable('heatJR',rows,'jefe','responsabilidad');
+  detail(rows); updateObservations(rows); updateMap(rows);
+}
+// ====== Boot ======
+initMap();
+(async () => {
+  DATA = await loadData();
+  populateFilters();
+  // periodo dinámico en el header
+  if(DATA.length){
+    const fechas = DATA.map(d=>d.fechaISO).sort();
+    const min = fechas[0], max = fechas[fechas.length-1];
+    const fmt = iso => { const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
+    const periodEl = document.querySelector('.period .label');
+    if(periodEl) periodEl.textContent = `eventos · ${fmt(min)} a ${fmt(max)}`;
+    const subEl = document.querySelector('.brand .subtitle:last-of-type');
+    if(subEl){
+      const conGeo = DATA.filter(d=>d.lat&&d.lng).length;
+      subEl.innerHTML = `<b>Registros con coordenada:</b> <span id="geoCount">${conGeo}</span> de ${DATA.length}<br><b>Periodo:</b> ${fmt(min)} al ${fmt(max)}`;
+    }
+  }
+  render();
+})();
+</script>
+</body>
+</html>
