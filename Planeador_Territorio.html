@@ -153,7 +153,7 @@ td.center{text-align:center}
 
   <button class="btn btn-outline" id="btn-export" type="button">Exportar tabla</button>
 
-  <div id="archivo-info">Carga tu Excel con columnas: UDN, Operadores, Lat op, Long Op, Ruta asignada, Lat Pi, Long Pi.</div>
+  <div id="archivo-info">Carga tu Excel con columnas: UDN, Operadores, Lat de operador, Long de operador, Ruta asignada, Lat punto de inicio, Long punto de inicio.</div>
   <div id="msg"></div>
 </section>
 
@@ -296,10 +296,10 @@ function mapearFila(row, i){
   const operador = limpiarOperador(operadorRaw) || `Operador ${i + 1}`;
   const ruta = encontrar(row, ["Ruta asignada", "Ruta", "Servicio", "Destino"]) || "";
 
-  const latOp = numero(encontrar(row, ["Lat op", "Lat operador", "Latitud operador", "Lat casa", "olat"]));
-  const longOp = numero(encontrar(row, ["Long Op", "Lon Op", "Long operador", "Longitud operador", "Lon operador", "Long casa", "olon"]));
-  const latPi = numero(encontrar(row, ["Lat Pi", "Lat ruta", "Latitud ruta", "Lat parada", "plat"]));
-  const longPi = numero(encontrar(row, ["Long Pi", "Lon Pi", "Long ruta", "Longitud ruta", "Lon ruta", "Lon parada", "plon"]));
+  const latOp = numero(encontrar(row, ["Lat op", "Lat de operador", "Lat operador", "Latitud operador", "Latitud de operador", "Lat casa", "olat"]));
+  const longOp = numero(encontrar(row, ["Long Op", "Long de operador", "Lon Op", "Long operador", "Longitud operador", "Longitud de operador", "Lon operador", "Long casa", "olon"]));
+  const latPi = numero(encontrar(row, ["Lat Pi", "Lat punto de inicio", "Latitud punto de inicio", "Lat punto inicio", "Lat ruta", "Latitud ruta", "Lat parada", "plat"]));
+  const longPi = numero(encontrar(row, ["Long Pi", "Long punto de inicio", "Longitud punto de inicio", "Long punto inicio", "Lon Pi", "Long ruta", "Longitud ruta", "Lon ruta", "Lon parada", "plon"]));
 
   return {
     id: i + 1,
