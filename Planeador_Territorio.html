@@ -291,18 +291,21 @@ function limpiarOperador(v){
 }
 
 function mapearFila(row, i){
-  const udn = encontrar(row, ["UDN", "Unidad de negocio"]) || "";
-  const operadorRaw = encontrar(row, ["Operadores", "Operador", "Nombre operador", "Conductor"]);
+  // Formato fijo por posición (se ignoran los títulos):
+  // 0:Op  1:Nombre  2:Lat op  3:Long op  4:Planta  5:Ruta  6:Lat inicio  7:Long inicio
+  const opId = row[0];
+  const operadorRaw = row[1];
   const operador = limpiarOperador(operadorRaw) || `Operador ${i + 1}`;
-  const ruta = encontrar(row, ["Ruta asignada", "Ruta", "Servicio", "Destino"]) || "";
-
-  const latOp = numero(encontrar(row, ["Lat op", "Lat de operador", "Lat operador", "Latitud operador", "Latitud de operador", "Lat casa", "olat"]));
-  const longOp = numero(encontrar(row, ["Long Op", "Long de operador", "Lon Op", "Long operador", "Longitud operador", "Longitud de operador", "Lon operador", "Long casa", "olon"]));
-  const latPi = numero(encontrar(row, ["Lat Pi", "Lat punto de inicio", "Latitud punto de inicio", "Lat punto inicio", "Lat ruta", "Latitud ruta", "Lat parada", "plat"]));
-  const longPi = numero(encontrar(row, ["Long Pi", "Long punto de inicio", "Longitud punto de inicio", "Long punto inicio", "Lon Pi", "Long ruta", "Longitud ruta", "Lon ruta", "Lon parada", "plon"]));
+  const latOp = numero(row[2]);
+  const longOp = numero(row[3]);
+  const udn = String(row[4] || "");
+  const ruta = String(row[5] || "");
+  const latPi = numero(row[6]);
+  const longPi = numero(row[7]);
 
   return {
     id: i + 1,
+    opId,
     udn,
     operador,
     operadorRaw,
@@ -326,7 +329,7 @@ function cargarArchivo(file){
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type:"array" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval:"" });
+      const rows = XLSX.utils.sheet_to_json(sheet, { header:1, defval:"" });
 
       OPS = rows.map(mapearFila).filter(op =>
         Number.isFinite(op.latOp) &&
@@ -336,7 +339,7 @@ function cargarArchivo(file){
       );
 
       document.getElementById("archivo-info").textContent =
-        `${file.name} · ${OPS.length} filas válidas de ${rows.length}`;
+        `${file.name} · ${OPS.length} filas válidas de ${Math.max(rows.length - 1, OPS.length)}`;
 
       if (!OPS.length) {
         msg.textContent = "No encontré coordenadas válidas. Revisa: Lat op, Long Op, Lat Pi y Long Pi.";
@@ -621,9 +624,12 @@ async function abrirModal(idx){
     const actualRoad = actualA.km + actualB.km;
     const propRoad = propA.km + propB.km;
     const ahorroRoad = actualRoad - propRoad;
+    const pctRoad = actualRoad > 0 ? (ahorroRoad / actualRoad * 100) : 0;
+    const verbo = ahorroRoad >= 0 ? "Ahorro" : "Incremento";
 
     document.getElementById("modal-sub").innerHTML += `
       <span style="color:rgba(255,255,255,.68)">Por calles: actual ${fmt(actualRoad)} km · propuesta ${fmt(propRoad)} km · ahorro ${fmt(ahorroRoad)} km</span>
+      <span style="background:#84cc16;color:#1f2937;font-weight:900;border-radius:6px;padding:5px 11px;margin-top:5px;display:inline-block;width:fit-content;font-size:13px">${verbo} ejecutivo: ${fmt(Math.abs(ahorroRoad))} km por viaje (${fmt(Math.abs(pctRoad))}%) al intercambiar las rutas de los 2 operadores.</span>
     `;
 
     const bounds = L.latLngBounds([
