@@ -83,14 +83,34 @@ nav a:hover{background:#374151}
 </head>
 <body>
 <nav>
-  <a href="#">TRAXIÓN</a>
-  <div class="dropdown" id="dd1">
-    <button class="dropdown-toggle" onclick="toggleDropdown('dd1')">Logística ▼</button>
+  <a href="index.html">TRAXIÓN</a>
+  <div class="dropdown" id="dropdownLogistica">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownLogistica')">
+      Logística <span class="dropdown-arrow">▼</span>
+    </button>
     <div class="dropdown-menu">
-      <a href="#">Nivel de Servicio</a>
-      <a href="#" class="active">Kilómetros</a>
-      <a href="#">Flota</a>
-      <a href="#">Ralentí</a>
+      <a href="Dashboard_NS.html">Nivel de Servicio</a>
+      <a href="Dashboard_Kilometros.html" class="active">Kilómetros</a>
+      <a href="Dashboard_Flota.html">Flota</a>
+      <a href="Cambio_Manos.html">Cambio de manos</a>
+      <a href="Auditar_Folios.html">Auditoría de folios</a>
+      <a href="Planeador_Territorio.html">Eficiencias internas</a>
+    </div>
+  </div>
+  <div class="dropdown" id="dropdownSeguridad">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownSeguridad')">
+      Seguridad Vial <span class="dropdown-arrow">▼</span>
+    </button>
+    <div class="dropdown-menu">
+      <a href="Radar_Riesgos.html">Radar de Riesgos</a>
+    </div>
+  </div>
+  <div class="dropdown" id="dropdownCombustible">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownCombustible')">
+      Combustible <span class="dropdown-arrow">▼</span>
+    </button>
+    <div class="dropdown-menu">
+      <a href="Dashboard_ralenti.html">Ralentí</a>
     </div>
   </div>
 </nav>
@@ -274,7 +294,7 @@ function openModal(cliente){
   document.getElementById('unitModal').classList.add('open');
 }
 function closeModal(){ document.getElementById('unitModal').classList.remove('open'); }
-function toggleDropdown(id){ document.getElementById(id).classList.toggle('open'); }
+function toggleDropdown(id){const d=document.getElementById(id);document.querySelectorAll('.dropdown').forEach(x=>{if(x.id!==id)x.classList.remove('open');});d.classList.toggle('open');}
 document.addEventListener('click',e=>{ if(!e.target.closest('.dropdown')) document.querySelectorAll('.dropdown').forEach(d=>d.classList.remove('open')); });
 
 window.addEventListener('DOMContentLoaded',async()=>{
