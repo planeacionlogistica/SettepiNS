@@ -343,6 +343,56 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           </tr></thead><tbody id="tUnitBody"></tbody></table>
         </div>
       </div>
+
+      <div class="table-card">
+        <div class="table-hdr">
+          <div><div class="table-hdr-title">👤 Por Operador</div><div class="table-hdr-sub">Top 20 · ordenado por horas</div></div>
+          <span class="table-count" id="cntOpe">–</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table"><thead><tr>
+            <th style="width:28px">#</th><th>Operador</th><th class="r">Unidades</th><th class="r">Eventos</th><th class="r">Horas</th>
+          </tr></thead><tbody id="tOpeBody"></tbody></table>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-hdr">
+          <div><div class="table-hdr-title">🧭 Por Responsable</div><div class="table-hdr-sub">Ranking por horas</div></div>
+          <div class="tbl-actions">
+            <div class="grp-btns">
+              <button class="grp-btn active" onclick="setResp('ger')">Gerente</button>
+              <button class="grp-btn" onclick="setResp('jef')">Jefe</button>
+            </div>
+            <span class="table-count" id="cntResp">–</span>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table"><thead><tr>
+            <th style="width:28px">#</th><th id="respCol">Gerente</th><th class="r">Unidades</th><th class="r">Horas</th><th class="r">Km</th>
+          </tr></thead><tbody id="tRespBody"></tbody></table>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-hdr">
+          <div><div class="table-hdr-title">⏱️ Distribución por Tipo</div><div class="table-hdr-sub">Eventos y horas por umbral</div></div>
+          <span class="table-count" id="cntTipo">–</span>
+        </div>
+        <div id="distTipo" style="padding:.3rem 0"></div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-hdr">
+          <div><div class="table-hdr-title">📡 Posibles fallas de GPS</div><div class="table-hdr-sub">Eventos sin coordenadas válidas</div></div>
+          <span class="table-count" id="cntGps">–</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table"><thead><tr>
+            <th style="width:28px">#</th><th>Unidad</th><th>Operador</th><th class="r">Sin GPS</th><th class="r">Total</th><th class="r">%</th>
+          </tr></thead><tbody id="tGpsBody"></tbody></table>
+        </div>
+      </div>
     </div>
   </main>
 </div>
@@ -514,6 +564,7 @@ document.addEventListener('click',e=>{
   }
 });
 
+function normTxt(s){return String(s||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
 function isValidVal(v){
   if(!v) return false;
   const s=String(v).trim();
@@ -643,7 +694,7 @@ async function loadInputs(){
       const gerente = getCol('Gerente','GERENTE','Gerente de Operaciones','Gerente de Logistica','Gerente de Logística','Gerente Operaciones','GERENTE OPERACIONES','GERENTE DE LOGÍSTICA');
       const horasPermRaw = getCol('Horas perm.','Horas perm','Horas permitidas','HORAS PERM');
       const horasPerm=parseFloat((horasPermRaw||'0').replace(',','.'))||0;
-      INPUTS_MAP[cli]={jefe,gerente,horasPerm};
+      INPUTS_MAP[normTxt(cli)]={jefe,gerente,horasPerm,cliRaw:cli};
     });
     console.log('[Inputs] cargados:',Object.keys(INPUTS_MAP).length, Object.entries(INPUTS_MAP).slice(0,2));
   }catch(e){console.warn('No se pudo cargar hoja Inputs:',e);}
@@ -652,7 +703,7 @@ async function loadInputs(){
 function enrichWithInputs(rows){
   rows.forEach(r=>{
     const cli=(r[C.cliente]||'').trim();
-    const inp=INPUTS_MAP[cli];
+    const inp=INPUTS_MAP[normTxt(cli)];
     if(inp){
       if(inp.jefe)    r[C.jefe]=inp.jefe;
       if(inp.gerente) r[C.gerente]=inp.gerente;
@@ -732,6 +783,7 @@ function draw(){
   document.getElementById('kLts').textContent=fmtN(totalLts)+' L';
   document.getElementById('kCosto').textContent=fmtM(totalCosto);
   drawChart(ded);drawTableCli(ded);drawTableUnits(ded);
+  drawTableOpe(ded);drawTableResp(ded);drawTableTipo(ded);drawTableGps(ded);
 }
 
 function setGroup(g){
@@ -747,7 +799,7 @@ function getGKey(r){
 function calcDailyTarget(rows){
   const clientes=new Set(rows.map(r=>(r[C.cliente]||'').trim()).filter(Boolean));
   let total=0;
-  clientes.forEach(c=>{const inp=INPUTS_MAP[c];if(inp&&inp.horasPerm)total+=inp.horasPerm;});
+  clientes.forEach(c=>{const inp=INPUTS_MAP[normTxt(c)];if(inp&&inp.horasPerm)total+=inp.horasPerm;});
   return total;
 }
 function daysInBucket(key){
@@ -823,6 +875,81 @@ function drawTableUnits(ded){
     const safeK=r.k.replace(/'/g,"\\'");
     return`<tr class="row-clickable" onclick="openUnitDetail('${safeK}')"><td><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td><td class="unit-cell" style="font-weight:600">${r.k} <span style="font-size:.6rem;color:var(--muted)">▶</span></td><td style="font-size:.7rem;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.operador}">${r.operador}</td><td class="r" style="font-size:.72rem;color:var(--muted)">${r.hora}</td><td class="r" style="color:#0891b2;font-weight:700">${fmtH(r.hrs)}</td></tr>`;
   }).join(''):'<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.8rem">Sin resultados</td></tr>';
+}
+let respGroup='ger';
+function setResp(g){
+  respGroup=g;
+  const card=document.getElementById('tRespBody').closest('.table-card');
+  card.querySelectorAll('.grp-btn').forEach(b=>{const t=b.textContent.toLowerCase();b.classList.toggle('active',(g==='ger'&&t==='gerente')||(g==='jef'&&t==='jefe'));});
+  document.getElementById('respCol').textContent=g==='ger'?'Gerente':'Jefe';
+  draw();
+}
+
+function drawTableOpe(ded){
+  const by={};
+  ded.forEach(r=>{const k=(r[C.driver]||'Sin asignar').trim()||'Sin asignar';if(!by[k])by[k]={u:new Set(),ev:0,h:0};by[k].u.add(String(r[C.unidad]||'').trim());by[k].ev++;by[k].h+=(parseHoras(r[C.horas])||0);});
+  const data=Object.entries(by).map(([k,d])=>({k,units:d.u.size,ev:d.ev,hrs:d.h})).sort((a,b)=>b.hrs-a.hrs).slice(0,20);
+  const badges=['#f59e0b','#9ca3af','#b45309'];
+  document.getElementById('cntOpe').textContent=Object.keys(by).length+' operadores';
+  document.getElementById('tOpeBody').innerHTML=data.length?data.map((r,i)=>{
+    const bg=i<3?badges[i]:'#e5e7eb',fg=i<3?'#fff':'#6b7a99';
+    return`<tr><td><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td><td style="font-weight:600;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.k}">${r.k}</td><td class="r" style="color:var(--navy);font-weight:600">${r.units}</td><td class="r" style="color:var(--muted)">${r.ev}</td><td class="r" style="color:#0891b2;font-weight:700">${fmtH(r.hrs)}</td></tr>`;
+  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.8rem">Sin resultados</td></tr>';
+}
+
+function drawTableResp(ded){
+  const col=respGroup==='ger'?C.gerente:C.jefe;
+  const by={};
+  ded.forEach(r=>{const k=(r[col]||'').trim()||'Sin asignar';if(!by[k])by[k]={u:new Set(),h:0,km:0};by[k].u.add(String(r[C.unidad]||'').trim());by[k].h+=(parseHoras(r[C.horas])||0);by[k].km+=parseKm(r[C.km]);});
+  const data=Object.entries(by).map(([k,d])=>({k,units:d.u.size,hrs:d.h,km:d.km})).sort((a,b)=>b.hrs-a.hrs);
+  const badges=['#f59e0b','#9ca3af','#b45309'];
+  document.getElementById('cntResp').textContent=data.length+(respGroup==='ger'?' gerentes':' jefes');
+  document.getElementById('tRespBody').innerHTML=data.length?data.map((r,i)=>{
+    const bg=i<3?badges[i]:'#e5e7eb',fg=i<3?'#fff':'#6b7a99';
+    return`<tr><td><span class="rank-badge" style="background:${bg};color:${fg}">${i+1}</span></td><td style="font-weight:600">${r.k}</td><td class="r" style="color:var(--navy);font-weight:600">${r.units}</td><td class="r" style="color:#0891b2;font-weight:700">${fmtH(r.hrs)}</td><td class="r" style="color:var(--muted)">${r.km.toFixed(1)} km</td></tr>`;
+  }).join(''):'<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.8rem">Sin resultados</td></tr>';
+}
+
+function drawTableTipo(ded){
+  const by={};let totEv=0;
+  ded.forEach(r=>{
+    const t=(r[C.tipo]||'').trim();
+    const k=t.includes('20')?'> 20 min':t.includes('15')?'> 15 min':t.includes('5')?'> 5 min':(t||'Otro');
+    if(!by[k])by[k]={ev:0,h:0};
+    by[k].ev++;by[k].h+=(parseHoras(r[C.horas])||0);totEv++;
+  });
+  const orden={'> 5 min':1,'> 15 min':2,'> 20 min':3};
+  const colores={'> 5 min':'#f59e0b','> 15 min':'#fb923c','> 20 min':'#e53e3e'};
+  const data=Object.entries(by).map(([k,d])=>({k,...d})).sort((a,b)=>(orden[a.k]||9)-(orden[b.k]||9));
+  document.getElementById('cntTipo').textContent=totEv.toLocaleString('es-MX')+' eventos';
+  document.getElementById('distTipo').innerHTML=data.length?data.map(r=>{
+    const pct=totEv?(r.ev/totEv*100):0;
+    const col=colores[r.k]||'#9ca3af';
+    return`<div class="dist-row"><div class="dist-label">${r.k}</div><div class="dist-bar-wrap"><div class="dist-bar-fill" style="width:${pct.toFixed(0)}%;background:${col}"></div></div><div class="dist-count">${r.ev}</div><div class="dist-pct">${pct.toFixed(0)}%</div><div style="min-width:62px;text-align:right;color:#0891b2;font-weight:600;font-size:.7rem">${fmtH(r.h)}</div></div>`;
+  }).join(''):'<div style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.8rem">Sin resultados</div>';
+}
+
+function tieneCoords(r){
+  const lat=parseFloat(r[C.lat]),lng=parseFloat(r[C.lng]);
+  if(isNaN(lat)||isNaN(lng))return false;
+  if(lat===0&&lng===0)return false;
+  return true;
+}
+function drawTableGps(ded){
+  const by={};
+  ded.forEach(r=>{
+    const k=String(r[C.unidad]||'').trim();if(!k)return;
+    if(!by[k])by[k]={tot:0,sin:0,operador:''};
+    by[k].tot++;
+    if(!tieneCoords(r))by[k].sin++;
+    if(!by[k].operador)by[k].operador=(r[C.driver]||'–').trim();
+  });
+  const data=Object.entries(by).map(([k,d])=>({k,...d,pct:d.tot?d.sin/d.tot*100:0})).filter(r=>r.sin>0).sort((a,b)=>b.sin-a.sin).slice(0,20);
+  document.getElementById('cntGps').textContent=data.length+' unidades';
+  document.getElementById('tGpsBody').innerHTML=data.length?data.map((r,i)=>{
+    const pctCol=r.pct>=50?'#e53e3e':r.pct>=20?'#d97706':'#6b7a99';
+    return`<tr><td style="color:var(--muted)">${i+1}</td><td style="font-weight:600">${r.k}</td><td style="font-size:.7rem;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.operador}">${r.operador}</td><td class="r" style="color:#e53e3e;font-weight:700">${r.sin}</td><td class="r" style="color:var(--muted)">${r.tot}</td><td class="r" style="color:${pctCol};font-weight:600">${r.pct.toFixed(0)}%</td></tr>`;
+  }).join(''):'<tr><td colspan="6" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.8rem">Sin eventos sin GPS 👍</td></tr>';
 }
 
 
