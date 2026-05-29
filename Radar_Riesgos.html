@@ -151,16 +151,33 @@ td.num,th.num{text-align:right}
 <!-- ====== NAVBAR estilo NS ====== -->
 <nav>
   <a href="index.html">TRAXIÓN</a>
-  <div class="dropdown" id="dd1">
-    <button class="dropdown-toggle" onclick="toggleDropdown('dd1')">Logística <span class="dropdown-arrow">▼</span></button>
+  <div class="dropdown" id="dropdownLogistica">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownLogistica')">
+      Logística <span class="dropdown-arrow">▼</span>
+    </button>
     <div class="dropdown-menu">
       <a href="Dashboard_NS.html">Nivel de Servicio</a>
       <a href="Dashboard_Kilometros.html">Kilómetros</a>
       <a href="Dashboard_Flota.html">Flota</a>
-      <a href="Dashboard_Ralenti.html">Ralentí</a>
-      <a href="Dashboard_CambioManos.html">Cambio de Manos</a>
-      <a href="Auditar_Folios.html">Auditar Folios</a>
-      <a href="#" class="active">Reporte Seguridad Vial</a>
+      <a href="Cambio_Manos.html">Cambio de manos</a>
+      <a href="Auditar_Folios.html">Auditoría de folios</a>
+      <a href="Planeador_Territorio.html">Eficiencias internas</a>
+    </div>
+  </div>
+  <div class="dropdown" id="dropdownSeguridad">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownSeguridad')">
+      Seguridad Vial <span class="dropdown-arrow">▼</span>
+    </button>
+    <div class="dropdown-menu">
+      <a href="Radar_Riesgos.html" class="active">Radar de Riesgos</a>
+    </div>
+  </div>
+  <div class="dropdown" id="dropdownCombustible">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownCombustible')">
+      Combustible <span class="dropdown-arrow">▼</span>
+    </button>
+    <div class="dropdown-menu">
+      <a href="Dashboard_ralenti.html">Ralentí</a>
     </div>
   </div>
 </nav>
