@@ -1,1 +1,1146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Logistica Mundial 2026 | Traxión</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon-traxion.svg">
+<style>
+  html, body { margin:0; padding:0; height:100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { display:flex; flex-direction:column; }
 
+  /* ── Menú superior (igual al Dashboard de Flota) ── */
+  nav{background:#1f2937;padding:15px 30px;display:flex;gap:25px;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);position:sticky;top:0;z-index:2000;flex-wrap:wrap;flex-shrink:0;font-family:"Inter",sans-serif;}
+  nav>a{color:#e5e7eb;text-decoration:none;font-weight:600;padding:8px 16px;border-radius:8px;transition:all .3s;white-space:nowrap;}
+  nav>a:first-child{color:#84cc16;font-weight:800;font-size:18px;}
+  nav>a:hover{background:#374151;}
+  .dropdown{position:relative;display:inline-block;}
+  .dropdown-toggle{color:#e5e7eb;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;background:transparent;border:none;font-size:14px;font-family:inherit;}
+  .dropdown-toggle:hover{background:#374151;}
+  .dropdown-arrow{font-size:12px;transition:transform .3s;}
+  .dropdown.open .dropdown-arrow{transform:rotate(180deg);}
+  .dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#374151;min-width:220px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);margin-top:8px;z-index:1000;overflow:hidden;}
+  .dropdown.open .dropdown-menu{display:block;}
+  .dropdown-menu a{display:block;padding:12px 20px;color:#e5e7eb;text-decoration:none;font-weight:600;transition:all .3s;}
+  .dropdown-menu a:hover{background:#4b5563;padding-left:25px;}
+  .dropdown-menu a.active{background:#84cc16;color:#1f2937;}
+
+  #app { display:flex; flex:1; min-height:0; }
+
+  /* Sidebar estilo Settepi */
+  #sidebar {
+    width: 320px;
+    background: #1f2937;
+    color: #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #sidebar header {
+    padding: 16px;
+    border-bottom: 1px solid #374151;
+  }
+  #sidebar h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #84cc16;
+    letter-spacing: 0.3px;
+  }
+  #sidebar h1 .sub {
+    display:block;
+    color:#9ca3af;
+    font-size:11px;
+    font-weight:400;
+    margin-top:2px;
+  }
+
+  .toolbar {
+    padding: 10px 16px;
+    border-bottom: 1px solid #374151;
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+  }
+  .toolbar button {
+    background: #374151;
+    color: #e5e7eb;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .toolbar button:hover { background: #4b5563; }
+  .toolbar button.primary { background: #84cc16; color: #1f2937; font-weight:600; }
+  .toolbar button.primary:hover { background: #a3e635; }
+  .toolbar button.danger { background: #f59e0b; color: #1f2937; font-weight:600; }
+  .toolbar button.danger:hover { background: #fbbf24; }
+  .toolbar button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .toolbar button:disabled:hover { background: #374151; }
+  #badgeCambios:not(:empty) {
+    background: #1f2937; color: #fbbf24;
+    border-radius: 8px; padding: 1px 5px; margin-left: 3px; font-weight:700;
+  }
+
+  .file-input {
+    padding: 10px 16px;
+    border-bottom: 1px solid #374151;
+    font-size: 11px;
+  }
+  .file-input label {
+    display:block;
+    color:#9ca3af;
+    margin-bottom: 4px;
+  }
+  .file-input input {
+    width: 100%;
+    color: #e5e7eb;
+    font-size: 11px;
+  }
+
+  .search {
+    padding: 10px 16px;
+    border-bottom: 1px solid #374151;
+  }
+  .search input {
+    width: 100%;
+    box-sizing: border-box;
+    background: #111827;
+    color: #e5e7eb;
+    border: 1px solid #374151;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  #counter {
+    padding: 8px 16px;
+    font-size: 11px;
+    color: #9ca3af;
+    border-bottom: 1px solid #374151;
+  }
+  #counter b { color: #84cc16; }
+
+  #lista {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 0;
+  }
+  .ruta-item {
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background 0.15s;
+  }
+  .ruta-item:hover { background:#374151; }
+  .ruta-item.activa { border-left-color: #84cc16; }
+  .ruta-item input[type="checkbox"] { cursor: pointer; accent-color: #84cc16; }
+  .ruta-color {
+    width: 14px; height: 14px; border-radius: 3px; flex-shrink:0;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .ruta-info { flex:1; min-width:0; }
+  .ruta-id {
+    font-size: 12px; font-weight:600; color:#e5e7eb;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .ruta-desc {
+    font-size: 10px; color:#9ca3af;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .ruta-stops { font-size: 10px; color:#6b7280; }
+
+  /* Mapa */
+  #map { flex:1; height:100%; }
+
+  /* Panel filtros derecho */
+  #filterPanel {
+    width: 290px;
+    background: #1f2937;
+    color: #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-left: 1px solid #374151;
+  }
+  #filterPanel section { padding: 12px 16px; border-bottom: 1px solid #374151; }
+  #filterPanel h2 {
+    margin: 0 0 8px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #84cc16;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .chip {
+    display: inline-block;
+    padding: 5px 10px;
+    background: #374151;
+    color: #e5e7eb;
+    border: 1px solid #4b5563;
+    border-radius: 14px;
+    cursor: pointer;
+    margin: 2px;
+    font-size: 11px;
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .chip:hover { background: #4b5563; }
+  .chip.active {
+    background: #84cc16;
+    color: #1f2937;
+    border-color: #84cc16;
+    font-weight: 600;
+  }
+  .chip .count {
+    background: rgba(0,0,0,0.25);
+    border-radius: 8px;
+    padding: 0 5px;
+    margin-left: 4px;
+    font-size: 10px;
+  }
+  .chip.active .count { background: rgba(31,41,55,0.3); }
+  .slider-row { display:flex; align-items:center; gap:8px; margin-top: 6px; font-size: 11px; color:#9ca3af; }
+  .slider-row input[type=range] { flex:1; accent-color: #84cc16; }
+  .slider-row b { color: #84cc16; min-width: 50px; text-align: right; }
+  .toggle-btn {
+    width: 100%;
+    background: #374151;
+    color: #e5e7eb;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .toggle-btn.active { background: #84cc16; color: #1f2937; font-weight: 600; }
+  .geo-list { font-size: 11px; color: #9ca3af; line-height: 1.6; margin-top: 4px; }
+  .geo-list .dot {
+    display:inline-block; width:8px; height:8px;
+    border-radius: 50%; background: #fbbf24;
+    margin-right: 6px; vertical-align: middle;
+  }
+
+  /* Marcador centro de geocerca */
+  .geo-center {
+    background: #fbbf24;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid #1f2937;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    cursor: grab;
+  }
+  .geo-center:active { cursor: grabbing; }
+
+  /* Marcador secuencia inicial */
+  .start-marker {
+    background: #84cc16;
+    color: #1f2937;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:12px;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+
+  /* Marcador de parada intermedia con número */
+  .stop-marker {
+    color: #fff;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:600; font-size:10px;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+  }
+
+  /* Cursor en modo edición */
+  .start-marker.draggable, .stop-marker.draggable { cursor: grab; }
+  .start-marker.draggable:active, .stop-marker.draggable:active { cursor: grabbing; }
+
+  /* Marcador modificado (movido por el usuario) */
+  .start-marker.modified, .stop-marker.modified {
+    outline: 3px solid #fbbf24;
+    outline-offset: 1px;
+    animation: pulseEdit 1.5s infinite;
+  }
+  @keyframes pulseEdit {
+    0%, 100% { outline-color: #fbbf24; }
+    50% { outline-color: #f59e0b; }
+  }
+
+  .leaflet-popup-content { font-size: 12px; line-height: 1.5; }
+  .leaflet-popup-content b { color: #1f2937; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html">TRAXIÓN</a>
+  <div class="dropdown" id="dropdownLogistica">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownLogistica')">
+      Logística <span class="dropdown-arrow">▼</span>
+    </button>
+    <div class="dropdown-menu">
+      <a href="Dashboard_NS.html">Nivel de Servicio</a>
+      <a href="Dashboard_Kilometros.html">Kilómetros</a>
+      <a href="Dashboard_Flota.html">Flota</a>
+      <a href="Cambio_Manos.html">Cambio de manos</a>
+      <a href="Auditar_Folios.html">Auditoría de folios</a>
+      <a href="Planeador_Territorio.html">Eficiencias internas</a>
+      <a href="Mapa_Rutas_MAE_4.html" class="active">Logistica Mundial 2026</a>
+    </div>
+  </div>
+  <div class="dropdown" id="dropdownSeguridad">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownSeguridad')">
+      Seguridad Vial <span class="dropdown-arrow">▼</span>
+    </button>
+    <div class="dropdown-menu">
+      <a href="Radar_Riesgos.html">Radar de Riesgos</a>
+    </div>
+  </div>
+  <div class="dropdown" id="dropdownCombustible">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownCombustible')">
+      Combustible <span class="dropdown-arrow">▼</span>
+    </button>
+    <div class="dropdown-menu">
+      <a href="Dashboard_ralenti.html">Ralentí</a>
+    </div>
+  </div>
+</nav>
+
+<div id="app">
+  <aside id="sidebar">
+    <header>
+      <h1>Logistica Mundial 2026
+        <span class="sub">Reporte MAE — Settepi</span>
+      </h1>
+    </header>
+
+    <div class="toolbar">
+      <button class="primary" id="btnAll">Mostrar todas</button>
+      <button id="btnNone">Ocultar todas</button>
+      <button id="btnFit">Centrar</button>
+      <button id="btnModo">Modo: Calles</button>
+      <button id="btnEdit">Editar: OFF</button>
+      <button id="btnExport" disabled>Exportar cambios <span id="badgeCambios"></span></button>
+    </div>
+
+    <div class="file-input">
+      <label>Cargar CSV local (opcional)</label>
+      <input type="file" id="fileInput" accept=".csv"/>
+    </div>
+
+    <div class="search">
+      <input type="text" id="filtro" placeholder="Buscar ruta o descripción..."/>
+    </div>
+
+    <div id="counter">Cargando datos...</div>
+
+    <div id="lista"></div>
+  </aside>
+
+  <div id="map"></div>
+
+  <aside id="filterPanel">
+    <section>
+      <h2>Filtrar por planta</h2>
+      <div id="chipsPlantas"></div>
+    </section>
+
+    <section>
+      <h2>Filtrar por turno</h2>
+      <div id="chipsTurnos">
+        <span class="chip" data-turno="dia">Día <span class="count" id="cntDia">0</span></span>
+        <span class="chip" data-turno="tarde">Tarde <span class="count" id="cntTarde">0</span></span>
+        <span class="chip" data-turno="noche">Noche <span class="count" id="cntNoche">0</span></span>
+      </div>
+      <div style="font-size:10px; color:#6b7280; margin-top:6px; line-height:1.5">
+        Día 03:00–10:00 · Tarde 10:01–19:00 · Noche 19:01–02:59
+      </div>
+    </section>
+
+    <section>
+      <h2>Geocercas</h2>
+      <button class="toggle-btn active" id="btnGeo">Mostrar geocercas</button>
+      <div class="slider-row">
+        <span>Ø</span>
+        <input type="range" id="sliderDiam" min="200" max="4000" step="100" value="1000"/>
+        <b id="lblDiam">1.0 km</b>
+      </div>
+      <div class="geo-list" id="geoList"></div>
+      <div style="font-size:10px; color:#6b7280; margin-top:6px">
+        Arrastra el punto amarillo de cada geocerca para ajustar su posición exacta.
+      </div>
+    </section>
+  </aside>
+</div>
+
+<script>
+// =========================================================
+// MENÚ SUPERIOR (dropdowns)
+// =========================================================
+function toggleDropdown(id){const d=document.getElementById(id);document.querySelectorAll('.dropdown').forEach(x=>{if(x.id!==id)x.classList.remove('open');});d.classList.toggle('open');}
+document.addEventListener('click',e=>{if(!e.target.closest('.dropdown'))document.querySelectorAll('.dropdown').forEach(d=>d.classList.remove('open'));});
+
+// =========================================================
+// CONFIG
+// =========================================================
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSdb1wv5_u4Q_DJLTNYzZzAnqRfugoqbE9QdrrINxU1FznE-oqaiDtRjS0OlHnFMndHNIdtPkWIpGeW/pub?output=csv";
+
+// Índices de columnas según el header real del CSV
+const COL = {
+  planta: 0,
+  tipServ: 1,
+  descRuta: 2,
+  idRuta: 3,
+  sec: 4,
+  pos: 5,
+  parada: 6,
+  lat: 7,
+  lng: 8,
+  h1: 9, h2: 10, h3: 11
+};
+
+// =========================================================
+// MAPA
+// =========================================================
+const map = L.map('map').setView([25.67, -100.30], 10);
+
+// Capas de Google Maps
+const gMapa = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+  maxZoom: 20, subdomains: ['0','1','2','3'], attribution: '&copy; Google'
+});
+const gSatelite = L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+  maxZoom: 20, subdomains: ['0','1','2','3'], attribution: '&copy; Google'
+});
+const gHibrido = L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+  maxZoom: 20, subdomains: ['0','1','2','3'], attribution: '&copy; Google'
+});
+
+gMapa.addTo(map);
+// Recalcular el tamaño del mapa por si el menú/fuente ajustan el layout al cargar
+setTimeout(() => map.invalidateSize(), 250);
+window.addEventListener('load', () => map.invalidateSize());
+L.control.layers({
+  'Mapa': gMapa,
+  'Satélite': gSatelite,
+  'Híbrido': gHibrido
+}, null, { position: 'topright' }).addTo(map);
+
+// =========================================================
+// PARSER CSV (respeta comillas y comas internas)
+// =========================================================
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i+1] === '"') { field += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        field += c;
+      }
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else if (c === '\r') { /* ignore */ }
+      else field += c;
+    }
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+// =========================================================
+// PALETA: HSL golden-ratio (todos los colores bien separados)
+// =========================================================
+function generarColores(n) {
+  const colores = [];
+  const golden = 0.618033988749895;
+  let h = 0.15;
+  for (let i = 0; i < n; i++) {
+    h = (h + golden) % 1;
+    const sat = 70 + (i % 2) * 10;   // 70 ó 80
+    const lig = 48 + (i % 3) * 4;    // 48, 52, 56
+    colores.push(`hsl(${Math.floor(h*360)}, ${sat}%, ${lig}%)`);
+  }
+  return colores;
+}
+
+// =========================================================
+// ESTADO
+// =========================================================
+let rutas = {};       // { idRuta: { puntos:[], color, desc, planta, layer } }
+let allBounds = null;
+let modoCalles = true;             // true = sigue calles via OSRM, false = línea recta
+let modoEdicion = false;           // true = paradas arrastrables
+const cacheCalles = {};            // { idRuta: [[lat,lng],...] geometría OSRM cacheada }
+const plantasActivas = new Set();
+const turnosActivos = new Set();
+const geocercas = [];              // { nombre, lat, lng, circle, marker }
+let geocercasVisibles = true;
+let diametroGeo = 1000;            // metros
+
+// =========================================================
+// HELPERS DE HORARIO Y TURNO
+// =========================================================
+function parseHoraMinutos(s) {
+  if (!s) return null;
+  s = String(s).trim().toUpperCase();
+  if (!s) return null;
+  const ampm = /\b(AM|PM)\b/.exec(s);
+  const sClean = s.replace(/AM|PM/g, '').trim();
+  const parts = sClean.split(/[:.\s]/).filter(Boolean);
+  if (parts.length < 2) return null;
+  let h = parseInt(parts[0]);
+  let m = parseInt(parts[1]);
+  if (isNaN(h) || isNaN(m)) return null;
+  if (ampm) {
+    if (ampm[1] === 'PM' && h !== 12) h += 12;
+    if (ampm[1] === 'AM' && h === 12) h = 0;
+  }
+  return h * 60 + m;
+}
+
+function turnoDeHora(min) {
+  if (min == null) return null;
+  if (min >= 180 && min <= 600) return 'dia';       // 03:00–10:00
+  if (min > 600 && min <= 1140) return 'tarde';     // 10:01–19:00
+  return 'noche';                                    // 19:01–02:59
+}
+
+// =========================================================
+// HELPERS DE DISTANCIA
+// =========================================================
+function distMetros(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+function distanciaTotalRecta(puntos) {
+  let total = 0;
+  for (let i = 0; i < puntos.length - 1; i++) {
+    total += distMetros(puntos[i].lat, puntos[i].lng, puntos[i+1].lat, puntos[i+1].lng);
+  }
+  return total;
+}
+
+// =========================================================
+// FILTROS POR PLANTA Y TURNO
+// =========================================================
+function renderChipsFiltros() {
+  // Plantas únicas y conteos
+  const plantas = {};
+  const turnoCnt = { dia: 0, tarde: 0, noche: 0 };
+  Object.values(rutas).forEach(r => {
+    plantas[r.planta] = (plantas[r.planta] || 0) + 1;
+    r.turnos.forEach(t => { turnoCnt[t] = (turnoCnt[t] || 0) + 1; });
+  });
+
+  // Chips de plantas
+  const cont = document.getElementById('chipsPlantas');
+  cont.innerHTML = '';
+  Object.keys(plantas).sort().forEach(p => {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (plantasActivas.has(p) ? ' active' : '');
+    chip.innerHTML = `${p || '(sin planta)'} <span class="count">${plantas[p]}</span>`;
+    chip.addEventListener('click', () => {
+      if (plantasActivas.has(p)) plantasActivas.delete(p);
+      else plantasActivas.add(p);
+      aplicarFiltros();
+      renderChipsFiltros();
+    });
+    cont.appendChild(chip);
+  });
+
+  // Conteos de turnos
+  document.getElementById('cntDia').textContent = turnoCnt.dia || 0;
+  document.getElementById('cntTarde').textContent = turnoCnt.tarde || 0;
+  document.getElementById('cntNoche').textContent = turnoCnt.noche || 0;
+
+  // Marcar chips de turno
+  document.querySelectorAll('#chipsTurnos .chip').forEach(c => {
+    c.classList.toggle('active', turnosActivos.has(c.dataset.turno));
+  });
+}
+
+function aplicarFiltros() {
+  const sinFiltros = (plantasActivas.size === 0 && turnosActivos.size === 0);
+  Object.keys(rutas).forEach(id => {
+    const r = rutas[id];
+    let pasa = true;
+    if (!sinFiltros) {
+      const matchPlanta = (plantasActivas.size === 0) || plantasActivas.has(r.planta);
+      const matchTurno = (turnosActivos.size === 0) || r.turnos.some(t => turnosActivos.has(t));
+      pasa = matchPlanta && matchTurno;
+    }
+    r.visible = pasa;
+    if (pasa) r.layer.addTo(map);
+    else map.removeLayer(r.layer);
+  });
+  renderLista(document.getElementById('filtro').value);
+}
+
+// =========================================================
+// GEOCERCAS
+// =========================================================
+const GEO_DEFAULTS = [
+  { id: 'g1', nombre: 'Av Benito Juárez y Av Azteca',         lat: 25.679417367734427, lng: -100.24396342548096 },
+  { id: 'g2', nombre: '5 de Mayo y Av Las Torres',            lat: 25.672554655033764, lng: -100.24908025922008 },
+  { id: 'g3', nombre: 'Calle Tolteca y Av Las Torres',        lat: 25.67304496455942,  lng: -100.23756886199207 },
+  { id: 'g4', nombre: 'Calle Tolteca y Av Pablo Olivas',      lat: 25.66974636080703,  lng: -100.23821822106812 },
+  { id: 'g5', nombre: 'Av Eloy Cavazos y Av Pablo Olivas',    lat: 25.664574097339404, lng: -100.24759280023636 }
+];
+
+function cargarPosGeocercas() {
+  try {
+    const data = JSON.parse(localStorage.getItem('mae_geocercas_v2'));
+    if (!Array.isArray(data)) return null;
+    return data;
+  } catch (e) { return null; }
+}
+function guardarPosGeocercas() {
+  const data = geocercas.map(g => ({ id: g.id, lat: g.lat, lng: g.lng }));
+  localStorage.setItem('mae_geocercas_v2', JSON.stringify(data));
+}
+
+function inicializarGeocercas() {
+  const guardadas = cargarPosGeocercas();
+  GEO_DEFAULTS.forEach(def => {
+    const saved = guardadas && guardadas.find(g => g.id === def.id);
+    const g = {
+      id: def.id, nombre: def.nombre,
+      lat: saved ? saved.lat : def.lat,
+      lng: saved ? saved.lng : def.lng
+    };
+    // Círculo
+    g.circle = L.circle([g.lat, g.lng], {
+      radius: diametroGeo / 2,
+      color: '#fbbf24', weight: 2,
+      fillColor: '#fbbf24', fillOpacity: 0.15
+    }).bindPopup(`<b>${g.nombre}</b><br><small>Ø ${(diametroGeo/1000).toFixed(2)} km</small>`);
+    // Marker centro arrastrable
+    const icon = L.divIcon({ className: '', html: '<div class="geo-center"></div>', iconSize:[14,14], iconAnchor:[7,7] });
+    g.marker = L.marker([g.lat, g.lng], { draggable: true, icon })
+      .bindTooltip(g.nombre, { direction: 'top', offset: [0,-10] });
+    g.marker.on('drag', e => g.circle.setLatLng(e.target.getLatLng()));
+    g.marker.on('dragend', e => {
+      const nl = e.target.getLatLng();
+      g.lat = nl.lat; g.lng = nl.lng;
+      g.circle.setLatLng(nl);
+      g.circle.setPopupContent(`<b>${g.nombre}</b><br><small>Ø ${(diametroGeo/1000).toFixed(2)} km</small>`);
+      guardarPosGeocercas();
+    });
+    if (geocercasVisibles) { g.circle.addTo(map); g.marker.addTo(map); }
+    geocercas.push(g);
+  });
+
+  // Lista en el panel
+  const lista = document.getElementById('geoList');
+  lista.innerHTML = geocercas.map(g => `<div><span class="dot"></span>${g.nombre}</div>`).join('');
+}
+
+function setDiametroGeocercas(m) {
+  diametroGeo = m;
+  document.getElementById('lblDiam').textContent = (m/1000).toFixed(2) + ' km';
+  geocercas.forEach(g => {
+    g.circle.setRadius(m / 2);
+    g.circle.setPopupContent(`<b>${g.nombre}</b><br><small>Ø ${(m/1000).toFixed(2)} km</small>`);
+  });
+}
+
+function toggleGeocercas() {
+  geocercasVisibles = !geocercasVisibles;
+  const btn = document.getElementById('btnGeo');
+  btn.textContent = geocercasVisibles ? 'Ocultar geocercas' : 'Mostrar geocercas';
+  btn.classList.toggle('active', geocercasVisibles);
+  geocercas.forEach(g => {
+    if (geocercasVisibles) { g.circle.addTo(map); g.marker.addTo(map); }
+    else { map.removeLayer(g.circle); map.removeLayer(g.marker); }
+  });
+}
+
+// =========================================================
+// OSRM — obtener geometría siguiendo calles reales
+// =========================================================
+async function obtenerGeometriaCalles(idRuta, puntos) {
+  if (cacheCalles[idRuta]) return cacheCalles[idRuta];
+
+  // OSRM acepta hasta ~100 waypoints. Si hay más, partimos en tramos.
+  const MAX_WP = 90;
+  let geomTotal = [];
+  let distTotal = 0;
+
+  for (let inicio = 0; inicio < puntos.length - 1; inicio += MAX_WP - 1) {
+    const tramo = puntos.slice(inicio, inicio + MAX_WP);
+    if (tramo.length < 2) break;
+    const coords = tramo.map(p => `${p.lng},${p.lat}`).join(';');
+    const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+
+    try {
+      const resp = await fetch(url);
+      const data = await resp.json();
+      if (data.code === 'Ok' && data.routes && data.routes[0]) {
+        const geom = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        if (geomTotal.length) geom.shift(); // evita duplicar el punto de unión
+        geomTotal = geomTotal.concat(geom);
+        distTotal += data.routes[0].distance; // metros
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  cacheCalles[idRuta] = { geom: geomTotal, distance: distTotal };
+  return cacheCalles[idRuta];
+}
+
+// =========================================================
+// PROCESAR DATOS
+// =========================================================
+function procesarCSV(csvText) {
+  const filas = parseCSV(csvText);
+  if (filas.length < 2) {
+    document.getElementById('counter').textContent = 'CSV vacío o inválido';
+    return;
+  }
+
+  // Detectar encabezado y arrancar en fila 1
+  rutas = {};
+  for (let i = 1; i < filas.length; i++) {
+    const c = filas[i];
+    if (!c || c.length < 9) continue;
+
+    const idRuta = (c[COL.idRuta] || '').trim();
+    const lat = parseFloat(c[COL.lat]);
+    const lng = parseFloat(c[COL.lng]);
+    if (!idRuta || isNaN(lat) || isNaN(lng)) continue;
+
+    if (!rutas[idRuta]) {
+      rutas[idRuta] = {
+        puntos: [],
+        descRuta: (c[COL.descRuta] || '').trim(),
+        planta: (c[COL.planta] || '').trim(),
+        tipServ: (c[COL.tipServ] || '').trim(),
+        layer: L.layerGroup(),
+        visible: true
+      };
+    }
+    rutas[idRuta].puntos.push({
+      sec: parseInt(c[COL.sec]) || 0,
+      pos: (c[COL.pos] || '').trim(),
+      parada: (c[COL.parada] || '').trim(),
+      lat, lng,
+      latOrig: lat, lngOrig: lng,    // referencia para detectar cambios
+      // Todos los horarios disponibles a partir de la columna 9
+      horarios: c.slice(COL.h1).map(s => (s || '').trim()).filter(Boolean)
+    });
+  }
+
+  // Calcular turnos por ruta a partir de horarios
+  Object.keys(rutas).forEach(id => {
+    const turnos = new Set();
+    rutas[id].puntos.forEach(p => {
+      p.horarios.forEach(h => {
+        const t = turnoDeHora(parseHoraMinutos(h));
+        if (t) turnos.add(t);
+      });
+    });
+    rutas[id].turnos = Array.from(turnos);
+  });
+
+  // Asignar colores y dibujar
+  const ids = Object.keys(rutas).sort();
+  const colores = generarColores(ids.length);
+  ids.forEach((id, idx) => { rutas[id].color = colores[idx]; });
+
+  dibujarTodas();
+  renderLista();
+  renderChipsFiltros();
+  if (!geocercas.length) inicializarGeocercas();
+  ajustarVista();
+}
+
+// =========================================================
+// DIBUJAR UNA RUTA
+// =========================================================
+async function dibujarRuta(id) {
+  const r = rutas[id];
+  r.layer.clearLayers();
+  r.puntos.sort((a,b) => a.sec - b.sec);
+
+  // Coordenadas en orden de paradas (línea recta de respaldo)
+  const coordsRecto = r.puntos.map(p => [p.lat, p.lng]);
+
+  // Decidir qué geometría dibujar y calcular distancia
+  let geom = coordsRecto;
+  let distancia = distanciaTotalRecta(r.puntos); // fallback en metros
+  if (modoCalles && r.puntos.length >= 2) {
+    const result = await obtenerGeometriaCalles(id, r.puntos);
+    if (result && result.geom && result.geom.length) {
+      geom = result.geom;
+      distancia = result.distance;
+    }
+  }
+  r.distanciaKm = distancia / 1000;
+
+  // Línea
+  const polyline = L.polyline(geom, {
+    color: r.color,
+    weight: modoEdicion ? 6 : 4,
+    opacity: 0.85
+  }).bindPopup(
+    `<b>${id}</b><br>${r.descRuta}<br>` +
+    `<small>${r.planta}</small><br>` +
+    `<b>${r.distanciaKm.toFixed(2)} km</b> · ${r.puntos.length} paradas`
+  ).addTo(r.layer);
+
+  // Doble click en la línea = insertar parada (solo en modo edición)
+  polyline.on('dblclick', (ev) => {
+    if (!modoEdicion) return;
+    L.DomEvent.stopPropagation(ev);
+    insertarParada(id, ev.latlng);
+  });
+
+  // Paradas (siempre en su posición original, no en la geometría OSRM)
+  r.puntos.forEach((p, i) => {
+    const isStart = (i === 0);
+    const isMod = (p.lat !== p.latOrig || p.lng !== p.lngOrig);
+    const cls = isStart ? 'start-marker' : 'stop-marker';
+    const styleBg = isStart ? '' : `background:${r.color}`;
+    const extraCls = (modoEdicion ? ' draggable' : '') + (isMod ? ' modified' : '');
+    const size = isStart ? 26 : 22;
+    const anchor = isStart ? 13 : 11;
+
+    const icon = L.divIcon({
+      className: '',
+      html: `<div class="${cls}${extraCls}" style="${styleBg}">${p.sec}</div>`,
+      iconSize: [size, size],
+      iconAnchor: [anchor, anchor]
+    });
+
+    const marker = L.marker([p.lat, p.lng], { icon, draggable: modoEdicion })
+      .bindPopup(popupHTML(id, p))
+      .addTo(r.layer);
+
+    if (modoEdicion) {
+      marker.on('dragend', async (ev) => {
+        const nl = ev.target.getLatLng();
+        p.lat = nl.lat;
+        p.lng = nl.lng;
+        delete cacheCalles[id];      // invalidar geometría cacheada
+        actualizarBadgeCambios();
+        await dibujarRuta(id);
+        renderLista(document.getElementById('filtro').value);
+      });
+    }
+  });
+}
+
+function popupHTML(id, p) {
+  const r = rutas[id];
+  const horariosStr = p.horarios && p.horarios.length
+    ? p.horarios.join(' · ')
+    : '—';
+  const turnos = r.turnos && r.turnos.length
+    ? r.turnos.map(t => t === 'dia' ? 'Día' : t === 'tarde' ? 'Tarde' : 'Noche').join(', ')
+    : '—';
+  return `
+    <b>${id}</b> — ${r.descRuta}<br>
+    <small>${r.planta}${r.tipServ ? ' · ' + r.tipServ : ''}</small><br>
+    <small><b>Turno(s):</b> ${turnos}</small><br>
+    <hr style="margin:6px 0; border:none; border-top:1px solid #ddd"/>
+    <b>Sec ${p.sec}</b>${p.pos ? ' · ' + p.pos : ''}<br>
+    ${p.parada}<br>
+    <small><b>Horarios:</b> ${horariosStr}</small>
+  `;
+}
+
+// =========================================================
+// CONTROL DE VISIBILIDAD
+// =========================================================
+async function dibujarTodas() {
+  const ids = Object.keys(rutas);
+  let listas = 0;
+  const counter = document.getElementById('counter');
+  const total = ids.length;
+
+  // Dibujar secuencialmente para no saturar OSRM (1-2 seg por ruta)
+  for (const id of ids) {
+    await dibujarRuta(id);
+    if (rutas[id].visible) rutas[id].layer.addTo(map);
+    listas++;
+    if (modoCalles) {
+      counter.innerHTML = `Trazando por calles... <b>${listas}/${total}</b>`;
+    }
+  }
+  // Mensaje final
+  counter.innerHTML =
+    `<b>${total}</b> rutas · <b>${ids.reduce((a,id)=>a+rutas[id].puntos.length,0)}</b> paradas`;
+  // Refrescar lista para que aparezcan los km calculados
+  renderLista(document.getElementById('filtro').value);
+}
+
+function toggleRuta(id, visible) {
+  rutas[id].visible = visible;
+  if (visible) rutas[id].layer.addTo(map);
+  else map.removeLayer(rutas[id].layer);
+}
+
+function ajustarVista() {
+  const all = [];
+  Object.keys(rutas).forEach(id => {
+    if (rutas[id].visible) {
+      rutas[id].puntos.forEach(p => all.push([p.lat, p.lng]));
+    }
+  });
+  if (all.length) map.fitBounds(all, { padding: [30, 30] });
+}
+
+// =========================================================
+// LISTA DE RUTAS (panel)
+// =========================================================
+function renderLista(filtroTxt = '') {
+  const cont = document.getElementById('lista');
+  cont.innerHTML = '';
+  const ids = Object.keys(rutas).sort();
+  const f = filtroTxt.toLowerCase();
+
+  ids.forEach(id => {
+    const r = rutas[id];
+    if (f && !id.toLowerCase().includes(f) && !r.descRuta.toLowerCase().includes(f)) return;
+
+    const div = document.createElement('div');
+    div.className = 'ruta-item' + (r.visible ? ' activa' : '');
+    div.innerHTML = `
+      <input type="checkbox" ${r.visible ? 'checked' : ''}/>
+      <div class="ruta-color" style="background:${r.color}"></div>
+      <div class="ruta-info">
+        <div class="ruta-id">${id}</div>
+        <div class="ruta-desc">${r.descRuta}</div>
+        <div class="ruta-stops">${r.puntos.length} paradas${r.distanciaKm != null ? ' · <b style="color:#84cc16">'+r.distanciaKm.toFixed(2)+' km</b>' : ''}</div>
+      </div>
+    `;
+    const chk = div.querySelector('input');
+    chk.addEventListener('change', e => {
+      e.stopPropagation();
+      toggleRuta(id, chk.checked);
+      div.classList.toggle('activa', chk.checked);
+    });
+    div.addEventListener('click', e => {
+      if (e.target === chk) return;
+      // click en el item: hacer zoom a esa ruta
+      const coords = r.puntos.map(p => [p.lat, p.lng]);
+      if (coords.length) map.fitBounds(coords, { padding: [40, 40] });
+      if (!r.visible) { chk.checked = true; toggleRuta(id, true); div.classList.add('activa'); }
+    });
+    cont.appendChild(div);
+  });
+}
+
+// =========================================================
+// EVENTOS UI
+// =========================================================
+document.getElementById('btnAll').addEventListener('click', () => {
+  Object.keys(rutas).forEach(id => toggleRuta(id, true));
+  renderLista(document.getElementById('filtro').value);
+  ajustarVista();
+});
+document.getElementById('btnNone').addEventListener('click', () => {
+  Object.keys(rutas).forEach(id => toggleRuta(id, false));
+  renderLista(document.getElementById('filtro').value);
+});
+document.getElementById('btnFit').addEventListener('click', ajustarVista);
+document.getElementById('btnModo').addEventListener('click', async () => {
+  modoCalles = !modoCalles;
+  document.getElementById('btnModo').textContent = 'Modo: ' + (modoCalles ? 'Calles' : 'Recto');
+  // Redibujar todas con el nuevo modo
+  await dibujarTodas();
+});
+
+document.getElementById('btnEdit').addEventListener('click', async () => {
+  modoEdicion = !modoEdicion;
+  const btn = document.getElementById('btnEdit');
+  btn.textContent = 'Editar: ' + (modoEdicion ? 'ON' : 'OFF');
+  btn.classList.toggle('danger', modoEdicion);
+  // Evitar que el doble click haga zoom; reservarlo para insertar parada
+  if (modoEdicion) map.doubleClickZoom.disable();
+  else map.doubleClickZoom.enable();
+  // Redibujar para activar/desactivar drag y engrosar línea
+  for (const id of Object.keys(rutas)) {
+    await dibujarRuta(id);
+  }
+  renderLista(document.getElementById('filtro').value);
+});
+
+document.getElementById('btnExport').addEventListener('click', exportarCambios);
+
+// Chips de turno
+document.querySelectorAll('#chipsTurnos .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const t = chip.dataset.turno;
+    if (turnosActivos.has(t)) turnosActivos.delete(t);
+    else turnosActivos.add(t);
+    aplicarFiltros();
+    renderChipsFiltros();
+  });
+});
+
+// Geocercas
+document.getElementById('btnGeo').addEventListener('click', toggleGeocercas);
+document.getElementById('sliderDiam').addEventListener('input', e => {
+  setDiametroGeocercas(parseInt(e.target.value));
+});
+
+// =========================================================
+// HELPERS DE CAMBIOS
+// =========================================================
+function obtenerCambios() {
+  const cambios = [];
+  Object.keys(rutas).forEach(id => {
+    rutas[id].puntos.forEach(p => {
+      const esNuevo = p.nuevo === true;
+      const esMovido = !esNuevo && (p.lat !== p.latOrig || p.lng !== p.lngOrig);
+      if (esNuevo || esMovido) {
+        cambios.push({
+          tipo: esNuevo ? 'Nueva' : 'Movida',
+          idRuta: id,
+          descRuta: rutas[id].descRuta,
+          planta: rutas[id].planta,
+          sec: p.sec,
+          parada: p.parada,
+          latOrig: esNuevo ? '' : p.latOrig,
+          lngOrig: esNuevo ? '' : p.lngOrig,
+          latNueva: p.lat,
+          lngNueva: p.lng
+        });
+      }
+    });
+  });
+  return cambios;
+}
+
+function actualizarBadgeCambios() {
+  const n = obtenerCambios().length;
+  document.getElementById('badgeCambios').textContent = n > 0 ? n : '';
+  document.getElementById('btnExport').disabled = (n === 0);
+}
+
+function exportarCambios() {
+  const cambios = obtenerCambios();
+  if (!cambios.length) return;
+
+  const header = 'Tipo,ID Ruta,Descripcion,Planta,Sec,Parada,Lat Original,Lng Original,Lat Nueva,Lng Nueva\n';
+  const esc = s => `"${String(s).replace(/"/g,'""')}"`;
+  const filas = cambios.map(c => [
+    esc(c.tipo), esc(c.idRuta), esc(c.descRuta), esc(c.planta), c.sec, esc(c.parada),
+    c.latOrig, c.lngOrig, c.latNueva, c.lngNueva
+  ].join(','));
+  const csv = header + filas.join('\n');
+
+  const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const fecha = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `cambios_paradas_${fecha}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// =========================================================
+// INSERTAR PARADA NUEVA (doble click en línea)
+// =========================================================
+function insertarParada(id, latlng) {
+  const r = rutas[id];
+  r.puntos.sort((a,b) => a.sec - b.sec);
+
+  // Encontrar segmento más cercano (par de paradas consecutivas)
+  let mejorIdx = 0;
+  let mejorDist = Infinity;
+  for (let i = 0; i < r.puntos.length - 1; i++) {
+    const d = distMetros(latlng.lat, latlng.lng, r.puntos[i].lat, r.puntos[i].lng)
+            + distMetros(latlng.lat, latlng.lng, r.puntos[i+1].lat, r.puntos[i+1].lng);
+    if (d < mejorDist) { mejorDist = d; mejorIdx = i; }
+  }
+
+  const nombre = prompt('Nombre de la nueva parada:', 'Nueva parada');
+  if (nombre === null) return; // cancelado
+
+  const nuevaSec = r.puntos[mejorIdx].sec + 1;
+  // Recorrer secuencias posteriores
+  r.puntos.forEach(p => { if (p.sec >= nuevaSec) p.sec += 1; });
+
+  r.puntos.push({
+    sec: nuevaSec,
+    pos: '',
+    parada: nombre || 'Nueva parada',
+    lat: latlng.lat,
+    lng: latlng.lng,
+    latOrig: null, lngOrig: null,
+    nuevo: true,
+    h1: '', h2: '', h3: ''
+  });
+
+  // Invalidar geometría cacheada y redibujar
+  delete cacheCalles[id];
+  dibujarRuta(id).then(() => {
+    renderLista(document.getElementById('filtro').value);
+    actualizarBadgeCambios();
+  });
+}
+document.getElementById('filtro').addEventListener('input', e => {
+  renderLista(e.target.value);
+});
+
+// Cargar archivo local
+document.getElementById('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('counter').textContent = 'Procesando archivo local...';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    // Limpiar capas previas
+    Object.values(rutas).forEach(r => map.removeLayer(r.layer));
+    procesarCSV(ev.target.result);
+  };
+  // Leer como Latin1 por si el CSV viene del export en ese encoding
+  reader.readAsText(file, 'ISO-8859-1');
+});
+
+// =========================================================
+// CARGA INICIAL desde Google Sheets
+// =========================================================
+document.getElementById('counter').textContent = 'Cargando desde Google Sheets...';
+fetch(SHEET_URL)
+  .then(r => r.text())
+  .then(csv => procesarCSV(csv))
+  .catch(err => {
+    document.getElementById('counter').innerHTML =
+      '<span style="color:#f87171">Error al cargar Sheet. Usa el botón de CSV local.</span>';
+    console.error(err);
+  });
+</script>
+</body>
+</html>
