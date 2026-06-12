@@ -10,15 +10,9 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#f0f2f7;font-family:'Inter',sans-serif}
-nav{background:#1f2937;padding:12px 24px;display:flex;gap:20px;align-items:center}
 nav a{color:#e5e7eb;text-decoration:none;font-weight:500;padding:6px 12px;border-radius:6px}
 nav a:first-child{color:#84cc16;font-weight:700}
 nav a:hover{background:#374151}
-.dropdown{position:relative;display:inline-block}
-.dropdown-toggle{color:#e5e7eb;font-weight:500;padding:6px 12px;border-radius:6px;cursor:pointer;background:transparent;border:none;font-size:14px}
-.dropdown-toggle:hover{background:#374151}
-.dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#374151;min-width:180px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.3)}
-.dropdown.open .dropdown-menu{display:block}
 .dropdown-menu a{display:block;padding:10px 16px;color:#e5e7eb}
 .dropdown-menu a.active{background:#84cc16;color:#1f2937}
 .layout{display:flex}
@@ -79,40 +73,17 @@ nav a:hover{background:#374151}
 .err{background:#ffebee;border-left:4px solid #c62828;padding:12px;border-radius:8px;margin-bottom:16px;display:none}
 .err:not(.hidden){display:block}
 .hidden{display:none}
+nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48px;gap:14px;position:sticky;top:0;z-index:2000;box-shadow:0 2px 8px rgba(0,0,0,.3);flex-shrink:0;font-family:'Inter',sans-serif;}
+.nav-logo{color:#84cc16;font-weight:800;font-size:16px;text-decoration:none;}
+.nav-sep{color:#4b5563;font-size:14px;font-weight:300;}
+.nav-page{color:#e5e7eb;font-size:13px;font-weight:600;}
 </style>
 </head>
 <body>
 <nav>
-  <a href="index.html">TRAXIÓN</a>
-  <div class="dropdown" id="dropdownLogistica">
-    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownLogistica')">
-      Logística <span class="dropdown-arrow">▼</span>
-    </button>
-    <div class="dropdown-menu">
-      <a href="Dashboard_NS.html">Nivel de Servicio</a>
-      <a href="Dashboard_Kilometros.html" class="active">Kilómetros</a>
-      <a href="Dashboard_Flota.html">Flota</a>
-      <a href="Cambio_Manos.html">Cambio de manos</a>
-      <a href="Auditar_Folios.html">Auditoría de folios</a>
-      <a href="Planeador_Territorio.html">Eficiencias internas</a>
-    </div>
-  </div>
-  <div class="dropdown" id="dropdownSeguridad">
-    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownSeguridad')">
-      Seguridad Vial <span class="dropdown-arrow">▼</span>
-    </button>
-    <div class="dropdown-menu">
-      <a href="Radar_Riesgos.html">Radar de Riesgos</a>
-    </div>
-  </div>
-  <div class="dropdown" id="dropdownCombustible">
-    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownCombustible')">
-      Combustible <span class="dropdown-arrow">▼</span>
-    </button>
-    <div class="dropdown-menu">
-      <a href="Dashboard_ralenti.html">Ralentí</a>
-    </div>
-  </div>
+  <a class="nav-logo" href="index.html">TRAXIÓN</a>
+  <span class="nav-sep">|</span>
+  <span class="nav-page">Kilómetros</span>
 </nav>
 <div class="loading-overlay" id="loadingOverlay"><div class="loading-box"><div class="loading-spinner"></div><div>Cargando datos...</div></div></div>
 <div class="layout">
@@ -294,9 +265,6 @@ function openModal(cliente){
   document.getElementById('unitModal').classList.add('open');
 }
 function closeModal(){ document.getElementById('unitModal').classList.remove('open'); }
-function toggleDropdown(id){const d=document.getElementById(id);document.querySelectorAll('.dropdown').forEach(x=>{if(x.id!==id)x.classList.remove('open');});d.classList.toggle('open');}
-document.addEventListener('click',e=>{ if(!e.target.closest('.dropdown')) document.querySelectorAll('.dropdown').forEach(d=>d.classList.remove('open')); });
-
 window.addEventListener('DOMContentLoaded',async()=>{
   document.getElementById('fechaActualizacion').innerHTML=`📅 ${new Date().toLocaleDateString('es-MX')}`;
   let ov=document.getElementById('loadingOverlay');
