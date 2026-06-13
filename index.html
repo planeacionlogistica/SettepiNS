@@ -30,7 +30,7 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 
 /* ========== SIDEBAR ========== */
 .sidebar{width:260px;background:#1f2937;color:#fff;padding:20px;overflow-y:auto;display:flex;flex-direction:column;}
-.sidebar h1{color:#84cc16;font-size:22px;margin-bottom:30px;text-align:center}
+.sidebar h1{color:#84cc16;font-size:22px;margin-bottom:30px;text-align:center;letter-spacing:3px;}
 .menu-categories{flex:1}
 .menu-category{margin-bottom:8px}
 .menu-category-header{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;background:transparent;border:0;padding:11px 14px;border-radius:8px;color:#e5e7eb;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:background .2s;}
@@ -53,38 +53,31 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 
 /* ========== MAIN ========== */
 .main{flex:1;background:#fff;position:relative;overflow-y:auto;}
-.main::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.88),rgba(255,255,255,.88)),url("fondotraxion.jpeg");background-size:cover;background-position:center;background-attachment:fixed;z-index:0;}
+.main::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.90),rgba(255,255,255,.90)),url("fondotraxion.jpeg");background-size:cover;background-position:center;background-attachment:fixed;z-index:0;}
 
-.dashboard{position:relative;z-index:1;padding:36px 44px 24px;min-height:100%;display:flex;flex-direction:column;}
-.dashboard-header{margin-bottom:28px;}
+.dashboard{position:relative;z-index:1;padding:40px 48px;min-height:100%;display:flex;flex-direction:column;}
+.dashboard-header{margin-bottom:32px;}
 .dashboard-header h2{font-size:26px;font-weight:800;color:#1f2937;letter-spacing:.3px;margin-bottom:4px;}
 .dashboard-header .dashboard-sub{font-size:14px;color:#6b7280;font-weight:500;}
 .dashboard-header .dashboard-sub strong{color:#1f2937;font-weight:700;}
 
 /* ========== KPI GRID ========== */
-.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;flex:1;align-content:start;}
-.kpi-card{background:#fff;border-radius:14px;padding:22px 24px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);border:1px solid #f3f4f6;display:flex;flex-direction:column;gap:10px;min-height:165px;}
-.kpi-icon{width:46px;height:46px;border-radius:10px;background:rgba(132,204,22,.16);display:flex;align-items:center;justify-content:center;}
-.kpi-icon svg{width:24px;height:24px;fill:none;stroke:#84cc16;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
-.kpi-title{font-size:13.5px;color:#374151;font-weight:600;line-height:1.35;}
-.kpi-value{font-size:38px;font-weight:900;line-height:1;letter-spacing:-.5px;margin-top:auto;}
-.kpi-value.green{color:#16a34a;}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-content:start;}
+.kpi-card{background:#fff;border-radius:14px;padding:22px 22px 20px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 6px 16px rgba(0,0,0,.05);border:1px solid #f3f4f6;display:flex;flex-direction:column;align-items:center;}
+.kpi-title{font-size:14px;color:#374151;font-weight:700;text-align:center;letter-spacing:.2px;margin-bottom:6px;min-height:36px;display:flex;align-items:center;justify-content:center;line-height:1.25;}
+.kpi-gauge{width:100%;max-width:240px;}
+.kpi-gauge svg{width:100%;height:auto;display:block;}
+.kpi-value-block{margin-top:4px;text-align:center;}
+.kpi-value{font-size:32px;font-weight:900;line-height:1;letter-spacing:-.5px;}
+.kpi-value.green{color:#65a30d;}
 .kpi-value.red{color:#dc2626;}
-.kpi-footer{font-size:12px;color:#6b7280;font-weight:500;display:flex;align-items:center;gap:6px;}
-.kpi-footer .obj-label{color:#9ca3af;}
-.kpi-footer .obj-value{color:#374151;font-weight:700;}
-.kpi-loading{grid-column:1/-1;text-align:center;padding:40px;color:#6b7280;font-size:14px;}
-
-/* ========== CONTACT BAR (compacto) ========== */
-.contact-bar{margin-top:20px;background:#fff;border-radius:10px;padding:8px 14px;display:flex;align-items:center;justify-content:space-around;gap:10px;font-size:11.5px;color:#6b7280;box-shadow:0 1px 3px rgba(0,0,0,.06);flex-wrap:wrap;}
-.contact-item{display:flex;align-items:center;gap:6px;}
-.contact-item svg{width:13px;height:13px;fill:none;stroke:#84cc16;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
-.contact-item strong{color:#1f2937;font-weight:700;}
-.contact-sep{width:1px;height:14px;background:#e5e7eb;}
+.kpi-target{margin-top:6px;font-size:12px;color:#6b7280;font-weight:500;}
+.kpi-target strong{color:#1f2937;font-weight:700;}
+.kpi-loading{grid-column:1/-1;text-align:center;padding:60px;color:#6b7280;font-size:14px;background:#fff;border-radius:14px;}
 
 @media (max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:1024px){#menu.show{flex-direction:column}.sidebar{width:100%;max-height:300px}}
-@media (max-width:640px){.kpi-grid{grid-template-columns:1fr}.dashboard{padding:24px 20px}.dashboard-header h2{font-size:20px}.contact-bar{flex-direction:column;align-items:flex-start;gap:6px}.contact-sep{display:none}}
+@media (max-width:640px){.kpi-grid{grid-template-columns:1fr}.dashboard{padding:24px 20px}.dashboard-header h2{font-size:20px}}
 </style>
 </head>
 <body>
@@ -205,23 +198,6 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
       <div class="kpi-grid" id="kpiGrid">
         <div class="kpi-loading">Cargando indicadores...</div>
       </div>
-
-      <div class="contact-bar">
-        <div class="contact-item">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
-          Dudas contactar al administrador
-        </div>
-        <div class="contact-sep"></div>
-        <div class="contact-item">
-          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          <strong>Marcos Lopez</strong> 55 2518 4429
-        </div>
-        <div class="contact-sep"></div>
-        <div class="contact-item">
-          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-          <strong>Ricardo Espinoza</strong> 81 2074 0332
-        </div>
-      </div>
     </div>
   </main>
 </div>
@@ -230,7 +206,7 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 
 <script>
 /* ============================================================
-   AUTH (igual que antes)
+   AUTH
    ============================================================ */
 const VALIDATOR_EXPECTED = "trx-settepi-garcia-ok";
 
@@ -301,21 +277,14 @@ async function trxDecrypt(b64, password){
 }
 
 /* ============================================================
-   KPIs DASHBOARD - lee tab "kpis" de Garcia Data
+   KPI DASHBOARD - tab "kpis" de Garcia Data
+   Busca cada KPI por nombre (no por indice fijo) para que
+   funcione aun si gviz colapsa filas vacias.
    ============================================================ */
 const GARCIA_SHEET_ID = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const KPIS_URL = 'https://docs.google.com/spreadsheets/d/'+GARCIA_SHEET_ID+'/gviz/tq?tqx=out:csv&headers=0&sheet=kpis';
 
-const ICONS = {
-  chart: '<polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/>',
-  wrench: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-2.4 2.6-2.6z"/>',
-  person: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/>',
-  moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
-  alert: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
-  gauge: '<path d="M12 14l4-4"/><circle cx="12" cy="14" r="1.5" fill="currentColor" stroke="none"/><path d="M3 14a9 9 0 0 1 18 0"/><path d="M5.5 18a9 9 0 0 1 13 0"/>'
-};
-
-// Parser CSV simple, tolera comillas y comas internas
+/* --- Parser CSV --- */
 function parseCSV(text){
   const rows = [];
   let row = [], field = '', inQ = false;
@@ -340,7 +309,35 @@ function parseCSV(text){
   return rows;
 }
 
-// Parsea numeros, porcentajes y miles con comas
+/* --- Normaliza texto para busqueda (sin acentos, lowercase) --- */
+function norm(s){
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+}
+
+/* --- Busca el indice de la primer columna con texto en una fila --- */
+function findLabelCol(row){
+  for(let j=0;j<row.length;j++){
+    const v = String(row[j] || '').trim();
+    if(v && isNaN(parseFloat(v.replace(/,/g,'')))) return j;
+  }
+  return -1;
+}
+
+/* --- Busca una fila por palabras clave en cualquier columna --- */
+function findRow(rows, keywords){
+  const kws = keywords.map(norm);
+  for(let i=0;i<rows.length;i++){
+    for(let j=0;j<rows[i].length;j++){
+      const cell = norm(rows[i][j]);
+      if(cell && kws.every(k => cell.includes(k))){
+        return { row: rows[i], rowIdx: i, labelCol: j };
+      }
+    }
+  }
+  return null;
+}
+
+/* --- Parsea numeros, porcentajes y miles --- */
 function parseNum(s){
   if(s == null) return 0;
   s = String(s).trim();
@@ -353,7 +350,8 @@ function parseNum(s){
   return isPct ? n/100 : n;
 }
 
-function fmt(n, type){
+/* --- Formato de salida --- */
+function fmtVal(n, type){
   if(type === 'percent'){
     const pct = n <= 1 ? n*100 : n;
     const r = Math.round(pct*10)/10;
@@ -363,6 +361,68 @@ function fmt(n, type){
   return Math.round(n).toString();
 }
 
+/* --- Escala maxima del gauge --- */
+function gaugeMax(real, obj, fmt){
+  if(fmt === 'percent') return 1.0;
+  if(obj > 0) return obj * 2;            // objetivo cae en el centro
+  return Math.max(real * 2, 10);          // fallback si obj=0
+}
+
+/* --- Genera el SVG del gauge tipo BI --- */
+function buildGauge(real, obj, max, status){
+  const cx = 130, cy = 120, r = 92;
+  const tR = max > 0 ? Math.max(0, Math.min(1, real / max)) : 0;
+  const tO = max > 0 ? Math.max(0, Math.min(1, obj  / max)) : 0;
+
+  const pt = (t, radius) => {
+    const a = Math.PI * (1 - t);
+    return { x: cx + radius * Math.cos(a), y: cy - radius * Math.sin(a) };
+  };
+
+  const p0    = pt(0, r);
+  const pEnd  = pt(1, r);
+  const pR    = pt(tR, r);
+  const pObjI = pt(tO, r - 18);
+  const pObjO = pt(tO, r + 10);
+  const pNI   = pt(tR, 8);   // base ancha de la aguja, atras del pivote
+  const pNT   = pt(tR, r - 6); // punta de la aguja
+
+  const fill = status === 'green' ? '#84cc16' : '#dc2626';
+
+  const bgPath = 'M '+p0.x.toFixed(2)+' '+p0.y.toFixed(2)+' A '+r+' '+r+' 0 0 1 '+pEnd.x.toFixed(2)+' '+pEnd.y.toFixed(2);
+  const largeArc = tR > 0.5 ? 1 : 0;
+  const fillPath = tR > 0.001
+    ? 'M '+p0.x.toFixed(2)+' '+p0.y.toFixed(2)+' A '+r+' '+r+' 0 '+largeArc+' 1 '+pR.x.toFixed(2)+' '+pR.y.toFixed(2)
+    : '';
+
+  // aguja como triangulo delgado para look de BI
+  const a = Math.PI * (1 - tR);
+  const perp = a + Math.PI/2;
+  const base1 = { x: cx + 5*Math.cos(perp), y: cy - 5*Math.sin(perp) };
+  const base2 = { x: cx - 5*Math.cos(perp), y: cy + 5*Math.sin(perp) };
+  const needle = 'M '+base1.x.toFixed(2)+' '+base1.y.toFixed(2)+' L '+pNT.x.toFixed(2)+' '+pNT.y.toFixed(2)+' L '+base2.x.toFixed(2)+' '+base2.y.toFixed(2)+' Z';
+
+  return ''+
+    '<svg viewBox="0 0 260 145" xmlns="http://www.w3.org/2000/svg">'+
+      '<path d="'+bgPath+'" fill="none" stroke="#e5e7eb" stroke-width="16" stroke-linecap="round"/>'+
+      (fillPath ? '<path d="'+fillPath+'" fill="none" stroke="'+fill+'" stroke-width="16" stroke-linecap="round"/>' : '')+
+      '<line x1="'+pObjI.x.toFixed(2)+'" y1="'+pObjI.y.toFixed(2)+'" x2="'+pObjO.x.toFixed(2)+'" y2="'+pObjO.y.toFixed(2)+'" stroke="#1f2937" stroke-width="3" stroke-linecap="round"/>'+
+      '<path d="'+needle+'" fill="#1f2937"/>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="9" fill="#1f2937"/>'+
+      '<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="#fff"/>'+
+    '</svg>';
+}
+
+/* --- Definicion de KPIs (buscados por nombre, no por indice) --- */
+const KPI_DEFS = [
+  { keywords: ['nivel','servicio'],          name: 'Nivel de Servicio',                  rule: 'higher_better', fmt: 'percent'  },
+  { keywords: ['unidades','mtto'],           name: 'Unidades en Mantenimiento',          rule: 'lower_better',  fmt: 'int'      },
+  { keywords: ['operadores','15km'],         name: 'Operadores > 15 km',                 rule: 'lower_better',  fmt: 'int'      },
+  { keywords: ['sin','descanso'],            name: 'Operadores > 15 dias sin descanso',  rule: 'always_red',    fmt: 'int'      },
+  { keywords: ['siniestros'],                name: 'Siniestros',                          rule: 'lower_better',  fmt: 'int'      },
+  { keywords: ['kilometros','marginales'],   name: 'Kilometros Marginales',              rule: 'lower_better',  fmt: 'thousand' }
+];
+
 async function loadKpis(){
   const grid = document.getElementById('kpiGrid');
   try{
@@ -371,38 +431,52 @@ async function loadKpis(){
     const txt = await res.text();
     const rows = parseCSV(txt);
 
-    // Semana (fila 1, col B = indice 0,1)
-    const semana = (rows[0] && rows[0][1] ? String(rows[0][1]).trim() : '--');
-    document.getElementById('semanaNum').textContent = semana || '--';
-
-    // Definicion de KPIs - los datos estan en filas 6 a 11 (indices 5-10), col C=2, D=3
-    const defs = [
-      { row:5,  name:'Nivel de Servicio',                icon:'chart',  rule:'higher_better', fmt:'percent'  },
-      { row:6,  name:'Unidades en Mantenimiento',        icon:'wrench', rule:'lower_better',  fmt:'int'      },
-      { row:7,  name:'Operadores > 15 km',               icon:'person', rule:'lower_better',  fmt:'int'      },
-      { row:8,  name:'Operadores > 15 dias sin descanso',icon:'moon',   rule:'always_red',    fmt:'int'      },
-      { row:9,  name:'Siniestros',                       icon:'alert',  rule:'lower_better',  fmt:'int'      },
-      { row:10, name:'Kilometros Marginales',            icon:'gauge',  rule:'lower_better',  fmt:'thousand' }
-    ];
+    // Semana
+    const semFound = findRow(rows, ['semana']);
+    if(semFound){
+      const sval = String(semFound.row[semFound.labelCol+1] || '').trim();
+      document.getElementById('semanaNum').textContent = sval || '--';
+    }
 
     grid.innerHTML = '';
-    defs.forEach(d => {
-      const r = rows[d.row] || [];
-      const real = parseNum(r[2]);
-      const obj  = parseNum(r[3]);
+
+    KPI_DEFS.forEach(def => {
+      const found = findRow(rows, def.keywords);
+      let real = 0, obj = 0;
+      if(found){
+        // Real = primer celda numerica despues del label
+        // Objetivo = segunda celda numerica despues del label
+        const nums = [];
+        for(let j = found.labelCol + 1; j < found.row.length; j++){
+          const raw = String(found.row[j] || '').trim();
+          if(raw === '') continue;
+          const n = parseNum(raw);
+          // aceptar incluso si parseNum dio 0 pero la celda tenia '0%' o '0'
+          if(raw === '0' || raw === '0%' || raw === '0.0' || !isNaN(parseFloat(raw.replace(/[%,]/g,'')))){
+            nums.push(n);
+            if(nums.length === 2) break;
+          }
+        }
+        real = nums[0] !== undefined ? nums[0] : 0;
+        obj  = nums[1] !== undefined ? nums[1] : 0;
+      }
 
       let status;
-      if(d.rule === 'always_red') status = 'red';
-      else if(d.rule === 'higher_better') status = real >= obj ? 'green' : 'red';
+      if(def.rule === 'always_red') status = 'red';
+      else if(def.rule === 'higher_better') status = real >= obj ? 'green' : 'red';
       else status = real <= obj ? 'green' : 'red';
+
+      const max = gaugeMax(real, obj, def.fmt);
 
       const card = document.createElement('div');
       card.className = 'kpi-card';
       card.innerHTML =
-        '<div class="kpi-icon"><svg viewBox="0 0 24 24">'+ICONS[d.icon]+'</svg></div>'+
-        '<div class="kpi-title">'+d.name+'</div>'+
-        '<div class="kpi-value '+status+'">'+fmt(real, d.fmt)+'</div>'+
-        '<div class="kpi-footer"><span class="obj-label">Objetivo:</span> <span class="obj-value">'+fmt(obj, d.fmt)+'</span></div>';
+        '<div class="kpi-title">'+def.name+'</div>'+
+        '<div class="kpi-gauge">'+buildGauge(real, obj, max, status)+'</div>'+
+        '<div class="kpi-value-block">'+
+          '<div class="kpi-value '+status+'">'+fmtVal(real, def.fmt)+'</div>'+
+          '<div class="kpi-target">Objetivo: <strong>'+fmtVal(obj, def.fmt)+'</strong></div>'+
+        '</div>';
       grid.appendChild(card);
     });
   }catch(e){
