@@ -63,7 +63,11 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 
 /* ========== KPI GRID ========== */
 .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-content:start;}
-.kpi-card{background:#fff;border-radius:14px;padding:22px 22px 20px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 6px 16px rgba(0,0,0,.05);border:1px solid #f3f4f6;display:flex;flex-direction:column;align-items:center;}
+.kpi-card{background:#fff;border-radius:14px;padding:22px 22px 20px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 6px 16px rgba(0,0,0,.05);border:1px solid #f3f4f6;display:flex;flex-direction:column;align-items:center;text-decoration:none;color:inherit;position:relative;}
+.kpi-card.clickable{cursor:pointer;transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;}
+.kpi-card.clickable:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(0,0,0,.06),0 14px 28px rgba(132,204,22,.18);border-color:#84cc16;}
+.kpi-card.clickable::after{content:'';position:absolute;top:14px;right:14px;width:18px;height:18px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2384cc16' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M7 17L17 7'/><polyline points='8 7 17 7 17 16'/></svg>") no-repeat center/contain;opacity:.6;transition:opacity .2s;}
+.kpi-card.clickable:hover::after{opacity:1;}
 .kpi-title{font-size:14px;color:#374151;font-weight:700;text-align:center;letter-spacing:.2px;margin-bottom:6px;min-height:36px;display:flex;align-items:center;justify-content:center;line-height:1.25;}
 .kpi-gauge{width:100%;max-width:240px;}
 .kpi-gauge svg{width:100%;height:auto;display:block;}
@@ -75,9 +79,20 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 .kpi-target strong{color:#1f2937;font-weight:700;}
 .kpi-loading{grid-column:1/-1;text-align:center;padding:60px;color:#6b7280;font-size:14px;background:#fff;border-radius:14px;}
 
+/* ========== CONTACT BAR ========== */
+.contact-bar{margin-top:26px;background:#fff;border-radius:12px;padding:14px 22px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);border:1px solid #f3f4f6;}
+.contact-title{display:flex;align-items:center;gap:8px;color:#374151;font-size:13px;font-weight:700;padding-bottom:10px;border-bottom:1px solid #f3f4f6;margin-bottom:10px;}
+.contact-title svg{width:16px;height:16px;fill:none;stroke:#84cc16;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.contact-groups{display:flex;gap:32px;flex-wrap:wrap;}
+.contact-group{display:flex;flex-direction:column;gap:5px;}
+.contact-group-label{font-size:10.5px;font-weight:800;color:#84cc16;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:2px;}
+.contact-item{display:flex;align-items:center;gap:7px;font-size:12.5px;color:#6b7280;font-weight:500;}
+.contact-item svg{width:13px;height:13px;fill:none;stroke:#84cc16;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.contact-item strong{color:#1f2937;font-weight:700;}
+
 @media (max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:1024px){#menu.show{flex-direction:column}.sidebar{width:100%;max-height:300px}}
-@media (max-width:640px){.kpi-grid{grid-template-columns:1fr}.dashboard{padding:24px 20px}.dashboard-header h2{font-size:20px}}
+@media (max-width:640px){.kpi-grid{grid-template-columns:1fr}.dashboard{padding:24px 20px}.dashboard-header h2{font-size:20px}.contact-groups{flex-direction:column;gap:14px}}
 </style>
 </head>
 <body>
@@ -197,6 +212,33 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 
       <div class="kpi-grid" id="kpiGrid">
         <div class="kpi-loading">Cargando indicadores...</div>
+      </div>
+
+      <div class="contact-bar">
+        <div class="contact-title">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+          Dudas contactar a los administradores
+        </div>
+        <div class="contact-groups">
+          <div class="contact-group">
+            <div class="contact-group-label">Logistica</div>
+            <div class="contact-item">
+              <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <strong>Marcos Lopez</strong> 55 2518 4429
+            </div>
+            <div class="contact-item">
+              <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <strong>Ricardo Espinoza</strong> 81 2074 0332
+            </div>
+          </div>
+          <div class="contact-group">
+            <div class="contact-group-label">Seguridad Vial</div>
+            <div class="contact-item">
+              <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              <strong>Hector Vergara</strong> 55 7010 8337
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -415,7 +457,7 @@ function buildGauge(real, obj, max, status){
 
 /* --- Definicion de KPIs (buscados por nombre, no por indice) --- */
 const KPI_DEFS = [
-  { keywords: ['nivel','servicio'],          name: 'Nivel de Servicio',                  rule: 'higher_better', fmt: 'percent'  },
+  { keywords: ['nivel','servicio'],          name: 'Nivel de Servicio',                  rule: 'higher_better', fmt: 'percent',  link: 'Dashboard_NS.html' },
   { keywords: ['unidades','mtto'],           name: 'Unidades en Mantenimiento',          rule: 'lower_better',  fmt: 'int'      },
   { keywords: ['operadores','15km'],         name: 'Operadores > 15 km',                 rule: 'lower_better',  fmt: 'int'      },
   { keywords: ['sin','descanso'],            name: 'Operadores > 15 dias sin descanso',  rule: 'always_red',    fmt: 'int'      },
@@ -468,8 +510,12 @@ async function loadKpis(){
 
       const max = gaugeMax(real, obj, def.fmt);
 
-      const card = document.createElement('div');
-      card.className = 'kpi-card';
+      const card = document.createElement(def.link ? 'a' : 'div');
+      card.className = 'kpi-card' + (def.link ? ' clickable' : '');
+      if(def.link){
+        card.href = def.link;
+        card.title = 'Abrir ' + def.name;
+      }
       card.innerHTML =
         '<div class="kpi-title">'+def.name+'</div>'+
         '<div class="kpi-gauge">'+buildGauge(real, obj, max, status)+'</div>'+
