@@ -8,6 +8,8 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
+
+/* ========== LOGIN ========== */
 #login{position:fixed;inset:0;background:#1f2937;display:flex;align-items:center;justify-content:center;z-index:9999;}
 #login::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(31,41,55,.88),rgba(31,41,55,.88)),url("fondotraxion.jpeg");background-size:cover;background-position:center;}
 .login-card{position:relative;background:#fff;border-radius:14px;padding:40px 36px;width:360px;max-width:92vw;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);}
@@ -21,8 +23,12 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 .login-card button:disabled{background:#9ca3af;cursor:wait}
 .login-err{margin-top:12px;color:#b91c1c;font-size:13px;text-align:center;font-weight:600;display:none}
 .login-err.show{display:block}
+
+/* ========== LAYOUT ========== */
 #menu{display:none}
 #menu.show{display:flex;height:100vh}
+
+/* ========== SIDEBAR ========== */
 .sidebar{width:260px;background:#1f2937;color:#fff;padding:20px;overflow-y:auto;display:flex;flex-direction:column;}
 .sidebar h1{color:#84cc16;font-size:22px;margin-bottom:30px;text-align:center}
 .menu-categories{flex:1}
@@ -43,17 +49,47 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 .logout-btn{background:transparent;border:1.5px solid #374151;color:#9ca3af;padding:10px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;margin-top:15px;}
 .logout-btn:hover{border-color:#b91c1c;color:#b91c1c}
 .logout-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.main{flex:1;background:#fff;position:relative;overflow:hidden}
-.main::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,.75)),url("fondotraxion.jpeg");background-size:cover;background-position:center;}
-.hero{position:relative;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px}
-.hero h2{font-size:56px;letter-spacing:6px;font-weight:900;color:#1f2937;margin-bottom:10px}
-.hero p{margin-top:10px;font-size:18px;color:#6b7280;font-weight:500}
-.hero .tagline{font-size:16px;color:#84cc16;font-weight:700;margin-top:20px;letter-spacing:2px}
+.version-label{margin-top:14px;text-align:center;color:#84cc16;font-size:12px;font-weight:700;letter-spacing:1px;}
+
+/* ========== MAIN ========== */
+.main{flex:1;background:#fff;position:relative;overflow-y:auto;}
+.main::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.88),rgba(255,255,255,.88)),url("fondotraxion.jpeg");background-size:cover;background-position:center;background-attachment:fixed;z-index:0;}
+
+.dashboard{position:relative;z-index:1;padding:36px 44px 24px;min-height:100%;display:flex;flex-direction:column;}
+.dashboard-header{margin-bottom:28px;}
+.dashboard-header h2{font-size:26px;font-weight:800;color:#1f2937;letter-spacing:.3px;margin-bottom:4px;}
+.dashboard-header .dashboard-sub{font-size:14px;color:#6b7280;font-weight:500;}
+.dashboard-header .dashboard-sub strong{color:#1f2937;font-weight:700;}
+
+/* ========== KPI GRID ========== */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;flex:1;align-content:start;}
+.kpi-card{background:#fff;border-radius:14px;padding:22px 24px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04);border:1px solid #f3f4f6;display:flex;flex-direction:column;gap:10px;min-height:165px;}
+.kpi-icon{width:46px;height:46px;border-radius:10px;background:rgba(132,204,22,.16);display:flex;align-items:center;justify-content:center;}
+.kpi-icon svg{width:24px;height:24px;fill:none;stroke:#84cc16;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+.kpi-title{font-size:13.5px;color:#374151;font-weight:600;line-height:1.35;}
+.kpi-value{font-size:38px;font-weight:900;line-height:1;letter-spacing:-.5px;margin-top:auto;}
+.kpi-value.green{color:#16a34a;}
+.kpi-value.red{color:#dc2626;}
+.kpi-footer{font-size:12px;color:#6b7280;font-weight:500;display:flex;align-items:center;gap:6px;}
+.kpi-footer .obj-label{color:#9ca3af;}
+.kpi-footer .obj-value{color:#374151;font-weight:700;}
+.kpi-loading{grid-column:1/-1;text-align:center;padding:40px;color:#6b7280;font-size:14px;}
+
+/* ========== CONTACT BAR (compacto) ========== */
+.contact-bar{margin-top:20px;background:#fff;border-radius:10px;padding:8px 14px;display:flex;align-items:center;justify-content:space-around;gap:10px;font-size:11.5px;color:#6b7280;box-shadow:0 1px 3px rgba(0,0,0,.06);flex-wrap:wrap;}
+.contact-item{display:flex;align-items:center;gap:6px;}
+.contact-item svg{width:13px;height:13px;fill:none;stroke:#84cc16;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
+.contact-item strong{color:#1f2937;font-weight:700;}
+.contact-sep{width:1px;height:14px;background:#e5e7eb;}
+
+@media (max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:1024px){#menu.show{flex-direction:column}.sidebar{width:100%;max-height:300px}}
-@media (max-width:640px){.hero h2{font-size:36px;letter-spacing:3px}.hero p{font-size:16px}}
+@media (max-width:640px){.kpi-grid{grid-template-columns:1fr}.dashboard{padding:24px 20px}.dashboard-header h2{font-size:20px}.contact-bar{flex-direction:column;align-items:flex-start;gap:6px}.contact-sep{display:none}}
 </style>
 </head>
 <body>
+
+<!-- ========== LOGIN ========== -->
 <div id="login">
   <form class="login-card" id="loginForm" autocomplete="off">
     <h1>TRAXION</h1>
@@ -64,6 +100,8 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
     <div class="login-err" id="err">Contrasena incorrecta</div>
   </form>
 </div>
+
+<!-- ========== MENU + DASHBOARD ========== -->
 <div id="menu">
   <aside class="sidebar">
     <h1>TRAXION</h1>
@@ -101,11 +139,11 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
             <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
             Eficiencias internas
           </a>
-           <a href="Rolador.html" class="menu-item">
+          <a href="Rolador.html" class="menu-item">
             <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
             Rolador
           </a>
-           <a href="Logistica_Mundial.html" class="menu-item">
+          <a href="Logistica_Mundial.html" class="menu-item">
             <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
             Logistica Mundial 2026
           </a>
@@ -154,18 +192,48 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
       <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Cerrar sesion
     </button>
+    <div class="version-label">Dashboard Logistic v2.0</div>
   </aside>
+
   <main class="main">
-    <div class="hero">
-      <h2>TRAXION</h2>
-      <p>Logistica &middot; Operaciones &middot; Seguridad</p>
-      <p class="tagline">Movemos lo mas valioso, conectamos destinos</p>
+    <div class="dashboard">
+      <div class="dashboard-header">
+        <h2>Resumen general de indicadores claves</h2>
+        <div class="dashboard-sub">Semana <strong id="semanaNum">--</strong></div>
+      </div>
+
+      <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi-loading">Cargando indicadores...</div>
+      </div>
+
+      <div class="contact-bar">
+        <div class="contact-item">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+          Dudas contactar al administrador
+        </div>
+        <div class="contact-sep"></div>
+        <div class="contact-item">
+          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <strong>Marcos Lopez</strong> 55 2518 4429
+        </div>
+        <div class="contact-sep"></div>
+        <div class="contact-item">
+          <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          <strong>Ricardo Espinoza</strong> 81 2074 0332
+        </div>
+      </div>
     </div>
   </main>
 </div>
+
 <script id="trx-validator" type="text/plain">mmF01QsTmGJCuAdVtyOU5miutD2BnjYzxPkxPG5QThu/lF3dMBECPAE1/Sd1KOhWNiWV0RPF56aw+UOF95W6+mE=</script>
+
 <script>
+/* ============================================================
+   AUTH (igual que antes)
+   ============================================================ */
 const VALIDATOR_EXPECTED = "trx-settepi-garcia-ok";
+
 (async function autoAuth(){
   const pwd = sessionStorage.getItem('trx_auth');
   if(!pwd) return;
@@ -176,6 +244,7 @@ const VALIDATOR_EXPECTED = "trx-settepi-garcia-ok";
     else{ sessionStorage.removeItem('trx_auth'); }
   }catch(e){ sessionStorage.removeItem('trx_auth'); }
 })();
+
 document.getElementById('loginForm').addEventListener('submit', async function(ev){
   ev.preventDefault();
   const pwd = document.getElementById('pwd').value;
@@ -199,19 +268,24 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     btn.textContent = 'Entrar';
   }
 });
+
 document.getElementById('logoutBtn').addEventListener('click', function(){
   sessionStorage.removeItem('trx_auth');
   location.reload();
 });
+
 function showMenu(){
   document.getElementById('login').style.display = 'none';
   document.getElementById('menu').classList.add('show');
+  loadKpis();
 }
+
 document.querySelectorAll('.menu-category-header').forEach(function(h){
   h.addEventListener('click', function(){
     h.parentElement.classList.toggle('open');
   });
 });
+
 async function trxDecrypt(b64, password){
   const bin = Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
   const salt = bin.slice(0,16);
@@ -224,6 +298,117 @@ async function trxDecrypt(b64, password){
   );
   const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct);
   return new TextDecoder().decode(pt);
+}
+
+/* ============================================================
+   KPIs DASHBOARD - lee tab "kpis" de Garcia Data
+   ============================================================ */
+const GARCIA_SHEET_ID = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
+const KPIS_URL = 'https://docs.google.com/spreadsheets/d/'+GARCIA_SHEET_ID+'/gviz/tq?tqx=out:csv&headers=0&sheet=kpis';
+
+const ICONS = {
+  chart: '<polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/>',
+  wrench: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-2.4 2.6-2.6z"/>',
+  person: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a8 8 0 0 1 16 0v1"/>',
+  moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+  alert: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  gauge: '<path d="M12 14l4-4"/><circle cx="12" cy="14" r="1.5" fill="currentColor" stroke="none"/><path d="M3 14a9 9 0 0 1 18 0"/><path d="M5.5 18a9 9 0 0 1 13 0"/>'
+};
+
+// Parser CSV simple, tolera comillas y comas internas
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQ = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inQ){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQ = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQ = true;
+      else if(c === ','){ row.push(field); field = ''; }
+      else if(c === '\n' || c === '\r'){
+        if(c === '\r' && text[i+1] === '\n') i++;
+        row.push(field); field = '';
+        rows.push(row); row = [];
+      } else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+// Parsea numeros, porcentajes y miles con comas
+function parseNum(s){
+  if(s == null) return 0;
+  s = String(s).trim();
+  if(!s) return 0;
+  const isPct = s.endsWith('%');
+  s = s.replace(/,/g,'').replace(/\s/g,'');
+  if(isPct) s = s.slice(0,-1);
+  const n = parseFloat(s);
+  if(isNaN(n)) return 0;
+  return isPct ? n/100 : n;
+}
+
+function fmt(n, type){
+  if(type === 'percent'){
+    const pct = n <= 1 ? n*100 : n;
+    const r = Math.round(pct*10)/10;
+    return (Number.isInteger(r) ? r.toFixed(0) : r.toFixed(1)) + '%';
+  }
+  if(type === 'thousand') return Math.round(n).toLocaleString('en-US');
+  return Math.round(n).toString();
+}
+
+async function loadKpis(){
+  const grid = document.getElementById('kpiGrid');
+  try{
+    const res = await fetch(KPIS_URL, {cache:'no-store'});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const txt = await res.text();
+    const rows = parseCSV(txt);
+
+    // Semana (fila 1, col B = indice 0,1)
+    const semana = (rows[0] && rows[0][1] ? String(rows[0][1]).trim() : '--');
+    document.getElementById('semanaNum').textContent = semana || '--';
+
+    // Definicion de KPIs - los datos estan en filas 6 a 11 (indices 5-10), col C=2, D=3
+    const defs = [
+      { row:5,  name:'Nivel de Servicio',                icon:'chart',  rule:'higher_better', fmt:'percent'  },
+      { row:6,  name:'Unidades en Mantenimiento',        icon:'wrench', rule:'lower_better',  fmt:'int'      },
+      { row:7,  name:'Operadores > 15 km',               icon:'person', rule:'lower_better',  fmt:'int'      },
+      { row:8,  name:'Operadores > 15 dias sin descanso',icon:'moon',   rule:'always_red',    fmt:'int'      },
+      { row:9,  name:'Siniestros',                       icon:'alert',  rule:'lower_better',  fmt:'int'      },
+      { row:10, name:'Kilometros Marginales',            icon:'gauge',  rule:'lower_better',  fmt:'thousand' }
+    ];
+
+    grid.innerHTML = '';
+    defs.forEach(d => {
+      const r = rows[d.row] || [];
+      const real = parseNum(r[2]);
+      const obj  = parseNum(r[3]);
+
+      let status;
+      if(d.rule === 'always_red') status = 'red';
+      else if(d.rule === 'higher_better') status = real >= obj ? 'green' : 'red';
+      else status = real <= obj ? 'green' : 'red';
+
+      const card = document.createElement('div');
+      card.className = 'kpi-card';
+      card.innerHTML =
+        '<div class="kpi-icon"><svg viewBox="0 0 24 24">'+ICONS[d.icon]+'</svg></div>'+
+        '<div class="kpi-title">'+d.name+'</div>'+
+        '<div class="kpi-value '+status+'">'+fmt(real, d.fmt)+'</div>'+
+        '<div class="kpi-footer"><span class="obj-label">Objetivo:</span> <span class="obj-value">'+fmt(obj, d.fmt)+'</span></div>';
+      grid.appendChild(card);
+    });
+  }catch(e){
+    console.error('Error cargando KPIs:', e);
+    grid.innerHTML = '<div class="kpi-loading">No se pudieron cargar los indicadores. Revisa la conexion o los permisos de la hoja.</div>';
+  }
 }
 </script>
 </body>
