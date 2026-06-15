@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<script>if(!sessionStorage.getItem("trx_auth"))location.replace("index.html");</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Traxion | Acceso</title>
@@ -9,8 +8,6 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
-
-/* ========== LOGIN ========== */
 #login{position:fixed;inset:0;background:#1f2937;display:flex;align-items:center;justify-content:center;z-index:9999;}
 #login::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(31,41,55,.88),rgba(31,41,55,.88)),url("fondotraxion.jpeg");background-size:cover;background-position:center;}
 .login-card{position:relative;background:#fff;border-radius:14px;padding:40px 36px;width:360px;max-width:92vw;box-shadow:0 25px 50px -12px rgba(0,0,0,.5);}
@@ -24,14 +21,10 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 .login-card button:disabled{background:#9ca3af;cursor:wait}
 .login-err{margin-top:12px;color:#b91c1c;font-size:13px;text-align:center;font-weight:600;display:none}
 .login-err.show{display:block}
-
-/* ========== LAYOUT ========== */
 #menu{display:none}
 #menu.show{display:flex;height:100vh}
-
-/* ========== SIDEBAR ========== */
 .sidebar{width:260px;background:#1f2937;color:#fff;padding:20px;overflow-y:auto;display:flex;flex-direction:column;}
-.sidebar h1{color:#84cc16;font-size:22px;margin-bottom:30px;text-align:center;letter-spacing:3px;}
+.sidebar h1{color:#84cc16;font-size:22px;margin-bottom:30px;text-align:center}
 .menu-categories{flex:1}
 .menu-category{margin-bottom:8px}
 .menu-category-header{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;background:transparent;border:0;padding:11px 14px;border-radius:8px;color:#e5e7eb;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;font-family:inherit;transition:background .2s;}
@@ -50,57 +43,17 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 .logout-btn{background:transparent;border:1.5px solid #374151;color:#9ca3af;padding:10px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;margin-top:15px;}
 .logout-btn:hover{border-color:#b91c1c;color:#b91c1c}
 .logout-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.version-label{margin-top:14px;text-align:center;color:#84cc16;font-size:12px;font-weight:700;letter-spacing:1px;}
-
-/* ========== MAIN ========== */
-.main{flex:1;background:#fff;position:relative;overflow-y:auto;}
-.main::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.90),rgba(255,255,255,.90)),url("fondotraxion.jpeg");background-size:cover;background-position:center;background-attachment:fixed;z-index:0;}
-
-.dashboard{position:relative;z-index:1;padding:40px 48px 32px;min-height:100%;display:flex;flex-direction:column;}
-.dashboard-header{margin-bottom:32px;}
-.dashboard-header h2{font-size:26px;font-weight:800;color:#1f2937;letter-spacing:.3px;margin-bottom:4px;}
-.dashboard-header .dashboard-sub{font-size:14px;color:#6b7280;font-weight:500;}
-.dashboard-header .dashboard-sub strong{color:#1f2937;font-weight:700;}
-
-/* ========== KPI GRID ========== */
-.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-content:start;}
-.kpi-card{background:#fff;border-radius:14px;padding:22px 22px 20px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 6px 16px rgba(0,0,0,.05);border:1px solid #f3f4f6;display:flex;flex-direction:column;align-items:center;text-decoration:none;color:inherit;position:relative;}
-.kpi-card.clickable{cursor:pointer;transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;}
-.kpi-card.clickable:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(0,0,0,.06),0 14px 28px rgba(132,204,22,.18);border-color:#84cc16;}
-.kpi-card.clickable::after{content:'';position:absolute;top:14px;right:14px;width:18px;height:18px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2384cc16' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M7 17L17 7'/><polyline points='8 7 17 7 17 16'/></svg>") no-repeat center/contain;opacity:.6;transition:opacity .2s;}
-.kpi-card.clickable:hover::after{opacity:1;}
-.kpi-title{font-size:14px;color:#374151;font-weight:700;text-align:center;letter-spacing:.2px;margin-bottom:6px;min-height:36px;display:flex;align-items:center;justify-content:center;line-height:1.25;}
-.kpi-gauge{width:100%;max-width:210px;}
-.kpi-gauge svg{width:100%;height:auto;display:block;}
-.kpi-value-block{margin-top:4px;text-align:center;}
-.kpi-value{font-size:32px;font-weight:900;line-height:1;letter-spacing:-.5px;}
-.kpi-value.green{color:#65a30d;}
-.kpi-value.red{color:#dc2626;}
-.kpi-target{margin-top:6px;font-size:12px;color:#6b7280;font-weight:500;}
-.kpi-target strong{color:#1f2937;font-weight:700;}
-.kpi-loading{grid-column:1/-1;text-align:center;padding:60px;color:#6b7280;font-size:14px;background:#fff;border-radius:14px;}
-
-/* ========== CONTACT FOOTER ========== */
-.contact-bar{margin-top:auto;padding-top:28px;display:flex;flex-direction:column;align-items:center;}
-.contact-bar-inner{background:rgba(255,255,255,0.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(229,231,235,0.6);border-radius:10px;padding:10px 24px;display:inline-flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center;}
-.contact-title{display:flex;align-items:center;gap:6px;color:#9ca3af;font-size:11px;font-weight:600;letter-spacing:.3px;}
-.contact-title svg{width:13px;height:13px;fill:none;stroke:#84cc16;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
-.contact-groups{display:flex;gap:20px;flex-wrap:wrap;align-items:center;}
-.contact-group{display:flex;align-items:center;gap:10px;}
-.contact-group-label{font-size:9.5px;font-weight:800;color:#84cc16;letter-spacing:1px;text-transform:uppercase;}
-.contact-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#9ca3af;font-weight:500;}
-.contact-item svg{width:11px;height:11px;fill:none;stroke:#84cc16;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;}
-.contact-item strong{color:#6b7280;font-weight:700;}
-.contact-sep{width:1px;height:16px;background:#e5e7eb;}
-
-@media (max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.main{flex:1;background:#fff;position:relative;overflow:hidden}
+.main::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,.75)),url("fondotraxion.jpeg");background-size:cover;background-position:center;}
+.hero{position:relative;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px}
+.hero h2{font-size:56px;letter-spacing:6px;font-weight:900;color:#1f2937;margin-bottom:10px}
+.hero p{margin-top:10px;font-size:18px;color:#6b7280;font-weight:500}
+.hero .tagline{font-size:16px;color:#84cc16;font-weight:700;margin-top:20px;letter-spacing:2px}
 @media (max-width:1024px){#menu.show{flex-direction:column}.sidebar{width:100%;max-height:300px}}
-@media (max-width:640px){.kpi-grid{grid-template-columns:1fr}.dashboard{padding:24px 20px}.dashboard-header h2{font-size:20px}.contact-groups{flex-direction:column;gap:14px}}
+@media (max-width:640px){.hero h2{font-size:36px;letter-spacing:3px}.hero p{font-size:16px}}
 </style>
 </head>
 <body>
-
-<!-- ========== LOGIN ========== -->
 <div id="login">
   <form class="login-card" id="loginForm" autocomplete="off">
     <h1>TRAXION</h1>
@@ -111,8 +64,6 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
     <div class="login-err" id="err">Contrasena incorrecta</div>
   </form>
 </div>
-
-<!-- ========== MENU + DASHBOARD ========== -->
 <div id="menu">
   <aside class="sidebar">
     <h1>TRAXION</h1>
@@ -150,11 +101,11 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
             <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
             Eficiencias internas
           </a>
-          <a href="Rolador.html" class="menu-item">
+           <a href="Rolador.html" class="menu-item">
             <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
             Rolador
           </a>
-          <a href="Logistica_Mundial.html" class="menu-item">
+           <a href="Logistica_Mundial.html" class="menu-item">
             <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
             Logistica Mundial 2026
           </a>
@@ -203,62 +154,18 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
       <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Cerrar sesion
     </button>
-    <div class="version-label">Dashboard Logistic v2.0</div>
   </aside>
-
   <main class="main">
-    <div class="dashboard">
-      <div class="dashboard-header">
-        <h2>Resumen general de indicadores claves</h2>
-        <div class="dashboard-sub">Semana <strong id="semanaNum">--</strong></div>
-      </div>
-
-      <div class="kpi-grid" id="kpiGrid">
-        <div class="kpi-loading">Cargando indicadores...</div>
-      </div>
-
-      <div class="contact-bar">
-        <div class="contact-bar-inner">
-          <div class="contact-title">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
-            Dudas: contactar administradores
-          </div>
-          <div class="contact-sep"></div>
-          <div class="contact-groups">
-            <div class="contact-group">
-              <div class="contact-group-label">Logistica</div>
-              <div class="contact-item">
-                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                <strong>Marcos Lopez</strong> 55 2518 4429
-              </div>
-              <div class="contact-item">
-                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                <strong>Ricardo Espinoza</strong> 81 2074 0332
-              </div>
-            </div>
-            <div class="contact-sep"></div>
-            <div class="contact-group">
-              <div class="contact-group-label">Seguridad Vial</div>
-              <div class="contact-item">
-                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                <strong>Hector Vergara</strong> 55 7010 8337
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="hero">
+      <h2>TRAXION</h2>
+      <p>Logistica &middot; Operaciones &middot; Seguridad</p>
+      <p class="tagline">Movemos lo mas valioso, conectamos destinos</p>
     </div>
   </main>
 </div>
-
 <script id="trx-validator" type="text/plain">mmF01QsTmGJCuAdVtyOU5miutD2BnjYzxPkxPG5QThu/lF3dMBECPAE1/Sd1KOhWNiWV0RPF56aw+UOF95W6+mE=</script>
-
 <script>
-/* ============================================================
-   AUTH
-   ============================================================ */
 const VALIDATOR_EXPECTED = "trx-settepi-garcia-ok";
-
 (async function autoAuth(){
   const pwd = sessionStorage.getItem('trx_auth');
   if(!pwd) return;
@@ -269,7 +176,6 @@ const VALIDATOR_EXPECTED = "trx-settepi-garcia-ok";
     else{ sessionStorage.removeItem('trx_auth'); }
   }catch(e){ sessionStorage.removeItem('trx_auth'); }
 })();
-
 document.getElementById('loginForm').addEventListener('submit', async function(ev){
   ev.preventDefault();
   const pwd = document.getElementById('pwd').value;
@@ -293,24 +199,19 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     btn.textContent = 'Entrar';
   }
 });
-
 document.getElementById('logoutBtn').addEventListener('click', function(){
   sessionStorage.removeItem('trx_auth');
   location.reload();
 });
-
 function showMenu(){
   document.getElementById('login').style.display = 'none';
   document.getElementById('menu').classList.add('show');
-  loadKpis();
 }
-
 document.querySelectorAll('.menu-category-header').forEach(function(h){
   h.addEventListener('click', function(){
     h.parentElement.classList.toggle('open');
   });
 });
-
 async function trxDecrypt(b64, password){
   const bin = Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
   const salt = bin.slice(0,16);
@@ -323,219 +224,6 @@ async function trxDecrypt(b64, password){
   );
   const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct);
   return new TextDecoder().decode(pt);
-}
-
-/* ============================================================
-   KPI DASHBOARD - tab "kpis" de Garcia Data
-   Busca cada KPI por nombre (no por indice fijo) para que
-   funcione aun si gviz colapsa filas vacias.
-   ============================================================ */
-const GARCIA_SHEET_ID = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
-const KPIS_URL = 'https://docs.google.com/spreadsheets/d/'+GARCIA_SHEET_ID+'/gviz/tq?tqx=out:csv&headers=0&sheet=kpis';
-
-/* --- Parser CSV --- */
-function parseCSV(text){
-  const rows = [];
-  let row = [], field = '', inQ = false;
-  for(let i=0;i<text.length;i++){
-    const c = text[i];
-    if(inQ){
-      if(c === '"'){
-        if(text[i+1] === '"'){ field += '"'; i++; }
-        else inQ = false;
-      } else field += c;
-    } else {
-      if(c === '"') inQ = true;
-      else if(c === ','){ row.push(field); field = ''; }
-      else if(c === '\n' || c === '\r'){
-        if(c === '\r' && text[i+1] === '\n') i++;
-        row.push(field); field = '';
-        rows.push(row); row = [];
-      } else field += c;
-    }
-  }
-  if(field.length || row.length){ row.push(field); rows.push(row); }
-  return rows;
-}
-
-/* --- Normaliza texto para busqueda (sin acentos, lowercase) --- */
-function norm(s){
-  return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
-}
-
-/* --- Busca el indice de la primer columna con texto en una fila --- */
-function findLabelCol(row){
-  for(let j=0;j<row.length;j++){
-    const v = String(row[j] || '').trim();
-    if(v && isNaN(parseFloat(v.replace(/,/g,'')))) return j;
-  }
-  return -1;
-}
-
-/* --- Busca una fila por palabras clave en cualquier columna --- */
-function findRow(rows, keywords){
-  const kws = keywords.map(norm);
-  for(let i=0;i<rows.length;i++){
-    for(let j=0;j<rows[i].length;j++){
-      const cell = norm(rows[i][j]);
-      if(cell && kws.every(k => cell.includes(k))){
-        return { row: rows[i], rowIdx: i, labelCol: j };
-      }
-    }
-  }
-  return null;
-}
-
-/* --- Parsea numeros, porcentajes y miles --- */
-function parseNum(s){
-  if(s == null) return 0;
-  s = String(s).trim();
-  if(!s) return 0;
-  const isPct = s.endsWith('%');
-  s = s.replace(/,/g,'').replace(/\s/g,'');
-  if(isPct) s = s.slice(0,-1);
-  const n = parseFloat(s);
-  if(isNaN(n)) return 0;
-  return isPct ? n/100 : n;
-}
-
-/* --- Formato de salida --- */
-function fmtVal(n, type){
-  if(type === 'percent'){
-    const pct = n <= 1 ? n*100 : n;
-    const r = Math.round(pct*10)/10;
-    return (Number.isInteger(r) ? r.toFixed(0) : r.toFixed(1)) + '%';
-  }
-  if(type === 'thousand') return Math.round(n).toLocaleString('en-US');
-  return Math.round(n).toString();
-}
-
-/* --- Escala maxima del gauge --- */
-function gaugeMax(real, obj, fmt){
-  if(fmt === 'percent') return 1.0;
-  if(obj > 0) return obj * 2;            // objetivo cae en el centro
-  return Math.max(real * 2, 10);          // fallback si obj=0
-}
-
-/* --- Genera el SVG del gauge tipo BI --- */
-function buildGauge(real, obj, max, status){
-  const cx = 130, cy = 108, r = 92;
-  const tR = max > 0 ? Math.max(0, Math.min(1, real / max)) : 0;
-  const tO = max > 0 ? Math.max(0, Math.min(1, obj  / max)) : 0;
-
-  const pt = (t, radius) => {
-    const a = Math.PI * (1 - t);
-    return { x: cx + radius * Math.cos(a), y: cy - radius * Math.sin(a) };
-  };
-
-  const p0    = pt(0, r);
-  const pEnd  = pt(1, r);
-  const pR    = pt(tR, r);
-  const pObjI = pt(tO, r - 18);
-  const pObjO = pt(tO, r + 10);
-  const pNI   = pt(tR, 8);   // base ancha de la aguja, atras del pivote
-  const pNT   = pt(tR, r - 6); // punta de la aguja
-
-  const fill = status === 'green' ? '#84cc16' : '#dc2626';
-
-  const bgPath = 'M '+p0.x.toFixed(2)+' '+p0.y.toFixed(2)+' A '+r+' '+r+' 0 0 1 '+pEnd.x.toFixed(2)+' '+pEnd.y.toFixed(2);
-  const largeArc = tR > 0.5 ? 1 : 0;
-  const fillPath = tR > 0.001
-    ? 'M '+p0.x.toFixed(2)+' '+p0.y.toFixed(2)+' A '+r+' '+r+' 0 '+largeArc+' 1 '+pR.x.toFixed(2)+' '+pR.y.toFixed(2)
-    : '';
-
-  // aguja como triangulo delgado para look de BI
-  const a = Math.PI * (1 - tR);
-  const perp = a + Math.PI/2;
-  const base1 = { x: cx + 5*Math.cos(perp), y: cy - 5*Math.sin(perp) };
-  const base2 = { x: cx - 5*Math.cos(perp), y: cy + 5*Math.sin(perp) };
-  const needle = 'M '+base1.x.toFixed(2)+' '+base1.y.toFixed(2)+' L '+pNT.x.toFixed(2)+' '+pNT.y.toFixed(2)+' L '+base2.x.toFixed(2)+' '+base2.y.toFixed(2)+' Z';
-
-  return ''+
-    '<svg viewBox="0 0 260 135" xmlns="http://www.w3.org/2000/svg">'+
-      '<path d="'+bgPath+'" fill="none" stroke="#e5e7eb" stroke-width="16" stroke-linecap="round"/>'+
-      (fillPath ? '<path d="'+fillPath+'" fill="none" stroke="'+fill+'" stroke-width="16" stroke-linecap="round"/>' : '')+
-      '<line x1="'+pObjI.x.toFixed(2)+'" y1="'+pObjI.y.toFixed(2)+'" x2="'+pObjO.x.toFixed(2)+'" y2="'+pObjO.y.toFixed(2)+'" stroke="#1f2937" stroke-width="3" stroke-linecap="round"/>'+
-      '<path d="'+needle+'" fill="#1f2937"/>'+
-      '<circle cx="'+cx+'" cy="'+cy+'" r="9" fill="#1f2937"/>'+
-      '<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="#fff"/>'+
-    '</svg>';
-}
-
-/* --- Definicion de KPIs (buscados por nombre, no por indice) --- */
-const KPI_DEFS = [
-  { keywords: ['nivel','servicio'],          name: 'Nivel de Servicio',                  rule: 'higher_better', fmt: 'percent',  link: 'Dashboard_NS.html' },
-  { keywords: ['unidades','mtto'],           name: 'Unidades en Mantenimiento',          rule: 'lower_better',  fmt: 'int'      },
-  { keywords: ['operadores','15km'],         name: 'Operadores > 15 km',                 rule: 'lower_better',  fmt: 'int'      },
-  { keywords: ['sin','descanso'],            name: 'Operadores > 15 dias sin descanso',  rule: 'always_red',    fmt: 'int'      },
-  { keywords: ['siniestros'],                name: 'Siniestros',                          rule: 'lower_better',  fmt: 'int'      },
-  { keywords: ['kilometros','marginales'],   name: 'Kilometros Marginales',              rule: 'lower_better',  fmt: 'thousand' }
-];
-
-async function loadKpis(){
-  const grid = document.getElementById('kpiGrid');
-  try{
-    const res = await fetch(KPIS_URL, {cache:'no-store'});
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    const txt = await res.text();
-    const rows = parseCSV(txt);
-
-    // Semana
-    const semFound = findRow(rows, ['semana']);
-    if(semFound){
-      const sval = String(semFound.row[semFound.labelCol+1] || '').trim();
-      document.getElementById('semanaNum').textContent = sval || '--';
-    }
-
-    grid.innerHTML = '';
-
-    KPI_DEFS.forEach(def => {
-      const found = findRow(rows, def.keywords);
-      let real = 0, obj = 0;
-      if(found){
-        // Real = primer celda numerica despues del label
-        // Objetivo = segunda celda numerica despues del label
-        const nums = [];
-        for(let j = found.labelCol + 1; j < found.row.length; j++){
-          const raw = String(found.row[j] || '').trim();
-          if(raw === '') continue;
-          const n = parseNum(raw);
-          // aceptar incluso si parseNum dio 0 pero la celda tenia '0%' o '0'
-          if(raw === '0' || raw === '0%' || raw === '0.0' || !isNaN(parseFloat(raw.replace(/[%,]/g,'')))){
-            nums.push(n);
-            if(nums.length === 2) break;
-          }
-        }
-        real = nums[0] !== undefined ? nums[0] : 0;
-        obj  = nums[1] !== undefined ? nums[1] : 0;
-      }
-
-      let status;
-      if(def.rule === 'always_red') status = 'red';
-      else if(def.rule === 'higher_better') status = real >= obj ? 'green' : 'red';
-      else status = real <= obj ? 'green' : 'red';
-
-      const max = gaugeMax(real, obj, def.fmt);
-
-      const card = document.createElement(def.link ? 'a' : 'div');
-      card.className = 'kpi-card' + (def.link ? ' clickable' : '');
-      if(def.link){
-        card.href = def.link;
-        card.title = 'Abrir ' + def.name;
-      }
-      card.innerHTML =
-        '<div class="kpi-title">'+def.name+'</div>'+
-        '<div class="kpi-gauge">'+buildGauge(real, obj, max, status)+'</div>'+
-        '<div class="kpi-value-block">'+
-          '<div class="kpi-value '+status+'">'+fmtVal(real, def.fmt)+'</div>'+
-          '<div class="kpi-target">Objetivo: <strong>'+fmtVal(obj, def.fmt)+'</strong></div>'+
-        '</div>';
-      grid.appendChild(card);
-    });
-  }catch(e){
-    console.error('Error cargando KPIs:', e);
-    grid.innerHTML = '<div class="kpi-loading">No se pudieron cargar los indicadores. Revisa la conexion o los permisos de la hoja.</div>';
-  }
 }
 </script>
 </body>
