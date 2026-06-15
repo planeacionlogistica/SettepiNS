@@ -62,22 +62,23 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 .dashboard-header .dashboard-sub{font-size:14px;color:#6b7280;font-weight:500;}
 .dashboard-header .dashboard-sub strong{color:#1f2937;font-weight:700;}
 
-/* ========== KPI GRID ========== */
-.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;align-content:start;}
-.kpi-card{background:#fff;border-radius:14px;padding:22px 22px 20px;box-shadow:0 1px 3px rgba(0,0,0,.06),0 6px 16px rgba(0,0,0,.05);border:1px solid #f3f4f6;display:flex;flex-direction:column;align-items:center;text-decoration:none;color:inherit;position:relative;}
-.kpi-card.clickable{cursor:pointer;transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;}
-.kpi-card.clickable:hover{transform:translateY(-3px);box-shadow:0 4px 8px rgba(0,0,0,.06),0 14px 28px rgba(132,204,22,.18);border-color:#84cc16;}
-.kpi-card.clickable::after{content:'';position:absolute;top:14px;right:14px;width:18px;height:18px;background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2384cc16' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M7 17L17 7'/><polyline points='8 7 17 7 17 16'/></svg>") no-repeat center/contain;opacity:.6;transition:opacity .2s;}
-.kpi-card.clickable:hover::after{opacity:1;}
-.kpi-title{font-size:14px;color:#374151;font-weight:700;text-align:center;letter-spacing:.2px;margin-bottom:6px;min-height:36px;display:flex;align-items:center;justify-content:center;line-height:1.25;}
-.kpi-gauge{width:100%;max-width:210px;}
-.kpi-gauge svg{width:100%;height:auto;display:block;}
-.kpi-value-block{margin-top:4px;text-align:center;}
-.kpi-value{font-size:32px;font-weight:900;line-height:1;letter-spacing:-.5px;}
+/* ========== KPI GRID PROFESIONAL ========== */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;align-content:start;}
+.kpi-card{background:#fff;border-radius:20px;padding:24px 20px 22px;box-shadow:0 4px 12px rgba(0,0,0,.04),0 1px 2px rgba(0,0,0,.03);border:1px solid #f0f2f5;display:flex;flex-direction:column;align-items:center;text-decoration:none;color:inherit;position:relative;transition:all .25s ease;}
+.kpi-card.clickable{cursor:pointer;}
+.kpi-card.clickable:hover{transform:translateY(-4px);box-shadow:0 20px 28px -12px rgba(132,204,22,0.2),0 4px 12px rgba(0,0,0,.08);border-color:#d9f0b0;}
+.kpi-title{font-size:15px;font-weight:800;color:#374151;text-align:center;letter-spacing:.3px;margin-bottom:16px;text-transform:uppercase;background:linear-gradient(135deg,#1f2937 0%,#374151 100%);background-clip:text;-webkit-background-clip:text;color:transparent;display:inline-block;padding-bottom:4px;border-bottom:2px solid #eef2ff;}
+/* contenedor del grafico circular */
+.gauge-container{position:relative;width:140px;height:140px;margin:8px auto 12px;}
+.gauge-svg{width:100%;height:100%;transform:rotate(-90deg);}
+.gauge-bg{stroke:#edf2f7;stroke-width:12;fill:none;stroke-linecap:round;}
+.gauge-fill{stroke:#84cc16;stroke-width:12;fill:none;stroke-linecap:round;transition:stroke-dasharray 1.2s cubic-bezier(0.25,0.8,0.25,1);}
+.gauge-value-block{text-align:center;margin-top:8px;}
+.kpi-value{font-size:34px;font-weight:900;line-height:1.1;letter-spacing:-1px;margin-bottom:4px;}
 .kpi-value.green{color:#65a30d;}
 .kpi-value.red{color:#dc2626;}
-.kpi-target{margin-top:6px;font-size:12px;color:#6b7280;font-weight:500;}
-.kpi-target strong{color:#1f2937;font-weight:700;}
+.kpi-target{font-size:12px;color:#6b7280;font-weight:600;background:#f8fafc;display:inline-block;padding:4px 12px;border-radius:40px;}
+.kpi-target strong{color:#1f2937;font-weight:800;}
 .kpi-loading{grid-column:1/-1;text-align:center;padding:60px;color:#6b7280;font-size:14px;background:#fff;border-radius:14px;}
 
 /* ========== CONTACT FOOTER ========== */
@@ -126,83 +127,23 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-          <a href="Dashboard_NS.html" class="menu-item">
-            <svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/><polyline points="9 12 11 14 15 10"/></svg>
-            Nivel de Servicio
-          </a>
-          <a href="Dashboard_Kilometros.html" class="menu-item">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v1.5"/><path d="M7.5 9.5l1 1"/><path d="M16.5 9.5l-1 1"/><path d="M7 14h1.5"/><path d="M15.5 14H17"/><path d="M12 14l2.5-3" stroke-width="2"/><circle cx="12" cy="14" r="1" fill="#9ca3af" stroke="none"/></svg>
-            Kilometros Recorridos
-          </a>
-          <a href="Dashboard_Flota.html" class="menu-item">
-            <svg viewBox="0 0 24 24"><rect x="1" y="4" width="13" height="12" rx="1"/><path d="M14 8h4l3 4v4h-7V8z"/><circle cx="5" cy="18.5" r="2"/><circle cx="18" cy="18.5" r="2"/><path d="M14 18.5H7"/></svg>
-            Flota Vehicular
-          </a>
-          <a href="Cambio_Manos.html" class="menu-item">
-            <svg viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M21 3l-7 7"/><path d="M8 21H3v-5"/><path d="M3 21l7-7"/></svg>
-            Cambio de manos
-          </a>
-          <a href="Auditar_Folios.html" class="menu-item">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 14 11 16 15 12"/></svg>
-            Auditoria de folios
-          </a>
-          <a href="Planeador_Territorio.html" class="menu-item">
-            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            Eficiencias internas
-          </a>
-          <a href="Rolador.html" class="menu-item">
-            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            Rolador
-          </a>
-          <a href="Logistica_Mundial.html" class="menu-item">
-            <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-            Logistica Mundial 2026
-          </a>
+          <a href="Dashboard_NS.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/><polyline points="9 12 11 14 15 10"/></svg> Nivel de Servicio</a>
+          <a href="Dashboard_Kilometros.html" class="menu-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v1.5"/><path d="M7.5 9.5l1 1"/><path d="M16.5 9.5l-1 1"/><path d="M7 14h1.5"/><path d="M15.5 14H17"/><path d="M12 14l2.5-3" stroke-width="2"/><circle cx="12" cy="14" r="1" fill="#9ca3af" stroke="none"/></svg> Kilometros Recorridos</a>
+          <a href="Dashboard_Flota.html" class="menu-item"><svg viewBox="0 0 24 24"><rect x="1" y="4" width="13" height="12" rx="1"/><path d="M14 8h4l3 4v4h-7V8z"/><circle cx="5" cy="18.5" r="2"/><circle cx="18" cy="18.5" r="2"/><path d="M14 18.5H7"/></svg> Flota Vehicular</a>
+          <a href="Cambio_Manos.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M21 3l-7 7"/><path d="M8 21H3v-5"/><path d="M3 21l7-7"/></svg> Cambio de manos</a>
+          <a href="Auditar_Folios.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 14 11 16 15 12"/></svg> Auditoria de folios</a>
+          <a href="Planeador_Territorio.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Eficiencias internas</a>
+          <a href="Rolador.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Rolador</a>
+          <a href="Logistica_Mundial.html" class="menu-item"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> Logistica Mundial 2026</a>
         </div>
       </div>
       <div class="menu-category" data-cat="seguridad">
-        <button type="button" class="menu-category-header">
-          <span class="cat-left">
-            <svg class="cat-icon" viewBox="0 0 24 24"><path d="M12 2L3 6v6c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V6l-9-4z"/></svg>
-            <span>Seguridad Vial</span>
-          </span>
-          <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <div class="menu-category-body">
-          <a href="Radar_Riesgos.html" class="menu-item">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="#9ca3af" stroke="none"/><path d="M12 12L18 6"/></svg>
-            Radar de Riesgos
-          </a>
-          <a href="Dashboard_Descansos.html" class="menu-item">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="#9ca3af" stroke="none"/><path d="M12 12L18 6"/></svg>
-            Descansos
-          </a>
-          <a href="Dashboard_DMAS.html" class="menu-item">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="#9ca3af" stroke="none"/><path d="M12 12L18 6"/></svg>
-            uso DMAS
-          </a>
-        </div>
+        <button type="button" class="menu-category-header"><span class="cat-left"><svg class="cat-icon" viewBox="0 0 24 24"><path d="M12 2L3 6v6c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V6l-9-4z"/></svg><span>Seguridad Vial</span></span><svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="menu-category-body"><a href="Radar_Riesgos.html" class="menu-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="#9ca3af" stroke="none"/><path d="M12 12L18 6"/></svg> Radar de Riesgos</a><a href="Dashboard_Descansos.html" class="menu-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="#9ca3af" stroke="none"/><path d="M12 12L18 6"/></svg> Descansos</a><a href="Dashboard_DMAS.html" class="menu-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="#9ca3af" stroke="none"/><path d="M12 12L18 6"/></svg> uso DMAS</a></div>
       </div>
-      <div class="menu-category" data-cat="rendimiento">
-        <button type="button" class="menu-category-header">
-          <span class="cat-left">
-            <svg class="cat-icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 1 18 0"/><path d="M12 12l4-3"/><circle cx="12" cy="12" r="1.5" fill="#84cc16" stroke="none"/></svg>
-            <span>Combustible</span>
-          </span>
-          <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-        </button>
-        <div class="menu-category-body">
-          <a href="Dashboard_ralenti.html" class="menu-item">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M6.34 6.34a8 8 0 1 0 11.32 0"/><path d="M12 2v4"/></svg>
-            Ralenti
-          </a>
-        </div>
-      </div>
+      <div class="menu-category" data-cat="rendimiento"><button type="button" class="menu-category-header"><span class="cat-left"><svg class="cat-icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 1 18 0"/><path d="M12 12l4-3"/><circle cx="12" cy="12" r="1.5" fill="#84cc16" stroke="none"/></svg><span>Combustible</span></span><svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></button><div class="menu-category-body"><a href="Dashboard_ralenti.html" class="menu-item"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M6.34 6.34a8 8 0 1 0 11.32 0"/><path d="M12 2v4"/></svg> Ralenti</a></div></div>
     </div>
-    <button type="button" class="logout-btn" id="logoutBtn">
-      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Cerrar sesion
-    </button>
+    <button type="button" class="logout-btn" id="logoutBtn"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Cerrar sesion</button>
     <div class="version-label">Dashboard Logistic v2.0</div>
   </aside>
 
@@ -212,41 +153,8 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
         <h2>Resumen general de indicadores claves</h2>
         <div class="dashboard-sub">Semana <strong id="semanaNum">--</strong></div>
       </div>
-
-      <div class="kpi-grid" id="kpiGrid">
-        <div class="kpi-loading">Cargando indicadores...</div>
-      </div>
-
-      <div class="contact-bar">
-        <div class="contact-bar-inner">
-          <div class="contact-title">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
-            Dudas: contactar administradores
-          </div>
-          <div class="contact-sep"></div>
-          <div class="contact-groups">
-            <div class="contact-group">
-              <div class="contact-group-label">Logistica</div>
-              <div class="contact-item">
-                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                <strong>Marcos Lopez</strong> 55 2518 4429
-              </div>
-              <div class="contact-item">
-                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                <strong>Ricardo Espinoza</strong> 81 2074 0332
-              </div>
-            </div>
-            <div class="contact-sep"></div>
-            <div class="contact-group">
-              <div class="contact-group-label">Seguridad Vial</div>
-              <div class="contact-item">
-                <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                <strong>Hector Vergara</strong> 55 7010 8337
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <div class="kpi-grid" id="kpiGrid"><div class="kpi-loading">Cargando indicadores...</div></div>
+      <div class="contact-bar"><div class="contact-bar-inner"><div class="contact-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg> Dudas: contactar administradores</div><div class="contact-sep"></div><div class="contact-groups"><div class="contact-group"><div class="contact-group-label">Logistica</div><div class="contact-item"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg><strong>Marcos Lopez</strong> 55 2518 4429</div><div class="contact-item"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg><strong>Ricardo Espinoza</strong> 81 2074 0332</div></div><div class="contact-sep"></div><div class="contact-group"><div class="contact-group-label">Seguridad Vial</div><div class="contact-item"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg><strong>Hector Vergara</strong> 55 7010 8337</div></div></div></div></div>
     </div>
   </main>
 </div>
@@ -254,221 +162,58 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 <script id="trx-validator" type="text/plain">mmF01QsTmGJCuAdVtyOU5miutD2BnjYzxPkxPG5QThu/lF3dMBECPAE1/Sd1KOhWNiWV0RPF56aw+UOF95W6+mE=</script>
 
 <script>
-/* ============================================================
-   AUTH
-   ============================================================ */
+/* AUTH */
 const VALIDATOR_EXPECTED = "trx-settepi-garcia-ok";
+(async function autoAuth(){ const pwd = sessionStorage.getItem('trx_auth'); if(!pwd) return; try{ const blob = document.getElementById('trx-validator').textContent.trim(); const txt = await trxDecrypt(blob, pwd); if(txt === VALIDATOR_EXPECTED){ showMenu(); } else{ sessionStorage.removeItem('trx_auth'); } }catch(e){ sessionStorage.removeItem('trx_auth'); } })();
+document.getElementById('loginForm').addEventListener('submit', async function(ev){ ev.preventDefault(); const pwd = document.getElementById('pwd').value; const btn = document.getElementById('btn'); const err = document.getElementById('err'); err.classList.remove('show'); btn.disabled = true; btn.textContent = 'Verificando...'; try{ const blob = document.getElementById('trx-validator').textContent.trim(); const txt = await trxDecrypt(blob, pwd); if(txt !== VALIDATOR_EXPECTED) throw new Error('mismatch'); sessionStorage.setItem('trx_auth', pwd); showMenu(); }catch(e){ err.classList.add('show'); document.getElementById('pwd').value = ''; document.getElementById('pwd').focus(); }finally{ btn.disabled = false; btn.textContent = 'Entrar'; } });
+document.getElementById('logoutBtn').addEventListener('click', function(){ sessionStorage.removeItem('trx_auth'); location.reload(); });
+function showMenu(){ document.getElementById('login').style.display = 'none'; document.getElementById('menu').classList.add('show'); loadKpis(); }
+document.querySelectorAll('.menu-category-header').forEach(function(h){ h.addEventListener('click', function(){ h.parentElement.classList.toggle('open'); }); });
+async function trxDecrypt(b64, password){ const bin = Uint8Array.from(atob(b64), c=>c.charCodeAt(0)); const salt = bin.slice(0,16); const iv = bin.slice(16,28); const ct = bin.slice(28); const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']); const key = await crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:250000, hash:'SHA-256'}, km, {name:'AES-GCM', length:256}, false, ['decrypt']); const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct); return new TextDecoder().decode(pt); }
 
-(async function autoAuth(){
-  const pwd = sessionStorage.getItem('trx_auth');
-  if(!pwd) return;
-  try{
-    const blob = document.getElementById('trx-validator').textContent.trim();
-    const txt = await trxDecrypt(blob, pwd);
-    if(txt === VALIDATOR_EXPECTED){ showMenu(); }
-    else{ sessionStorage.removeItem('trx_auth'); }
-  }catch(e){ sessionStorage.removeItem('trx_auth'); }
-})();
-
-document.getElementById('loginForm').addEventListener('submit', async function(ev){
-  ev.preventDefault();
-  const pwd = document.getElementById('pwd').value;
-  const btn = document.getElementById('btn');
-  const err = document.getElementById('err');
-  err.classList.remove('show');
-  btn.disabled = true;
-  btn.textContent = 'Verificando...';
-  try{
-    const blob = document.getElementById('trx-validator').textContent.trim();
-    const txt = await trxDecrypt(blob, pwd);
-    if(txt !== VALIDATOR_EXPECTED) throw new Error('mismatch');
-    sessionStorage.setItem('trx_auth', pwd);
-    showMenu();
-  }catch(e){
-    err.classList.add('show');
-    document.getElementById('pwd').value = '';
-    document.getElementById('pwd').focus();
-  }finally{
-    btn.disabled = false;
-    btn.textContent = 'Entrar';
-  }
-});
-
-document.getElementById('logoutBtn').addEventListener('click', function(){
-  sessionStorage.removeItem('trx_auth');
-  location.reload();
-});
-
-function showMenu(){
-  document.getElementById('login').style.display = 'none';
-  document.getElementById('menu').classList.add('show');
-  loadKpis();
-}
-
-document.querySelectorAll('.menu-category-header').forEach(function(h){
-  h.addEventListener('click', function(){
-    h.parentElement.classList.toggle('open');
-  });
-});
-
-async function trxDecrypt(b64, password){
-  const bin = Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
-  const salt = bin.slice(0,16);
-  const iv = bin.slice(16,28);
-  const ct = bin.slice(28);
-  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
-  const key = await crypto.subtle.deriveKey(
-    {name:'PBKDF2', salt, iterations:250000, hash:'SHA-256'},
-    km, {name:'AES-GCM', length:256}, false, ['decrypt']
-  );
-  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct);
-  return new TextDecoder().decode(pt);
-}
-
-/* ============================================================
-   KPI DASHBOARD - tab "kpis" de Garcia Data
-   Busca cada KPI por nombre (no por indice fijo) para que
-   funcione aun si gviz colapsa filas vacias.
-   ============================================================ */
+/* KPI Dashboard con anillos animados y color uniforme (solo números verdes/rojos) */
 const GARCIA_SHEET_ID = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const KPIS_URL = 'https://docs.google.com/spreadsheets/d/'+GARCIA_SHEET_ID+'/gviz/tq?tqx=out:csv&headers=0&sheet=kpis';
 
-/* --- Parser CSV --- */
-function parseCSV(text){
-  const rows = [];
-  let row = [], field = '', inQ = false;
-  for(let i=0;i<text.length;i++){
-    const c = text[i];
-    if(inQ){
-      if(c === '"'){
-        if(text[i+1] === '"'){ field += '"'; i++; }
-        else inQ = false;
-      } else field += c;
-    } else {
-      if(c === '"') inQ = true;
-      else if(c === ','){ row.push(field); field = ''; }
-      else if(c === '\n' || c === '\r'){
-        if(c === '\r' && text[i+1] === '\n') i++;
-        row.push(field); field = '';
-        rows.push(row); row = [];
-      } else field += c;
+function parseCSV(text){ const rows=[]; let row=[], field='', inQ=false; for(let i=0;i<text.length;i++){ const c=text[i]; if(inQ){ if(c==='"'){ if(text[i+1]==='"'){ field+='"'; i++; } else inQ=false; } else field+=c; } else { if(c==='"') inQ=true; else if(c===','){ row.push(field); field=''; } else if(c==='\n'||c==='\r'){ if(c==='\r'&&text[i+1]==='\n') i++; row.push(field); rows.push(row); row=[]; field=''; } else field+=c; } } if(field.length||row.length){ row.push(field); rows.push(row); } return rows; }
+function norm(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+function findLabelCol(row){ for(let j=0;j<row.length;j++){ const v=String(row[j]||'').trim(); if(v&&isNaN(parseFloat(v.replace(/,/g,'')))) return j; } return -1; }
+function findRow(rows, keywords){ const kws=keywords.map(norm); for(let i=0;i<rows.length;i++){ for(let j=0;j<rows[i].length;j++){ const cell=norm(rows[i][j]); if(cell&&kws.every(k=>cell.includes(k))){ return { row: rows[i], rowIdx:i, labelCol:j }; } } } return null; }
+function parseNum(s){ if(s==null) return 0; s=String(s).trim(); if(!s) return 0; const isPct=s.endsWith('%'); s=s.replace(/,/g,'').replace(/\s/g,''); if(isPct) s=s.slice(0,-1); const n=parseFloat(s); if(isNaN(n)) return 0; return isPct? n/100 : n; }
+function fmtVal(n, type){ if(type==='percent'){ const pct=n<=1? n*100:n; const r=Math.round(pct*10)/10; return (Number.isInteger(r)? r.toFixed(0): r.toFixed(1))+'%'; } if(type==='thousand') return Math.round(n).toLocaleString('en-US'); return Math.round(n).toString(); }
+
+/* Genera anillo circular con animación vía stroke-dashoffset */
+function buildRingSVG(percent, statusColor, uniqueId){
+  const radius = 58;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - Math.min(1, Math.max(0, percent)));
+  // color de relleno siempre #84cc16 (verde Traxion) independientemente del status; el status solo aplica al número
+  const fillColor = "#84cc16";
+  return `<div class="gauge-container">
+    <svg class="gauge-svg" viewBox="0 0 140 140">
+      <circle class="gauge-bg" cx="70" cy="70" r="${radius}" stroke-width="10" fill="none" stroke="#e9eef3" />
+      <circle class="gauge-fill" cx="70" cy="70" r="${radius}" stroke-width="10" fill="none" stroke="${fillColor}" stroke-dasharray="${circumference}" stroke-dashoffset="${circumference}" data-dashoffset="${offset}" data-id="${uniqueId}" />
+    </svg>
+  </div>`;
+}
+
+function animateRings(){
+  const rings = document.querySelectorAll('.gauge-fill');
+  rings.forEach(ring => {
+    const targetOffset = parseFloat(ring.getAttribute('data-dashoffset'));
+    if(!isNaN(targetOffset)){
+      ring.style.transition = 'stroke-dashoffset 1s cubic-bezier(0.2, 0.9, 0.4, 1.1)';
+      ring.style.strokeDashoffset = targetOffset;
     }
-  }
-  if(field.length || row.length){ row.push(field); rows.push(row); }
-  return rows;
+  });
 }
 
-/* --- Normaliza texto para busqueda (sin acentos, lowercase) --- */
-function norm(s){
-  return String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
-}
-
-/* --- Busca el indice de la primer columna con texto en una fila --- */
-function findLabelCol(row){
-  for(let j=0;j<row.length;j++){
-    const v = String(row[j] || '').trim();
-    if(v && isNaN(parseFloat(v.replace(/,/g,'')))) return j;
-  }
-  return -1;
-}
-
-/* --- Busca una fila por palabras clave en cualquier columna --- */
-function findRow(rows, keywords){
-  const kws = keywords.map(norm);
-  for(let i=0;i<rows.length;i++){
-    for(let j=0;j<rows[i].length;j++){
-      const cell = norm(rows[i][j]);
-      if(cell && kws.every(k => cell.includes(k))){
-        return { row: rows[i], rowIdx: i, labelCol: j };
-      }
-    }
-  }
-  return null;
-}
-
-/* --- Parsea numeros, porcentajes y miles --- */
-function parseNum(s){
-  if(s == null) return 0;
-  s = String(s).trim();
-  if(!s) return 0;
-  const isPct = s.endsWith('%');
-  s = s.replace(/,/g,'').replace(/\s/g,'');
-  if(isPct) s = s.slice(0,-1);
-  const n = parseFloat(s);
-  if(isNaN(n)) return 0;
-  return isPct ? n/100 : n;
-}
-
-/* --- Formato de salida --- */
-function fmtVal(n, type){
-  if(type === 'percent'){
-    const pct = n <= 1 ? n*100 : n;
-    const r = Math.round(pct*10)/10;
-    return (Number.isInteger(r) ? r.toFixed(0) : r.toFixed(1)) + '%';
-  }
-  if(type === 'thousand') return Math.round(n).toLocaleString('en-US');
-  return Math.round(n).toString();
-}
-
-/* --- Escala maxima del gauge --- */
-function gaugeMax(real, obj, fmt){
-  if(fmt === 'percent') return 1.0;
-  if(obj > 0) return obj * 2;            // objetivo cae en el centro
-  return Math.max(real * 2, 10);          // fallback si obj=0
-}
-
-/* --- Genera el SVG del gauge tipo BI --- */
-function buildGauge(real, obj, max, status){
-  const cx = 130, cy = 108, r = 92;
-  const tR = max > 0 ? Math.max(0, Math.min(1, real / max)) : 0;
-  const tO = max > 0 ? Math.max(0, Math.min(1, obj  / max)) : 0;
-
-  const pt = (t, radius) => {
-    const a = Math.PI * (1 - t);
-    return { x: cx + radius * Math.cos(a), y: cy - radius * Math.sin(a) };
-  };
-
-  const p0    = pt(0, r);
-  const pEnd  = pt(1, r);
-  const pR    = pt(tR, r);
-  const pObjI = pt(tO, r - 18);
-  const pObjO = pt(tO, r + 10);
-  const pNI   = pt(tR, 8);   // base ancha de la aguja, atras del pivote
-  const pNT   = pt(tR, r - 6); // punta de la aguja
-
-  const fill = status === 'green' ? '#84cc16' : '#dc2626';
-
-  const bgPath = 'M '+p0.x.toFixed(2)+' '+p0.y.toFixed(2)+' A '+r+' '+r+' 0 0 1 '+pEnd.x.toFixed(2)+' '+pEnd.y.toFixed(2);
-  const largeArc = tR > 0.5 ? 1 : 0;
-  const fillPath = tR > 0.001
-    ? 'M '+p0.x.toFixed(2)+' '+p0.y.toFixed(2)+' A '+r+' '+r+' 0 '+largeArc+' 1 '+pR.x.toFixed(2)+' '+pR.y.toFixed(2)
-    : '';
-
-  // aguja como triangulo delgado para look de BI
-  const a = Math.PI * (1 - tR);
-  const perp = a + Math.PI/2;
-  const base1 = { x: cx + 5*Math.cos(perp), y: cy - 5*Math.sin(perp) };
-  const base2 = { x: cx - 5*Math.cos(perp), y: cy + 5*Math.sin(perp) };
-  const needle = 'M '+base1.x.toFixed(2)+' '+base1.y.toFixed(2)+' L '+pNT.x.toFixed(2)+' '+pNT.y.toFixed(2)+' L '+base2.x.toFixed(2)+' '+base2.y.toFixed(2)+' Z';
-
-  return ''+
-    '<svg viewBox="0 0 260 135" xmlns="http://www.w3.org/2000/svg">'+
-      '<path d="'+bgPath+'" fill="none" stroke="#e5e7eb" stroke-width="16" stroke-linecap="round"/>'+
-      (fillPath ? '<path d="'+fillPath+'" fill="none" stroke="'+fill+'" stroke-width="16" stroke-linecap="round"/>' : '')+
-      '<line x1="'+pObjI.x.toFixed(2)+'" y1="'+pObjI.y.toFixed(2)+'" x2="'+pObjO.x.toFixed(2)+'" y2="'+pObjO.y.toFixed(2)+'" stroke="#1f2937" stroke-width="3" stroke-linecap="round"/>'+
-      '<path d="'+needle+'" fill="#1f2937"/>'+
-      '<circle cx="'+cx+'" cy="'+cy+'" r="9" fill="#1f2937"/>'+
-      '<circle cx="'+cx+'" cy="'+cy+'" r="4" fill="#fff"/>'+
-    '</svg>';
-}
-
-/* --- Definicion de KPIs (buscados por nombre, no por indice) --- */
 const KPI_DEFS = [
-  { keywords: ['nivel','servicio'],          name: 'Nivel de Servicio',                  rule: 'higher_better', fmt: 'percent',  link: 'Dashboard_NS.html' },
-  { keywords: ['unidades','mtto'],           name: 'Unidades en Mantenimiento',          rule: 'lower_better',  fmt: 'int'      },
-  { keywords: ['operadores','15km'],         name: 'Operadores > 15 km',                 rule: 'lower_better',  fmt: 'int'      },
-  { keywords: ['sin','descanso'],            name: 'Operadores > 15 dias sin descanso',  rule: 'always_red',    fmt: 'int'      },
-  { keywords: ['siniestros'],                name: 'Siniestros',                          rule: 'lower_better',  fmt: 'int'      },
+  { keywords: ['nivel','servicio'],          name: 'Nivel de Servicio',                  rule: 'higher_better', fmt: 'percent', link: 'Dashboard_NS.html' },
+  { keywords: ['unidades','mtto'],           name: 'Unidades en Mantenimiento',          rule: 'lower_better',  fmt: 'int' },
+  { keywords: ['operadores','15km'],         name: 'Operadores > 15 km',                 rule: 'lower_better',  fmt: 'int' },
+  { keywords: ['sin','descanso'],            name: 'Operadores > 15 dias sin descanso',  rule: 'always_red',    fmt: 'int' },
+  { keywords: ['siniestros'],                name: 'Siniestros',                          rule: 'lower_better',  fmt: 'int' },
   { keywords: ['kilometros','marginales'],   name: 'Kilometros Marginales',              rule: 'lower_better',  fmt: 'thousand' }
 ];
 
@@ -479,28 +224,22 @@ async function loadKpis(){
     if(!res.ok) throw new Error('HTTP '+res.status);
     const txt = await res.text();
     const rows = parseCSV(txt);
-
-    // Semana
     const semFound = findRow(rows, ['semana']);
     if(semFound){
       const sval = String(semFound.row[semFound.labelCol+1] || '').trim();
       document.getElementById('semanaNum').textContent = sval || '--';
     }
-
     grid.innerHTML = '';
-
-    KPI_DEFS.forEach(def => {
+    let cardsHtml = '';
+    KPI_DEFS.forEach((def, idx) => {
       const found = findRow(rows, def.keywords);
       let real = 0, obj = 0;
       if(found){
-        // Real = primer celda numerica despues del label
-        // Objetivo = segunda celda numerica despues del label
         const nums = [];
         for(let j = found.labelCol + 1; j < found.row.length; j++){
           const raw = String(found.row[j] || '').trim();
           if(raw === '') continue;
           const n = parseNum(raw);
-          // aceptar incluso si parseNum dio 0 pero la celda tenia '0%' o '0'
           if(raw === '0' || raw === '0%' || raw === '0.0' || !isNaN(parseFloat(raw.replace(/[%,]/g,'')))){
             nums.push(n);
             if(nums.length === 2) break;
@@ -509,29 +248,50 @@ async function loadKpis(){
         real = nums[0] !== undefined ? nums[0] : 0;
         obj  = nums[1] !== undefined ? nums[1] : 0;
       }
-
       let status;
       if(def.rule === 'always_red') status = 'red';
       else if(def.rule === 'higher_better') status = real >= obj ? 'green' : 'red';
       else status = real <= obj ? 'green' : 'red';
-
-      const max = gaugeMax(real, obj, def.fmt);
-
-      const card = document.createElement(def.link ? 'a' : 'div');
-      card.className = 'kpi-card' + (def.link ? ' clickable' : '');
-      if(def.link){
-        card.href = def.link;
-        card.title = 'Abrir ' + def.name;
-      }
-      card.innerHTML =
-        '<div class="kpi-title">'+def.name+'</div>'+
-        '<div class="kpi-gauge">'+buildGauge(real, obj, max, status)+'</div>'+
-        '<div class="kpi-value-block">'+
-          '<div class="kpi-value '+status+'">'+fmtVal(real, def.fmt)+'</div>'+
-          '<div class="kpi-target">Objetivo: <strong>'+fmtVal(obj, def.fmt)+'</strong></div>'+
-        '</div>';
-      grid.appendChild(card);
+      // calcular porcentaje para la barra: basado en relación real/objetivo, con límite en 1
+      let percent = 0;
+      if(obj > 0){
+        let ratio = real / obj;
+        if(def.rule === 'lower_better') ratio = obj > 0 ? (real <= obj ? Math.min(1, (obj - real)/obj + 0.2) : Math.max(0.05, 1 - (real-obj)/obj)) : 0;
+        else if(def.rule === 'higher_better') ratio = real / obj;
+        else ratio = (obj > 0 && real <= obj) ? Math.min(1, real/obj) : (obj===0?0:Math.min(1, real/obj));
+        percent = Math.min(1, Math.max(0.02, ratio));
+        // casos especiales: si objetivo 0 y real >0 para lower_better percent bajo
+        if(def.rule === 'lower_better' && obj===0 && real>0) percent = 0.05;
+        if(def.rule === 'higher_better' && obj===0 && real>0) percent = 1;
+        if(def.rule === 'always_red') percent = real > 0 ? Math.min(0.8, real/10) : 0.02;
+      } else if(real > 0 && obj===0 && def.rule === 'higher_better') percent = 1;
+      else if(obj===0 && def.rule !== 'always_red') percent = 0.5;
+      
+      const uniqueRing = `ring_${idx}`;
+      const ringHtml = buildRingSVG(percent, status, uniqueRing);
+      const valueColorClass = status;
+      const formattedReal = fmtVal(real, def.fmt);
+      const formattedObj = fmtVal(obj, def.fmt);
+      const linkAttr = def.link ? `href="${def.link}"` : '';
+      const clickClass = def.link ? 'clickable' : '';
+      cardsHtml += `<${def.link ? 'a' : 'div'} ${linkAttr} class="kpi-card ${clickClass}">
+        <div class="kpi-title">${def.name}</div>
+        ${ringHtml}
+        <div class="kpi-value-block">
+          <div class="kpi-value ${valueColorClass}">${formattedReal}</div>
+          <div class="kpi-target">Objetivo: <strong>${formattedObj}</strong></div>
+        </div>
+      </${def.link ? 'a' : 'div'}>`;
     });
+    grid.innerHTML = cardsHtml;
+    // Forzar animación después de renderizar
+    setTimeout(() => {
+      const rings = document.querySelectorAll('.gauge-fill');
+      rings.forEach(ring => {
+        const target = ring.getAttribute('data-dashoffset');
+        if(target !== null) ring.style.strokeDashoffset = target;
+      });
+    }, 50);
   }catch(e){
     console.error('Error cargando KPIs:', e);
     grid.innerHTML = '<div class="kpi-loading">No se pudieron cargar los indicadores. Revisa la conexion o los permisos de la hoja.</div>';
