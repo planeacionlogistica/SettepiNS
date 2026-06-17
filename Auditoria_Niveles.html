@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Formulario de Revisión de Aceite</title>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script>
+    // ID de la hoja de cálculo y nombres de las pestañas
+    const SPREADSHEET_ID = '1WJfJd1eANDXyBq5CXKw0aPbxB_giafCN7j-Aqtt9cVw';
+    const SHEET_FLOTA = 'Flota';
+    const SHEET_ACEITES = 'Aceites';
+
+    // Arreglo para almacenar los números de unidad existentes
+    let unidadesExistentes = [];
+
+    // Inicializar la API de Google Sheets
+    function initClient() {
+      gapi.client.init({
+        apiKey: 'TU_API_KEY',
+        discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
+      }).then(function () {
+        getUnidadesExistentes();
+      });
+    }
+
+    // Obtener los números de unidad existentes de la pestaña "Flota"
+    function getUnidadesExistentes() {
+      gapi.client.sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SHEET_FLOTA}!A:A`,
+      }).then(function(response) {
+        unidadesExistentes = response.result.values.map(row => row[0]);
+      });
+    }
+
+    // Validar si un número de unidad existe en la pestaña "Flota"
+    function validarUnidad(numeroUnidad) {
+      return unidadesExistentes.includes(numeroUnidad);
+    }
+
+    // Enviar el formulario
+    function handleFormSubmit(event) {
+      event.preventDefault();
+      const form = event.target;
+      const numeroUnidad = form.numeroUnidad.value;
+
+      if (!validarUnidad(numeroUnidad)) {
+        alert('El número de unidad no existe. Por favor, verifica el valor ingresado.');
+        return;
+      }
+
+      const valores = [
+        [
+          new Date(),
+          numeroUnidad,
+          form.fechaRevision.value,
+          form.nivelAceite.value,
+          form.fugaAceite.value,
+          form.comentarios.value,
+        ],
+      ];
+
+      gapi.client.sheets.spreadsheets.values.append({
+        spreadsheetId: SPREADSHEET_ID,
+        range: SHEET_ACEITES,
+        valueInputOption: 'USER_ENTERED',
+        resource: { values: valores },
+      }).then(function() {
+        form.reset();
+        alert('Formulario enviado correctamente.');
+      });
+    }
+  </script>
+</head>
+<body>
+  <h1>Formulario de Revisión de Aceite</h1>
+  <form onsubmit="handleFormSubmit(event)">
+    <label for="numeroUnidad">Número de unidad:</label>
+    <input type="text" id="numeroUnidad" name="numeroUnidad" required><br>
+
+    <label for="fechaRevision">Fecha de revisión:</label>
+    <input type="date" id="fechaRevision" name="fechaRevision" required><br>
+
+    <label for="nivelAceite">Nivel de aceite:</label>
+    <select id="nivelAceite" name="nivelAceite" required>
+      <option value="">Seleccione una opción</option>
+      <option value="Normal">Normal</option>
+      <option value="Bajo">Bajo</option>
+    </select><br>
+
+    <label for="fugaAceite">¿Presenta fuga de aceite?</label>
+    <select id="fugaAceite" name="fugaAceite" required>
+      <option value="">Seleccione una opción</option>
+      <option value="Sí">Sí</option>
+      <option value="No">No</option>
+    </select><br>
+
+    <label for="comentarios">Comentarios adicionales:</label>
+    <textarea id="comentarios" name="comentarios"></textarea><br>
+
+    <button type="submit">Enviar</button>
+  </form>
+
+  <script>gapi.load('client', initClient);</script>
+</body>
+</html>
