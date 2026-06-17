@@ -179,7 +179,7 @@
     <form id="formRevision">
       <div class="field">
         <label for="numeroUnidad">Unidad</label>
-        <input type="text" id="numeroUnidad" name="numeroUnidad" required autocomplete="off" inputmode="text">
+        <input type="text" id="numeroUnidad" name="numeroUnidad" required autocomplete="off" inputmode="numeric" pattern="[0-9]*">
         <div class="hint" id="hintUnidad">Cargando lista de unidades...</div>
       </div>
 
@@ -219,9 +219,9 @@
   // ====== CONFIG ======
   const SPREADSHEET_ID = '1WJfJd1eANDXyBq5CXKw0aPbxB_giafCN7j-Aqtt9cVw';
   const SHEET_FLOTA = 'Flota';
-  const SHEET_ACEITES = 'Aceites';
+  const SHEET_AUDITORIA = 'Auditoria';
   // URL del Web App de Google Apps Script (debes pegarla aquí después de desplegarla, ver instrucciones abajo)
-  const WEBAPP_URL = 'PEGA_AQUI_LA_URL_DEL_WEB_APP';
+  const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxJ6hHnIPA1KdjRmyPhhQ_yhRViVQgmSNwkjXvfCB-yaDu2TaIjkyV3pfPARSrty6Z-/exec';
 
   // ====== FECHA AUTOMÁTICA ======
   const hoy = new Date();
@@ -252,6 +252,11 @@
 
   // Validación en vivo
   const inputUnidad = document.getElementById('numeroUnidad');
+  // Forzar solo números
+  inputUnidad.addEventListener('input', () => {
+    inputUnidad.value = inputUnidad.value.replace(/[^0-9]/g, '');
+  });
+
   inputUnidad.addEventListener('blur', () => {
     const val = inputUnidad.value.trim();
     if (!val) return;
