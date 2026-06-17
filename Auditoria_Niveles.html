@@ -1,105 +1,336 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-  <title>Formulario de Revisión de Aceite</title>
-  <script src="https://apis.google.com/js/api.js"></script>
-  <script>
-    // ID de la hoja de cálculo y nombres de las pestañas
-    const SPREADSHEET_ID = '1WJfJd1eANDXyBq5CXKw0aPbxB_giafCN7j-Aqtt9cVw';
-    const SHEET_FLOTA = 'Flota';
-    const SHEET_ACEITES = 'Aceites';
-
-    // Arreglo para almacenar los números de unidad existentes
-    let unidadesExistentes = [];
-
-    // Inicializar la API de Google Sheets
-    function initClient() {
-      gapi.client.init({
-        apiKey: 'TU_API_KEY',
-        discoveryDocs: ["https://sheets.googleapis.com/$discovery/rest?version=v4"],
-      }).then(function () {
-        getUnidadesExistentes();
-      });
-    }
-
-    // Obtener los números de unidad existentes de la pestaña "Flota"
-    function getUnidadesExistentes() {
-      gapi.client.sheets.spreadsheets.values.get({
-        spreadsheetId: SPREADSHEET_ID,
-        range: `${SHEET_FLOTA}!A:A`,
-      }).then(function(response) {
-        unidadesExistentes = response.result.values.map(row => row[0]);
-      });
-    }
-
-    // Validar si un número de unidad existe en la pestaña "Flota"
-    function validarUnidad(numeroUnidad) {
-      return unidadesExistentes.includes(numeroUnidad);
-    }
-
-    // Enviar el formulario
-    function handleFormSubmit(event) {
-      event.preventDefault();
-      const form = event.target;
-      const numeroUnidad = form.numeroUnidad.value;
-
-      if (!validarUnidad(numeroUnidad)) {
-        alert('El número de unidad no existe. Por favor, verifica el valor ingresado.');
-        return;
-      }
-
-      const valores = [
-        [
-          new Date(),
-          numeroUnidad,
-          form.fechaRevision.value,
-          form.nivelAceite.value,
-          form.fugaAceite.value,
-          form.comentarios.value,
-        ],
-      ];
-
-      gapi.client.sheets.spreadsheets.values.append({
-        spreadsheetId: SPREADSHEET_ID,
-        range: SHEET_ACEITES,
-        valueInputOption: 'USER_ENTERED',
-        resource: { values: valores },
-      }).then(function() {
-        form.reset();
-        alert('Formulario enviado correctamente.');
-      });
-    }
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Revisión de Niveles | Traxión</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f3f4f6;
+    color: #1f2937;
+    min-height: 100vh;
+  }
+  /* Menú estilo Traxión */
+  .navbar {
+    background: #1f2937;
+    color: #fff;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .navbar .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 18px;
+  }
+  .navbar .brand .dot {
+    width: 12px;
+    height: 12px;
+    background: #84cc16;
+    border-radius: 50%;
+  }
+  .navbar .page-name {
+    font-size: 14px;
+    color: #84cc16;
+    font-weight: 600;
+  }
+  /* Contenedor */
+  .container {
+    max-width: 500px;
+    margin: 20px auto;
+    padding: 0 16px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  h1 {
+    font-size: 20px;
+    margin-bottom: 4px;
+    color: #1f2937;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 20px;
+  }
+  /* Form */
+  .field { margin-bottom: 16px; }
+  label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #374151;
+  }
+  input[type="text"], input[type="number"], select, textarea {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #fff;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #84cc16;
+    box-shadow: 0 0 0 3px rgba(132, 204, 22, 0.15);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  .hint {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 4px;
+  }
+  .hint.ok { color: #16a34a; }
+  .hint.err { color: #dc2626; }
+  /* Botón */
+  button[type="submit"] {
+    width: 100%;
+    padding: 14px;
+    background: #84cc16;
+    color: #1f2937;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  button[type="submit"]:disabled {
+    background: #d1d5db;
+    color: #6b7280;
+    cursor: not-allowed;
+  }
+  button[type="submit"]:active { transform: scale(0.98); }
+  /* Subcampo cantidad */
+  .sub-field {
+    display: none;
+    margin-top: 10px;
+    padding: 12px;
+    background: #fef3c7;
+    border-left: 3px solid #f59e0b;
+    border-radius: 6px;
+  }
+  .sub-field.show { display: block; }
+  .sub-field label { color: #92400e; }
+  /* Mensaje resultado */
+  .msg {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    display: none;
+  }
+  .msg.show { display: block; }
+  .msg.success { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+  .msg.error { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  /* Loader */
+  .loader {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #1f2937;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* Responsive */
+  @media (max-width: 480px) {
+    .container { margin: 12px auto; padding: 0 10px; }
+    .card { padding: 16px; }
+    h1 { font-size: 18px; }
+  }
+</style>
 </head>
 <body>
-  <h1>Formulario de Revisión de Aceite</h1>
-  <form onsubmit="handleFormSubmit(event)">
-    <label for="numeroUnidad">Número de unidad:</label>
-    <input type="text" id="numeroUnidad" name="numeroUnidad" required><br>
 
-    <label for="fechaRevision">Fecha de revisión:</label>
-    <input type="date" id="fechaRevision" name="fechaRevision" required><br>
+<nav class="navbar">
+  <div class="brand">
+    <span class="dot"></span>
+    <span>TRAXIÓN</span>
+  </div>
+  <div class="page-name">Revisión de Niveles</div>
+</nav>
 
-    <label for="nivelAceite">Nivel de aceite:</label>
-    <select id="nivelAceite" name="nivelAceite" required>
-      <option value="">Seleccione una opción</option>
-      <option value="Normal">Normal</option>
-      <option value="Bajo">Bajo</option>
-    </select><br>
+<div class="container">
+  <div class="card">
+    <h1>Revisión de Niveles</h1>
+    <p class="subtitle" id="fechaHoy"></p>
 
-    <label for="fugaAceite">¿Presenta fuga de aceite?</label>
-    <select id="fugaAceite" name="fugaAceite" required>
-      <option value="">Seleccione una opción</option>
-      <option value="Sí">Sí</option>
-      <option value="No">No</option>
-    </select><br>
+    <div id="msg" class="msg"></div>
 
-    <label for="comentarios">Comentarios adicionales:</label>
-    <textarea id="comentarios" name="comentarios"></textarea><br>
+    <form id="formRevision">
+      <div class="field">
+        <label for="numeroUnidad">Unidad</label>
+        <input type="text" id="numeroUnidad" name="numeroUnidad" required autocomplete="off" inputmode="text">
+        <div class="hint" id="hintUnidad">Cargando lista de unidades...</div>
+      </div>
 
-    <button type="submit">Enviar</button>
-  </form>
+      <div class="field">
+        <label for="nivelAceite">Nivel de Aceite</label>
+        <select id="nivelAceite" name="nivelAceite" required>
+          <option value="">Selecciona una opción</option>
+          <option value="Normal">Normal</option>
+          <option value="Bajo">Bajo</option>
+        </select>
+        <div class="sub-field" id="subAceite">
+          <label for="faltanteAceite">¿Cuánto aceite falta para llegar a Normal? (litros)</label>
+          <input type="number" id="faltanteAceite" name="faltanteAceite" step="0.1" min="0" placeholder="Ej. 1.5">
+        </div>
+      </div>
 
-  <script>gapi.load('client', initClient);</script>
+      <div class="field">
+        <label for="nivelAnticongelante">Nivel de Anticongelante</label>
+        <select id="nivelAnticongelante" name="nivelAnticongelante" required>
+          <option value="">Selecciona una opción</option>
+          <option value="Normal">Normal</option>
+          <option value="Bajo">Bajo</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="comentarios">Comentarios adicionales</label>
+        <textarea id="comentarios" name="comentarios" placeholder="Opcional"></textarea>
+      </div>
+
+      <button type="submit" id="btnEnviar" disabled>Enviar revisión</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ====== CONFIG ======
+  const SPREADSHEET_ID = '1WJfJd1eANDXyBq5CXKw0aPbxB_giafCN7j-Aqtt9cVw';
+  const SHEET_FLOTA = 'Flota';
+  const SHEET_ACEITES = 'Aceites';
+  // URL del Web App de Google Apps Script (debes pegarla aquí después de desplegarla, ver instrucciones abajo)
+  const WEBAPP_URL = 'PEGA_AQUI_LA_URL_DEL_WEB_APP';
+
+  // ====== FECHA AUTOMÁTICA ======
+  const hoy = new Date();
+  const fechaTxt = hoy.toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  document.getElementById('fechaHoy').textContent = fechaTxt.charAt(0).toUpperCase() + fechaTxt.slice(1);
+
+  // ====== CARGAR UNIDADES (lectura pública vía gviz) ======
+  let unidadesExistentes = [];
+  const hintUnidad = document.getElementById('hintUnidad');
+  const btnEnviar = document.getElementById('btnEnviar');
+
+  const gvizUrl = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_FLOTA)}&range=A:A`;
+
+  fetch(gvizUrl)
+    .then(r => r.text())
+    .then(csv => {
+      unidadesExistentes = csv.split('\n')
+        .map(l => l.replace(/^"|"$/g, '').trim())
+        .filter(v => v && v.toUpperCase() !== 'IDS');
+      hintUnidad.textContent = `${unidadesExistentes.length} unidades cargadas`;
+      hintUnidad.classList.add('ok');
+      btnEnviar.disabled = false;
+    })
+    .catch(() => {
+      hintUnidad.textContent = 'Error al cargar unidades. Verifica que la hoja sea pública.';
+      hintUnidad.classList.add('err');
+    });
+
+  // Validación en vivo
+  const inputUnidad = document.getElementById('numeroUnidad');
+  inputUnidad.addEventListener('blur', () => {
+    const val = inputUnidad.value.trim();
+    if (!val) return;
+    if (unidadesExistentes.includes(val)) {
+      hintUnidad.textContent = '✓ Unidad válida';
+      hintUnidad.className = 'hint ok';
+    } else {
+      hintUnidad.textContent = '✗ Unidad no encontrada en Flota';
+      hintUnidad.className = 'hint err';
+    }
+  });
+
+  // ====== MOSTRAR/OCULTAR FALTANTE DE ACEITE ======
+  const selAceite = document.getElementById('nivelAceite');
+  const subAceite = document.getElementById('subAceite');
+  const faltante = document.getElementById('faltanteAceite');
+  selAceite.addEventListener('change', () => {
+    if (selAceite.value === 'Bajo') {
+      subAceite.classList.add('show');
+      faltante.required = true;
+    } else {
+      subAceite.classList.remove('show');
+      faltante.required = false;
+      faltante.value = '';
+    }
+  });
+
+  // ====== ENVIAR ======
+  const form = document.getElementById('formRevision');
+  const msg = document.getElementById('msg');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const unidad = inputUnidad.value.trim();
+
+    if (!unidadesExistentes.includes(unidad)) {
+      mostrarMsg('La unidad no existe en la Flota. Verifica el número.', 'error');
+      return;
+    }
+
+    btnEnviar.disabled = true;
+    btnEnviar.innerHTML = '<span class="loader"></span> Enviando...';
+
+    const datos = {
+      timestamp: new Date().toISOString(),
+      unidad: unidad,
+      nivelAceite: selAceite.value,
+      faltanteAceite: selAceite.value === 'Bajo' ? faltante.value : '',
+      nivelAnticongelante: document.getElementById('nivelAnticongelante').value,
+      comentarios: document.getElementById('comentarios').value.trim()
+    };
+
+    try {
+      await fetch(WEBAPP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(datos)
+      });
+      mostrarMsg('✓ Revisión registrada correctamente.', 'success');
+      form.reset();
+      subAceite.classList.remove('show');
+      hintUnidad.textContent = `${unidadesExistentes.length} unidades cargadas`;
+      hintUnidad.className = 'hint ok';
+    } catch (err) {
+      mostrarMsg('Error al enviar. Intenta de nuevo.', 'error');
+    } finally {
+      btnEnviar.disabled = false;
+      btnEnviar.textContent = 'Enviar revisión';
+    }
+  });
+
+  function mostrarMsg(texto, tipo) {
+    msg.textContent = texto;
+    msg.className = `msg show ${tipo}`;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => msg.classList.remove('show'), 5000);
+  }
+</script>
+
 </body>
 </html>
