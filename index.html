@@ -43,16 +43,59 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 .logout-btn{background:transparent;border:1.5px solid #374151;color:#9ca3af;padding:10px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;margin-top:15px;}
 .logout-btn:hover{border-color:#b91c1c;color:#b91c1c}
 .logout-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.sidebar-footer{margin-top:14px;padding:12px 10px 4px;border-top:1px solid #374151;text-align:center;font-size:11px;color:#9ca3af;line-height:1.5;letter-spacing:.3px}
-.sidebar-footer strong{color:#84cc16;font-weight:700;display:block;margin-bottom:2px;letter-spacing:.8px;text-transform:uppercase;font-size:10px}
+.sidebar-footer{margin-top:14px;padding:12px 6px 4px;border-top:1px solid #374151;font-size:11px;color:#9ca3af;line-height:1.4;letter-spacing:.2px}
+.sidebar-footer .sf-title{color:#84cc16;font-weight:700;text-align:center;margin-bottom:8px;letter-spacing:.8px;text-transform:uppercase;font-size:10px}
+.sidebar-footer .sf-group{margin-bottom:8px}
+.sidebar-footer .sf-group:last-child{margin-bottom:0}
+.sidebar-footer .sf-area{color:#e5e7eb;font-weight:700;text-transform:uppercase;font-size:9.5px;letter-spacing:.6px;margin-bottom:3px;display:flex;align-items:center;gap:5px}
+.sidebar-footer .sf-area::before{content:'';width:4px;height:4px;border-radius:50%;background:#84cc16;flex-shrink:0}
+.sidebar-footer .sf-person{display:flex;justify-content:space-between;align-items:baseline;gap:6px;padding:2px 0 2px 9px;font-size:10.5px}
+.sidebar-footer .sf-name{color:#d1d5db;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-footer .sf-phone{color:#9ca3af;font-variant-numeric:tabular-nums;font-size:10px;white-space:nowrap}
 .main{flex:1;background:#fff;position:relative;overflow:hidden}
 .main::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,.75)),url("fondotraxion.jpeg");background-size:cover;background-position:center;}
-.hero{position:relative;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px}
-.hero h2{font-size:56px;letter-spacing:6px;font-weight:900;color:#1f2937;margin-bottom:10px}
-.hero p{margin-top:10px;font-size:18px;color:#6b7280;font-weight:500}
-.hero .tagline{font-size:16px;color:#84cc16;font-weight:700;margin-top:20px;letter-spacing:2px}
-@media (max-width:1024px){#menu.show{flex-direction:column}.sidebar{width:100%;max-height:300px}}
-@media (max-width:640px){.hero h2{font-size:36px;letter-spacing:3px}.hero p{font-size:16px}}
+.hero{position:relative;min-height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:30px 40px}
+.hero h2{font-size:48px;letter-spacing:6px;font-weight:900;color:#1f2937;margin-bottom:6px}
+.hero p{margin-top:6px;font-size:16px;color:#6b7280;font-weight:500}
+.hero .tagline{font-size:14px;color:#84cc16;font-weight:700;margin-top:14px;letter-spacing:2px}
+.kpi-section{width:100%;max-width:880px;margin:24px 0 8px}
+.kpi-section-title{font-size:11px;font-weight:700;color:#1f2937;text-transform:uppercase;letter-spacing:2.5px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:10px}
+.kpi-section-title::before,.kpi-section-title::after{content:'';height:1px;flex:1;max-width:80px;background:linear-gradient(90deg,transparent,#84cc16,transparent)}
+.kpi-week{color:#84cc16;font-weight:800}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%}
+.kpi-card{background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-radius:10px;padding:14px 14px 12px;border-left:4px solid #9ca3af;box-shadow:0 4px 14px rgba(0,0,0,.07);text-align:left;transition:transform .2s,box-shadow .2s;min-height:88px;display:flex;flex-direction:column;justify-content:space-between}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(0,0,0,.12)}
+.kpi-card.green{border-left-color:#16a34a}
+.kpi-card.red{border-left-color:#dc2626}
+.kpi-card.gray{border-left-color:#9ca3af}
+.kpi-name{font-size:10.5px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;line-height:1.25;margin-bottom:6px;min-height:26px}
+.kpi-value{font-size:26px;font-weight:900;color:#1f2937;line-height:1;font-variant-numeric:tabular-nums}
+.kpi-value.green{color:#16a34a}
+.kpi-value.red{color:#dc2626}
+.kpi-target{font-size:10.5px;color:#9ca3af;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
+.kpi-loading{grid-column:1/-1;text-align:center;color:#6b7280;padding:24px;font-size:12.5px;font-weight:500}
+@media (max-width:1024px){#menu.show{flex-direction:column}.sidebar{width:100%;max-height:300px}.main{overflow-y:auto}}
+@media (max-width:768px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.kpi-section{max-width:500px}}
+@media (max-width:640px){.hero h2{font-size:36px;letter-spacing:3px}.hero p{font-size:14px}}
+@media (max-width:480px){.kpi-grid{grid-template-columns:1fr}}
+/* Animaciones de entrada */
+@keyframes trxFadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes trxFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes trxSlideRight{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:translateX(0)}}
+@keyframes trxScale{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+#menu.show .sidebar{animation:trxSlideRight .55s cubic-bezier(.16,1,.3,1) both}
+#menu.show .main{animation:trxFadeIn .7s ease-out both}
+#menu.show .hero h2{animation:trxFadeUp .65s cubic-bezier(.16,1,.3,1) .1s both}
+#menu.show .hero > p:first-of-type{animation:trxFadeUp .6s cubic-bezier(.16,1,.3,1) .25s both}
+#menu.show .kpi-section-title{animation:trxFadeUp .55s ease-out .4s both}
+#menu.show .hero .tagline{animation:trxFadeUp .55s ease-out .95s both}
+.kpi-card{animation:trxScale .5s cubic-bezier(.16,1,.3,1) both}
+.kpi-card:nth-child(1){animation-delay:.55s}
+.kpi-card:nth-child(2){animation-delay:.62s}
+.kpi-card:nth-child(3){animation-delay:.69s}
+.kpi-card:nth-child(4){animation-delay:.76s}
+.kpi-card:nth-child(5){animation-delay:.83s}
+.kpi-card:nth-child(6){animation-delay:.9s}
 </style>
 </head>
 <body>
@@ -161,14 +204,28 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
       Cerrar sesion
     </button>
     <div class="sidebar-footer">
-      <strong>&iquest;Dudas?</strong>
-      Contacta a los administradores
+      <div class="sf-title">&iquest;Dudas? Contacta a los administradores</div>
+      <div class="sf-group">
+        <div class="sf-area">Logistica</div>
+        <div class="sf-person"><span class="sf-name">Ricardo Espinoza</span><span class="sf-phone">81 2074 0332</span></div>
+        <div class="sf-person"><span class="sf-name">Marcos Lopez</span><span class="sf-phone">55 2518 4429</span></div>
+      </div>
+      <div class="sf-group">
+        <div class="sf-area">Seguridad</div>
+        <div class="sf-person"><span class="sf-name">Hector Vergara</span><span class="sf-phone">55 7010 8337</span></div>
+      </div>
     </div>
   </aside>
   <main class="main">
     <div class="hero">
       <h2>TRAXION</h2>
       <p>Logistica &middot; Operaciones &middot; Seguridad</p>
+      <div class="kpi-section">
+        <div class="kpi-section-title"><span>Indicadores Semana</span><span class="kpi-week" id="kpiWeek">--</span></div>
+        <div class="kpi-grid" id="kpiGrid">
+          <div class="kpi-loading">Cargando KPIs...</div>
+        </div>
+      </div>
       <p class="tagline">Movemos lo mas valioso, conectamos destinos</p>
     </div>
   </main>
@@ -216,6 +273,20 @@ document.getElementById('logoutBtn').addEventListener('click', function(){
 function showMenu(){
   document.getElementById('login').style.display = 'none';
   document.getElementById('menu').classList.add('show');
+  loadKpis();
+  if(window._kpiTimer) clearInterval(window._kpiTimer);
+  window._kpiTimer = setInterval(loadKpis, 5*60*1000);
+  logVisit();
+}
+/* Contador de visitas -> Inputs!P3 via Apps Script Web App */
+const VISITS_WEBAPP_URL = 'PEGA_AQUI_LA_URL_DEL_WEB_APP';
+function logVisit(){
+  try{
+    if(sessionStorage.getItem('trx_visit_logged')) return;
+    if(!VISITS_WEBAPP_URL || VISITS_WEBAPP_URL.startsWith('PEGA_AQUI')) return;
+    sessionStorage.setItem('trx_visit_logged','1');
+    fetch(VISITS_WEBAPP_URL + '?t=' + Date.now(), {method:'GET', mode:'no-cors', keepalive:true}).catch(()=>{});
+  }catch(e){}
 }
 document.querySelectorAll('.menu-category-header').forEach(function(h){
   h.addEventListener('click', function(){
@@ -234,6 +305,100 @@ async function trxDecrypt(b64, password){
   );
   const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct);
   return new TextDecoder().decode(pt);
+}
+
+/* ============ KPIs hero ============ */
+const KPI_SHEET_ID = 'PEGA_AQUI_TU_SHEET_ID_DE_GARCIA_DATA';
+const KPI_SHEET_NAME = 'kpis';
+const KPI_DEFS = [
+  { name:'Nivel de servicio',          format:'pct', rule:'higher' },
+  { name:'Unidades en Mtto',           format:'int', rule:'lower'  },
+  { name:'Operadores >15km',           format:'int', rule:'lower'  },
+  { name:'Ope >15 dias sin descanso',  format:'int', rule:'always_red' },
+  { name:'Siniestros',                 format:'int', rule:'lower'  },
+  { name:'Kilometros Marginales',      format:'int', rule:'lower'  }
+];
+
+function parseCsv(text){
+  const lines = text.split(/\r?\n/).filter(l=>l.length);
+  return lines.map(line=>{
+    const out=[]; let cur='',q=false;
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(q){
+        if(c==='"' && line[i+1]==='"'){cur+='"';i++;}
+        else if(c==='"') q=false;
+        else cur+=c;
+      }else{
+        if(c===',') {out.push(cur);cur='';}
+        else if(c==='"') q=true;
+        else cur+=c;
+      }
+    }
+    out.push(cur);
+    return out;
+  });
+}
+function kpiParseNum(s){
+  if(s==null) return 0;
+  s = String(s).replace(/[$,\s]/g,'').replace('%','').trim();
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+function kpiFmt(raw, def){
+  const n = kpiParseNum(raw);
+  if(def.format==='pct'){
+    const hasPct = String(raw).includes('%');
+    const v = (!hasPct && n>0 && n<=1) ? n*100 : n;
+    return v.toFixed(0)+'%';
+  }
+  return Math.round(n).toLocaleString('es-MX');
+}
+function kpiStatus(real, obj, rule){
+  const r = kpiParseNum(real), o = kpiParseNum(obj);
+  if(rule==='always_red') return r>0 ? 'red' : 'green';
+  if(rule==='higher')     return r>=o ? 'green' : 'red';
+  if(rule==='lower')      return r<=o ? 'green' : 'red';
+  return 'gray';
+}
+async function loadKpis(){
+  const grid = document.getElementById('kpiGrid');
+  if(!grid) return;
+  if(KPI_SHEET_ID.startsWith('PEGA_AQUI')){
+    grid.innerHTML = '<div class="kpi-loading">Configura KPI_SHEET_ID en el script para mostrar KPIs</div>';
+    return;
+  }
+  try{
+    // Semana actual (B1)
+    const semUrl = `https://docs.google.com/spreadsheets/d/${KPI_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(KPI_SHEET_NAME)}&range=B1`;
+    // Datos KPIs (B6:D11)
+    const dataUrl = `https://docs.google.com/spreadsheets/d/${KPI_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(KPI_SHEET_NAME)}&range=B6:D11`;
+    const [semRes, dataRes] = await Promise.all([fetch(semUrl), fetch(dataUrl)]);
+    const semTxt = await semRes.text();
+    const dataTxt = await dataRes.text();
+    const semana = (parseCsv(semTxt)[0]||[''])[0].replace(/"/g,'').trim();
+    document.getElementById('kpiWeek').textContent = semana ? ('#'+semana) : '--';
+    const rows = parseCsv(dataTxt);
+    const byName = {};
+    rows.forEach(r=>{
+      const name = (r[0]||'').replace(/"/g,'').trim();
+      if(name) byName[name] = { real:r[1], obj:r[2] };
+    });
+    grid.innerHTML = KPI_DEFS.map(def=>{
+      const d = byName[def.name];
+      if(!d) return `<div class="kpi-card gray"><div class="kpi-name">${def.name}</div><div class="kpi-value">--</div><div class="kpi-target">Sin dato</div></div>`;
+      const st = kpiStatus(d.real, d.obj, def.rule);
+      return `<div class="kpi-card ${st}">
+        <div class="kpi-name">${def.name}</div>
+        <div>
+          <div class="kpi-value ${st}">${kpiFmt(d.real, def)}</div>
+          <div class="kpi-target">Obj: ${kpiFmt(d.obj, def)}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){
+    grid.innerHTML = '<div class="kpi-loading">No se pudieron cargar los KPIs</div>';
+  }
 }
 </script>
 </body>
