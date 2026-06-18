@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auditoría Marathon · Visor de Unidades</title>
+    <!-- SheetJS para leer Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <!-- Font Awesome (opcional) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #f5f7fb;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1300px;
+            width: 100%;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            padding: 28px 30px 40px;
+            transition: 0.2s;
+        }
+        h1 {
+            font-weight: 600;
+            font-size: 1.9rem;
+            letter-spacing: -0.3px;
+            color: #0b1a33;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+        h1 small {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #4a5b6e;
+            background: #eef2f6;
+            padding: 2px 14px;
+            border-radius: 30px;
+            margin-left: 4px;
+        }
+        .subhead {
+            color: #3e4f62;
+            margin-bottom: 28px;
+            border-left: 4px solid #2a7de1;
+            padding-left: 16px;
+            font-weight: 400;
+            font-size: 1rem;
+            background: #f0f4fe;
+            border-radius: 0 20px 20px 0;
+            line-height: 1.4;
+        }
+        .upload-area {
+            background: #f8faff;
+            border: 2px dashed #cbd5e1;
+            border-radius: 30px;
+            padding: 30px 20px 25px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: 0.2s;
+        }
+        .upload-area:hover {
+            border-color: #2a7de1;
+            background: #f2f8ff;
+        }
+        .upload-area label {
+            display: inline-block;
+            background: #1a2b4c;
+            color: white;
+            padding: 12px 32px;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 4px 8px rgba(0,20,50,0.1);
+        }
+        .upload-area label i {
+            margin-right: 10px;
+        }
+        .upload-area label:hover {
+            background: #0f1e38;
+            transform: scale(1.01);
+        }
+        #file-input {
+            display: none;
+        }
+        .file-status {
+            margin-top: 14px;
+            color: #1e3b5c;
+            font-weight: 450;
+        }
+        .file-status i {
+            color: #1f8b4c;
+            margin-right: 6px;
+        }
+        .filter-section {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px 20px;
+            background: #f2f6fd;
+            padding: 14px 24px;
+            border-radius: 60px;
+            margin: 12px 0 28px;
+        }
+        .filter-section label {
+            font-weight: 500;
+            color: #14273e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-section label i {
+            color: #2a5f8a;
+        }
+        #unit-select {
+            background: white;
+            border: 1px solid #cbdae9;
+            border-radius: 40px;
+            padding: 10px 24px 10px 20px;
+            font-size: 1rem;
+            min-width: 200px;
+            font-weight: 450;
+            color: #0b1f38;
+            outline: none;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        #unit-select:hover {
+            border-color: #2a7de1;
+            box-shadow: 0 2px 8px rgba(42,125,225,0.15);
+        }
+        .count-badge {
+            background: #dce5f0;
+            padding: 4px 16px;
+            border-radius: 60px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1b3a5e;
+            white-space: nowrap;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 22px;
+            margin-top: 18px;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 18px 12px 14px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.02), 0 6px 18px rgba(0, 20, 40, 0.04);
+            border: 1px solid #e9edf4;
+            transition: all 0.15s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #b6cef0;
+            box-shadow: 0 12px 28px rgba(27, 67, 120, 0.08);
+        }
+        .card .id-label {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #0f2942;
+            background: #eaf1fb;
+            padding: 4px 14px;
+            border-radius: 40px;
+            margin-bottom: 14px;
+            display: inline-block;
+            letter-spacing: 0.3px;
+        }
+        .card .img-placeholder {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background: #f2f6fc;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: #3b5a7a;
+            border: 1px solid #dde5f0;
+            transition: 0.1s;
+            position: relative;
+            overflow: hidden;
+        }
+        .card .img-placeholder i {
+            font-size: 2.6rem;
+            color: #7b97b9;
+            margin-bottom: 6px;
+            opacity: 0.7;
+        }
+        .card .img-placeholder span {
+            background: rgba(0,0,0,0.02);
+            padding: 3px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            background: #e7eef8;
+        }
+        .card .img-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 20px;
+        }
+        .card .field-tag {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px 8px;
+        }
+        .card .field-tag .badge {
+            background: #eef3fa;
+            padding: 3px 12px;
+            border-radius: 40px;
+            font-size: 0.65rem;
+            font-weight: 500;
+            color: #26486b;
+            letter-spacing: 0.2px;
+            border: 1px solid #d7e2f0;
+        }
+        .no-data {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px 20px;
+            color: #5b728b;
+            background: #f9fcff;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            border: 1px solid #e4ecf5;
+        }
+        .footer-note {
+            margin-top: 30px;
+            text-align: right;
+            font-size: 0.8rem;
+            color: #768aa3;
+            border-top: 1px solid #e2eaf3;
+            padding-top: 20px;
+        }
+        .footer-note i {
+            margin-right: 6px;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 16px; }
+            .filter-section { flex-direction: column; align-items: stretch; border-radius: 30px; }
+            #unit-select { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>
+        <i class="fas fa-truck-moving" style="color: #1d4b77;"></i> Auditoría Marathon
+        <small>unidades</small>
+    </h1>
+    <div class="subhead">
+        <i class="fas fa-upload" style="margin-right: 10px;"></i> Carga el archivo <strong>Auditoria Marathon.xlsx</strong> para visualizar las imágenes de cada unidad.
+    </div>
+
+    <!-- Área de carga -->
+    <div class="upload-area">
+        <label for="file-input">
+            <i class="fas fa-file-excel"></i> Seleccionar archivo Excel
+        </label>
+        <input type="file" id="file-input" accept=".xlsx,.xls">
+        <div class="file-status" id="file-status">
+            <i class="fas fa-info-circle"></i> Ningún archivo cargado
+        </div>
+    </div>
+
+    <!-- Filtro y contador -->
+    <div class="filter-section">
+        <label for="unit-select"><i class="fas fa-filter"></i> Filtrar por unidad:</label>
+        <select id="unit-select">
+            <option value="all">Todas las unidades</option>
+        </select>
+        <span class="count-badge" id="unit-count"><i class="far fa-image"></i> 0 imágenes</span>
+    </div>
+
+    <!-- Grid de tarjetas -->
+    <div class="grid" id="cards-grid">
+        <div class="no-data"><i class="fas fa-cloud-upload-alt" style="font-size: 2.2rem; display: block; margin-bottom: 12px;"></i> Carga un archivo Excel para ver las unidades</div>
+    </div>
+    <div class="footer-note">
+        <i class="fas fa-arrows-alt-h"></i> Las imágenes se representan según el campo · <i class="fas fa-th"></i> 6 zonas: Frente, Trasera, Interior, Botiquín, Extintor, Cortinas
+    </div>
+</div>
+
+<script>
+    (function() {
+        "use strict";
+
+        // ---------- estado ----------
+        let rawData = [];          // array de objetos { Id, Frente, Trasera, Interior, Botiquin, Extintor, Cortinas }
+        let allIds = [];
+        const selectEl = document.getElementById('unit-select');
+        const gridEl = document.getElementById('cards-grid');
+        const fileInput = document.getElementById('file-input');
+        const fileStatus = document.getElementById('file-status');
+        const unitCount = document.getElementById('unit-count');
+
+        // campos fijos (orden)
+        const FIELDS = ['Frente', 'Trasera', 'Interior', 'Botiquin', 'Extintor', 'Cortinas'];
+        // iconos asociados
+        const FIELD_ICONS = {
+            'Frente': 'fa-car-side',
+            'Trasera': 'fa-car-rear',
+            'Interior': 'fa-chair',
+            'Botiquin': 'fa-briefcase-medical',
+            'Extintor': 'fa-fire-extinguisher',
+            'Cortinas': 'fa-wind'
+        };
+
+        // ---------- helpers ----------
+        function getFieldValue(row, field) {
+            // row es objeto con keys exactas (Id, Frente, ...)
+            const val = row[field];
+            if (val === undefined || val === null) return '';
+            return String(val).trim();
+        }
+
+        // detecta si el valor es una URL de imagen, o un placeholder "imagen" simbólico
+        function isImageUrl(str) {
+            if (!str) return false;
+            const s = str.toLowerCase();
+            return s.startsWith('http') || s.startsWith('data:image') || s.includes('.jpg') || s.includes('.png') || s.includes('.jpeg') || s.includes('.gif') || s.includes('.svg');
+        }
+
+        // renderiza una tarjeta para un Id
+        function renderCard(id, rowData) {
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            // id
+            const idLabel = document.createElement('div');
+            idLabel.className = 'id-label';
+            idLabel.textContent = `#${id}`;
+            card.appendChild(idLabel);
+
+            // contenedor imagen (representación)
+            const imgContainer = document.createElement('div');
+            imgContainer.className = 'img-placeholder';
+
+            // Buscamos el primer campo que tenga una imagen (url) para mostrar como preview
+            let foundImage = false;
+            for (const field of FIELDS) {
+                const val = getFieldValue(rowData, field);
+                if (val && isImageUrl(val)) {
+                    // mostramos imagen real
+                    const img = document.createElement('img');
+                    img.src = val;
+                    img.alt = `${id} - ${field}`;
+                    img.loading = 'lazy';
+                    imgContainer.appendChild(img);
+                    foundImage = true;
+                    break;
+                }
+            }
+
+            if (!foundImage) {
+                // placeholder genérico
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-image';
+                imgContainer.appendChild(icon);
+                const span = document.createElement('span');
+                span.textContent = 'sin imagen';
+                imgContainer.appendChild(span);
+            }
+            card.appendChild(imgContainer);
+
+            // badges de campos (muestra los campos que tienen dato)
+            const tagContainer = document.createElement('div');
+            tagContainer.className = 'field-tag';
+
+            for (const field of FIELDS) {
+                const val = getFieldValue(rowData, field);
+                if (val) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge';
+                    const iconName = FIELD_ICONS[field] || 'fa-circle';
+                    badge.innerHTML = `<i class="fas ${iconName}" style="margin-right: 4px;"></i> ${field}`;
+                    tagContainer.appendChild(badge);
+                }
+            }
+            // si no hay ningún campo con dato, mostramos algo
+            if (tagContainer.children.length === 0) {
+                const emptyBadge = document.createElement('span');
+                emptyBadge.className = 'badge';
+                emptyBadge.textContent = 'sin datos';
+                tagContainer.appendChild(emptyBadge);
+            }
+            card.appendChild(tagContainer);
+            return card;
+        }
+
+        // ---------- renderizar grid según filtro ----------
+        function renderGrid(filterId) {
+            gridEl.innerHTML = '';
+            let filtered = [];
+            if (filterId === 'all') {
+                filtered = rawData;
+            } else {
+                filtered = rawData.filter(row => String(row.Id) === String(filterId));
+            }
+
+            if (filtered.length === 0) {
+                const noData = document.createElement('div');
+                noData.className = 'no-data';
+                noData.innerHTML = `<i class="fas fa-search" style="font-size:2rem; display:block; margin-bottom:10px;"></i> No hay unidades con este ID.`;
+                gridEl.appendChild(noData);
+                unitCount.innerHTML = `<i class="far fa-image"></i> 0 imágenes`;
+                return;
+            }
+
+            // ordenar por Id numérico
+            filtered.sort((a,b) => Number(a.Id) - Number(b.Id));
+
+            for (const row of filtered) {
+                const card = renderCard(row.Id, row);
+                gridEl.appendChild(card);
+            }
+
+            // actualizar contador
+            const total = filtered.reduce((acc, row) => {
+                let count = 0;
+                for (const f of FIELDS) {
+                    const v = getFieldValue(row, f);
+                    if (v && isImageUrl(v)) count++;
+                }
+                return acc + count;
+            }, 0);
+            unitCount.innerHTML = `<i class="far fa-image"></i> ${total} imagen${total !== 1 ? 'es' : ''}`;
+        }
+
+        // ---------- actualizar select con los ids únicos ----------
+        function populateSelect(ids) {
+            selectEl.innerHTML = '';
+            const allOpt = document.createElement('option');
+            allOpt.value = 'all';
+            allOpt.textContent = 'Todas las unidades';
+            selectEl.appendChild(allOpt);
+
+            // ordenar numéricamente
+            const sortedIds = ids.slice().sort((a,b) => Number(a) - Number(b));
+            for (const id of sortedIds) {
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.textContent = `Unidad ${id}`;
+                selectEl.appendChild(opt);
+            }
+        }
+
+        // ---------- procesar el archivo Excel ----------
+        function processExcel(data) {
+            try {
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                // convertir a JSON (cabeceras en primera fila)
+                const rows = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+                if (!rows || rows.length === 0) {
+                    fileStatus.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#c25a2b;"></i> El archivo no contiene datos.`;
+                    return;
+                }
+
+                // normalizar: asumimos columnas: Ids, Frente, Trasera, Interior, Botiquin, Extintor, Cortinas
+                // Mapeo flexible: si encuentra "Ids" o "ID" o "Id"
+                const headers = Object.keys(rows[0]);
+                const idKey = headers.find(h => h.toLowerCase().includes('id'));
+                if (!idKey) {
+                    fileStatus.innerHTML = `<i class="fas fa-exclamation-triangle" style="color:#c25a2b;"></i> No se encontró la columna de ID (Ids).`;
+                    return;
+                }
+
+                rawData = [];
+                const idsSet = new Set();
+
+                for (const row of rows) {
+                    const idVal = row[idKey];
+                    if (idVal === undefined || idVal === null || String(idVal).trim() === '') continue;
+                    const id = String(idVal).trim();
+                    // construir objeto con los campos exactos
+                    const entry = { Id: id };
+                    for (const field of FIELDS) {
+                        // buscar en el row por key exacta o aproximada
+                        let val = '';
+                        const exactKey = field;
+                        if (row[exactKey] !== undefined) {
+                            val = String(row[exactKey] || '').trim();
+                        } else {
+                            // buscar por similar (case insensitive)
+                            const lowerField = field.toLowerCase();
+                            for (const key of headers) {
+                                if (key.toLowerCase() === lowerField) {
+                                    val = String(row[key] || '').trim();
+                                    break;
+                                }
+                            }
+                        }
+                        // si es #VALUE! o similar lo tratamos como vacío
+                        if (val === '#VALUE!' || val === '#¡VALOR!' || val === '#N/A') {
+                            val = '';
+                        }
+                        entry[field] = val;
+                    }
+                    rawData.push(entry);
+                    idsSet.add(id);
+                }
+
+                if (rawData.length === 0) {
+                    fileStatus.innerHTML = `<i class="fas fa-exclamation-circle" style="color:#c25a2b;"></i> No se encontraron registros válidos.`;
+                    return;
+                }
+
+                allIds = Array.from(idsSet);
+                populateSelect(allIds);
+                // seleccionar "todas"
+                selectEl.value = 'all';
+                renderGrid('all');
+                fileStatus.innerHTML = `<i class="fas fa-check-circle" style="color:#1f8b4c;"></i> Archivo cargado: ${rawData.length} unidades · ${allIds.length} IDs únicos.`;
+            } catch (error) {
+                console.error(error);
+                fileStatus.innerHTML = `<i class="fas fa-times-circle" style="color:#b33;"></i> Error al leer el archivo: ${error.message}`;
+            }
+        }
+
+        // ---------- eventos ----------
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const data = new Uint8Array(ev.target.result);
+                processExcel(data);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        selectEl.addEventListener('change', function() {
+            const val = this.value;
+            renderGrid(val);
+        });
+
+        // opción drag & drop (mejora)
+        const uploadArea = document.querySelector('.upload-area');
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#2a7de1';
+            uploadArea.style.background = '#e4f0ff';
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#cbd5e1';
+            uploadArea.style.background = '#f8faff';
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#cbd5e1';
+            uploadArea.style.background = '#f8faff';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // estado inicial
+        fileStatus.innerHTML = `<i class="fas fa-info-circle"></i> Ningún archivo cargado`;
+        // mensaje inicial en grid
+    })();
+</script>
+</body>
+</html>
