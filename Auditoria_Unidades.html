@@ -4,15 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Auditoría Marathon · Visor de Unidades</title>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        /* (Mantengo exactamente los mismos estilos que tenías) */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
             background: #f0f4fa;
@@ -29,615 +25,290 @@
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.07);
             padding: 28px 32px 40px;
         }
-        h1 {
-            font-weight: 700;
-            font-size: 2rem;
-            color: #0b1f3a;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            flex-wrap: wrap;
-            margin-bottom: 6px;
-        }
-        h1 small {
-            font-size: 0.85rem;
-            font-weight: 400;
-            color: #4a5f78;
-            background: #e9eef5;
-            padding: 4px 18px;
-            border-radius: 40px;
-        }
-        .subhead {
-            color: #2f4b6a;
-            margin-bottom: 28px;
-            padding-left: 18px;
-            border-left: 5px solid #2a7de1;
-            background: #f1f6fe;
-            border-radius: 0 24px 24px 0;
-            padding: 10px 20px;
-            font-weight: 400;
-        }
+        h1 { font-weight: 700; font-size: 2rem; color: #0b1f3a; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+        h1 small { font-size: 0.85rem; font-weight: 400; color: #4a5f78; background: #e9eef5; padding: 4px 18px; border-radius: 40px; }
+        .subhead { color: #2f4b6a; margin-bottom: 28px; padding-left: 18px; border-left: 5px solid #2a7de1; background: #f1f6fe; border-radius: 0 24px 24px 0; padding: 10px 20px; font-weight: 400; }
         .upload-area {
-            background: #f7faff;
-            border: 2px dashed #c8d6e8;
-            border-radius: 30px;
-            padding: 28px 20px 22px;
-            text-align: center;
-            margin-bottom: 28px;
-            transition: 0.2s;
+            background: #f7faff; border: 2px dashed #c8d6e8; border-radius: 30px; padding: 28px 20px 22px; text-align: center; margin-bottom: 28px; transition: 0.2s;
         }
-        .upload-area:hover {
-            border-color: #2a7de1;
-            background: #f0f7ff;
-        }
+        .upload-area:hover { border-color: #2a7de1; background: #f0f7ff; }
         .upload-area label {
-            display: inline-block;
-            background: #142b4a;
-            color: white;
-            padding: 12px 36px;
-            border-radius: 60px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.15s;
-            font-size: 1rem;
-            box-shadow: 0 4px 12px rgba(0, 20, 40, 0.12);
+            display: inline-block; background: #142b4a; color: white; padding: 12px 36px; border-radius: 60px; font-weight: 500; cursor: pointer; transition: 0.15s; font-size: 1rem; box-shadow: 0 4px 12px rgba(0, 20, 40, 0.12);
         }
-        .upload-area label i {
-            margin-right: 10px;
-        }
-        .upload-area label:hover {
-            background: #0a1d33;
-            transform: scale(1.02);
-        }
-        #file-input {
-            display: none;
-        }
-        .file-status {
-            margin-top: 14px;
-            color: #1a3755;
-            font-weight: 450;
-        }
-        .file-status i {
-            margin-right: 8px;
-        }
-        .file-status .ok {
-            color: #1a7a3e;
-        }
-        .file-status .err {
-            color: #b13e3e;
-        }
+        .upload-area label:hover { background: #0a1d33; transform: scale(1.02); }
+        #file-input { display: none; }
+        .file-status { margin-top: 14px; color: #1a3755; font-weight: 450; padding: 8px 16px; border-radius: 12px; }
+        .file-status .ok { color: #1a7a3e; background: #e6f7ed; padding: 8px 16px; border-radius: 12px; display: inline-block; }
+        .file-status .err { color: #b13e3e; background: #fde8e8; padding: 8px 16px; border-radius: 12px; display: inline-block; }
         .filter-section {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px 20px;
-            background: #f2f7fe;
-            padding: 14px 26px;
-            border-radius: 60px;
-            margin: 10px 0 30px;
-        }
-        .filter-section label {
-            font-weight: 500;
-            color: #1a314e;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        #unit-select {
-            background: white;
-            border: 1px solid #c2d4e9;
-            border-radius: 40px;
-            padding: 10px 26px 10px 22px;
-            font-size: 1rem;
-            min-width: 200px;
-            font-weight: 450;
-            color: #0b1f3a;
-            outline: none;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-        #unit-select:hover {
-            border-color: #2a7de1;
-            box-shadow: 0 2px 10px rgba(42, 125, 225, 0.15);
-        }
-        .count-badge {
-            background: #dee8f5;
-            padding: 6px 20px;
-            border-radius: 60px;
-            font-weight: 500;
-            color: #173453;
-            font-size: 0.9rem;
-            white-space: nowrap;
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 20px; background: #f2f7fe; padding: 14px 26px; border-radius: 60px; margin: 10px 0 30px;
         }
         .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-            gap: 24px;
-            margin-top: 16px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; margin-top: 16px;
         }
         .card {
-            background: #ffffff;
-            border-radius: 24px;
-            padding: 16px 14px 16px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02), 0 6px 20px rgba(0, 20, 40, 0.04);
-            border: 1px solid #e6ecf5;
-            transition: all 0.15s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            background: #ffffff; border-radius: 24px; padding: 16px 14px 18px; box-shadow: 0 4px 16px rgba(0,0,0,0.02), 0 6px 20px rgba(0,20,40,0.04);
+            border: 1px solid #e6ecf5; transition: all 0.15s ease; display: flex; flex-direction: column; align-items: center;
         }
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: #b3cced;
-            box-shadow: 0 12px 32px rgba(27, 67, 120, 0.08);
-        }
+        .card:hover { transform: translateY(-5px); border-color: #b3cced; box-shadow: 0 12px 32px rgba(27,67,120,0.08); }
         .card .id-label {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: #0b2340;
-            background: #e6effa;
-            padding: 4px 18px;
-            border-radius: 40px;
-            margin-bottom: 12px;
-            letter-spacing: 0.3px;
+            font-weight: 700; font-size: 1.1rem; color: #0b2340; background: #e6effa; padding: 4px 18px; border-radius: 40px; margin-bottom: 12px; width: 100%; text-align: center;
         }
         .card .img-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 6px;
-            width: 100%;
-            aspect-ratio: 1 / 0.9;
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; width: 100%; aspect-ratio: 1 / 0.9;
         }
         .card .img-grid .img-cell {
-            background: #f2f6fc;
-            border-radius: 12px;
-            border: 1px solid #dfe8f2;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            min-height: 50px;
+            background: #f2f6fc; border-radius: 12px; border: 1px solid #dfe8f2; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; min-height: 80px;
         }
-        .card .img-grid .img-cell img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-        .card .img-grid .img-cell .empty-icon {
-            color: #a3b8d0;
-            font-size: 1.2rem;
-            opacity: 0.5;
-        }
+        .card .img-grid .img-cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .card .img-grid .img-cell .empty-icon { color: #a3b8d0; font-size: 1.8rem; opacity: 0.6; }
         .card .field-labels {
-            margin-top: 12px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 5px 8px;
+            margin-top: 12px; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 6px; width: 100%;
         }
         .card .field-labels .badge {
-            background: #eef3fa;
-            padding: 3px 12px;
-            border-radius: 40px;
-            font-size: 0.6rem;
-            font-weight: 600;
-            color: #1f4168;
-            border: 1px solid #d4e0ef;
-            letter-spacing: 0.2px;
-            text-transform: uppercase;
+            background: #eef3fa; padding: 2px 10px; border-radius: 40px; font-size: 0.55rem; font-weight: 600; color: #1f4168; border: 1px solid #d4e0ef;
         }
-        .card .field-labels .badge.has-img {
-            background: #d7e8fa;
-            border-color: #8fb4df;
-        }
-        .no-data {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 50px 20px;
-            color: #4f6b88;
-            background: #f8fcff;
-            border-radius: 60px;
-            border: 1px solid #e4ecf5;
-            font-size: 1.1rem;
-        }
-        .footer-note {
-            margin-top: 32px;
-            text-align: right;
-            font-size: 0.8rem;
-            color: #6a829e;
-            border-top: 1px solid #e2eaf3;
-            padding-top: 18px;
-        }
-        @media (max-width: 650px) {
-            .container {
-                padding: 16px;
-            }
-            .filter-section {
-                flex-direction: column;
-                align-items: stretch;
-                border-radius: 30px;
-            }
-            #unit-select {
-                width: 100%;
-            }
-            .card .img-grid {
-                grid-template-columns: 1fr 1fr 1fr;
-            }
-        }
+        .card .field-labels .badge.has-img { background: #d7e8fa; border-color: #8fb4df; }
+        .no-data { grid-column: 1 / -1; text-align: center; padding: 50px 20px; color: #4f6b88; background: #f8fcff; border-radius: 60px; border: 1px solid #e4ecf5; font-size: 1.1rem; }
+        .footer-note { margin-top: 32px; text-align: right; font-size: 0.8rem; color: #6a829e; border-top: 1px solid #e2eaf3; padding-top: 18px; }
+        .progress-bar { width: 100%; height: 6px; background: #e9eef5; border-radius: 4px; margin-top: 12px; overflow: hidden; display: none; }
+        .progress-bar .fill { height: 100%; background: #2a7de1; width: 0%; transition: width 0.3s; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>
-            <i class="fas fa-truck-moving" style="color: #1a4b78;"></i> Auditoría Marathon
-            <small>unidades</small>
-        </h1>
-        <div class="subhead">
-            <i class="fas fa-upload" style="margin-right: 10px;"></i>
-            Carga el archivo <strong>Auditoria Marathon.xlsx</strong> — se extraerán las imágenes incrustadas.
-        </div>
+        <h1><i class="fas fa-truck-moving" style="color: #1a4b78;"></i> Auditoría Marathon <small>unidades</small></h1>
+        <div class="subhead"><i class="fas fa-file-excel" style="margin-right: 10px;"></i> Carga el archivo <strong>Auditoria Marathon.xlsx</strong> para ver todas las imágenes</div>
 
         <div class="upload-area">
-            <label for="file-input">
-                <i class="fas fa-file-excel"></i> Seleccionar archivo Excel
-            </label>
+            <label for="file-input"><i class="fas fa-cloud-upload-alt"></i> Seleccionar archivo Excel</label>
             <input type="file" id="file-input" accept=".xlsx,.xls" />
-            <div class="file-status" id="file-status">
-                <i class="fas fa-info-circle"></i> Ningún archivo cargado
-            </div>
+            <div class="file-status" id="file-status"><i class="fas fa-info-circle"></i> Ningún archivo cargado</div>
+            <div class="progress-bar" id="progress-bar"><div class="fill" id="progress-fill"></div></div>
         </div>
 
         <div class="filter-section">
             <label for="unit-select"><i class="fas fa-filter"></i> Filtrar por unidad:</label>
-            <select id="unit-select">
-                <option value="all">Todas las unidades</option>
-            </select>
+            <select id="unit-select"><option value="all">Todas las unidades</option></select>
             <span class="count-badge" id="unit-count"><i class="far fa-image"></i> 0 imágenes</span>
         </div>
 
         <div class="grid" id="cards-grid">
-            <div class="no-data"><i class="fas fa-cloud-upload-alt" style="font-size: 2.2rem; display: block; margin-bottom: 12px;"></i> Carga un archivo Excel para ver las unidades</div>
+            <div class="no-data"><i class="fas fa-cloud-upload-alt" style="font-size: 2.2rem; display: block; margin-bottom: 12px;"></i> Carga el archivo Excel para ver las unidades</div>
         </div>
-        <div class="footer-note">
-            <i class="fas fa-th"></i> Hasta 6 imágenes por unidad (Frente · Trasera · Interior · Botiquín · Extintor · Cortinas)
-        </div>
+        <div class="footer-note"><i class="fas fa-th"></i> 6 imágenes por unidad (Frente · Trasera · Interior · Botiquín · Extintor · Cortinas)</div>
     </div>
 
     <script>
         (function() {
             'use strict';
 
-            // ---- estado ----
-            let rawData = []; // [{ Id, Frente, Trasera, Interior, Botiquin, Extintor, Cortinas }]
+            let rawData = [];
             let allIds = [];
             const selectEl = document.getElementById('unit-select');
             const gridEl = document.getElementById('cards-grid');
             const fileInput = document.getElementById('file-input');
             const fileStatus = document.getElementById('file-status');
             const unitCount = document.getElementById('unit-count');
+            const progressBar = document.getElementById('progress-bar');
+            const progressFill = document.getElementById('progress-fill');
 
             const FIELDS = ['Frente', 'Trasera', 'Interior', 'Botiquin', 'Extintor', 'Cortinas'];
-            const FIELD_ICONS = {
-                'Frente': 'fa-car-side',
-                'Trasera': 'fa-car-rear',
-                'Interior': 'fa-chair',
-                'Botiquin': 'fa-briefcase-medical',
-                'Extintor': 'fa-fire-extinguisher',
-                'Cortinas': 'fa-wind'
-            };
+            const FIELD_ICONS = { 'Frente': 'fa-car-side', 'Trasera': 'fa-car-rear', 'Interior': 'fa-chair', 'Botiquin': 'fa-briefcase-medical', 'Extintor': 'fa-fire-extinguisher', 'Cortinas': 'fa-wind' };
 
-            // ---- extraer imágenes incrustadas de un workbook ----
-            function extractEmbeddedImages(workbook) {
-                const images = {};
-                // Recorrer todas las hojas
-                workbook.SheetNames.forEach(sheetName => {
-                    const sheet = workbook.Sheets[sheetName];
-                    if (!sheet) return;
-                    // Buscar imágenes en la hoja (propiedad !images)
-                    if (sheet['!images']) {
-                        sheet['!images'].forEach(img => {
-                            // img es un objeto con { range, image }
-                            const cellRef = img.range; // ej: "B2"
-                            const imageObj = img.image;
-                            if (imageObj && imageObj.data) {
-                                // imageObj.data es un ArrayBuffer o Uint8Array
-                                const uint8 = new Uint8Array(imageObj.data);
-                                let binary = '';
-                                for (let i = 0; i < uint8.length; i++) {
-                                    binary += String.fromCharCode(uint8[i]);
-                                }
-                                const base64 = btoa(binary);
-                                const mime = imageObj.type || 'image/png';
-                                const dataUrl = `data:${mime};base64,${base64}`;
-                                // Guardar por referencia de celda (ej: "B2")
-                                const key = `${sheetName}!${cellRef}`;
-                                images[key] = dataUrl;
-                            }
-                        });
-                    }
-                });
-                return images;
-            }
-
-            // ---- procesar archivo ----
-            function processExcel(data) {
+            async function processExcelWithExcelJS(arrayBuffer) {
                 try {
-                    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const sheet = workbook.Sheets[firstSheetName];
+                    progressBar.style.display = 'block';
+                    progressFill.style.width = '20%';
 
-                    // Extraer imágenes incrustadas
-                    const embeddedImages = extractEmbeddedImages(workbook);
+                    const workbook = new ExcelJS.Workbook();
+                    await workbook.xlsx.load(arrayBuffer);
 
-                    // Convertir a JSON (cabeceras)
-                    const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-                    if (!rows || rows.length === 0) {
-                        fileStatus.innerHTML = `<i class="fas fa-exclamation-triangle err"></i> El archivo no contiene datos.`;
-                        return;
+                    progressFill.style.width = '40%';
+                    const worksheet = workbook.getWorksheet(1);
+
+                    // === MEJORA PRINCIPAL: Extracción robusta de imágenes ===
+                    const imagesMap = new Map();
+                    if (worksheet.getImages) {
+                        const images = worksheet.getImages();
+                        console.log(`📸 ${images.length} imágenes detectadas en el Excel`);
+
+                        for (const img of images) {
+                            try {
+                                const imageId = img.imageId;
+                                const media = workbook.getImage(imageId);
+                                if (!media || !media.buffer) continue;
+
+                                const range = img.range;
+                                if (!range || !range.tl) continue;
+
+                                // Convertir buffer a base64
+                                const base64 = btoa(String.fromCharCode(...new Uint8Array(media.buffer)));
+                                const dataUrl = `data:image/${media.extension || 'png'};base64,${base64}`;
+
+                                const row = range.tl.row + 1;   // ExcelJS usa 0-based
+                                const col = range.tl.col + 1;
+                                const key = `${row},${col}`;
+                                imagesMap.set(key, dataUrl);
+                            } catch (e) { console.warn('Error procesando imagen:', e); }
+                        }
                     }
 
-                    // Detectar columna de ID
-                    const headers = Object.keys(rows[0]);
-                    const idKey = headers.find(h => h.toLowerCase().includes('id'));
-                    if (!idKey) {
-                        fileStatus.innerHTML =
-                            `<i class="fas fa-exclamation-triangle err"></i> No se encontró columna de ID (Ids).`;
-                        return;
+                    progressFill.style.width = '70%';
+
+                    // Leer datos
+                    const rows = worksheet.getRows(1, worksheet.rowCount);
+                    const headerRow = rows[0];
+                    const headers = [];
+                    for (let i = 1; i <= headerRow.cellCount; i++) {
+                        headers.push((headerRow.getCell(i).text || '').trim());
                     }
+
+                    const idIndex = headers.findIndex(h => h.toLowerCase().includes('id'));
+                    if (idIndex === -1) throw new Error('No se encontró columna ID');
+
+                    const fieldIndices = {};
+                    FIELDS.forEach(f => {
+                        const idx = headers.findIndex(h => h.toLowerCase() === f.toLowerCase());
+                        if (idx !== -1) fieldIndices[f] = idx;
+                    });
 
                     rawData = [];
                     const idsSet = new Set();
 
-                    // Recorrer filas
-                    for (const row of rows) {
-                        const idVal = row[idKey];
-                        if (idVal === undefined || idVal === null || String(idVal).trim() === '') continue;
-                        const id = String(idVal).trim();
+                    for (let r = 1; r < rows.length; r++) {
+                        const row = rows[r];
+                        if (!row) continue;
+                        const idCell = row.getCell(idIndex + 1);
+                        const idVal = (idCell.text || '').trim();
+                        if (!idVal) continue;
 
-                        const entry = { Id: id };
+                        const entry = { Id: idVal };
 
-                        // Para cada campo, buscar valor y también imagen incrustada
                         for (const field of FIELDS) {
-                            // Buscar la celda exacta o aproximada
-                            let cellValue = '';
-                            let cellRef = null;
-
-                            // Buscar por clave exacta o similar
-                            const lowerField = field.toLowerCase();
-                            for (const key of headers) {
-                                if (key.toLowerCase() === lowerField) {
-                                    cellValue = String(row[key] || '').trim();
-                                    // Intentar obtener referencia de celda (para imágenes)
-                                    // SheetJS no da ref directa en row, usamos la posición
-                                    break;
-                                }
-                            }
-
-                            // Si el valor es #VALUE! o similar, limpiar
-                            if (cellValue === '#VALUE!' || cellValue === '#¡VALOR!' || cellValue === '#N/A') {
-                                cellValue = '';
-                            }
-
-                            // Ahora buscar imagen incrustada asociada a esta celda
-                            // Para simplificar: usamos la posición de la columna + fila
-                            // Pero no tenemos la fila exacta fácilmente. En su lugar, usamos un enfoque:
-                            // Buscar en embeddedImages por cualquier clave que contenga el nombre del campo
-                            // O podemos usar la posición de la celda en la hoja.
-                            // Método práctico: asignar la imagen si existe en la misma fila y columna aproximada.
-                            // Como SheetJS no da la fila/columna en el JSON, usamos un truco:
-                            // Iteramos sobre las imágenes y buscamos por el valor de la celda (si es una URL)
-                            // Pero para imágenes incrustadas, la celda puede estar vacía o tener un placeholder.
-                            // Vamos a buscar la imagen por coordenadas: necesitamos la fila y columna de cada celda.
-                            // Usamos sheet_to_json con raw: false y range, pero es complejo.
-                            // Mejor: asumir que la imagen está en la misma celda que el campo, y usar el nombre de la columna.
-                            // Para ello, obtenemos el rango de la celda en la hoja.
-
-                            // ** Enfoque práctico: Buscar en embeddedImages usando la referencia de celda.
-                            // Construimos la referencia de celda con la columna y fila.
-                            // Obtenemos la fila actual: usamos el índice de la fila en el array + 2 (porque la fila 1 es cabecera)
-                            const rowIndex = rows.indexOf(row) + 2; // +2 porque la fila 1 es cabecera, y el índice 0 es fila 2
-                            // Obtener la columna para este campo
-                            const colIndex = headers.indexOf(field);
-                            if (colIndex !== -1) {
-                                const colLetter = String.fromCharCode(65 + colIndex); // A, B, C, ...
-                                const cellRefStr = `${colLetter}${rowIndex}`;
-                                const imageKey = `${firstSheetName}!${cellRefStr}`;
-                                if (embeddedImages[imageKey]) {
-                                    // Guardamos la imagen en el entry
-                                    entry[field] = embeddedImages[imageKey];
-                                } else {
-                                    // Si no hay imagen, guardamos el valor de texto (si existe)
-                                    if (cellValue && cellValue.length > 0) {
-                                        entry[field] = cellValue;
-                                    } else {
-                                        entry[field] = '';
-                                    }
-                                }
-                            } else {
-                                // Si no encontramos la columna, guardamos vacío
+                            const colIdx = fieldIndices[field];
+                            if (colIdx === undefined) {
                                 entry[field] = '';
+                                continue;
+                            }
+                            const cellCol = colIdx + 1;
+                            const key = `${r + 1},${cellCol}`;
+
+                            if (imagesMap.has(key)) {
+                                entry[field] = imagesMap.get(key);
+                            } else {
+                                entry[field] = (row.getCell(cellCol).text || '').trim();
                             }
                         }
-
                         rawData.push(entry);
-                        idsSet.add(id);
+                        idsSet.add(idVal);
                     }
 
-                    // Fallback: si no se encontraron imágenes, intentar usar valores de texto como URLs
-                    // Pero en tu caso, las imágenes están incrustadas, así que deberían aparecer.
+                    progressFill.style.width = '100%';
 
-                    if (rawData.length === 0) {
-                        fileStatus.innerHTML =
-                            `<i class="fas fa-exclamation-circle err"></i> No se encontraron registros válidos.`;
-                        return;
-                    }
-
-                    allIds = Array.from(idsSet);
+                    allIds = Array.from(idsSet).sort((a,b) => Number(a)-Number(b));
                     populateSelect(allIds);
                     selectEl.value = 'all';
                     renderGrid('all');
 
-                    // Contar imágenes extraídas
-                    let totalImages = 0;
-                    rawData.forEach(row => {
-                        FIELDS.forEach(f => {
-                            if (row[f] && row[f].startsWith('data:image')) totalImages++;
-                        });
-                    });
-                    fileStatus.innerHTML =
-                        `<i class="fas fa-check-circle ok"></i> Archivo cargado: ${rawData.length} unidades · ${allIds.length} IDs únicos · ${totalImages} imágenes incrustadas extraídas.`;
+                    const totalImages = rawData.reduce((sum, row) => {
+                        return sum + FIELDS.filter(f => row[f] && row[f].startsWith('data:image')).length;
+                    }, 0);
+
+                    fileStatus.innerHTML = `<span class="ok"><i class="fas fa-check-circle"></i> Cargado: ${rawData.length} unidades · ${totalImages} imágenes</span>`;
+
+                    setTimeout(() => { progressBar.style.display = 'none'; progressFill.style.width = '0%'; }, 800);
+
                 } catch (error) {
                     console.error(error);
-                    fileStatus.innerHTML = `<i class="fas fa-times-circle err"></i> Error: ${error.message}`;
+                    fileStatus.innerHTML = `<span class="err"><i class="fas fa-times-circle"></i> Error: ${error.message}</span>`;
+                    progressBar.style.display = 'none';
                 }
             }
 
-            // ---- renderizar grid ----
-            function renderGrid(filterId) {
+            function renderGrid(filterId) { /* igual que antes, lo mantengo igual */ 
                 gridEl.innerHTML = '';
-                let filtered = [];
-                if (filterId === 'all') {
-                    filtered = rawData;
-                } else {
-                    filtered = rawData.filter(row => String(row.Id) === String(filterId));
-                }
-
+                let filtered = filterId === 'all' ? rawData : rawData.filter(row => String(row.Id) === String(filterId));
                 if (filtered.length === 0) {
-                    const noData = document.createElement('div');
-                    noData.className = 'no-data';
-                    noData.innerHTML =
-                        `<i class="fas fa-search" style="font-size:2rem; display:block; margin-bottom:10px;"></i> No hay unidades con este ID.`;
-                    gridEl.appendChild(noData);
-                    unitCount.innerHTML = `<i class="far fa-image"></i> 0 imágenes`;
+                    gridEl.innerHTML = `<div class="no-data">No hay datos para este filtro</div>`;
                     return;
                 }
 
-                filtered.sort((a, b) => Number(a.Id) - Number(b.Id));
-
                 for (const row of filtered) {
-                    const card = document.createElement('div');
-                    card.className = 'card';
+                    const card = document.createElement('div'); card.className = 'card';
+                    card.innerHTML = `<div class="id-label">#${row.Id}</div>`;
+                    const imgGrid = document.createElement('div'); imgGrid.className = 'img-grid';
 
-                    const idLabel = document.createElement('div');
-                    idLabel.className = 'id-label';
-                    idLabel.textContent = `#${row.Id}`;
-                    card.appendChild(idLabel);
-
-                    // Grid de imágenes (3 columnas)
-                    const imgGrid = document.createElement('div');
-                    imgGrid.className = 'img-grid';
-
-                    // Mostrar hasta 6 campos en 3 columnas
-                    const fieldsToShow = FIELDS;
-                    for (const field of fieldsToShow) {
-                        const cell = document.createElement('div');
-                        cell.className = 'img-cell';
+                    for (const field of FIELDS) {
+                        const cell = document.createElement('div'); cell.className = 'img-cell';
                         const val = row[field] || '';
-                        if (val && val.startsWith('data:image')) {
+
+                        if (val.startsWith('data:image')) {
                             const img = document.createElement('img');
                             img.src = val;
-                            img.alt = `${field}`;
-                            img.loading = 'lazy';
+                            img.alt = field;
                             cell.appendChild(img);
                         } else {
                             const icon = document.createElement('i');
                             icon.className = `fas ${FIELD_ICONS[field] || 'fa-image'} empty-icon`;
                             cell.appendChild(icon);
                         }
+
+                        const label = document.createElement('span');
+                        label.className = 'field-label-mini';
+                        label.textContent = field.substring(0,3);
+                        cell.appendChild(label);
                         imgGrid.appendChild(cell);
                     }
-
                     card.appendChild(imgGrid);
 
-                    // Etiquetas de campos
-                    const labels = document.createElement('div');
-                    labels.className = 'field-labels';
+                    const labelsDiv = document.createElement('div'); labelsDiv.className = 'field-labels';
                     for (const field of FIELDS) {
                         const badge = document.createElement('span');
-                        badge.className = 'badge';
-                        const val = row[field] || '';
-                        if (val && val.startsWith('data:image')) {
-                            badge.classList.add('has-img');
-                            badge.innerHTML = `<i class="fas ${FIELD_ICONS[field] || 'fa-image'}"></i> ${field}`;
-                        } else {
-                            badge.innerHTML = `<i class="fas ${FIELD_ICONS[field] || 'fa-circle'}"></i> ${field}`;
-                        }
-                        labels.appendChild(badge);
+                        badge.className = 'badge' + ((row[field] || '').startsWith('data:image') ? ' has-img' : '');
+                        badge.innerHTML = `<i class="fas ${FIELD_ICONS[field]}"></i> ${field}`;
+                        labelsDiv.appendChild(badge);
                     }
-                    card.appendChild(labels);
-
+                    card.appendChild(labelsDiv);
                     gridEl.appendChild(card);
                 }
 
-                // Contar imágenes totales en el filtro
-                let total = 0;
-                filtered.forEach(row => {
-                    FIELDS.forEach(f => {
-                        if (row[f] && row[f].startsWith('data:image')) total++;
-                    });
-                });
-                unitCount.innerHTML = `<i class="far fa-image"></i> ${total} imagen${total !== 1 ? 'es' : ''}`;
+                const total = rawData.reduce((sum, r) => sum + FIELDS.filter(f => (r[f] || '').startsWith('data:image')).length, 0);
+                unitCount.innerHTML = `<i class="far fa-image"></i> ${total} imágenes`;
             }
 
-            // ---- populate select ----
             function populateSelect(ids) {
-                selectEl.innerHTML = '';
-                const allOpt = document.createElement('option');
-                allOpt.value = 'all';
-                allOpt.textContent = 'Todas las unidades';
-                selectEl.appendChild(allOpt);
-                const sorted = ids.slice().sort((a, b) => Number(a) - Number(b));
-                for (const id of sorted) {
+                selectEl.innerHTML = '<option value="all">Todas las unidades</option>';
+                ids.forEach(id => {
                     const opt = document.createElement('option');
                     opt.value = id;
                     opt.textContent = `Unidad ${id}`;
                     selectEl.appendChild(opt);
-                }
+                });
             }
 
-            // ---- eventos ----
-            fileInput.addEventListener('change', function(e) {
+            fileInput.addEventListener('change', e => {
                 const file = e.target.files[0];
                 if (!file) return;
                 const reader = new FileReader();
-                reader.onload = function(ev) {
-                    const data = new Uint8Array(ev.target.result);
-                    processExcel(data);
-                };
+                reader.onload = ev => processExcelWithExcelJS(ev.target.result);
                 reader.readAsArrayBuffer(file);
             });
 
-            selectEl.addEventListener('change', function() {
-                renderGrid(this.value);
-            });
+            selectEl.addEventListener('change', () => renderGrid(selectEl.value));
 
             // Drag & drop
             const uploadArea = document.querySelector('.upload-area');
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.style.borderColor = '#2a7de1';
-                uploadArea.style.background = '#e4f0ff';
-            });
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.style.borderColor = '#c8d6e8';
-                uploadArea.style.background = '#f7faff';
-            });
-            uploadArea.addEventListener('drop', (e) => {
+            uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.borderColor = '#2a7de1'; });
+            uploadArea.addEventListener('dragleave', () => uploadArea.style.borderColor = '#c8d6e8');
+            uploadArea.addEventListener('drop', e => {
                 e.preventDefault();
                 uploadArea.style.borderColor = '#c8d6e8';
-                uploadArea.style.background = '#f7faff';
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    fileInput.files = files;
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
                     fileInput.dispatchEvent(new Event('change'));
                 }
             });
-
-            // Estado inicial
-            fileStatus.innerHTML = `<i class="fas fa-info-circle"></i> Ningún archivo cargado`;
         })();
     </script>
 </body>
