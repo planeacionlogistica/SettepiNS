@@ -74,6 +74,13 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 .kpi-value.red{color:#dc2626}
 .kpi-target{font-size:10.5px;color:#9ca3af;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums}
 .kpi-loading{grid-column:1/-1;text-align:center;color:#6b7280;padding:24px;font-size:12.5px;font-weight:500}
+a.kpi-card{text-decoration:none;color:inherit;cursor:pointer}
+a.kpi-card.kpi-link{position:relative}
+a.kpi-card.kpi-link::after{content:'';position:absolute;inset:0;border-radius:10px;box-shadow:inset 0 0 0 0 rgba(132,204,22,0);transition:box-shadow .2s}
+a.kpi-card.kpi-link:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(0,0,0,.15)}
+a.kpi-card.kpi-link:hover::after{box-shadow:inset 0 0 0 2px rgba(132,204,22,.5)}
+.kpi-arrow{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#84cc16;color:#1f2937;font-size:10px;font-weight:900;margin-left:6px;vertical-align:middle;transition:transform .2s;line-height:1}
+a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
 /* Boton hamburguesa y overlay (solo mobile) */
 .mobile-menu-btn{display:none;position:fixed;top:14px;left:14px;z-index:100;background:#1f2937;border:0;border-radius:10px;width:46px;height:46px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);align-items:center;justify-content:center;padding:0}
 .mobile-menu-btn svg{width:22px;height:22px;fill:none;stroke:#84cc16;stroke-width:2.2;stroke-linecap:round}
@@ -179,10 +186,7 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
             <svg viewBox="0 0 24 24"><path d="M16 3h5v5"/><path d="M21 3l-7 7"/><path d="M8 21H3v-5"/><path d="M3 21l7-7"/></svg>
             Cambio de manos
           </a>
-          <a href="Auditar_Folios.html" class="menu-item">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><polyline points="9 14 11 16 15 12"/></svg>
-            Auditoria de folios
-          </a>
+          
           <a href="Planeador_Territorio.html" class="menu-item">
             <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><polyline points="7 14 11 10 14 13 20 7"/><circle cx="11" cy="10" r="1" fill="#9ca3af" stroke="none"/><circle cx="14" cy="13" r="1" fill="#9ca3af" stroke="none"/></svg>
             Eficiencias internas
@@ -370,8 +374,8 @@ async function trxDecrypt(b64, password){
 const KPI_SHEET_ID = '1qQV_wyKt0lyIFgRaeWx-kz-a8TbRMfOFDlEkFhLFM8I';
 const KPI_SHEET_NAME = 'kpis';
 const KPI_DEFS = [
-  { name:'Nivel de servicio',          format:'pct', rule:'higher' },
-  { name:'Unidades en Mtto',           format:'int', rule:'lower'  },
+  { name:'Nivel de servicio',          format:'pct', rule:'higher', url:'https://planeacionlogistica.github.io/SettepiNS/Dashboard_NS.html' },
+  { name:'Unidades en Mtto',           format:'int', rule:'lower',  url:'https://planeacionlogistica.github.io/SettepiNS/Dashboard_Flota.html' },
   { name:'Operadores >15km',           format:'int', rule:'lower'  },
   { name:'Ope >15 dias sin descanso',  format:'int', rule:'always_red' },
   { name:'Siniestros',                 format:'int', rule:'lower'  },
@@ -445,15 +449,19 @@ async function loadKpis(){
     });
     grid.innerHTML = KPI_DEFS.map(def=>{
       const d = byName[def.name];
-      if(!d) return `<div class="kpi-card gray"><div class="kpi-name">${def.name}</div><div class="kpi-value">--</div><div class="kpi-target">Sin dato</div></div>`;
+      const tag = def.url ? 'a' : 'div';
+      const attrs = def.url ? ` href="${def.url}"` : '';
+      const linkCls = def.url ? ' kpi-link' : '';
+      if(!d) return `<${tag}${attrs} class="kpi-card gray${linkCls}"><div class="kpi-name">${def.name}</div><div class="kpi-value">--</div><div class="kpi-target">Sin dato</div></${tag}>`;
       const st = kpiStatus(d.real, d.obj, def.rule);
-      return `<div class="kpi-card ${st}">
-        <div class="kpi-name">${def.name}</div>
+      const arrow = def.url ? '<span class="kpi-arrow">&rarr;</span>' : '';
+      return `<${tag}${attrs} class="kpi-card ${st}${linkCls}">
+        <div class="kpi-name">${def.name}${arrow}</div>
         <div>
           <div class="kpi-value ${st}">${kpiFmt(d.real, def)}</div>
           <div class="kpi-target">Obj: ${kpiFmt(d.obj, def)}</div>
         </div>
-      </div>`;
+      </${tag}>`;
     }).join('');
   }catch(e){
     grid.innerHTML = '<div class="kpi-loading">No se pudieron cargar los KPIs</div>';
