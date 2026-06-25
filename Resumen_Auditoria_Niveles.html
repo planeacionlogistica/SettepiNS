@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoría de Niveles | Traxión</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="favicon-traxion.svg">
+<style>
+:root{--navy:#1a2236;--navy2:#222d42;--green:#84cc16;--white:#fff;--bg:#f0f2f7;--border:#dde3f0;--text:#1a2236;--muted:#6b7a99;--red:#ef4444;}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;min-height:100vh;}
+
+/* ── Nav ── */
+nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48px;gap:14px;position:sticky;top:0;z-index:2000;box-shadow:0 2px 8px rgba(0,0,0,.3);flex-shrink:0;}
+.nav-logo{color:#84cc16;font-weight:800;font-size:16px;text-decoration:none;}
+.nav-sep{color:#4b5563;font-size:14px;font-weight:300;}
+.nav-page{color:#e5e7eb;font-size:13px;font-weight:600;}
+
+/* ── Layout ── */
+.layout{display:flex;align-items:flex-start;min-height:calc(100vh - 48px);}
+
+/* ── Sidebar ── */
+.sidebar{width:180px;flex-shrink:0;background:var(--white);border-right:1px solid var(--border);padding:.6rem;display:flex;flex-direction:column;gap:.5rem;position:sticky;top:48px;height:calc(100vh - 48px);overflow-y:auto;}
+.sb-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-bottom:.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.sb-reset{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.85rem;padding:0;line-height:1;transition:color .15s;}
+.sb-reset:hover{color:var(--red);}
+
+.sb-prod{background:var(--navy2);border-radius:8px;padding:.7rem .75rem;text-align:center;margin-bottom:.2rem;}
+.sb-prod-pct{font-size:2.1rem;font-weight:800;color:#84cc16;line-height:1;letter-spacing:-.03em;}
+.sb-prod-lbl{font-size:.58rem;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.07em;margin-top:.2rem;}
+.sb-prod-sub{font-size:.62rem;color:rgba(255,255,255,.75);margin-top:.3rem;font-weight:600;}
+.sb-prod-total{font-size:.56rem;color:rgba(255,255,255,.35);margin-top:.1rem;}
+
+.fg{display:flex;flex-direction:column;gap:.18rem;}
+.fg label{font-size:.6rem;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;}
+.sc-wrap{position:relative;width:100%;}
+.sc-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;color:var(--text);padding:.28rem 1.4rem .28rem .4rem;font-size:.72rem;font-family:"Inter",sans-serif;outline:none;transition:border-color .15s;}
+.sc-input:focus,.sc-wrap.open .sc-input{border-color:var(--green);box-shadow:0 0 0 2px rgba(132,204,22,.13);}
+.sc-arrow{position:absolute;right:.38rem;top:50%;transform:translateY(-50%);font-size:.52rem;color:var(--muted);pointer-events:none;transition:transform .15s;}
+.sc-wrap.open .sc-arrow{transform:translateY(-50%) rotate(180deg);}
+.sc-dropdown{display:none;position:absolute;top:calc(100% + 3px);left:0;right:0;background:var(--white);border:1.5px solid var(--green);border-radius:6px;box-shadow:0 4px 14px rgba(26,34,54,.15);z-index:500;max-height:170px;overflow-y:auto;padding:2px 0;}
+.sc-wrap.open .sc-dropdown{display:block;}
+.sc-opt{padding:.32rem .55rem;font-size:.72rem;font-family:"Inter",sans-serif;color:var(--text);cursor:pointer;transition:background .1s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sc-opt:hover,.sc-opt.focused{background:#f0f4ff;}
+.sc-opt.selected{background:rgba(132,204,22,.15);font-weight:700;color:var(--navy);}
+.sc-opt.sc-none{color:var(--muted);font-style:italic;cursor:default;}
+.sc-opt.sc-none:hover{background:transparent;}
+.btn-reset{width:100%;background:transparent;border:1.5px solid var(--border);border-radius:7px;color:var(--muted);padding:.42rem;font-size:.74rem;font-family:"Inter",sans-serif;font-weight:600;cursor:pointer;margin-top:.3rem;}
+.btn-reset:hover{border-color:var(--red);color:var(--red);}
+
+/* ── Main ── */
+.main{flex:1;padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0;}
+
+/* ── Loading ── */
+.loading-overlay{position:fixed;inset:0;z-index:999;background:#f0f2f7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;transition:opacity .4s;}
+.loading-overlay.hidden{opacity:0;pointer-events:none;}
+.loading-logo span{color:#84cc16;font-weight:800;font-size:22px;}
+.loading-box{background:#fff;border-radius:16px;padding:2.2rem 3rem;box-shadow:0 4px 24px rgba(26,34,54,.1);display:flex;flex-direction:column;align-items:center;gap:1.1rem;min-width:280px;text-align:center;}
+.loading-spinner{width:48px;height:48px;border-radius:50%;border:4px solid #dde3f0;border-top-color:#84cc16;animation:spin .75s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-title{font-size:.95rem;font-weight:700;color:#1a2236;}
+.loading-sub{font-size:.78rem;color:#6b7a99;}
+.loading-bar-track{width:100%;height:5px;background:#dde3f0;border-radius:3px;overflow:hidden;}
+.loading-bar-fill{height:100%;width:0%;background:#84cc16;border-radius:3px;animation:loadbar 7s ease-out forwards;}
+@keyframes loadbar{0%{width:0%}80%{width:85%}100%{width:95%}}
+
+/* ── Error ── */
+.err{background:#fff5f5;border-left:4px solid var(--red);padding:.75rem 1rem;font-size:.8rem;color:#c53030;border-radius:8px;}
+.err.hidden{display:none;}
+
+/* ── KPI strip ── */
+.kpi-section{display:flex;gap:.7rem;align-items:stretch;}
+.kpi-chip{flex:1;border-radius:10px;padding:.9rem 1rem;display:flex;flex-direction:column;justify-content:space-between;min-width:0;border:1px solid transparent;}
+.kpi-chip-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;}
+.kpi-chip-val{font-size:2rem;font-weight:700;line-height:1;letter-spacing:-.02em;}
+.kpi-chip-sub{font-size:.67rem;margin-top:.3rem;}
+.kpi-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
+.fecha-badge{display:inline-flex;align-items:center;gap:.4rem;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:.28rem .75rem;font-size:.7rem;font-weight:600;color:var(--muted);box-shadow:0 1px 4px rgba(26,34,54,.06);}
+.fecha-badge-dot{width:6px;height:6px;border-radius:50%;background:#84cc16;flex-shrink:0;}
+
+/* ── Section divider ── */
+.section-divider{display:flex;align-items:center;gap:.75rem;}
+.sd-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);white-space:nowrap;}
+.sd-line{flex:1;height:1px;background:var(--border);}
+
+/* ── Cards ── */
+.table-card{background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);overflow:hidden;}
+.table-hdr{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);}
+.table-hdr-title{font-size:.9rem;font-weight:700;color:var(--text);}
+.table-hdr-sub{font-size:.68rem;color:var(--muted);margin-top:.1rem;}
+.table-count{font-size:.7rem;color:var(--muted);background:var(--bg);border-radius:20px;padding:.2rem .65rem;white-space:nowrap;}
+.chart-wrap{padding:1.25rem 1.25rem 1rem;}
+
+/* ── Compliance table ── */
+.comp-table{width:100%;border-collapse:collapse;}
+.comp-table thead th{background:var(--navy2);color:rgba(255,255,255,.85);font-size:.62rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:.42rem .75rem;text-align:left;white-space:nowrap;}
+.comp-table thead th.r{text-align:right;}
+.comp-table tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+.comp-table tbody tr:last-child{border-bottom:none;}
+.comp-table tbody tr:hover td{background:#f7f9ff;}
+.comp-table tbody td{padding:.48rem .75rem;font-size:.76rem;color:var(--text);vertical-align:middle;}
+.comp-table tbody td.r{text-align:right;font-variant-numeric:tabular-nums;}
+
+/* Gerente row */
+.ger-row td{background:rgba(34,45,66,.03);font-weight:700;}
+.ger-row:hover td{background:rgba(34,45,66,.06) !important;}
+.ger-icon{display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--navy2);color:#fff;font-size:.5rem;font-weight:800;text-align:center;line-height:14px;margin-right:5px;vertical-align:middle;}
+
+/* Jefe row */
+.jefe-row td:first-child{padding-left:1.6rem;color:var(--muted);font-weight:500;font-size:.73rem;}
+
+/* Progress bar */
+.bar-cell{min-width:100px;}
+.bar-wrap{background:var(--border);border-radius:99px;height:6px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:99px;transition:width .4s ease;}
+.fill-g{background:#84cc16;}
+.fill-y{background:#f59e0b;}
+.fill-r{background:#ef4444;}
+
+/* Pill */
+.pill{display:inline-block;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap;}
+.pill-g{background:#f0fce8;color:#3B6D11;}
+.pill-y{background:#FAEEDA;color:#854F0B;}
+.pill-r{background:#FCEBEB;color:#A32D2D;}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">TRAXIÓN</a>
+  <span class="nav-sep">|</span>
+  <span class="nav-page">Auditoría de Niveles</span>
+</nav>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-logo"><span>TRAXIÓN</span></div>
+  <div class="loading-box">
+    <div class="loading-spinner"></div>
+    <div class="loading-title">Cargando Auditoría...</div>
+    <div class="loading-sub">Conectando con Google Sheets · Hoja: Auditoria</div>
+    <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sb-title">Filtros <button class="sb-reset" onclick="resetFilters()" title="Limpiar">↺</button></div>
+
+    <div class="sb-prod">
+      <div class="sb-prod-pct" id="sbPct">–%</div>
+      <div class="sb-prod-lbl">Cumplimiento</div>
+      <div class="sb-prod-sub" id="sbSub">– de 459 unidades</div>
+      <div class="sb-prod-total" id="sbWk">Semana actual</div>
+    </div>
+
+    <div class="fg">
+      <label>Semana</label>
+      <div class="sc-wrap" id="sc-sem">
+        <input class="sc-input" type="text" placeholder="Todas" autocomplete="off" id="sc-sem-input"
+          oninput="scFilter('sem')" onfocus="scOpen('sem')" onkeydown="scKey(event,'sem')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-sem-dd"></div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Gerente</label>
+      <div class="sc-wrap" id="sc-ger">
+        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off" id="sc-ger-input"
+          oninput="scFilter('ger')" onfocus="scOpen('ger')" onkeydown="scKey(event,'ger')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-ger-dd"></div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Jefe</label>
+      <div class="sc-wrap" id="sc-jef">
+        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off" id="sc-jef-input"
+          oninput="scFilter('jef')" onfocus="scOpen('jef')" onkeydown="scKey(event,'jef')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-jef-dd"></div>
+      </div>
+    </div>
+
+    <button class="btn-reset" onclick="resetFilters()">↺ Limpiar filtros</button>
+  </aside>
+
+  <main class="main">
+    <div class="err hidden" id="errBanner">⚠️ <span id="errMsg"></span></div>
+
+    <div class="kpi-header-row">
+      <span style="font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Resumen ejecutivo · Auditoría de Niveles</span>
+      <div class="fecha-badge" id="fechaBadge" style="display:none">
+        <span class="fecha-badge-dot"></span>
+        <span>Semana en curso: <b id="fechaVal">–</b></span>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-section" id="kpiSection"></div>
+
+    <!-- Weekly trend -->
+    <div class="section-divider">
+      <span class="sd-title">Cumplimiento por semana</span>
+      <span class="sd-line"></span>
+    </div>
+
+    <div class="table-card">
+      <div class="table-hdr">
+        <div>
+          <div class="table-hdr-title">Tendencia de registro semanal</div>
+          <div class="table-hdr-sub">Meta: 459 unidades auditadas por semana · Verde ≥ 80% · Amarillo ≥ 50% · Rojo &lt; 50%</div>
+        </div>
+        <span class="table-count" id="cntSemanas">–</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="weeklyChart" height="72"></canvas>
+      </div>
+    </div>
+
+    <!-- Gerente / Jefe table -->
+    <div class="section-divider">
+      <span class="sd-title">Resumen por responsable</span>
+      <span class="sd-line"></span>
+    </div>
+
+    <div class="table-card">
+      <div class="table-hdr">
+        <div>
+          <div class="table-hdr-title">Cumplimiento por Gerente / Jefe</div>
+          <div class="table-hdr-sub">Unidades únicas auditadas en la semana seleccionada vs. flota total del responsable</div>
+        </div>
+        <span class="table-count" id="cntGerentes">–</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>Gerente / Jefe</th>
+              <th class="r">Flota</th>
+              <th class="r">Auditadas</th>
+              <th class="r">Pendientes</th>
+              <th class="r">% Cumpl.</th>
+              <th style="min-width:110px">Avance</th>
+            </tr>
+          </thead>
+          <tbody id="compTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+//  CONFIG — ajusta si cambia el Sheet
+// ─────────────────────────────────────────────
+const SHEET_ID   = '1WJfJd1eANDXyBq5CXKw0aPbxB_giafCN7j-Aqtt9cVw';
+const SHEET_NAME = 'Auditoria';
+const FLEET_TOTAL = 459;
+
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+let DATA = [];
+let C    = {};   // detected column indices
+let chartInst = null;
+
+// ─────────────────────────────────────────────
+//  SEARCHABLE SELECTS
+// ─────────────────────────────────────────────
+const SC_KEYS = ['sem','ger','jef'];
+const SC_SEL  = {sem:'',ger:'',jef:''};
+const SC_VALS = {sem:[],ger:[],jef:[]};
+const SC_FOCUS= {sem:-1,ger:-1,jef:-1};
+
+function scOpen(k){
+  document.querySelectorAll('.sc-wrap.open').forEach(el=>{if(el.id!=='sc-'+k)el.classList.remove('open');});
+  document.getElementById('sc-'+k).classList.add('open');
+  document.getElementById('sc-'+k+'-input').value='';
+  cascadeFilters(); scRenderDD(k);
+}
+function scFilter(k){
+  if(SC_SEL[k]!==''){SC_SEL[k]='';cascadeFilters();draw();}
+  document.getElementById('sc-'+k).classList.add('open');
+  scRenderDD(k);
+}
+function scRenderDD(k){
+  const dd=document.getElementById('sc-'+k+'-dd');
+  const q=(document.getElementById('sc-'+k+'-input').value||'').toLowerCase();
+  const filtered=SC_VALS[k].filter(v=>v.toLowerCase().includes(q));
+  SC_FOCUS[k]=-1;
+  dd.innerHTML=`<div class="sc-opt${SC_SEL[k]===''?' selected':''}" data-val="" onmousedown="scSelect(event,'${k}')">Todos</div>`
+    +(filtered.length
+      ? filtered.map(v=>`<div class="sc-opt${SC_SEL[k]===v?' selected':''}" data-val="${v.replace(/"/g,'&quot;')}" onmousedown="scSelect(event,'${k}')">${v}</div>`).join('')
+      : '<div class="sc-opt sc-none">Sin resultados</div>');
+}
+function scSelect(e,k){
+  e.preventDefault();
+  const val=e.currentTarget.getAttribute('data-val');
+  SC_SEL[k]=val;
+  const inp=document.getElementById('sc-'+k+'-input');
+  inp.value=val; inp.setAttribute('data-lbl',val);
+  document.getElementById('sc-'+k).classList.remove('open');
+  cascadeFilters(); draw();
+}
+function scKey(e,k){
+  const dd=document.getElementById('sc-'+k+'-dd');
+  const opts=[...dd.querySelectorAll('.sc-opt:not(.sc-none)')];
+  if(!opts.length)return;
+  if(e.key==='ArrowDown'){e.preventDefault();SC_FOCUS[k]=Math.min(SC_FOCUS[k]+1,opts.length-1);opts.forEach((o,i)=>o.classList.toggle('focused',i===SC_FOCUS[k]));opts[SC_FOCUS[k]]?.scrollIntoView({block:'nearest'});}
+  else if(e.key==='ArrowUp'){e.preventDefault();SC_FOCUS[k]=Math.max(SC_FOCUS[k]-1,0);opts.forEach((o,i)=>o.classList.toggle('focused',i===SC_FOCUS[k]));opts[SC_FOCUS[k]]?.scrollIntoView({block:'nearest'});}
+  else if(e.key==='Enter'){e.preventDefault();if(SC_FOCUS[k]>=0)opts[SC_FOCUS[k]].dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));}
+  else if(e.key==='Escape'){document.getElementById('sc-'+k+'-input').value=SC_SEL[k];document.getElementById('sc-'+k).classList.remove('open');}
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.sc-wrap')){
+    document.querySelectorAll('.sc-wrap.open').forEach(el=>{
+      el.classList.remove('open');
+      const k=el.id.replace('sc-','');
+      const inp=document.getElementById('sc-'+k+'-input');
+      if(inp)inp.value=SC_SEL[k]||'';
+    });
+  }
+});
+function resetFilters(){
+  SC_KEYS.forEach(k=>{SC_SEL[k]='';const inp=document.getElementById('sc-'+k+'-input');if(inp){inp.value='';inp.setAttribute('data-lbl','');}});
+  cascadeFilters(); draw();
+}
+function uniqSorted(arr){
+  return[...new Set(arr.filter(v=>v&&String(v).trim()))].sort((a,b)=>{
+    const na=parseInt(a),nb=parseInt(b);
+    return(!isNaN(na)&&!isNaN(nb))? na-nb : String(a).localeCompare(String(b),'es');
+  });
+}
+function cascadeFilters(){
+  SC_VALS.sem=uniqSorted(DATA.map(r=>r._sem));
+  const bS=SC_SEL.sem?DATA.filter(r=>r._sem===SC_SEL.sem):DATA;
+  SC_VALS.ger=uniqSorted(bS.map(r=>r._ger));
+  const bG=SC_SEL.ger?bS.filter(r=>r._ger===SC_SEL.ger):bS;
+  SC_VALS.jef=uniqSorted(bG.map(r=>r._jef));
+  SC_KEYS.forEach(k=>scRenderDD(k));
+}
+
+// ─────────────────────────────────────────────
+//  COLUMN DETECTION
+// ─────────────────────────────────────────────
+function detectCols(headers){
+  const h=headers.map(s=>(s||'').toLowerCase().replace(/[#°\.]/g,'').trim());
+  const find=(...keys)=>{
+    for(const k of keys){
+      const i=h.findIndex(x=>x===k||x.includes(k));
+      if(i!==-1)return i;
+    }
+    return -1;
+  };
+  return{
+    sem  : find('semana','sem ','wk','week'),
+    fecha: find('fecha','date','dia','f captura','fecha captura'),
+    unid : find('unidad','economico','econ','ids','id unidad','no eco','num eco'),
+    ger  : find('gerente','gte','gerencia'),
+    jef  : find('jefe','jfe','supervisor','coordinador'),
+  };
+}
+
+// ─────────────────────────────────────────────
+//  DATE → WEEK NUMBER (ISO approx.)
+// ─────────────────────────────────────────────
+function weekFromDate(raw){
+  if(!raw)return null;
+  let d;
+  const s=String(raw).trim();
+  // gviz Date(yyyy,m,d) format
+  const gv=s.match(/Date\((\d+),(\d+),(\d+)\)/);
+  if(gv){d=new Date(+gv[1],+gv[2],+gv[3]);}
+  else{
+    const p=s.split(/[\/\-T ]/);
+    if(p.length>=3){
+      const[a,b,c]=p.map(Number);
+      d=a>31?new Date(a,b-1,c):a>12?new Date(c<100?2000+c:c,b-1,a):new Date(c<100?2000+c:c,a-1,b);
+    } else {d=new Date(s);}
+  }
+  if(!d||isNaN(d))return null;
+  const jan1=new Date(d.getFullYear(),0,1);
+  return Math.ceil(((d-jan1)/864e5+jan1.getDay()+1)/7);
+}
+
+// ─────────────────────────────────────────────
+//  LOAD DATA
+// ─────────────────────────────────────────────
+async function loadData(){
+  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
+  const res=await fetch(url);
+  if(!res.ok)throw new Error(`HTTP ${res.status}`);
+  const text=await res.text();
+  const json=JSON.parse(text.replace(/^[^{]*/,'').replace(/[^}]*$/,''));
+
+  const headers=json.table.cols.map(c=>c.label||c.id||'');
+  C=detectCols(headers);
+
+  const rows=json.table.rows||[];
+  DATA=rows.map(row=>{
+    const v=i=>(i>=0&&row.c[i]!=null)?(row.c[i].f??row.c[i].v??''):'';
+    const vRaw=i=>(i>=0&&row.c[i]!=null)?(row.c[i].v??''):'';
+
+    // Semana: prefer explicit column, else derive from fecha
+    let sem='';
+    if(C.sem>=0){
+      sem=String(v(C.sem)).trim().replace(/semana\s*/i,'').trim();
+    }
+    if(!sem&&C.fecha>=0){
+      const wk=weekFromDate(vRaw(C.fecha)||v(C.fecha));
+      if(wk)sem=String(wk);
+    }
+    // Normalise: strip leading zeros, keep as string for comparison
+    sem=sem.replace(/^0+/,'');
+
+    const unid=String(v(C.unid)).trim().toUpperCase();
+    const ger =String(v(C.ger)).trim()||'Sin asignar';
+    const jef =String(v(C.jef)).trim()||'Sin asignar';
+
+    return{_sem:sem,_unid:unid,_ger:ger,_jef:jef};
+  }).filter(r=>r._sem&&r._unid);
+
+  cascadeFilters();
+  draw();
+  document.getElementById('loadingOverlay').classList.add('hidden');
+}
+
+// ─────────────────────────────────────────────
+//  HELPERS
+// ─────────────────────────────────────────────
+function pct(n,t){return t?(n/t*100):0;}
+function pillCls(p){return p>=80?'pill-g':p>=50?'pill-y':'pill-r';}
+function barCls(p) {return p>=80?'fill-g':p>=50?'fill-y':'fill-r';}
+function barColor(p){return p>=80?'rgba(132,204,22,.85)':p>=50?'rgba(245,158,11,.85)':'rgba(239,68,68,.85)';}
+function latestWeek(arr){
+  const ws=arr.map(r=>parseInt(r._sem)).filter(n=>!isNaN(n));
+  return ws.length?String(Math.max(...ws)):null;
+}
+
+function filteredData(){
+  return DATA.filter(r=>{
+    if(SC_SEL.sem&&r._sem!==SC_SEL.sem)return false;
+    if(SC_SEL.ger&&r._ger!==SC_SEL.ger)return false;
+    if(SC_SEL.jef&&r._jef!==SC_SEL.jef)return false;
+    return true;
+  });
+}
+
+// ─────────────────────────────────────────────
+//  DRAW
+// ─────────────────────────────────────────────
+function draw(){
+  const rows=filteredData();
+
+  // Current week = selected or latest in full DATA
+  const curWk=SC_SEL.sem||latestWeek(DATA);
+
+  // Current-week rows (gerente/jefe filters apply, semana fixed to curWk)
+  const wkRows=DATA.filter(r=>{
+    if(r._sem!==curWk)return false;
+    if(SC_SEL.ger&&r._ger!==SC_SEL.ger)return false;
+    if(SC_SEL.jef&&r._jef!==SC_SEL.jef)return false;
+    return true;
+  });
+
+  const auditadas=new Set(wkRows.map(r=>r._unid)).size;
+  const cumpl=pct(auditadas,FLEET_TOTAL);
+  const pendientes=FLEET_TOTAL-auditadas;
+
+  // Sidebar
+  const sbColor=cumpl>=80?'#84cc16':cumpl>=50?'#f59e0b':'#ef4444';
+  const sbEl=document.getElementById('sbPct');
+  sbEl.textContent=cumpl.toFixed(1)+'%';
+  sbEl.style.color=sbColor;
+  document.getElementById('sbSub').textContent=`${auditadas.toLocaleString('es-MX')} de ${FLEET_TOTAL.toLocaleString('es-MX')} unidades`;
+  document.getElementById('sbWk').textContent=curWk?`Semana ${curWk}`:'Semana actual';
+
+  // Fecha badge
+  if(curWk){
+    document.getElementById('fechaVal').textContent=curWk;
+    document.getElementById('fechaBadge').style.display='';
+  }
+
+  // KPIs
+  const g='#84cc16',gBg='rgba(132,204,22,.1)',gBd='rgba(132,204,22,.25)';
+  const b='#3b82f6',bBg='rgba(59,130,246,.08)',bBd='rgba(59,130,246,.2)';
+  const o='#f59e0b',oBg='rgba(245,158,11,.08)',oBd='rgba(245,158,11,.2)';
+  const r='#ef4444',rBg='rgba(239,68,68,.08)',rBd='rgba(239,68,68,.2)';
+  const v='#8b5cf6',vBg='rgba(139,92,246,.08)',vBd='rgba(139,92,246,.2)';
+
+  const pC=cumpl>=80?g:cumpl>=50?o:r;
+  const pCbg=cumpl>=80?gBg:cumpl>=50?oBg:rBg;
+  const pCbd=cumpl>=80?gBd:cumpl>=50?oBd:rBd;
+
+  const semanasCon=uniqSorted(rows.map(r2=>r2._sem)).length;
+
+  document.getElementById('kpiSection').innerHTML=[
+    chip(b,bBg,bBd,'Total Flota',FLEET_TOTAL.toLocaleString('es-MX'),'unidades en operación'),
+    chip(pC,pCbg,pCbd,'Cumplimiento',cumpl.toFixed(1)+'%',`Semana ${curWk||'–'}`),
+    chip(g,gBg,gBd,'Auditadas',auditadas.toLocaleString('es-MX'),'unidades únicas esta semana'),
+    chip(r,rBg,rBd,'Pendientes',pendientes.toLocaleString('es-MX'),'faltan por auditar'),
+    chip(v,vBg,vBd,'Semanas',semanasCon,'semanas con registro'),
+  ].join('');
+
+  drawChart(rows);
+  drawTable(rows,curWk);
+}
+
+function chip(color,bg,bd,lbl,val,sub){
+  return`<div class="kpi-chip" style="background:${bg};border-color:${bd}">
+    <div class="kpi-chip-lbl" style="color:${color}">${lbl}</div>
+    <div class="kpi-chip-val" style="color:${color}">${val}</div>
+    <div class="kpi-chip-sub" style="color:rgba(0,0,0,.4)">${sub}</div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+//  CHART
+// ─────────────────────────────────────────────
+function drawChart(rows){
+  // Aggregate by semana (all rows, no semana-filter)
+  const base=DATA.filter(r=>{
+    if(SC_SEL.ger&&r._ger!==SC_SEL.ger)return false;
+    if(SC_SEL.jef&&r._jef!==SC_SEL.jef)return false;
+    return true;
+  });
+
+  const byWk={};
+  base.forEach(r=>{
+    if(!r._sem)return;
+    if(!byWk[r._sem])byWk[r._sem]=new Set();
+    byWk[r._sem].add(r._unid);
+  });
+
+  const weeks=Object.keys(byWk).filter(w=>w).sort((a,b)=>parseInt(a)-parseInt(b));
+  document.getElementById('cntSemanas').textContent=weeks.length+(weeks.length===1?' semana':' semanas');
+
+  const labels=weeks.map(w=>'S'+w);
+  const vals=weeks.map(w=>byWk[w].size);
+  const pcts=vals.map(v=>pct(v,FLEET_TOTAL));
+  const colors=pcts.map(p=>barColor(p));
+
+  if(chartInst){chartInst.destroy();chartInst=null;}
+  const ctx=document.getElementById('weeklyChart').getContext('2d');
+  chartInst=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {
+          label:'Unidades auditadas',
+          data:vals,
+          backgroundColor:colors,
+          borderColor:colors.map(c=>c.replace(',.85)',',1)')),
+          borderWidth:1,
+          borderRadius:5,
+          borderSkipped:false,
+        },
+        {
+          label:'Meta (459)',
+          data:weeks.map(()=>FLEET_TOTAL),
+          type:'line',
+          borderColor:'rgba(34,45,66,.2)',
+          borderDash:[5,4],
+          pointRadius:0,
+          borderWidth:1.5,
+          fill:false,
+          tension:0,
+        }
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:true,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#1f2937',
+          titleFont:{family:'Inter',size:11,weight:'700'},
+          bodyFont:{family:'Inter',size:11},
+          padding:10,
+          cornerRadius:8,
+          callbacks:{
+            title:items=>'Semana '+weeks[items[0].dataIndex],
+            label:ctx2=>{
+              if(ctx2.datasetIndex===1)return ' Meta: '+FLEET_TOTAL+' unidades';
+              const n=ctx2.parsed.y;
+              const p=pct(n,FLEET_TOTAL).toFixed(1);
+              return ` ${n} auditadas · ${p}% cumplimiento`;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{
+          grid:{display:false},
+          ticks:{font:{size:10,family:'Inter'},color:'#6b7a99'}
+        },
+        y:{
+          grid:{color:'#f0f2f7'},
+          ticks:{font:{size:10,family:'Inter'},color:'#6b7a99'},
+          max:Math.ceil(FLEET_TOTAL*1.08/50)*50,
+          min:0,
+        }
+      }
+    }
+  });
+}
+
+// ─────────────────────────────────────────────
+//  GERENTE / JEFE TABLE
+// ─────────────────────────────────────────────
+function drawTable(rows,curWk){
+  // Derive fleet size per jefe from all-time historical data
+  const flotaByJef={};
+  DATA.forEach(r=>{
+    const key=r._ger+'||'+r._jef;
+    if(!flotaByJef[key])flotaByJef[key]=new Set();
+    flotaByJef[key].add(r._unid);
+  });
+
+  // Build gerente → jefe → { flota, auditadas_wk }
+  const byGer={};
+  rows.forEach(r=>{
+    if(!byGer[r._ger])byGer[r._ger]={};
+    if(!byGer[r._ger][r._jef])byGer[r._ger][r._jef]={wk:new Set()};
+    if(r._sem===curWk)byGer[r._ger][r._jef].wk.add(r._unid);
+  });
+
+  // Also ensure jefes that had historical records but 0 this week appear
+  DATA.forEach(r=>{
+    if(SC_SEL.ger&&r._ger!==SC_SEL.ger)return;
+    if(SC_SEL.jef&&r._jef!==SC_SEL.jef)return;
+    if(!byGer[r._ger])byGer[r._ger]={};
+    if(!byGer[r._ger][r._jef])byGer[r._ger][r._jef]={wk:new Set()};
+  });
+
+  const gerentes=Object.keys(byGer).filter(g=>g).sort();
+  document.getElementById('cntGerentes').textContent=gerentes.length+(gerentes.length===1?' gerente':' gerentes');
+
+  const tbody=document.getElementById('compTbody');
+  tbody.innerHTML='';
+
+  gerentes.forEach((g,gi)=>{
+    const jefesMap=byGer[g];
+    const jNames=Object.keys(jefesMap).filter(j=>j).sort();
+
+    // Gerente totals
+    const gerFlota=new Set(jNames.flatMap(j=>([...(flotaByJef[g+'||'+j]||new Set())]))).size;
+    const gerAud  =new Set(jNames.flatMap(j=>([...(jefesMap[j].wk)]))).size;
+    const gerPend =Math.max(0,gerFlota-gerAud);
+    const gerP    =pct(gerAud,gerFlota||1);
+
+    const gerTr=document.createElement('tr');
+    gerTr.className='ger-row';
+    const initials=g.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
+    gerTr.innerHTML=`
+      <td><span class="ger-icon">${initials||gi+1}</span>${g}</td>
+      <td class="r">${gerFlota}</td>
+      <td class="r"><b>${gerAud}</b></td>
+      <td class="r" style="color:${gerPend>0?'#ef4444':'#3B6D11'}">${gerPend}</td>
+      <td class="r"><span class="pill ${pillCls(gerP)}">${gerP.toFixed(1)}%</span></td>
+      <td class="bar-cell"><div class="bar-wrap"><div class="bar-fill ${barCls(gerP)}" style="width:${Math.min(gerP,100).toFixed(1)}%"></div></div></td>
+    `;
+    tbody.appendChild(gerTr);
+
+    jNames.forEach(j=>{
+      const fl=flotaByJef[g+'||'+j]?.size||0;
+      const aud=jefesMap[j].wk.size;
+      const pend=Math.max(0,fl-aud);
+      const p=pct(aud,fl||1);
+      const tr=document.createElement('tr');
+      tr.className='jefe-row';
+      tr.innerHTML=`
+        <td>${j}</td>
+        <td class="r">${fl}</td>
+        <td class="r">${aud}</td>
+        <td class="r" style="color:${pend>0?'#ef4444':'#3B6D11'}">${pend}</td>
+        <td class="r"><span class="pill ${pillCls(p)}">${p.toFixed(1)}%</span></td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar-fill ${barCls(p)}" style="width:${Math.min(p,100).toFixed(1)}%"></div></div></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  });
+}
+
+// ─────────────────────────────────────────────
+//  BOOT
+// ─────────────────────────────────────────────
+(async()=>{
+  try{
+    await loadData();
+  }catch(e){
+    document.getElementById('loadingOverlay').classList.add('hidden');
+    const b=document.getElementById('errBanner');
+    b.classList.remove('hidden');
+    document.getElementById('errMsg').textContent=
+      'No se pudo cargar el Sheet. Verifica que esté compartido como "Cualquier persona con el enlace puede ver". Detalle: '+e.message;
+  }
+})();
+</script>
+</body>
+</html>
