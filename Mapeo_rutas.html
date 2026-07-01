@@ -6,9 +6,15 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  html, body { margin:0; padding:0; height:100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  #app { display:flex; height:100vh; }
+  html, body { margin:0; padding:0; height:100%; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  nav.topnav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48px;gap:14px;position:sticky;top:0;z-index:2000;box-shadow:0 2px 8px rgba(0,0,0,.3);flex-shrink:0;}
+  nav.topnav .nav-logo{color:#84cc16;font-weight:800;font-size:16px;text-decoration:none;}
+  nav.topnav .nav-sep{color:#4b5563;font-size:14px;font-weight:300;}
+  nav.topnav .nav-page{color:#e5e7eb;font-size:13px;font-weight:600;}
+  #app { display:flex; height:calc(100vh - 48px); }
+  #map { flex:1; height:calc(100vh - 48px) !important; }
 
   /* Sidebar estilo Settepi */
   #sidebar {
@@ -469,6 +475,12 @@
 </style>
 </head>
 <body>
+
+<nav class="topnav">
+  <a class="nav-logo" href="index.html">TRAXIÓN</a>
+  <span class="nav-sep">|</span>
+  <span class="nav-page">Mapeo de rutas</span>
+</nav>
 
 <div id="app">
   <aside id="sidebar">
