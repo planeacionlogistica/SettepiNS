@@ -1,0 +1,2144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Mapa de Rutas MAE</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  html, body { margin:0; padding:0; height:100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  #app { display:flex; height:100vh; }
+
+  /* Sidebar estilo Settepi */
+  #sidebar {
+    width: 320px;
+    background: #1f2937;
+    color: #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  #sidebar header {
+    padding: 16px;
+    border-bottom: 1px solid #374151;
+  }
+  #sidebar h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #84cc16;
+    letter-spacing: 0.3px;
+  }
+  #sidebar h1 .sub {
+    display:block;
+    color:#9ca3af;
+    font-size:11px;
+    font-weight:400;
+    margin-top:2px;
+  }
+
+  .toolbar {
+    padding: 10px 16px;
+    border-bottom: 1px solid #374151;
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+  }
+  .toolbar button {
+    background: #374151;
+    color: #e5e7eb;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .toolbar button:hover { background: #4b5563; }
+  .toolbar button.primary { background: #84cc16; color: #1f2937; font-weight:600; }
+  .toolbar button.primary:hover { background: #a3e635; }
+  .toolbar button.danger { background: #f59e0b; color: #1f2937; font-weight:600; }
+  .toolbar button.danger:hover { background: #fbbf24; }
+  .toolbar button.desvio { background: #dc2626; color: #fff; font-weight:600; }
+  .toolbar button.desvio:hover { background: #ef4444; }
+  .toolbar button.desvio.active { background: #ff0000; box-shadow: 0 0 8px #ff000088; animation: pulseDesvio 1.2s infinite; }
+  @keyframes pulseDesvio {
+    0%, 100% { box-shadow: 0 0 6px #ff000088; }
+    50% { box-shadow: 0 0 14px #ff0000cc; }
+  }
+  .toolbar button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .toolbar button:disabled:hover { background: #374151; }
+  #badgeCambios:not(:empty) {
+    background: #1f2937; color: #fbbf24;
+    border-radius: 8px; padding: 1px 5px; margin-left: 3px; font-weight:700;
+  }
+
+  .file-input {
+    padding: 10px 16px;
+    border-bottom: 1px solid #374151;
+    font-size: 11px;
+  }
+  .file-input label {
+    display:block;
+    color:#9ca3af;
+    margin-bottom: 4px;
+  }
+  .file-input input {
+    width: 100%;
+    color: #e5e7eb;
+    font-size: 11px;
+  }
+
+  .search {
+    padding: 10px 16px;
+    border-bottom: 1px solid #374151;
+  }
+  .search input {
+    width: 100%;
+    box-sizing: border-box;
+    background: #111827;
+    color: #e5e7eb;
+    border: 1px solid #374151;
+    border-radius: 4px;
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  #counter {
+    padding: 8px 16px;
+    font-size: 11px;
+    color: #9ca3af;
+    border-bottom: 1px solid #374151;
+  }
+  #counter b { color: #84cc16; }
+
+  #lista {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 0;
+  }
+  .ruta-item {
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background 0.15s;
+  }
+  .ruta-item:hover { background:#374151; }
+  .ruta-item.activa { border-left-color: #84cc16; }
+  .ruta-item input[type="checkbox"] { cursor: pointer; accent-color: #84cc16; }
+  .ruta-color {
+    width: 14px; height: 14px; border-radius: 3px; flex-shrink:0;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .ruta-info { flex:1; min-width:0; }
+  .ruta-id {
+    font-size: 12px; font-weight:600; color:#e5e7eb;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .ruta-desc {
+    font-size: 10px; color:#9ca3af;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .ruta-stops { font-size: 10px; color:#6b7280; }
+
+  /* Mapa */
+  #map { flex:1; height:100vh; }
+
+  /* Panel filtros derecho */
+  #filterPanel {
+    width: 290px;
+    background: #1f2937;
+    color: #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    border-left: 1px solid #374151;
+  }
+  #filterPanel section { padding: 12px 16px; border-bottom: 1px solid #374151; }
+  #filterPanel h2 {
+    margin: 0 0 8px 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #84cc16;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .chip {
+    display: inline-block;
+    padding: 5px 10px;
+    background: #374151;
+    color: #e5e7eb;
+    border: 1px solid #4b5563;
+    border-radius: 14px;
+    cursor: pointer;
+    margin: 2px;
+    font-size: 11px;
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .chip:hover { background: #4b5563; }
+  .chip.active {
+    background: #84cc16;
+    color: #1f2937;
+    border-color: #84cc16;
+    font-weight: 600;
+  }
+  .chip .count {
+    background: rgba(0,0,0,0.25);
+    border-radius: 8px;
+    padding: 0 5px;
+    margin-left: 4px;
+    font-size: 10px;
+  }
+  .chip.active .count { background: rgba(31,41,55,0.3); }
+  .slider-row { display:flex; align-items:center; gap:8px; margin-top: 6px; font-size: 11px; color:#9ca3af; }
+  .slider-row input[type=range] { flex:1; accent-color: #84cc16; }
+  .slider-row b { color: #84cc16; min-width: 50px; text-align: right; }
+  .toggle-btn {
+    width: 100%;
+    background: #374151;
+    color: #e5e7eb;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  .toggle-btn.active { background: #84cc16; color: #1f2937; font-weight: 600; }
+  .geo-list { font-size: 11px; color: #9ca3af; line-height: 1.6; margin-top: 4px; }
+  .geo-list .dot {
+    display:inline-block; width:8px; height:8px;
+    border-radius: 50%; background: #fbbf24;
+    margin-right: 6px; vertical-align: middle;
+  }
+
+  /* Marcador centro de geocerca */
+  .geo-center {
+    background: #fbbf24;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid #1f2937;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    cursor: grab;
+  }
+  .geo-center:active { cursor: grabbing; }
+
+  /* Marcador secuencia inicial */
+  .start-marker {
+    background: #84cc16;
+    color: #1f2937;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:12px;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+
+  /* Marcador de parada intermedia con número */
+  .stop-marker {
+    color: #fff;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:600; font-size:10px;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+  }
+
+  /* Cursor en modo edición */
+  .start-marker.draggable, .stop-marker.draggable { cursor: grab; }
+  .start-marker.draggable:active, .stop-marker.draggable:active { cursor: grabbing; }
+
+  /* Punto de desvío (rojo brillante, arrastrable) */
+  .desvio-point {
+    width: 14px; height: 14px;
+    background: #ff1a1a;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 6px #ff0000, 0 0 2px rgba(0,0,0,0.6);
+    cursor: grab;
+  }
+  .desvio-point:active { cursor: grabbing; }
+  .desvio-point.anchor {
+    width: 18px; height: 18px;
+    background: #ff0000;
+    box-shadow: 0 0 10px #ff0000cc;
+  }
+  /* Tooltip desvío */
+  .desvio-tooltip {
+    background: #1f2937;
+    color: #f87171;
+    border: 1px solid #dc2626;
+    border-radius: 4px;
+    font-size: 11px;
+    padding: 3px 7px;
+    white-space: nowrap;
+  }
+
+  /* Marcador modificado (movido por el usuario) */
+  .start-marker.modified, .stop-marker.modified {
+    outline: 3px solid #fbbf24;
+    outline-offset: 1px;
+    animation: pulseEdit 1.5s infinite;
+  }
+  @keyframes pulseEdit {
+    0%, 100% { outline-color: #fbbf24; }
+    50% { outline-color: #f59e0b; }
+  }
+
+  .leaflet-popup-content { font-size: 12px; line-height: 1.5; }
+  .leaflet-popup-content b { color: #1f2937; }
+
+  /* Marcador de persona (operador cargado por Excel) */
+  .person-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: #6366f1;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
+  }
+  .person-marker svg { fill: #fff; width: 16px; height: 16px; }
+
+  /* ============ NUEVO: Handle intermedio para arrastrar la línea de desvío ============ */
+  .desvio-handle {
+    width: 10px; height: 10px;
+    background: rgba(255,255,255,0.9);
+    border: 2px solid #ff1a1a;
+    border-radius: 50%;
+    cursor: grab;
+    opacity: 0.55;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+  .desvio-handle:hover { opacity: 1; transform: scale(1.35); }
+  .desvio-handle:active { cursor: grabbing; }
+
+  /* ============ NUEVO: Panel flotante del desvío activo ============ */
+  #desvioCtrl {
+    position: absolute;
+    top: 70px;
+    left: 340px;
+    z-index: 1000;
+    background: #1f2937;
+    color: #e5e7eb;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 10px 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    font-size: 12px;
+    display: none;
+    min-width: 240px;
+  }
+  #desvioCtrl.visible { display: block; }
+  #desvioCtrl h3 {
+    margin: 0 0 8px 0;
+    font-size: 11px;
+    color: #f87171;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display:flex; justify-content:space-between; align-items:center;
+  }
+  #desvioCtrl h3 .close {
+    color:#9ca3af; cursor:pointer; font-size:16px; line-height:1;
+    background:none; border:none; padding:0;
+  }
+  #desvioCtrl .row { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
+  #desvioCtrl input[type="text"] {
+    flex:1; background:#111827; color:#e5e7eb; border:1px solid #374151;
+    border-radius:4px; padding:5px 7px; font-size:12px; box-sizing:border-box;
+  }
+  #desvioCtrl input[type="color"] {
+    width: 34px; height: 30px; padding: 0; border: 1px solid #374151;
+    border-radius:4px; background:#111827; cursor:pointer;
+  }
+  #desvioCtrl button {
+    background:#374151; color:#e5e7eb; border:none; padding:6px 10px;
+    border-radius:4px; font-size:11px; cursor:pointer; font-weight:500;
+  }
+  #desvioCtrl button:hover { background:#4b5563; }
+  #desvioCtrl button.save { background:#84cc16; color:#1f2937; font-weight:600; }
+  #desvioCtrl button.save:hover { background:#a3e635; }
+  #desvioCtrl button.del { background:#dc2626; color:#fff; }
+  #desvioCtrl button.del:hover { background:#ef4444; }
+  #desvioCtrl .hint {
+    font-size:10px; color:#9ca3af; margin-top:4px; line-height:1.4;
+    border-top: 1px solid #374151; padding-top: 6px;
+  }
+
+  /* ============ NUEVO: Formulario en popup de parada ============ */
+  .parada-form { margin-top: 8px; }
+  .parada-form label {
+    display:block; font-size:10px; color:#6b7280;
+    text-transform:uppercase; letter-spacing:0.4px; margin: 6px 0 2px;
+    font-weight: 600;
+  }
+  .parada-form textarea {
+    width: 100%; box-sizing:border-box;
+    border: 1px solid #d1d5db; border-radius: 4px;
+    padding: 4px 6px; font-size: 12px; resize: vertical;
+    min-height: 40px; font-family: inherit;
+  }
+  .parada-form .aforo-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;
+  }
+  .parada-form .aforo-cell { text-align:center; }
+  .parada-form .aforo-cell .tlabel {
+    font-size: 9px; color:#6b7280; text-transform:uppercase; margin-bottom: 2px;
+  }
+  .parada-form .aforo-cell input {
+    width: 100%; box-sizing:border-box;
+    border: 1px solid #d1d5db; border-radius: 4px;
+    padding: 3px; font-size: 12px; text-align:center;
+    font-family: inherit;
+  }
+  .parada-form .aforo-cell input:focus { border-color:#84cc16; outline:none; }
+  .parada-form .saved-note {
+    font-size: 10px; color: #16a34a; margin-top: 4px;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .parada-form .saved-note.show { opacity: 1; }
+  .parada-form .cupo-info {
+    margin-top: 6px; font-size: 10px; color: #4b5563;
+    background: #f3f4f6; padding: 4px 6px; border-radius: 3px;
+  }
+
+  /* ============ NUEVO: Barra de capacidad en lista de rutas ============ */
+  .capacity-block { margin-top: 4px; }
+  .capacity-bar {
+    display: flex; align-items:center; gap: 4px; margin-top: 2px;
+    font-size: 9px;
+  }
+  .capacity-bar .tname {
+    color:#9ca3af; width: 34px; flex-shrink:0; text-transform:uppercase;
+    font-weight: 600;
+  }
+  .capacity-bar .bar {
+    flex: 1; height: 6px; background: #374151; border-radius: 3px;
+    overflow: hidden; position: relative;
+  }
+  .capacity-bar .fill {
+    height: 100%; border-radius: 3px; transition: width 0.3s;
+  }
+  .capacity-bar .fill.low { background: #22c55e; }
+  .capacity-bar .fill.mid { background: #eab308; }
+  .capacity-bar .fill.high { background: #f97316; }
+  .capacity-bar .fill.over { background: #dc2626; }
+  .capacity-bar .val {
+    color: #e5e7eb; font-weight:600; min-width: 46px; text-align:right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ============ NUEVO: Lista de propuestas guardadas ============ */
+  .propuesta-item {
+    display:flex; align-items:center; gap:6px;
+    padding: 6px 8px; margin: 3px 0;
+    background: #111827; border-radius: 4px;
+    border-left: 3px solid #ff1a1a;
+    font-size: 11px;
+  }
+  .propuesta-item .swatch {
+    width: 12px; height: 12px; border-radius: 3px; flex-shrink:0;
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+  .propuesta-item .name {
+    flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    color:#e5e7eb;
+  }
+  .propuesta-item .pts { color:#6b7280; font-size:10px; }
+  .propuesta-item button {
+    background:none; border:none; color:#9ca3af; cursor:pointer;
+    padding: 2px 5px; font-size: 13px; line-height:1;
+  }
+  .propuesta-item button:hover { color:#f87171; }
+  .propuesta-item button.load:hover { color:#84cc16; }
+  .propuesta-empty {
+    font-size: 10px; color: #6b7280; font-style: italic;
+    padding: 6px 8px;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <aside id="sidebar">
+    <header>
+      <h1>Mapa de Rutas
+        <span class="sub">Reporte MAE — Settepi</span>
+      </h1>
+    </header>
+
+    <div class="toolbar">
+      <button class="primary" id="btnAll">Mostrar todas</button>
+      <button id="btnNone">Ocultar todas</button>
+      <button id="btnFit">Centrar</button>
+      <button id="btnModo">Modo: Calles</button>
+      <button id="btnEdit">Editar: OFF</button>
+      <button id="btnExport" disabled>Exportar cambios <span id="badgeCambios"></span></button>
+      <button id="btnDesvio">Desvío: OFF</button>
+      <button id="btnClearDesvio" disabled>Borrar desvíos</button>
+    </div>
+
+    <div class="file-input">
+      <label>Cargar CSV local (opcional)</label>
+      <input type="file" id="fileInput" accept=".csv"/>
+    </div>
+
+    <div class="search">
+      <input type="text" id="filtro" placeholder="Buscar ruta o descripción..."/>
+    </div>
+
+    <div id="counter">Cargando datos...</div>
+
+    <div id="lista"></div>
+  </aside>
+
+  <div id="map"></div>
+
+  <!-- Panel flotante del desvío activo (color, nombre, guardar) -->
+  <div id="desvioCtrl">
+    <h3>
+      <span>Desvío activo</span>
+      <button class="close" id="desvioCtrlClose" title="Cerrar">×</button>
+    </h3>
+    <div class="row">
+      <input type="color" id="desvioColor" value="#ff1a1a" title="Color del trazo"/>
+      <input type="text" id="desvioNombre" placeholder="Nombre (ej. Propuesta A)" maxlength="60"/>
+    </div>
+    <div class="row" style="justify-content:space-between;">
+      <button class="save" id="desvioSave">Guardar propuesta</button>
+      <button class="del" id="desvioDel">Eliminar</button>
+    </div>
+    <div class="hint">
+      Arrastra los puntos rojos para reubicarlos.<br>
+      Arrastra los círculos blancos intermedios para curvar la línea.<br>
+      Click derecho en un punto rojo para eliminarlo.
+    </div>
+  </div>
+
+  <aside id="filterPanel">
+    <section>
+      <h2>Filtrar por planta</h2>
+      <div id="chipsPlantas"></div>
+    </section>
+
+    <section>
+      <h2>Filtrar por turno</h2>
+      <div id="chipsTurnos">
+        <span class="chip" data-turno="dia">Día <span class="count" id="cntDia">0</span></span>
+        <span class="chip" data-turno="tarde">Tarde <span class="count" id="cntTarde">0</span></span>
+        <span class="chip" data-turno="noche">Noche <span class="count" id="cntNoche">0</span></span>
+      </div>
+      <div style="font-size:10px; color:#6b7280; margin-top:6px; line-height:1.5">
+        Día 03:00–10:00 · Tarde 10:01–19:00 · Noche 19:01–02:59
+      </div>
+    </section>
+
+    <section>
+      <h2>Geocercas</h2>
+      <button class="toggle-btn active" id="btnGeo">Mostrar geocercas</button>
+      <div class="slider-row">
+        <span>Ø</span>
+        <input type="range" id="sliderDiam" min="200" max="4000" step="100" value="1000"/>
+        <b id="lblDiam">1.0 km</b>
+      </div>
+      <div class="geo-list" id="geoList"></div>
+      <div style="font-size:10px; color:#6b7280; margin-top:6px">
+        Arrastra el punto amarillo de cada geocerca para ajustar su posición exacta.
+      </div>
+    </section>
+
+    <section>
+      <h2>Propuestas de desvío</h2>
+      <div style="font-size:11px; color:#9ca3af; margin-bottom:8px;">
+        Cada trazo rojo puede guardarse con nombre y color propios.
+      </div>
+      <div id="listaPropuestas"></div>
+    </section>
+
+    <section>
+      <h2>Usuarios / Operadores</h2>
+      <div style="font-size:11px; color:#9ca3af; margin-bottom:8px;">
+        Carga un Excel (.xlsx) con columnas:<br><b style="color:#e5e7eb">Nombre, Lat, Long</b>
+      </div>
+      <input type="file" id="fileUsuarios" accept=".xlsx,.xls" style="width:100%; color:#e5e7eb; font-size:11px; margin-bottom:8px;"/>
+      <button class="toggle-btn active" id="btnToggleUsuarios" disabled>Mostrar usuarios <span id="cntUsuarios" style="color:#84cc16; font-weight:700"></span></button>
+      <button class="toggle-btn" id="btnClearUsuarios" disabled style="background:#dc2626; color:#fff;">Quitar usuarios</button>
+    </section>
+  </aside>
+</div>
+
+<script>
+// =========================================================
+// CONFIG
+// =========================================================
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSdb1wv5_u4Q_DJLTNYzZzAnqRfugoqbE9QdrrINxU1FznE-oqaiDtRjS0OlHnFMndHNIdtPkWIpGeW/pub?output=csv";
+
+// Índices de columnas según el header real del CSV
+const COL = {
+  planta: 0,
+  tipServ: 1,
+  descRuta: 2,
+  idRuta: 3,
+  sec: 4,
+  pos: 5,
+  parada: 6,
+  lat: 7,
+  lng: 8,
+  h1: 9, h2: 10, h3: 11
+};
+
+// =========================================================
+// MAPA
+// =========================================================
+const map = L.map('map').setView([25.67, -100.30], 10);
+
+// Capas de Google Maps
+const gMapa = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+  maxZoom: 20, subdomains: ['0','1','2','3'], attribution: '&copy; Google'
+});
+const gSatelite = L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+  maxZoom: 20, subdomains: ['0','1','2','3'], attribution: '&copy; Google'
+});
+const gHibrido = L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+  maxZoom: 20, subdomains: ['0','1','2','3'], attribution: '&copy; Google'
+});
+
+gMapa.addTo(map);
+L.control.layers({
+  'Mapa': gMapa,
+  'Satélite': gSatelite,
+  'Híbrido': gHibrido
+}, null, { position: 'topright' }).addTo(map);
+
+// =========================================================
+// PARSER CSV (respeta comillas y comas internas)
+// =========================================================
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i+1] === '"') { field += '"'; i++; }
+        else { inQuotes = false; }
+      } else {
+        field += c;
+      }
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else if (c === '\r') { /* ignore */ }
+      else field += c;
+    }
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+// =========================================================
+// PALETA: HSL golden-ratio (todos los colores bien separados)
+// =========================================================
+function generarColores(n) {
+  const colores = [];
+  const golden = 0.618033988749895;
+  let h = 0.15;
+  for (let i = 0; i < n; i++) {
+    h = (h + golden) % 1;
+    const sat = 70 + (i % 2) * 10;   // 70 ó 80
+    const lig = 48 + (i % 3) * 4;    // 48, 52, 56
+    colores.push(`hsl(${Math.floor(h*360)}, ${sat}%, ${lig}%)`);
+  }
+  return colores;
+}
+
+// =========================================================
+// ESTADO
+// =========================================================
+let rutas = {};       // { idRuta: { puntos:[], color, desc, planta, layer } }
+let allBounds = null;
+let modoCalles = true;             // true = sigue calles via OSRM, false = línea recta
+let modoEdicion = false;           // true = paradas arrastrables
+const cacheCalles = {};            // { idRuta: [[lat,lng],...] geometría OSRM cacheada }
+const plantasActivas = new Set();
+const turnosActivos = new Set();
+const geocercas = [];              // { nombre, lat, lng, circle, marker }
+let geocercasVisibles = true;
+let diametroGeo = 1000;            // metros
+
+// =========================================================
+// ESTADO DESVÍOS
+// =========================================================
+let modoDesvio = false;
+// Array de desvíos: { id, puntos: [{lat,lng},...], polyline, markers: [], osrmGeom: null, osrmPoly: null }
+const desvios = [];
+let desvioActual = null;  // desvío que se está construyendo ahora
+
+// =========================================================
+// HELPERS DE HORARIO Y TURNO
+// =========================================================
+function parseHoraMinutos(s) {
+  if (!s) return null;
+  s = String(s).trim().toUpperCase();
+  if (!s) return null;
+  const ampm = /\b(AM|PM)\b/.exec(s);
+  const sClean = s.replace(/AM|PM/g, '').trim();
+  const parts = sClean.split(/[:.\s]/).filter(Boolean);
+  if (parts.length < 2) return null;
+  let h = parseInt(parts[0]);
+  let m = parseInt(parts[1]);
+  if (isNaN(h) || isNaN(m)) return null;
+  if (ampm) {
+    if (ampm[1] === 'PM' && h !== 12) h += 12;
+    if (ampm[1] === 'AM' && h === 12) h = 0;
+  }
+  return h * 60 + m;
+}
+
+function turnoDeHora(min) {
+  if (min == null) return null;
+  if (min >= 180 && min <= 600) return 'dia';       // 03:00–10:00
+  if (min > 600 && min <= 1140) return 'tarde';     // 10:01–19:00
+  return 'noche';                                    // 19:01–02:59
+}
+
+// =========================================================
+// HELPERS DE DISTANCIA
+// =========================================================
+function distMetros(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = x => x * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+function distanciaTotalRecta(puntos) {
+  let total = 0;
+  for (let i = 0; i < puntos.length - 1; i++) {
+    total += distMetros(puntos[i].lat, puntos[i].lng, puntos[i+1].lat, puntos[i+1].lng);
+  }
+  return total;
+}
+
+// =========================================================
+// FILTROS POR PLANTA Y TURNO
+// =========================================================
+function renderChipsFiltros() {
+  // Plantas únicas y conteos
+  const plantas = {};
+  const turnoCnt = { dia: 0, tarde: 0, noche: 0 };
+  Object.values(rutas).forEach(r => {
+    plantas[r.planta] = (plantas[r.planta] || 0) + 1;
+    r.turnos.forEach(t => { turnoCnt[t] = (turnoCnt[t] || 0) + 1; });
+  });
+
+  // Chips de plantas
+  const cont = document.getElementById('chipsPlantas');
+  cont.innerHTML = '';
+  Object.keys(plantas).sort().forEach(p => {
+    const chip = document.createElement('span');
+    chip.className = 'chip' + (plantasActivas.has(p) ? ' active' : '');
+    chip.innerHTML = `${p || '(sin planta)'} <span class="count">${plantas[p]}</span>`;
+    chip.addEventListener('click', () => {
+      if (plantasActivas.has(p)) plantasActivas.delete(p);
+      else plantasActivas.add(p);
+      aplicarFiltros();
+      renderChipsFiltros();
+    });
+    cont.appendChild(chip);
+  });
+
+  // Conteos de turnos
+  document.getElementById('cntDia').textContent = turnoCnt.dia || 0;
+  document.getElementById('cntTarde').textContent = turnoCnt.tarde || 0;
+  document.getElementById('cntNoche').textContent = turnoCnt.noche || 0;
+
+  // Marcar chips de turno
+  document.querySelectorAll('#chipsTurnos .chip').forEach(c => {
+    c.classList.toggle('active', turnosActivos.has(c.dataset.turno));
+  });
+}
+
+function aplicarFiltros() {
+  const sinFiltros = (plantasActivas.size === 0 && turnosActivos.size === 0);
+  Object.keys(rutas).forEach(id => {
+    const r = rutas[id];
+    let pasa = true;
+    if (!sinFiltros) {
+      const matchPlanta = (plantasActivas.size === 0) || plantasActivas.has(r.planta);
+      const matchTurno = (turnosActivos.size === 0) || r.turnos.some(t => turnosActivos.has(t));
+      pasa = matchPlanta && matchTurno;
+    }
+    r.visible = pasa;
+    if (pasa) r.layer.addTo(map);
+    else map.removeLayer(r.layer);
+  });
+  renderLista(document.getElementById('filtro').value);
+}
+
+// =========================================================
+// GEOCERCAS
+// =========================================================
+const GEO_DEFAULTS = [
+  { id: 'g1', nombre: 'Av Benito Juárez y Av Azteca',         lat: 25.679417367734427, lng: -100.24396342548096 },
+  { id: 'g2', nombre: '5 de Mayo y Av Las Torres',            lat: 25.672554655033764, lng: -100.24908025922008 },
+  { id: 'g3', nombre: 'Calle Tolteca y Av Las Torres',        lat: 25.67304496455942,  lng: -100.23756886199207 },
+  { id: 'g4', nombre: 'Calle Tolteca y Av Pablo Olivas',      lat: 25.66974636080703,  lng: -100.23821822106812 },
+  { id: 'g5', nombre: 'Av Eloy Cavazos y Av Pablo Olivas',    lat: 25.664574097339404, lng: -100.24759280023636 }
+];
+
+function cargarPosGeocercas() {
+  try {
+    const data = JSON.parse(localStorage.getItem('mae_geocercas_v2'));
+    if (!Array.isArray(data)) return null;
+    return data;
+  } catch (e) { return null; }
+}
+function guardarPosGeocercas() {
+  const data = geocercas.map(g => ({ id: g.id, lat: g.lat, lng: g.lng }));
+  localStorage.setItem('mae_geocercas_v2', JSON.stringify(data));
+}
+
+function inicializarGeocercas() {
+  const guardadas = cargarPosGeocercas();
+  GEO_DEFAULTS.forEach(def => {
+    const saved = guardadas && guardadas.find(g => g.id === def.id);
+    const g = {
+      id: def.id, nombre: def.nombre,
+      lat: saved ? saved.lat : def.lat,
+      lng: saved ? saved.lng : def.lng
+    };
+    // Círculo
+    g.circle = L.circle([g.lat, g.lng], {
+      radius: diametroGeo / 2,
+      color: '#fbbf24', weight: 2,
+      fillColor: '#fbbf24', fillOpacity: 0.15
+    }).bindPopup(`<b>${g.nombre}</b><br><small>Ø ${(diametroGeo/1000).toFixed(2)} km</small>`);
+    // Marker centro arrastrable
+    const icon = L.divIcon({ className: '', html: '<div class="geo-center"></div>', iconSize:[14,14], iconAnchor:[7,7] });
+    g.marker = L.marker([g.lat, g.lng], { draggable: true, icon })
+      .bindTooltip(g.nombre, { direction: 'top', offset: [0,-10] });
+    g.marker.on('drag', e => g.circle.setLatLng(e.target.getLatLng()));
+    g.marker.on('dragend', e => {
+      const nl = e.target.getLatLng();
+      g.lat = nl.lat; g.lng = nl.lng;
+      g.circle.setLatLng(nl);
+      g.circle.setPopupContent(`<b>${g.nombre}</b><br><small>Ø ${(diametroGeo/1000).toFixed(2)} km</small>`);
+      guardarPosGeocercas();
+    });
+    if (geocercasVisibles) { g.circle.addTo(map); g.marker.addTo(map); }
+    geocercas.push(g);
+  });
+
+  // Lista en el panel
+  const lista = document.getElementById('geoList');
+  lista.innerHTML = geocercas.map(g => `<div><span class="dot"></span>${g.nombre}</div>`).join('');
+}
+
+function setDiametroGeocercas(m) {
+  diametroGeo = m;
+  document.getElementById('lblDiam').textContent = (m/1000).toFixed(2) + ' km';
+  geocercas.forEach(g => {
+    g.circle.setRadius(m / 2);
+    g.circle.setPopupContent(`<b>${g.nombre}</b><br><small>Ø ${(m/1000).toFixed(2)} km</small>`);
+  });
+}
+
+function toggleGeocercas() {
+  geocercasVisibles = !geocercasVisibles;
+  const btn = document.getElementById('btnGeo');
+  btn.textContent = geocercasVisibles ? 'Ocultar geocercas' : 'Mostrar geocercas';
+  btn.classList.toggle('active', geocercasVisibles);
+  geocercas.forEach(g => {
+    if (geocercasVisibles) { g.circle.addTo(map); g.marker.addTo(map); }
+    else { map.removeLayer(g.circle); map.removeLayer(g.marker); }
+  });
+}
+
+// =========================================================
+// OSRM — obtener geometría siguiendo calles reales
+// =========================================================
+async function obtenerGeometriaCalles(idRuta, puntos) {
+  if (cacheCalles[idRuta]) return cacheCalles[idRuta];
+
+  // OSRM acepta hasta ~100 waypoints. Si hay más, partimos en tramos.
+  const MAX_WP = 90;
+  let geomTotal = [];
+  let distTotal = 0;
+
+  for (let inicio = 0; inicio < puntos.length - 1; inicio += MAX_WP - 1) {
+    const tramo = puntos.slice(inicio, inicio + MAX_WP);
+    if (tramo.length < 2) break;
+    const coords = tramo.map(p => `${p.lng},${p.lat}`).join(';');
+    const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+
+    try {
+      const resp = await fetch(url);
+      const data = await resp.json();
+      if (data.code === 'Ok' && data.routes && data.routes[0]) {
+        const geom = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        if (geomTotal.length) geom.shift(); // evita duplicar el punto de unión
+        geomTotal = geomTotal.concat(geom);
+        distTotal += data.routes[0].distance; // metros
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
+  cacheCalles[idRuta] = { geom: geomTotal, distance: distTotal };
+  return cacheCalles[idRuta];
+}
+
+// =========================================================
+// PROCESAR DATOS
+// =========================================================
+function procesarCSV(csvText) {
+  const filas = parseCSV(csvText);
+  if (filas.length < 2) {
+    document.getElementById('counter').textContent = 'CSV vacío o inválido';
+    return;
+  }
+
+  // Detectar encabezado y arrancar en fila 1
+  rutas = {};
+  for (let i = 1; i < filas.length; i++) {
+    const c = filas[i];
+    if (!c || c.length < 9) continue;
+
+    const idRuta = (c[COL.idRuta] || '').trim();
+    const lat = parseFloat(c[COL.lat]);
+    const lng = parseFloat(c[COL.lng]);
+    if (!idRuta || isNaN(lat) || isNaN(lng)) continue;
+
+    if (!rutas[idRuta]) {
+      rutas[idRuta] = {
+        puntos: [],
+        descRuta: (c[COL.descRuta] || '').trim(),
+        planta: (c[COL.planta] || '').trim(),
+        tipServ: (c[COL.tipServ] || '').trim(),
+        layer: L.layerGroup(),
+        visible: true
+      };
+    }
+    rutas[idRuta].puntos.push({
+      sec: parseInt(c[COL.sec]) || 0,
+      pos: (c[COL.pos] || '').trim(),
+      parada: (c[COL.parada] || '').trim(),
+      lat, lng,
+      latOrig: lat, lngOrig: lng,    // referencia para detectar cambios
+      // Todos los horarios disponibles a partir de la columna 9
+      horarios: c.slice(COL.h1).map(s => (s || '').trim()).filter(Boolean)
+    });
+  }
+
+  // Calcular turnos por ruta a partir de horarios
+  Object.keys(rutas).forEach(id => {
+    const turnos = new Set();
+    rutas[id].puntos.forEach(p => {
+      p.horarios.forEach(h => {
+        const t = turnoDeHora(parseHoraMinutos(h));
+        if (t) turnos.add(t);
+      });
+    });
+    rutas[id].turnos = Array.from(turnos);
+  });
+
+  // Asignar colores y dibujar
+  const ids = Object.keys(rutas).sort();
+  const colores = generarColores(ids.length);
+  ids.forEach((id, idx) => { rutas[id].color = colores[idx]; });
+
+  dibujarTodas();
+  renderLista();
+  renderChipsFiltros();
+  if (!geocercas.length) inicializarGeocercas();
+  ajustarVista();
+}
+
+// =========================================================
+// DIBUJAR UNA RUTA
+// =========================================================
+async function dibujarRuta(id) {
+  const r = rutas[id];
+  r.layer.clearLayers();
+  r.puntos.sort((a,b) => a.sec - b.sec);
+
+  // Coordenadas en orden de paradas (línea recta de respaldo)
+  const coordsRecto = r.puntos.map(p => [p.lat, p.lng]);
+
+  // Decidir qué geometría dibujar y calcular distancia
+  let geom = coordsRecto;
+  let distancia = distanciaTotalRecta(r.puntos); // fallback en metros
+  if (modoCalles && r.puntos.length >= 2) {
+    const result = await obtenerGeometriaCalles(id, r.puntos);
+    if (result && result.geom && result.geom.length) {
+      geom = result.geom;
+      distancia = result.distance;
+    }
+  }
+  r.distanciaKm = distancia / 1000;
+
+  // Línea
+  const polyline = L.polyline(geom, {
+    color: r.color,
+    weight: modoEdicion ? 6 : 4,
+    opacity: 0.85
+  }).bindPopup(
+    `<b>${id}</b><br>${r.descRuta}<br>` +
+    `<small>${r.planta}</small><br>` +
+    `<b>${r.distanciaKm.toFixed(2)} km</b> · ${r.puntos.length} paradas`
+  ).addTo(r.layer);
+
+  // Doble click en la línea = insertar parada (solo en modo edición)
+  polyline.on('dblclick', (ev) => {
+    if (!modoEdicion) return;
+    if (modoDesvio) return;
+    L.DomEvent.stopPropagation(ev);
+    insertarParada(id, ev.latlng);
+  });
+
+  // Paradas (siempre en su posición original, no en la geometría OSRM)
+  r.puntos.forEach((p, i) => {
+    const isStart = (i === 0);
+    const isMod = (p.lat !== p.latOrig || p.lng !== p.lngOrig);
+    const cls = isStart ? 'start-marker' : 'stop-marker';
+    const styleBg = isStart ? '' : `background:${r.color}`;
+    const extraCls = (modoEdicion ? ' draggable' : '') + (isMod ? ' modified' : '');
+    const size = isStart ? 26 : 22;
+    const anchor = isStart ? 13 : 11;
+
+    const icon = L.divIcon({
+      className: '',
+      html: `<div class="${cls}${extraCls}" style="${styleBg}">${p.sec}</div>`,
+      iconSize: [size, size],
+      iconAnchor: [anchor, anchor]
+    });
+
+    const marker = L.marker([p.lat, p.lng], { icon, draggable: modoEdicion })
+      .bindPopup(popupHTML(id, p), { maxWidth: 320, minWidth: 260 })
+      .addTo(r.layer);
+
+    // Cuando se abre el popup, enganchar los inputs del formulario
+    marker.on('popupopen', (ev) => {
+      const popupEl = ev.popup.getElement();
+      if (!popupEl) return;
+      cargarValoresFormulario(popupEl, id, p);
+      engancharFormularioParada(popupEl, id, p);
+    });
+
+    if (modoEdicion) {
+      marker.on('dragend', async (ev) => {
+        const nl = ev.target.getLatLng();
+        p.lat = nl.lat;
+        p.lng = nl.lng;
+        delete cacheCalles[id];      // invalidar geometría cacheada
+        actualizarBadgeCambios();
+        await dibujarRuta(id);
+        renderLista(document.getElementById('filtro').value);
+      });
+    }
+  });
+}
+
+function popupHTML(id, p) {
+  const r = rutas[id];
+  const horariosStr = p.horarios && p.horarios.length
+    ? p.horarios.join(' · ')
+    : '—';
+  const turnos = r.turnos && r.turnos.length
+    ? r.turnos.map(t => t === 'dia' ? 'Día' : t === 'tarde' ? 'Tarde' : 'Noche').join(', ')
+    : '—';
+
+  // Sólo se muestran inputs de aforo para los turnos que tiene la ruta
+  const turnosRuta = r.turnos && r.turnos.length ? r.turnos : ['dia','tarde','noche'];
+  const nombreTurno = t => t === 'dia' ? 'Día' : t === 'tarde' ? 'Tarde' : 'Noche';
+  const aforoCells = turnosRuta.map(t => `
+    <div class="aforo-cell">
+      <div class="tlabel">${nombreTurno(t)}</div>
+      <input type="number" min="0" max="200" step="1"
+             data-aforo-turno="${t}" placeholder="0"/>
+    </div>
+  `).join('');
+
+  const safeId = id.replace(/[^a-zA-Z0-9_-]/g,'');
+  return `
+    <b>${id}</b> — ${r.descRuta}<br>
+    <small>${r.planta}${r.tipServ ? ' · ' + r.tipServ : ''}</small><br>
+    <small><b>Turno(s):</b> ${turnos}</small><br>
+    <hr style="margin:6px 0; border:none; border-top:1px solid #ddd"/>
+    <b>Sec ${p.sec}</b>${p.pos ? ' · ' + p.pos : ''}<br>
+    ${p.parada}<br>
+    <small><b>Horarios:</b> ${horariosStr}</small>
+
+    <div class="parada-form" data-ruta="${id}" data-sec="${p.sec}">
+      <label>Comentario</label>
+      <textarea data-comentario placeholder="Notas de esta parada..."></textarea>
+
+      <label>Aforos por turno (0–41)</label>
+      <div class="aforo-grid">${aforoCells}</div>
+      <div class="cupo-info">
+        Cupo 100% por servicio = <b>41 pasajeros/turno</b>.
+        Los valores aplican a la ruta completa.
+      </div>
+      <div class="saved-note" data-saved>✓ Guardado</div>
+    </div>
+  `;
+}
+
+// =========================================================
+// STORAGE — comentarios (por ruta+sec) y aforos (por ruta+turno)
+// =========================================================
+const LS_COMENT = 'mae_comentarios_v1';
+const LS_AFORO  = 'mae_aforos_v1';
+
+function _lsGet(key) {
+  try { return JSON.parse(localStorage.getItem(key)) || {}; }
+  catch (e) { return {}; }
+}
+function _lsSet(key, obj) {
+  try { localStorage.setItem(key, JSON.stringify(obj)); } catch(e) {}
+}
+
+function getComentario(idRuta, sec) {
+  const all = _lsGet(LS_COMENT);
+  return (all[idRuta] && all[idRuta][sec]) || '';
+}
+function setComentario(idRuta, sec, txt) {
+  const all = _lsGet(LS_COMENT);
+  if (!all[idRuta]) all[idRuta] = {};
+  if (txt && txt.trim()) all[idRuta][sec] = txt;
+  else if (all[idRuta][sec] != null) delete all[idRuta][sec];
+  _lsSet(LS_COMENT, all);
+}
+
+function getAforosRuta(idRuta) {
+  const all = _lsGet(LS_AFORO);
+  return all[idRuta] || {};   // { dia: 12, tarde: 25, noche: 8 }
+}
+function setAforoTurno(idRuta, turno, val) {
+  const all = _lsGet(LS_AFORO);
+  if (!all[idRuta]) all[idRuta] = {};
+  const n = parseInt(val);
+  if (!isNaN(n) && n > 0) all[idRuta][turno] = n;
+  else delete all[idRuta][turno];
+  if (Object.keys(all[idRuta]).length === 0) delete all[idRuta];
+  _lsSet(LS_AFORO, all);
+}
+
+// Rellenar los inputs del popup al abrirse
+function cargarValoresFormulario(popupEl, idRuta, p) {
+  const form = popupEl.querySelector('.parada-form');
+  if (!form) return;
+  const ta = form.querySelector('[data-comentario]');
+  if (ta) ta.value = getComentario(idRuta, p.sec);
+  const aforos = getAforosRuta(idRuta);
+  form.querySelectorAll('[data-aforo-turno]').forEach(inp => {
+    const t = inp.getAttribute('data-aforo-turno');
+    inp.value = aforos[t] != null ? aforos[t] : '';
+  });
+}
+
+// Debounce simple para autosave
+function _debounce(fn, ms) {
+  let t = null;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+
+function engancharFormularioParada(popupEl, idRuta, p) {
+  const form = popupEl.querySelector('.parada-form');
+  if (!form) return;
+  const nota = form.querySelector('[data-saved]');
+  const flash = () => {
+    if (!nota) return;
+    nota.classList.add('show');
+    clearTimeout(flash._t);
+    flash._t = setTimeout(() => nota.classList.remove('show'), 900);
+  };
+
+  const ta = form.querySelector('[data-comentario]');
+  if (ta) {
+    const guardarComent = _debounce(() => {
+      setComentario(idRuta, p.sec, ta.value);
+      flash();
+    }, 350);
+    ta.addEventListener('input', guardarComent);
+  }
+
+  form.querySelectorAll('[data-aforo-turno]').forEach(inp => {
+    const t = inp.getAttribute('data-aforo-turno');
+    inp.addEventListener('change', () => {
+      setAforoTurno(idRuta, t, inp.value);
+      flash();
+      // Refrescar la lista para que aparezcan/actualicen las barras de capacidad
+      renderLista(document.getElementById('filtro').value);
+    });
+  });
+}
+
+// =========================================================
+// CONTROL DE VISIBILIDAD
+// =========================================================
+async function dibujarTodas() {
+  const ids = Object.keys(rutas);
+  let listas = 0;
+  const counter = document.getElementById('counter');
+  const total = ids.length;
+
+  // Dibujar secuencialmente para no saturar OSRM (1-2 seg por ruta)
+  for (const id of ids) {
+    await dibujarRuta(id);
+    if (rutas[id].visible) rutas[id].layer.addTo(map);
+    listas++;
+    if (modoCalles) {
+      counter.innerHTML = `Trazando por calles... <b>${listas}/${total}</b>`;
+    }
+  }
+  // Mensaje final
+  counter.innerHTML =
+    `<b>${total}</b> rutas · <b>${ids.reduce((a,id)=>a+rutas[id].puntos.length,0)}</b> paradas`;
+  // Refrescar lista para que aparezcan los km calculados
+  renderLista(document.getElementById('filtro').value);
+}
+
+function toggleRuta(id, visible) {
+  rutas[id].visible = visible;
+  if (visible) rutas[id].layer.addTo(map);
+  else map.removeLayer(rutas[id].layer);
+}
+
+function ajustarVista() {
+  const all = [];
+  Object.keys(rutas).forEach(id => {
+    if (rutas[id].visible) {
+      rutas[id].puntos.forEach(p => all.push([p.lat, p.lng]));
+    }
+  });
+  if (all.length) map.fitBounds(all, { padding: [30, 30] });
+}
+
+// =========================================================
+// CAPACIDAD (por ruta+turno). Cupo 100% = 41 por turno
+// =========================================================
+const CUPO_MAX_TURNO = 41;
+
+function renderCapacidadHTML(id, r) {
+  const aforos = getAforosRuta(id);
+  const turnos = Object.keys(aforos);
+  if (!turnos.length) return '';
+  const labels = { dia: 'Día', tarde: 'Tarde', noche: 'Noche' };
+  const orden = ['dia', 'tarde', 'noche'].filter(t => aforos[t] != null);
+  const rows = orden.map(t => {
+    const val = aforos[t];
+    const pct = Math.round((val / CUPO_MAX_TURNO) * 100);
+    let cls = 'low';
+    if (pct >= 100) cls = 'over';
+    else if (pct >= 85) cls = 'high';
+    else if (pct >= 60) cls = 'mid';
+    const w = Math.min(100, pct);
+    return `
+      <div class="capacity-bar">
+        <span class="tname">${labels[t]}</span>
+        <span class="bar"><span class="fill ${cls}" style="width:${w}%"></span></span>
+        <span class="val">${val}/${CUPO_MAX_TURNO} · ${pct}%</span>
+      </div>
+    `;
+  }).join('');
+  return `<div class="capacity-block">${rows}</div>`;
+}
+
+// =========================================================
+// LISTA DE RUTAS (panel)
+// =========================================================
+function renderLista(filtroTxt = '') {
+  const cont = document.getElementById('lista');
+  cont.innerHTML = '';
+  const ids = Object.keys(rutas).sort();
+  const f = filtroTxt.toLowerCase();
+
+  ids.forEach(id => {
+    const r = rutas[id];
+    if (f && !id.toLowerCase().includes(f) && !r.descRuta.toLowerCase().includes(f)) return;
+
+    const div = document.createElement('div');
+    div.className = 'ruta-item' + (r.visible ? ' activa' : '');
+    div.innerHTML = `
+      <input type="checkbox" ${r.visible ? 'checked' : ''}/>
+      <div class="ruta-color" style="background:${r.color}"></div>
+      <div class="ruta-info">
+        <div class="ruta-id">${id}</div>
+        <div class="ruta-desc">${r.descRuta}</div>
+        <div class="ruta-stops">${r.puntos.length} paradas${r.distanciaKm != null ? ' · <b style="color:#84cc16">'+r.distanciaKm.toFixed(2)+' km</b>' : ''}</div>
+        ${renderCapacidadHTML(id, r)}
+      </div>
+    `;
+    const chk = div.querySelector('input');
+    chk.addEventListener('change', e => {
+      e.stopPropagation();
+      toggleRuta(id, chk.checked);
+      div.classList.toggle('activa', chk.checked);
+    });
+    div.addEventListener('click', e => {
+      if (e.target === chk) return;
+      // click en el item: hacer zoom a esa ruta
+      const coords = r.puntos.map(p => [p.lat, p.lng]);
+      if (coords.length) map.fitBounds(coords, { padding: [40, 40] });
+      if (!r.visible) { chk.checked = true; toggleRuta(id, true); div.classList.add('activa'); }
+    });
+    cont.appendChild(div);
+  });
+}
+
+// =========================================================
+// EVENTOS UI
+// =========================================================
+document.getElementById('btnAll').addEventListener('click', () => {
+  Object.keys(rutas).forEach(id => toggleRuta(id, true));
+  renderLista(document.getElementById('filtro').value);
+  ajustarVista();
+});
+document.getElementById('btnNone').addEventListener('click', () => {
+  Object.keys(rutas).forEach(id => toggleRuta(id, false));
+  renderLista(document.getElementById('filtro').value);
+});
+document.getElementById('btnFit').addEventListener('click', ajustarVista);
+document.getElementById('btnModo').addEventListener('click', async () => {
+  modoCalles = !modoCalles;
+  document.getElementById('btnModo').textContent = 'Modo: ' + (modoCalles ? 'Calles' : 'Recto');
+  // Redibujar todas con el nuevo modo
+  await dibujarTodas();
+});
+
+document.getElementById('btnEdit').addEventListener('click', async () => {
+  modoEdicion = !modoEdicion;
+  const btn = document.getElementById('btnEdit');
+  btn.textContent = 'Editar: ' + (modoEdicion ? 'ON' : 'OFF');
+  btn.classList.toggle('danger', modoEdicion);
+  // Si se activa edición, apagar modo desvío
+  if (modoEdicion && modoDesvio) {
+    modoDesvio = false;
+    desvioActual = null;
+    const btnD = document.getElementById('btnDesvio');
+    btnD.textContent = 'Desvío: OFF';
+    btnD.style.background = '';
+    btnD.style.color = '';
+    btnD.style.boxShadow = '';
+    btnD.style.animation = '';
+    map.getContainer().style.cursor = '';
+  }
+  // Evitar que el doble click haga zoom; reservarlo para insertar parada
+  if (modoEdicion) map.doubleClickZoom.disable();
+  else map.doubleClickZoom.enable();
+  // Redibujar para activar/desactivar drag y engrosar línea
+  for (const id of Object.keys(rutas)) {
+    await dibujarRuta(id);
+  }
+  renderLista(document.getElementById('filtro').value);
+});
+
+document.getElementById('btnExport').addEventListener('click', exportarCambios);
+
+// --------- Botón Desvío ---------
+document.getElementById('btnDesvio').addEventListener('click', () => {
+  modoDesvio = !modoDesvio;
+  desvioActual = null; // empezar trazo fresco cada vez que se activa
+  const btn = document.getElementById('btnDesvio');
+  btn.textContent = 'Desvío: ' + (modoDesvio ? 'ON' : 'OFF');
+  btn.className = 'toolbar button desvio' + (modoDesvio ? ' active' : '');
+  // Aplicar clases correctamente
+  btn.style.background   = modoDesvio ? '#ff1a1a' : '';
+  btn.style.color        = modoDesvio ? '#fff' : '';
+  btn.style.fontWeight   = modoDesvio ? '600' : '';
+  btn.style.boxShadow    = modoDesvio ? '0 0 10px #ff000099' : '';
+  btn.style.animation    = modoDesvio ? 'pulseDesvio 1.2s infinite' : '';
+  // Cursor del mapa
+  map.getContainer().style.cursor = modoDesvio ? 'crosshair' : '';
+  // Desactivar edición si está ON
+  if (modoDesvio && modoEdicion) {
+    modoEdicion = false;
+    const btnE = document.getElementById('btnEdit');
+    btnE.textContent = 'Editar: OFF';
+    btnE.classList.remove('danger');
+    map.doubleClickZoom.enable();
+    Object.keys(rutas).forEach(id => dibujarRuta(id));
+  }
+});
+document.getElementById('btnClearDesvio').addEventListener('click', () => {
+  if (confirm('¿Borrar todos los desvíos trazados?')) {
+    limpiarDesvios();
+  }
+});
+
+// Chips de turno
+document.querySelectorAll('#chipsTurnos .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const t = chip.dataset.turno;
+    if (turnosActivos.has(t)) turnosActivos.delete(t);
+    else turnosActivos.add(t);
+    aplicarFiltros();
+    renderChipsFiltros();
+  });
+});
+
+// Geocercas
+document.getElementById('btnGeo').addEventListener('click', toggleGeocercas);
+document.getElementById('sliderDiam').addEventListener('input', e => {
+  setDiametroGeocercas(parseInt(e.target.value));
+});
+
+// =========================================================
+// HELPERS DE CAMBIOS
+// =========================================================
+function obtenerCambios() {
+  const cambios = [];
+  Object.keys(rutas).forEach(id => {
+    rutas[id].puntos.forEach(p => {
+      const esNuevo = p.nuevo === true;
+      const esMovido = !esNuevo && (p.lat !== p.latOrig || p.lng !== p.lngOrig);
+      if (esNuevo || esMovido) {
+        cambios.push({
+          tipo: esNuevo ? 'Nueva' : 'Movida',
+          idRuta: id,
+          descRuta: rutas[id].descRuta,
+          planta: rutas[id].planta,
+          sec: p.sec,
+          parada: p.parada,
+          latOrig: esNuevo ? '' : p.latOrig,
+          lngOrig: esNuevo ? '' : p.lngOrig,
+          latNueva: p.lat,
+          lngNueva: p.lng
+        });
+      }
+    });
+  });
+  return cambios;
+}
+
+function actualizarBadgeCambios() {
+  const n = obtenerCambios().length;
+  document.getElementById('badgeCambios').textContent = n > 0 ? n : '';
+  document.getElementById('btnExport').disabled = (n === 0);
+}
+
+function exportarCambios() {
+  const cambios = obtenerCambios();
+  if (!cambios.length) return;
+
+  const header = 'Tipo,ID Ruta,Descripcion,Planta,Sec,Parada,Lat Original,Lng Original,Lat Nueva,Lng Nueva\n';
+  const esc = s => `"${String(s).replace(/"/g,'""')}"`;
+  const filas = cambios.map(c => [
+    esc(c.tipo), esc(c.idRuta), esc(c.descRuta), esc(c.planta), c.sec, esc(c.parada),
+    c.latOrig, c.lngOrig, c.latNueva, c.lngNueva
+  ].join(','));
+  const csv = header + filas.join('\n');
+
+  const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const fecha = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `cambios_paradas_${fecha}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// =========================================================
+// DESVÍOS — trazo brillante con handles intermedios y color personalizable
+// =========================================================
+const DESVIO_COLOR_DEFAULT = '#ff1a1a';
+
+function crearDesvio(opts = {}) {
+  const d = {
+    id: opts.id || ('d_' + Date.now() + '_' + Math.random().toString(36).slice(2,6)),
+    nombre: opts.nombre || '',
+    color: opts.color || DESVIO_COLOR_DEFAULT,
+    puntos: [],         // [{lat, lng}] — waypoints del usuario
+    polyline: null,     // línea principal (recta o OSRM)
+    guidePoly: null,    // línea guía punteada de los waypoints
+    markers: [],        // markers rojos (puntos del usuario)
+    midHandles: [],     // handles blancos intermedios (para arrastrar la línea)
+    osrmGeom: null
+  };
+  desvios.push(d);
+  return d;
+}
+
+function markerDesvioIcon(isAnchor, color) {
+  const cls = 'desvio-point' + (isAnchor ? ' anchor' : '');
+  const sz = isAnchor ? 18 : 14;
+  const anc = isAnchor ? 9 : 7;
+  const bg = color || DESVIO_COLOR_DEFAULT;
+  const style = `background:${bg}; box-shadow: 0 0 8px ${bg}aa, 0 0 2px rgba(0,0,0,0.6);`;
+  return L.divIcon({ className: '', html: `<div class="${cls}" style="${style}"></div>`, iconSize:[sz,sz], iconAnchor:[anc,anc] });
+}
+
+function midHandleIcon(color) {
+  const border = color || DESVIO_COLOR_DEFAULT;
+  return L.divIcon({
+    className: '',
+    html: `<div class="desvio-handle" style="border-color:${border}"></div>`,
+    iconSize:[10,10], iconAnchor:[5,5]
+  });
+}
+
+// Repinta todos los markers/handles del desvío con su color actual
+function repintarMarkersDesvio(d) {
+  d.markers.forEach((m, i) => m.setIcon(markerDesvioIcon(i === 0, d.color)));
+  d.midHandles.forEach(mh => mh.marker.setIcon(midHandleIcon(d.color)));
+}
+
+async function dibujarLineasDesvio(d) {
+  // Limpiar capas anteriores
+  if (d.polyline)  { map.removeLayer(d.polyline);  d.polyline = null; }
+  if (d.guidePoly) { map.removeLayer(d.guidePoly); d.guidePoly = null; }
+  d.midHandles.forEach(mh => map.removeLayer(mh.marker));
+  d.midHandles = [];
+
+  if (d.puntos.length < 2) return;
+
+  const coords = d.puntos.map(p => [p.lat, p.lng]);
+
+  // Intentar OSRM si modo calles activo
+  if (modoCalles) {
+    const wayCoords = d.puntos.map(p => `${p.lng},${p.lat}`).join(';');
+    const url = `https://router.project-osrm.org/route/v1/driving/${wayCoords}?overview=full&geometries=geojson`;
+    try {
+      const resp = await fetch(url);
+      const data = await resp.json();
+      if (data.code === 'Ok' && data.routes?.[0]) {
+        const geom = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        d.osrmGeom = geom;
+        d.polyline = L.polyline(geom, {
+          color: d.color, weight: 5, opacity: 0.92
+        }).bindTooltip(d.nombre || 'Desvío', { className: 'desvio-tooltip', sticky: true })
+          .addTo(map);
+        // Guía punteada de los waypoints
+        d.guidePoly = L.polyline(coords, {
+          color: d.color, weight: 1.5, opacity: 0.4, dashArray: '6 6'
+        }).addTo(map);
+        agregarMidHandles(d);
+        engancharDobleClickPolyline(d);
+        return;
+      }
+    } catch (e) { /* fallback a recta */ }
+  }
+
+  // Fallback: línea recta brillante
+  d.polyline = L.polyline(coords, {
+    color: d.color, weight: 5, opacity: 0.92
+  }).bindTooltip(d.nombre || 'Desvío', { className: 'desvio-tooltip', sticky: true })
+    .addTo(map);
+  agregarMidHandles(d);
+  engancharDobleClickPolyline(d);
+}
+
+// Handles intermedios: uno a mitad de cada segmento entre waypoints.
+// Al arrastrarlos, se insertan como waypoint real y se re-rutea.
+function agregarMidHandles(d) {
+  for (let i = 0; i < d.puntos.length - 1; i++) {
+    const a = d.puntos[i], b = d.puntos[i+1];
+    const mid = { lat: (a.lat + b.lat)/2, lng: (a.lng + b.lng)/2 };
+    const m = L.marker([mid.lat, mid.lng], {
+      icon: midHandleIcon(d.color),
+      draggable: true,
+      zIndexOffset: -100
+    }).addTo(map);
+
+    const segmentoIdx = i;   // se convertirá en índice de inserción
+    let inserted = false;
+    let insertedIdx = -1;
+
+    m.on('dragstart', () => { inserted = false; });
+    m.on('drag', (e) => {
+      const nl = e.target.getLatLng();
+      if (!inserted) {
+        // Insertar nuevo waypoint entre i e i+1
+        insertedIdx = segmentoIdx + 1;
+        d.puntos.splice(insertedIdx, 0, { lat: nl.lat, lng: nl.lng });
+        inserted = true;
+      } else {
+        d.puntos[insertedIdx].lat = nl.lat;
+        d.puntos[insertedIdx].lng = nl.lng;
+      }
+      // Actualizar sólo la guía punteada mientras arrastra (barato)
+      if (d.guidePoly) d.guidePoly.setLatLngs(d.puntos.map(p => [p.lat, p.lng]));
+    });
+    m.on('dragend', async () => {
+      d.osrmGeom = null;
+      await dibujarLineasDesvio(d);
+      // Añadir un marker rojo real donde quedó el nuevo waypoint
+      if (inserted && insertedIdx > 0 && insertedIdx < d.puntos.length) {
+        crearMarkerDesvioEnPunto(d, insertedIdx);
+      }
+    });
+
+    d.midHandles.push({ marker: m, segmentIdx: segmentoIdx });
+  }
+}
+
+// Crea un marker rojo persistente para un waypoint ya existente en d.puntos[idx]
+function crearMarkerDesvioEnPunto(d, idx) {
+  const punto = d.puntos[idx];
+  const m = L.marker([punto.lat, punto.lng], {
+    icon: markerDesvioIcon(false, d.color),
+    draggable: true
+  }).bindTooltip(`Punto`, { className: 'desvio-tooltip', direction:'top' })
+    .addTo(map);
+
+  m.on('dragend', async (e) => {
+    const nl = e.target.getLatLng();
+    punto.lat = nl.lat;
+    punto.lng = nl.lng;
+    d.osrmGeom = null;
+    await dibujarLineasDesvio(d);
+  });
+
+  m.on('contextmenu', (e) => {
+    L.DomEvent.stopPropagation(e);
+    const i = d.puntos.indexOf(punto);
+    if (i !== -1) {
+      d.puntos.splice(i, 1);
+      map.removeLayer(m);
+      const mi = d.markers.indexOf(m);
+      if (mi !== -1) d.markers.splice(mi, 1);
+      d.osrmGeom = null;
+      dibujarLineasDesvio(d);
+    }
+    if (d.puntos.length === 0) {
+      eliminarDesvio(d);
+      if (d === desvioActivoPanel) ocultarPanelDesvio();
+    }
+    actualizarBtnClearDesvio();
+  });
+
+  // Click en el marker: activar el panel de control para este desvío
+  m.on('click', (e) => {
+    L.DomEvent.stopPropagation(e);
+    mostrarPanelDesvio(d);
+  });
+
+  d.markers.push(m);
+  return m;
+}
+
+// Al hacer doble-click en la polyline, insertar un waypoint en ese punto
+function engancharDobleClickPolyline(d) {
+  const insertar = (ev) => {
+    L.DomEvent.stopPropagation(ev);
+    const p = { lat: ev.latlng.lat, lng: ev.latlng.lng };
+    // Buscar mejor segmento (entre qué dos waypoints insertar)
+    let mejorIdx = 0, mejorDist = Infinity;
+    for (let i = 0; i < d.puntos.length - 1; i++) {
+      const d1 = distMetros(p.lat, p.lng, d.puntos[i].lat, d.puntos[i].lng);
+      const d2 = distMetros(p.lat, p.lng, d.puntos[i+1].lat, d.puntos[i+1].lng);
+      const total = d1 + d2;
+      if (total < mejorDist) { mejorDist = total; mejorIdx = i; }
+    }
+    d.puntos.splice(mejorIdx + 1, 0, p);
+    d.osrmGeom = null;
+    dibujarLineasDesvio(d).then(() => {
+      crearMarkerDesvioEnPunto(d, mejorIdx + 1);
+    });
+  };
+  if (d.polyline)  d.polyline.on('dblclick', insertar);
+  if (d.guidePoly) d.guidePoly.on('dblclick', insertar);
+  // Click en la línea → activar panel
+  const activar = (ev) => {
+    L.DomEvent.stopPropagation(ev);
+    mostrarPanelDesvio(d);
+  };
+  if (d.polyline) d.polyline.on('click', activar);
+}
+
+function agregarPuntoDesvio(latlng) {
+  if (!desvioActual) {
+    desvioActual = crearDesvio();
+    mostrarPanelDesvio(desvioActual);
+  }
+  const d = desvioActual;
+  const punto = { lat: latlng.lat, lng: latlng.lng };
+  d.puntos.push(punto);
+  const idx = d.puntos.length - 1;
+
+  const m = L.marker([latlng.lat, latlng.lng], {
+    icon: markerDesvioIcon(idx === 0, d.color),
+    draggable: true
+  }).bindTooltip(idx === 0 ? 'Inicio desvío' : `Punto ${idx}`, { className: 'desvio-tooltip', direction:'top' })
+    .addTo(map);
+
+  m.on('dragend', async (e) => {
+    const nl = e.target.getLatLng();
+    punto.lat = nl.lat;
+    punto.lng = nl.lng;
+    d.osrmGeom = null;
+    await dibujarLineasDesvio(d);
+    actualizarBtnClearDesvio();
+  });
+
+  m.on('contextmenu', (e) => {
+    L.DomEvent.stopPropagation(e);
+    const i = d.puntos.indexOf(punto);
+    if (i !== -1) {
+      d.puntos.splice(i, 1);
+      map.removeLayer(m);
+      d.markers.splice(d.markers.indexOf(m), 1);
+      d.osrmGeom = null;
+      dibujarLineasDesvio(d);
+    }
+    if (d.puntos.length === 0) {
+      eliminarDesvio(d);
+      if (d === desvioActivoPanel) ocultarPanelDesvio();
+    }
+    actualizarBtnClearDesvio();
+  });
+
+  m.on('click', (e) => {
+    L.DomEvent.stopPropagation(e);
+    mostrarPanelDesvio(d);
+  });
+
+  d.markers.push(m);
+  dibujarLineasDesvio(d);
+  actualizarBtnClearDesvio();
+}
+
+function eliminarDesvio(d) {
+  if (d.polyline)  map.removeLayer(d.polyline);
+  if (d.guidePoly) map.removeLayer(d.guidePoly);
+  d.markers.forEach(m => map.removeLayer(m));
+  d.midHandles.forEach(mh => map.removeLayer(mh.marker));
+  const idx = desvios.indexOf(d);
+  if (idx !== -1) desvios.splice(idx, 1);
+  if (desvioActual === d) desvioActual = null;
+  if (desvioActivoPanel === d) ocultarPanelDesvio();
+}
+
+function limpiarDesvios() {
+  [...desvios].forEach(d => eliminarDesvio(d));
+  desvioActual = null;
+  ocultarPanelDesvio();
+  actualizarBtnClearDesvio();
+}
+
+function actualizarBtnClearDesvio() {
+  document.getElementById('btnClearDesvio').disabled = (desvios.length === 0);
+}
+
+// ============ Panel flotante de control del desvío ============
+let desvioActivoPanel = null;
+
+function mostrarPanelDesvio(d) {
+  desvioActivoPanel = d;
+  const panel = document.getElementById('desvioCtrl');
+  panel.classList.add('visible');
+  document.getElementById('desvioColor').value = colorToHex(d.color);
+  document.getElementById('desvioNombre').value = d.nombre || '';
+}
+
+function ocultarPanelDesvio() {
+  desvioActivoPanel = null;
+  document.getElementById('desvioCtrl').classList.remove('visible');
+}
+
+// Convierte cualquier color a #rrggbb (para el input type=color)
+function colorToHex(c) {
+  if (!c) return '#ff1a1a';
+  if (/^#[0-9a-f]{6}$/i.test(c)) return c;
+  // Usar un canvas para normalizar
+  const ctx = document.createElement('canvas').getContext('2d');
+  ctx.fillStyle = '#000';
+  ctx.fillStyle = c;
+  return ctx.fillStyle;
+}
+
+// Handlers del panel
+document.getElementById('desvioColor').addEventListener('input', (e) => {
+  if (!desvioActivoPanel) return;
+  desvioActivoPanel.color = e.target.value;
+  if (desvioActivoPanel.polyline)  desvioActivoPanel.polyline.setStyle({ color: desvioActivoPanel.color });
+  if (desvioActivoPanel.guidePoly) desvioActivoPanel.guidePoly.setStyle({ color: desvioActivoPanel.color });
+  repintarMarkersDesvio(desvioActivoPanel);
+});
+document.getElementById('desvioNombre').addEventListener('input', (e) => {
+  if (!desvioActivoPanel) return;
+  desvioActivoPanel.nombre = e.target.value;
+  const nm = desvioActivoPanel.nombre || 'Desvío';
+  if (desvioActivoPanel.polyline && desvioActivoPanel.polyline.getTooltip()) {
+    desvioActivoPanel.polyline.setTooltipContent(nm);
+  }
+});
+document.getElementById('desvioSave').addEventListener('click', () => {
+  if (!desvioActivoPanel) return;
+  guardarPropuesta(desvioActivoPanel);
+});
+document.getElementById('desvioDel').addEventListener('click', () => {
+  if (!desvioActivoPanel) return;
+  if (confirm('¿Eliminar este desvío del mapa?')) {
+    eliminarDesvio(desvioActivoPanel);
+    actualizarBtnClearDesvio();
+  }
+});
+document.getElementById('desvioCtrlClose').addEventListener('click', ocultarPanelDesvio);
+
+// ============ Propuestas guardadas (localStorage) ============
+const LS_PROPUESTAS = 'mae_propuestas_v1';
+
+function _getPropuestas() {
+  try { return JSON.parse(localStorage.getItem(LS_PROPUESTAS)) || []; }
+  catch (e) { return []; }
+}
+function _setPropuestas(arr) {
+  try { localStorage.setItem(LS_PROPUESTAS, JSON.stringify(arr)); } catch(e) {}
+}
+
+function guardarPropuesta(d) {
+  if (d.puntos.length < 2) {
+    alert('El desvío necesita al menos 2 puntos para guardarse.');
+    return;
+  }
+  let nombre = (d.nombre || '').trim();
+  if (!nombre) {
+    nombre = prompt('Nombre de la propuesta:', 'Propuesta ' + (_getPropuestas().length + 1));
+    if (!nombre) return;
+    nombre = nombre.trim();
+    d.nombre = nombre;
+    document.getElementById('desvioNombre').value = nombre;
+  }
+  const propuestas = _getPropuestas();
+  // Si ya existe una con el mismo nombre, sobrescribir
+  const existente = propuestas.findIndex(p => p.nombre === nombre);
+  const item = {
+    nombre,
+    color: d.color,
+    puntos: d.puntos.map(p => ({ lat: p.lat, lng: p.lng })),
+    guardadoEn: new Date().toISOString()
+  };
+  if (existente !== -1) {
+    if (!confirm(`Ya existe "${nombre}". ¿Sobrescribir?`)) return;
+    propuestas[existente] = item;
+  } else {
+    propuestas.push(item);
+  }
+  _setPropuestas(propuestas);
+  renderListaPropuestas();
+  alert(`Propuesta "${nombre}" guardada.`);
+}
+
+function eliminarPropuesta(nombre) {
+  if (!confirm(`¿Eliminar la propuesta "${nombre}"?`)) return;
+  const propuestas = _getPropuestas().filter(p => p.nombre !== nombre);
+  _setPropuestas(propuestas);
+  renderListaPropuestas();
+}
+
+function cargarPropuesta(nombre) {
+  const p = _getPropuestas().find(x => x.nombre === nombre);
+  if (!p) return;
+  // Crear desvío nuevo con los datos guardados
+  const d = crearDesvio({ nombre: p.nombre, color: p.color });
+  p.puntos.forEach((pt, idx) => {
+    d.puntos.push({ lat: pt.lat, lng: pt.lng });
+    const m = L.marker([pt.lat, pt.lng], {
+      icon: markerDesvioIcon(idx === 0, d.color),
+      draggable: true
+    }).bindTooltip(idx === 0 ? 'Inicio desvío' : `Punto ${idx}`, { className: 'desvio-tooltip', direction:'top' })
+      .addTo(map);
+
+    m.on('dragend', async (e) => {
+      const nl = e.target.getLatLng();
+      d.puntos[idx].lat = nl.lat;
+      d.puntos[idx].lng = nl.lng;
+      d.osrmGeom = null;
+      await dibujarLineasDesvio(d);
+    });
+    m.on('contextmenu', (e) => {
+      L.DomEvent.stopPropagation(e);
+      const i = d.puntos.findIndex(x => x.lat === d.puntos[idx].lat && x.lng === d.puntos[idx].lng);
+      if (i !== -1) {
+        d.puntos.splice(i, 1);
+        map.removeLayer(m);
+        d.markers.splice(d.markers.indexOf(m), 1);
+        d.osrmGeom = null;
+        dibujarLineasDesvio(d);
+      }
+      if (d.puntos.length === 0) eliminarDesvio(d);
+      actualizarBtnClearDesvio();
+    });
+    m.on('click', (e) => { L.DomEvent.stopPropagation(e); mostrarPanelDesvio(d); });
+
+    d.markers.push(m);
+  });
+  dibujarLineasDesvio(d).then(() => {
+    // Centrar mapa en la propuesta
+    const b = L.latLngBounds(p.puntos.map(x => [x.lat, x.lng]));
+    map.fitBounds(b, { padding: [40, 40] });
+    mostrarPanelDesvio(d);
+  });
+  actualizarBtnClearDesvio();
+}
+
+function renderListaPropuestas() {
+  const cont = document.getElementById('listaPropuestas');
+  if (!cont) return;
+  const propuestas = _getPropuestas();
+  if (!propuestas.length) {
+    cont.innerHTML = '<div class="propuesta-empty">Sin propuestas guardadas.</div>';
+    return;
+  }
+  cont.innerHTML = propuestas.map(p => `
+    <div class="propuesta-item" data-nombre="${p.nombre.replace(/"/g,'&quot;')}">
+      <span class="swatch" style="background:${p.color}"></span>
+      <span class="name" title="${p.nombre}">${p.nombre}</span>
+      <span class="pts">${p.puntos.length} pts</span>
+      <button class="load" title="Cargar en el mapa">▶</button>
+      <button class="del" title="Eliminar">×</button>
+    </div>
+  `).join('');
+  cont.querySelectorAll('.propuesta-item').forEach(el => {
+    const nombre = el.dataset.nombre;
+    el.querySelector('.load').addEventListener('click', () => cargarPropuesta(nombre));
+    el.querySelector('.del').addEventListener('click', () => eliminarPropuesta(nombre));
+  });
+}
+
+// Click en el mapa para agregar puntos de desvío
+map.on('click', (e) => {
+  if (!modoDesvio) return;
+  // Si se hace click en el marker de inicio, cerrar el desvío actual y empezar uno nuevo
+  agregarPuntoDesvio(e.latlng);
+});
+
+// Doble click en el mapa: finalizar desvío actual y empezar uno nuevo en el siguiente click
+map.on('dblclick', (e) => {
+  if (!modoDesvio) return;
+  L.DomEvent.stopPropagation(e);
+  // Cerrar desvío actual
+  if (desvioActual && desvioActual.puntos.length >= 2) {
+    desvioActual = null; // el siguiente click abre uno nuevo
+  }
+});
+
+// =========================================================
+// INSERTAR PARADA NUEVA (doble click en línea)
+// =========================================================
+function insertarParada(id, latlng) {
+  const r = rutas[id];
+  r.puntos.sort((a,b) => a.sec - b.sec);
+
+  // Encontrar segmento más cercano (par de paradas consecutivas)
+  let mejorIdx = 0;
+  let mejorDist = Infinity;
+  for (let i = 0; i < r.puntos.length - 1; i++) {
+    const d = distMetros(latlng.lat, latlng.lng, r.puntos[i].lat, r.puntos[i].lng)
+            + distMetros(latlng.lat, latlng.lng, r.puntos[i+1].lat, r.puntos[i+1].lng);
+    if (d < mejorDist) { mejorDist = d; mejorIdx = i; }
+  }
+
+  const nombre = prompt('Nombre de la nueva parada:', 'Nueva parada');
+  if (nombre === null) return; // cancelado
+
+  const nuevaSec = r.puntos[mejorIdx].sec + 1;
+  // Recorrer secuencias posteriores
+  r.puntos.forEach(p => { if (p.sec >= nuevaSec) p.sec += 1; });
+
+  r.puntos.push({
+    sec: nuevaSec,
+    pos: '',
+    parada: nombre || 'Nueva parada',
+    lat: latlng.lat,
+    lng: latlng.lng,
+    latOrig: null, lngOrig: null,
+    nuevo: true,
+    h1: '', h2: '', h3: ''
+  });
+
+  // Invalidar geometría cacheada y redibujar
+  delete cacheCalles[id];
+  dibujarRuta(id).then(() => {
+    renderLista(document.getElementById('filtro').value);
+    actualizarBadgeCambios();
+  });
+}
+document.getElementById('filtro').addEventListener('input', e => {
+  renderLista(e.target.value);
+});
+
+// Cargar archivo local
+document.getElementById('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('counter').textContent = 'Procesando archivo local...';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    // Limpiar capas previas
+    Object.values(rutas).forEach(r => map.removeLayer(r.layer));
+    procesarCSV(ev.target.result);
+  };
+  // Leer como Latin1 por si el CSV viene del export en ese encoding
+  reader.readAsText(file, 'ISO-8859-1');
+});
+
+// =========================================================
+// USUARIOS / OPERADORES — carga desde Excel
+// =========================================================
+const personSVG = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
+const usuariosLayer = L.layerGroup().addTo(map);
+let usuariosCargados = [];
+let usuariosVisibles = true;
+
+function personIcon() {
+  return L.divIcon({
+    className: '',
+    html: `<div class="person-marker">${personSVG}</div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -18]
+  });
+}
+
+function cargarUsuariosExcel(file) {
+  if (typeof XLSX === 'undefined') {
+    alert('Error: la librería de lectura de Excel no cargó.\nRevisa tu conexión a internet y recarga la página.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      if (!data.length) { alert('El archivo está vacío.'); return; }
+
+      // Buscar columnas flexiblemente (Nombre/nombre, Lat/lat/Latitud, Long/Lng/Longitud)
+      const keys = Object.keys(data[0]);
+      const findCol = (opts) => keys.find(k => opts.some(o => k.trim().toLowerCase() === o.toLowerCase()));
+      const colNombre = findCol(['nombre','name','operador','operator','usuario']);
+      const colLat = findCol(['lat','latitud','latitude']);
+      const colLng = findCol(['long','lng','longitud','longitude','lon']);
+
+      if (!colNombre || !colLat || !colLng) {
+        alert('No se encontraron las columnas requeridas.\nSe esperan: Nombre, Lat, Long\nColumnas encontradas: ' + keys.join(', '));
+        return;
+      }
+
+      // Limpiar anteriores
+      limpiarUsuarios(false);
+
+      data.forEach(row => {
+        const nombre = String(row[colNombre] || '').trim();
+        const lat = parseFloat(row[colLat]);
+        const lng = parseFloat(row[colLng]);
+        if (!nombre || isNaN(lat) || isNaN(lng)) return;
+        usuariosCargados.push({ nombre, lat, lng });
+      });
+
+      if (!usuariosCargados.length) {
+        alert('No se encontraron registros válidos con nombre y coordenadas.');
+        return;
+      }
+
+      // Crear markers
+      usuariosCargados.forEach(u => {
+        const m = L.marker([u.lat, u.lng], { icon: personIcon() })
+          .bindPopup(`<b>${u.nombre}</b><br><small>${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}</small>`)
+          .bindTooltip(u.nombre, { direction: 'top', offset: [0, -18] });
+        u.marker = m;
+        m.addTo(usuariosLayer);
+      });
+
+      // Actualizar UI
+      actualizarUIUsuarios();
+
+    } catch (err) {
+      alert('Error al leer el archivo Excel:\n' + err.message);
+      console.error(err);
+    }
+  };
+  reader.onerror = function() {
+    alert('Error al leer el archivo.');
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function actualizarUIUsuarios() {
+  const n = usuariosCargados.length;
+  const btn = document.getElementById('btnToggleUsuarios');
+  const cnt = document.getElementById('cntUsuarios');
+  cnt.textContent = n > 0 ? `(${n})` : '';
+  btn.disabled = (n === 0);
+  document.getElementById('btnClearUsuarios').disabled = (n === 0);
+  if (n > 0 && usuariosVisibles) {
+    btn.classList.add('active');
+    btn.innerHTML = 'Ocultar usuarios <span id="cntUsuarios" style="color:#84cc16; font-weight:700">(' + n + ')</span>';
+  } else if (n > 0) {
+    btn.classList.remove('active');
+    btn.innerHTML = 'Mostrar usuarios <span id="cntUsuarios" style="color:#84cc16; font-weight:700">(' + n + ')</span>';
+  } else {
+    btn.classList.remove('active');
+    btn.innerHTML = 'Mostrar usuarios <span id="cntUsuarios" style="color:#84cc16; font-weight:700"></span>';
+  }
+}
+
+function toggleUsuarios() {
+  if (!usuariosCargados.length) return;
+  usuariosVisibles = !usuariosVisibles;
+  if (usuariosVisibles) {
+    usuariosLayer.addTo(map);
+  } else {
+    map.removeLayer(usuariosLayer);
+  }
+  actualizarUIUsuarios();
+}
+
+function limpiarUsuarios(resetInput) {
+  usuariosLayer.clearLayers();
+  usuariosCargados = [];
+  usuariosVisibles = true;
+  actualizarUIUsuarios();
+  if (resetInput !== false) document.getElementById('fileUsuarios').value = '';
+}
+
+// Eventos
+document.getElementById('fileUsuarios').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) cargarUsuariosExcel(file);
+});
+document.getElementById('btnToggleUsuarios').addEventListener('click', toggleUsuarios);
+document.getElementById('btnClearUsuarios').addEventListener('click', () => {
+  if (confirm('¿Quitar todos los usuarios del mapa?')) limpiarUsuarios();
+});
+
+// =========================================================
+// CARGA INICIAL desde Google Sheets
+// =========================================================
+renderListaPropuestas();
+document.getElementById('counter').textContent = 'Cargando desde Google Sheets...';
+fetch(SHEET_URL)
+  .then(r => r.text())
+  .then(csv => procesarCSV(csv))
+  .catch(err => {
+    document.getElementById('counter').innerHTML =
+      '<span style="color:#f87171">Error al cargar Sheet. Usa el botón de CSV local.</span>';
+    console.error(err);
+  });
+</script>
+</body>
+</html>
