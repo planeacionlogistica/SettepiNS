@@ -461,6 +461,11 @@
     flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
     color:#e5e7eb;
   }
+  .propuesta-item.loaded {
+    background:#1a2b1a; border-left-color:#84cc16;
+  }
+  .propuesta-item.loaded .name { color:#a3e635; }
+  .propuesta-item button.hide:hover { color:#84cc16; }
   .propuesta-item .pts { color:#6b7280; font-size:10px; }
   .propuesta-item button {
     background:none; border:none; color:#9ca3af; cursor:pointer;
@@ -471,6 +476,90 @@
   .propuesta-empty {
     font-size: 10px; color: #6b7280; font-style: italic;
     padding: 6px 8px;
+  }
+
+  /* ============ NUEVO: Panel de instrucciones calle por calle ============ */
+  #turnPanel {
+    position: absolute;
+    top: 70px;
+    right: 310px;
+    z-index: 1000;
+    width: 300px;
+    max-height: calc(100vh - 130px);
+    background: #1f2937;
+    color: #e5e7eb;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    font-size: 12px;
+  }
+  #turnPanel.visible { display: flex; }
+  #turnPanel .tp-head {
+    padding: 10px 12px;
+    border-bottom: 1px solid #374151;
+    display:flex; justify-content:space-between; align-items:flex-start; gap:8px;
+  }
+  #turnPanel .tp-head .title {
+    font-size: 12px; font-weight: 700; color: #84cc16;
+    text-transform: uppercase; letter-spacing: 0.4px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  #turnPanel .tp-head .sub {
+    font-size: 10px; color: #9ca3af; margin-top: 2px;
+    display:flex; gap:8px; flex-wrap:wrap;
+  }
+  #turnPanel .tp-head .sub b { color: #e5e7eb; }
+  #turnPanel .tp-close {
+    background:none; border:none; color:#9ca3af; cursor:pointer;
+    font-size:18px; line-height:1; padding:0; flex-shrink:0;
+  }
+  #turnPanel .tp-close:hover { color:#f87171; }
+  #turnPanel .tp-body { overflow-y: auto; padding: 4px 0; }
+  #turnPanel .step {
+    display: flex; align-items:flex-start; gap: 8px;
+    padding: 8px 12px; border-bottom: 1px solid #2b3542;
+    position: relative;
+  }
+  #turnPanel .step:last-child { border-bottom: none; }
+  #turnPanel .step:hover { background:#252f3f; cursor:pointer; }
+  #turnPanel .step .idx {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #374151; color:#e5e7eb;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 10px; font-weight: 700; flex-shrink:0;
+  }
+  #turnPanel .step.start .idx { background:#84cc16; color:#1f2937; }
+  #turnPanel .step.end .idx { background:#dc2626; color:#fff; }
+  #turnPanel .step .arrow {
+    width: 20px; text-align:center; font-size: 16px;
+    color: #9ca3af; flex-shrink:0; line-height: 22px;
+  }
+  #turnPanel .step.left .arrow { color: #60a5fa; }
+  #turnPanel .step.right .arrow { color: #fbbf24; }
+  #turnPanel .step.uturn .arrow { color: #f87171; }
+  #turnPanel .step .info { flex: 1; min-width:0; }
+  #turnPanel .step .maneuver {
+    font-size: 12px; color: #e5e7eb; font-weight:500;
+    line-height: 1.35;
+  }
+  #turnPanel .step .street {
+    font-size: 11px; color: #9ca3af; margin-top: 1px;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  #turnPanel .step .dist {
+    font-size: 10px; color: #6b7280; margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  #turnPanel .tp-empty {
+    padding: 20px 12px; text-align:center; color:#6b7280;
+    font-size: 11px; font-style: italic;
+  }
+  #turnPanel .tp-loading {
+    padding: 20px 12px; text-align:center; color:#9ca3af;
+    font-size: 11px;
   }
 </style>
 </head>
@@ -535,6 +624,20 @@
       Arrastra los puntos rojos para reubicarlos.<br>
       Arrastra los círculos blancos intermedios para curvar la línea.<br>
       Click derecho en un punto rojo para eliminarlo.
+    </div>
+  </div>
+
+  <!-- Panel de instrucciones calle por calle -->
+  <div id="turnPanel">
+    <div class="tp-head">
+      <div style="flex:1; min-width:0">
+        <div class="title" id="tpTitle">Instrucciones</div>
+        <div class="sub" id="tpSub"></div>
+      </div>
+      <button class="tp-close" id="tpClose" title="Cerrar">×</button>
+    </div>
+    <div class="tp-body" id="tpBody">
+      <div class="tp-empty">Traza un desvío o haz click en una ruta para ver las instrucciones.</div>
     </div>
   </div>
 
@@ -1028,6 +1131,13 @@ async function dibujarRuta(id) {
     insertarParada(id, ev.latlng);
   });
 
+  // Click en la línea = mostrar instrucciones calle por calle
+  polyline.on('click', (ev) => {
+    if (modoEdicion || modoDesvio) return;
+    L.DomEvent.stopPropagation(ev);
+    refrescarTurnosRuta(id);
+  });
+
   // Paradas (siempre en su posición original, no en la geometría OSRM)
   r.puntos.forEach((p, i) => {
     const isStart = (i === 0);
@@ -1245,6 +1355,205 @@ function ajustarVista() {
     }
   });
   if (all.length) map.fitBounds(all, { padding: [30, 30] });
+}
+
+// =========================================================
+// INSTRUCCIONES CALLE POR CALLE (OSRM steps)
+// =========================================================
+const MODIFIER_ARROW = {
+  'left': '←', 'slight left': '↖', 'sharp left': '⇐',
+  'right': '→', 'slight right': '↗', 'sharp right': '⇒',
+  'straight': '↑', 'uturn': '↺'
+};
+const MODIFIER_ES = {
+  'left': 'a la izquierda', 'slight left': 'ligeramente a la izquierda', 'sharp left': 'cerrada a la izquierda',
+  'right': 'a la derecha', 'slight right': 'ligeramente a la derecha', 'sharp right': 'cerrada a la derecha',
+  'straight': 'recto', 'uturn': 'en U'
+};
+
+function traducirManiobra(step) {
+  const t = step.maneuver.type;
+  const mod = step.maneuver.modifier || '';
+  const nombre = step.name || '';
+  const ref = step.ref || '';
+  const via = nombre || ref || 'vía sin nombre';
+  const dirEs = MODIFIER_ES[mod] || mod || '';
+
+  switch (t) {
+    case 'depart':      return `Comienza en <b>${via}</b>`;
+    case 'arrive':      return `Llegada`;
+    case 'turn':        return `Gira ${dirEs} hacia <b>${via}</b>`;
+    case 'new name':    return `Continúa por <b>${via}</b>`;
+    case 'continue':    return `Sigue ${dirEs} por <b>${via}</b>`;
+    case 'merge':       return `Incorpórate ${dirEs} a <b>${via}</b>`;
+    case 'on ramp':     return `Toma la rampa ${dirEs} hacia <b>${via}</b>`;
+    case 'off ramp':    return `Sal por la rampa ${dirEs} hacia <b>${via}</b>`;
+    case 'fork':        return `En la bifurcación, mantente ${dirEs} hacia <b>${via}</b>`;
+    case 'end of road': return `Al final de la calle, gira ${dirEs} hacia <b>${via}</b>`;
+    case 'roundabout':
+    case 'rotary':      return `Toma la rotonda${step.maneuver.exit ? ' (salida ' + step.maneuver.exit + ')' : ''} hacia <b>${via}</b>`;
+    case 'roundabout turn': return `En la rotonda gira ${dirEs} hacia <b>${via}</b>`;
+    default:            return `${t} ${dirEs} hacia <b>${via}</b>`;
+  }
+}
+
+function claseGiro(step) {
+  const m = step.maneuver.modifier || '';
+  if (step.maneuver.type === 'depart') return 'start';
+  if (step.maneuver.type === 'arrive') return 'end';
+  if (m === 'uturn') return 'uturn';
+  if (m.includes('left')) return 'left';
+  if (m.includes('right')) return 'right';
+  return '';
+}
+
+function flechaGiro(step) {
+  if (step.maneuver.type === 'depart') return '●';
+  if (step.maneuver.type === 'arrive') return '■';
+  return MODIFIER_ARROW[step.maneuver.modifier] || '↑';
+}
+
+function formatDist(m) {
+  if (m < 1000) return `${Math.round(m)} m`;
+  return `${(m/1000).toFixed(2)} km`;
+}
+
+function formatDur(s) {
+  if (s < 60) return `${Math.round(s)} s`;
+  const min = Math.round(s / 60);
+  if (min < 60) return `${min} min`;
+  const h = Math.floor(min / 60);
+  return `${h} h ${min % 60} min`;
+}
+
+// Pide a OSRM la ruta con steps=true y devuelve { steps, distance, duration }
+async function fetchStepsOSRM(puntos) {
+  if (!puntos || puntos.length < 2) return null;
+  const coords = puntos.map(p => `${p.lng},${p.lat}`).join(';');
+  const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=false&steps=true`;
+  try {
+    const resp = await fetch(url);
+    const data = await resp.json();
+    if (data.code !== 'Ok' || !data.routes?.[0]) return null;
+    // OSRM devuelve legs (uno por par de waypoints). Concatenamos steps.
+    const legs = data.routes[0].legs || [];
+    const steps = [];
+    legs.forEach(lg => (lg.steps || []).forEach(s => steps.push(s)));
+    return {
+      steps,
+      distance: data.routes[0].distance,
+      duration: data.routes[0].duration
+    };
+  } catch (e) { return null; }
+}
+
+let turnPanelMarker = null; // marker temporal para resaltar el step al hacer click
+
+function mostrarPanelTurnos(titulo, res) {
+  const panel = document.getElementById('turnPanel');
+  panel.classList.add('visible');
+  document.getElementById('tpTitle').textContent = titulo || 'Instrucciones';
+  const sub = document.getElementById('tpSub');
+  const body = document.getElementById('tpBody');
+  if (!res || !res.steps || !res.steps.length) {
+    sub.innerHTML = '';
+    body.innerHTML = '<div class="tp-empty">No se pudieron obtener instrucciones.<br><small>Requiere modo Calles.</small></div>';
+    return;
+  }
+  sub.innerHTML = `Distancia: <b>${formatDist(res.distance)}</b> · Tiempo: <b>${formatDur(res.duration)}</b> · Pasos: <b>${res.steps.length}</b>`;
+  body.innerHTML = res.steps.map((s, i) => {
+    const cls = claseGiro(s);
+    return `
+      <div class="step ${cls}" data-lat="${s.maneuver.location[1]}" data-lng="${s.maneuver.location[0]}">
+        <span class="idx">${i + 1}</span>
+        <span class="arrow">${flechaGiro(s)}</span>
+        <div class="info">
+          <div class="maneuver">${traducirManiobra(s)}</div>
+          ${s.name && s.maneuver.type !== 'depart' && s.maneuver.type !== 'new name' ? `<div class="street">Por ${s.name}</div>` : ''}
+          <div class="dist">${formatDist(s.distance)}${s.duration ? ' · ' + formatDur(s.duration) : ''}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+  // Click en un paso: centrar y resaltar
+  body.querySelectorAll('.step').forEach(el => {
+    el.addEventListener('click', () => {
+      const lat = parseFloat(el.dataset.lat), lng = parseFloat(el.dataset.lng);
+      if (isNaN(lat) || isNaN(lng)) return;
+      map.setView([lat, lng], Math.max(map.getZoom(), 16));
+      if (turnPanelMarker) map.removeLayer(turnPanelMarker);
+      turnPanelMarker = L.circleMarker([lat, lng], {
+        radius: 10, color: '#84cc16', fillColor: '#84cc16', fillOpacity: 0.4, weight: 3
+      }).addTo(map);
+      setTimeout(() => { if (turnPanelMarker) { map.removeLayer(turnPanelMarker); turnPanelMarker = null; } }, 3500);
+    });
+  });
+}
+
+function ocultarPanelTurnos() {
+  document.getElementById('turnPanel').classList.remove('visible');
+  if (turnPanelMarker) { map.removeLayer(turnPanelMarker); turnPanelMarker = null; }
+}
+document.getElementById('tpClose').addEventListener('click', ocultarPanelTurnos);
+
+// Actualiza el panel para el desvío dado (si es el activo del panel)
+async function refrescarTurnosDesvio(d) {
+  if (!d || d.puntos.length < 2) return;
+  document.getElementById('turnPanel').classList.add('visible');
+  document.getElementById('tpTitle').textContent = d.nombre || 'Desvío';
+  document.getElementById('tpSub').innerHTML = '';
+  // Si ya tenemos steps cacheados por dibujarLineasDesvio, usarlos directo
+  if (d.osrmSteps && d.osrmSteps.length) {
+    mostrarPanelTurnos(d.nombre || 'Desvío', {
+      steps: d.osrmSteps,
+      distance: d.osrmDistance,
+      duration: d.osrmDuration
+    });
+    return;
+  }
+  // Si no hay cache y no estamos en modo calles, avisar
+  if (!modoCalles) {
+    document.getElementById('tpBody').innerHTML = '<div class="tp-empty">Activa <b>Modo: Calles</b> para ver las instrucciones.</div>';
+    return;
+  }
+  document.getElementById('tpBody').innerHTML = '<div class="tp-loading">Calculando instrucciones...</div>';
+  const res = await fetchStepsOSRM(d.puntos);
+  if (res) {
+    d.osrmSteps = res.steps;
+    d.osrmDistance = res.distance;
+    d.osrmDuration = res.duration;
+  }
+  mostrarPanelTurnos(d.nombre || 'Desvío', res);
+}
+
+// Actualiza el panel para una ruta completa (al hacer click en su línea)
+async function refrescarTurnosRuta(id) {
+  const r = rutas[id];
+  if (!r || r.puntos.length < 2) return;
+  document.getElementById('turnPanel').classList.add('visible');
+  document.getElementById('tpTitle').textContent = `${id} — ${r.descRuta}`;
+  document.getElementById('tpSub').innerHTML = '';
+  // Reusar cache si existe
+  const cache = cacheCalles[id];
+  if (cache && cache.steps && cache.steps.length) {
+    mostrarPanelTurnos(`${id} — ${r.descRuta}`, {
+      steps: cache.steps,
+      distance: cache.distance,
+      duration: cache.duration
+    });
+    return;
+  }
+  if (!modoCalles) {
+    document.getElementById('tpBody').innerHTML = '<div class="tp-empty">Activa <b>Modo: Calles</b> para ver las instrucciones.</div>';
+    return;
+  }
+  document.getElementById('tpBody').innerHTML = '<div class="tp-loading">Calculando instrucciones...</div>';
+  const res = await fetchStepsOSRM(r.puntos);
+  if (res && cache) {
+    cache.steps = res.steps;
+    cache.duration = res.duration;
+  }
+  mostrarPanelTurnos(`${id} — ${r.descRuta}`, res);
 }
 
 // =========================================================
@@ -1528,38 +1837,48 @@ async function dibujarLineasDesvio(d) {
 
   const coords = d.puntos.map(p => [p.lat, p.lng]);
 
-  // Intentar OSRM si modo calles activo
+  // Intentar OSRM si modo calles activo — pedimos geometría Y steps en una sola llamada
   if (modoCalles) {
     const wayCoords = d.puntos.map(p => `${p.lng},${p.lat}`).join(';');
-    const url = `https://router.project-osrm.org/route/v1/driving/${wayCoords}?overview=full&geometries=geojson`;
+    const url = `https://router.project-osrm.org/route/v1/driving/${wayCoords}?overview=full&geometries=geojson&steps=true`;
     try {
       const resp = await fetch(url);
       const data = await resp.json();
       if (data.code === 'Ok' && data.routes?.[0]) {
-        const geom = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        const ruta = data.routes[0];
+        const geom = ruta.geometry.coordinates.map(c => [c[1], c[0]]);
         d.osrmGeom = geom;
+        // Cachear steps del OSRM para reusarlos en el panel de instrucciones
+        const allSteps = [];
+        (ruta.legs || []).forEach(lg => (lg.steps || []).forEach(s => allSteps.push(s)));
+        d.osrmSteps = allSteps;
+        d.osrmDistance = ruta.distance;
+        d.osrmDuration = ruta.duration;
+
         d.polyline = L.polyline(geom, {
           color: d.color, weight: 5, opacity: 0.92
         }).bindTooltip(d.nombre || 'Desvío', { className: 'desvio-tooltip', sticky: true })
           .addTo(map);
-        // Guía punteada de los waypoints
         d.guidePoly = L.polyline(coords, {
           color: d.color, weight: 1.5, opacity: 0.4, dashArray: '6 6'
         }).addTo(map);
         agregarMidHandles(d);
         engancharDobleClickPolyline(d);
+        if (d === desvioActivoPanel) refrescarTurnosDesvio(d);
         return;
       }
     } catch (e) { /* fallback a recta */ }
   }
 
-  // Fallback: línea recta brillante
+  // Fallback: línea recta brillante (sin steps disponibles)
+  d.osrmSteps = null;
   d.polyline = L.polyline(coords, {
     color: d.color, weight: 5, opacity: 0.92
   }).bindTooltip(d.nombre || 'Desvío', { className: 'desvio-tooltip', sticky: true })
     .addTo(map);
   agregarMidHandles(d);
   engancharDobleClickPolyline(d);
+  if (d === desvioActivoPanel) refrescarTurnosDesvio(d);
 }
 
 // Handles intermedios: uno a mitad de cada segmento entre waypoints.
@@ -1741,6 +2060,7 @@ function eliminarDesvio(d) {
   if (idx !== -1) desvios.splice(idx, 1);
   if (desvioActual === d) desvioActual = null;
   if (desvioActivoPanel === d) ocultarPanelDesvio();
+  renderListaPropuestas();
 }
 
 function limpiarDesvios() {
@@ -1763,6 +2083,8 @@ function mostrarPanelDesvio(d) {
   panel.classList.add('visible');
   document.getElementById('desvioColor').value = colorToHex(d.color);
   document.getElementById('desvioNombre').value = d.nombre || '';
+  // Mostrar también las instrucciones calle por calle
+  if (d.puntos.length >= 2) refrescarTurnosDesvio(d);
 }
 
 function ocultarPanelDesvio() {
@@ -1855,15 +2177,26 @@ function guardarPropuesta(d) {
 }
 
 function eliminarPropuesta(nombre) {
-  if (!confirm(`¿Eliminar la propuesta "${nombre}"?`)) return;
+  if (!confirm(`¿Eliminar la propuesta "${nombre}"?\n\nSe borrará de la lista y se quitará su trazo del mapa.`)) return;
   const propuestas = _getPropuestas().filter(p => p.nombre !== nombre);
   _setPropuestas(propuestas);
+  // Quitar también del mapa cualquier desvío cargado con ese nombre
+  [...desvios].filter(d => d.nombre === nombre).forEach(d => eliminarDesvio(d));
+  actualizarBtnClearDesvio();
   renderListaPropuestas();
 }
 
 function cargarPropuesta(nombre) {
   const p = _getPropuestas().find(x => x.nombre === nombre);
   if (!p) return;
+  // Si ya está en el mapa, sólo centrarlo y activar su panel — no duplicar
+  const yaCargado = desvios.find(d => d.nombre === nombre);
+  if (yaCargado) {
+    const b = L.latLngBounds(yaCargado.puntos.map(x => [x.lat, x.lng]));
+    map.fitBounds(b, { padding: [40, 40] });
+    mostrarPanelDesvio(yaCargado);
+    return;
+  }
   // Crear desvío nuevo con los datos guardados
   const d = crearDesvio({ nombre: p.nombre, color: p.color });
   p.puntos.forEach((pt, idx) => {
@@ -1915,18 +2248,31 @@ function renderListaPropuestas() {
     cont.innerHTML = '<div class="propuesta-empty">Sin propuestas guardadas.</div>';
     return;
   }
-  cont.innerHTML = propuestas.map(p => `
-    <div class="propuesta-item" data-nombre="${p.nombre.replace(/"/g,'&quot;')}">
+  cont.innerHTML = propuestas.map(p => {
+    const enMapa = desvios.some(d => d.nombre === p.nombre);
+    return `
+    <div class="propuesta-item${enMapa ? ' loaded' : ''}" data-nombre="${p.nombre.replace(/"/g,'&quot;')}">
       <span class="swatch" style="background:${p.color}"></span>
       <span class="name" title="${p.nombre}">${p.nombre}</span>
       <span class="pts">${p.puntos.length} pts</span>
-      <button class="load" title="Cargar en el mapa">▶</button>
-      <button class="del" title="Eliminar">×</button>
+      <button class="${enMapa ? 'hide' : 'load'}" title="${enMapa ? 'Quitar del mapa' : 'Cargar en el mapa'}">${enMapa ? '👁' : '▶'}</button>
+      <button class="del" title="Eliminar propuesta">×</button>
     </div>
-  `).join('');
+  `;}).join('');
   cont.querySelectorAll('.propuesta-item').forEach(el => {
     const nombre = el.dataset.nombre;
-    el.querySelector('.load').addEventListener('click', () => cargarPropuesta(nombre));
+    const btnAccion = el.querySelector('.load, .hide');
+    btnAccion.addEventListener('click', () => {
+      const yaCargado = desvios.find(d => d.nombre === nombre);
+      if (yaCargado) {
+        eliminarDesvio(yaCargado);
+        actualizarBtnClearDesvio();
+        renderListaPropuestas();
+      } else {
+        cargarPropuesta(nombre);
+        renderListaPropuestas();
+      }
+    });
     el.querySelector('.del').addEventListener('click', () => eliminarPropuesta(nombre));
   });
 }
