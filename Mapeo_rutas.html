@@ -686,7 +686,7 @@
       <div style="font-size:11px; color:#9ca3af; margin-bottom:8px;">
         Carga un Excel (.xlsx) con columnas:<br><b style="color:#e5e7eb">Nombre, Lat, Long</b>
       </div>
-      <input type="file" id="fileUsuarios" accept=".xlsx,.xls" style="width:100%; color:#e5e7eb; font-size:11px; margin-bottom:8px;"/>
+      <input type="file" id="fileUsuarios" accept=".xlsx,.xls,.csv" style="width:100%; color:#e5e7eb; font-size:11px; margin-bottom:8px;"/>
       <button class="toggle-btn active" id="btnToggleUsuarios" disabled>Mostrar usuarios <span id="cntUsuarios" style="color:#84cc16; font-weight:700"></span></button>
       <button class="toggle-btn" id="btnClearUsuarios" disabled style="background:#dc2626; color:#fff;">Quitar usuarios</button>
     </section>
@@ -996,6 +996,8 @@ async function obtenerGeometriaCalles(idRuta, puntos) {
   const MAX_WP = 90;
   let geomTotal = [];
   let distTotal = 0;
+  let durTotal = 0;
+  let legsTotal = [];   // {distance, duration} por cada tramo entre waypoints
 
   for (let inicio = 0; inicio < puntos.length - 1; inicio += MAX_WP - 1) {
     const tramo = puntos.slice(inicio, inicio + MAX_WP);
@@ -1007,10 +1009,13 @@ async function obtenerGeometriaCalles(idRuta, puntos) {
       const resp = await fetch(url);
       const data = await resp.json();
       if (data.code === 'Ok' && data.routes && data.routes[0]) {
-        const geom = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+        const ruta = data.routes[0];
+        const geom = ruta.geometry.coordinates.map(c => [c[1], c[0]]);
         if (geomTotal.length) geom.shift(); // evita duplicar el punto de unión
         geomTotal = geomTotal.concat(geom);
-        distTotal += data.routes[0].distance; // metros
+        distTotal += ruta.distance; // metros
+        durTotal += ruta.duration || 0;
+        (ruta.legs || []).forEach(l => legsTotal.push({ distance: l.distance, duration: l.duration }));
       } else {
         return null;
       }
@@ -1019,7 +1024,16 @@ async function obtenerGeometriaCalles(idRuta, puntos) {
     }
   }
 
-  cacheCalles[idRuta] = { geom: geomTotal, distance: distTotal };
+  // Adjuntar duración/distancia por tramo a cada parada (a partir de la 2a)
+  legsTotal.forEach((leg, i) => {
+    if (puntos[i + 1]) {
+      puntos[i + 1].tiempoDesdeAnterior = leg.duration;      // segundos
+      puntos[i + 1].distanciaDesdeAnterior = leg.distance;   // metros
+      puntos[i + 1].fuenteTiempo = 'osrm';
+    }
+  });
+
+  cacheCalles[idRuta] = { geom: geomTotal, distance: distTotal, duration: durTotal };
   return cacheCalles[idRuta];
 }
 
@@ -1103,14 +1117,28 @@ async function dibujarRuta(id) {
   // Decidir qué geometría dibujar y calcular distancia
   let geom = coordsRecto;
   let distancia = distanciaTotalRecta(r.puntos); // fallback en metros
+  let usoOSRM = false;
   if (modoCalles && r.puntos.length >= 2) {
     const result = await obtenerGeometriaCalles(id, r.puntos);
     if (result && result.geom && result.geom.length) {
       geom = result.geom;
       distancia = result.distance;
+      usoOSRM = true;
     }
   }
   r.distanciaKm = distancia / 1000;
+
+  // Si no obtuvimos datos de OSRM, estimamos tiempo/distancia por tramo con haversine + 25 km/h
+  if (!usoOSRM) {
+    const VEL_URBANA_KMH = 25;
+    for (let i = 1; i < r.puntos.length; i++) {
+      const a = r.puntos[i - 1], b = r.puntos[i];
+      const dMetros = distMetros(a.lat, a.lng, b.lat, b.lng);
+      r.puntos[i].distanciaDesdeAnterior = dMetros;
+      r.puntos[i].tiempoDesdeAnterior = (dMetros / 1000) * (3600 / VEL_URBANA_KMH); // segundos
+      r.puntos[i].fuenteTiempo = 'estimado';
+    }
+  }
 
   // Línea
   const polyline = L.polyline(geom, {
@@ -1202,6 +1230,19 @@ function popupHTML(id, p) {
   `).join('');
 
   const safeId = id.replace(/[^a-zA-Z0-9_-]/g,'');
+
+  // Tiempo/distancia desde la parada anterior (si está disponible)
+  let tramoHTML = '';
+  if (p.tiempoDesdeAnterior != null && p.distanciaDesdeAnterior != null) {
+    const mins = p.tiempoDesdeAnterior / 60;
+    const minsStr = mins < 1 ? '<1 min' : mins < 60 ? Math.round(mins) + ' min' : Math.floor(mins/60) + ' h ' + Math.round(mins%60) + ' min';
+    const kmStr = p.distanciaDesdeAnterior < 1000
+      ? Math.round(p.distanciaDesdeAnterior) + ' m'
+      : (p.distanciaDesdeAnterior / 1000).toFixed(2) + ' km';
+    const fuente = p.fuenteTiempo === 'osrm' ? 'según OSRM' : 'estimado a 25 km/h';
+    tramoHTML = `<small style="color:#059669"><b>↺ Desde parada anterior:</b> ${minsStr} · ${kmStr} <span style="color:#9ca3af">(${fuente})</span></small><br>`;
+  }
+
   return `
     <b>${id}</b> — ${r.descRuta}<br>
     <small>${r.planta}${r.tipServ ? ' · ' + r.tipServ : ''}</small><br>
@@ -1209,6 +1250,7 @@ function popupHTML(id, p) {
     <hr style="margin:6px 0; border:none; border-top:1px solid #ddd"/>
     <b>Sec ${p.sec}</b>${p.pos ? ' · ' + p.pos : ''}<br>
     ${p.parada}<br>
+    ${tramoHTML}
     <small><b>Horarios:</b> ${horariosStr}</small>
 
     <div class="parada-form" data-ruta="${id}" data-sec="${p.sec}">
@@ -1219,7 +1261,7 @@ function popupHTML(id, p) {
       <div class="aforo-grid">${aforoCells}</div>
       <div class="cupo-info">
         Cupo 100% por servicio = <b>41 pasajeros/turno</b>.
-        Los valores aplican a la ruta completa.
+        Aforo capturado por parada; el total de la ruta se muestra en la lista.
       </div>
       <div class="saved-note" data-saved>✓ Guardado</div>
     </div>
@@ -1253,15 +1295,33 @@ function setComentario(idRuta, sec, txt) {
 }
 
 function getAforosRuta(idRuta) {
+  // Devuelve el TOTAL sumado por turno de todas las paradas de la ruta.
+  // Estructura interna: { rutaId: { sec: { dia: N, tarde: N, noche: N } } }
   const all = _lsGet(LS_AFORO);
-  return all[idRuta] || {};   // { dia: 12, tarde: 25, noche: 8 }
+  const porParada = all[idRuta] || {};
+  const totales = {};
+  Object.values(porParada).forEach(afParada => {
+    Object.entries(afParada).forEach(([turno, val]) => {
+      totales[turno] = (totales[turno] || 0) + val;
+    });
+  });
+  return totales;   // p.ej. { dia: 25, tarde: 12 }
 }
-function setAforoTurno(idRuta, turno, val) {
+
+function getAforosParada(idRuta, sec) {
+  const all = _lsGet(LS_AFORO);
+  return (all[idRuta] && all[idRuta][sec]) || {};
+}
+
+function setAforoParada(idRuta, sec, turno, val) {
   const all = _lsGet(LS_AFORO);
   if (!all[idRuta]) all[idRuta] = {};
+  if (!all[idRuta][sec]) all[idRuta][sec] = {};
   const n = parseInt(val);
-  if (!isNaN(n) && n > 0) all[idRuta][turno] = n;
-  else delete all[idRuta][turno];
+  if (!isNaN(n) && n > 0) all[idRuta][sec][turno] = n;
+  else delete all[idRuta][sec][turno];
+  // Limpieza de estructuras vacías
+  if (Object.keys(all[idRuta][sec]).length === 0) delete all[idRuta][sec];
   if (Object.keys(all[idRuta]).length === 0) delete all[idRuta];
   _lsSet(LS_AFORO, all);
 }
@@ -1272,10 +1332,10 @@ function cargarValoresFormulario(popupEl, idRuta, p) {
   if (!form) return;
   const ta = form.querySelector('[data-comentario]');
   if (ta) ta.value = getComentario(idRuta, p.sec);
-  const aforos = getAforosRuta(idRuta);
+  const aforosParada = getAforosParada(idRuta, p.sec);
   form.querySelectorAll('[data-aforo-turno]').forEach(inp => {
     const t = inp.getAttribute('data-aforo-turno');
-    inp.value = aforos[t] != null ? aforos[t] : '';
+    inp.value = aforosParada[t] != null ? aforosParada[t] : '';
   });
 }
 
@@ -1308,7 +1368,7 @@ function engancharFormularioParada(popupEl, idRuta, p) {
   form.querySelectorAll('[data-aforo-turno]').forEach(inp => {
     const t = inp.getAttribute('data-aforo-turno');
     inp.addEventListener('change', () => {
-      setAforoTurno(idRuta, t, inp.value);
+      setAforoParada(idRuta, p.sec, t, inp.value);
       flash();
       // Refrescar la lista para que aparezcan/actualicen las barras de capacidad
       renderLista(document.getElementById('filtro').value);
@@ -1605,8 +1665,8 @@ function renderLista(filtroTxt = '') {
       <input type="checkbox" ${r.visible ? 'checked' : ''}/>
       <div class="ruta-color" style="background:${r.color}"></div>
       <div class="ruta-info">
-        <div class="ruta-id">${id}</div>
-        <div class="ruta-desc">${r.descRuta}</div>
+        <div class="ruta-id">${r.descRuta}</div>
+        <div class="ruta-desc">${id}</div>
         <div class="ruta-stops">${r.puntos.length} paradas${r.distanciaKm != null ? ' · <b style="color:#84cc16">'+r.distanciaKm.toFixed(2)+' km</b>' : ''}</div>
         ${renderCapacidadHTML(id, r)}
       </div>
@@ -2382,34 +2442,61 @@ function cargarUsuariosExcel(file) {
     try {
       const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
       const ws = wb.Sheets[wb.SheetNames[0]];
-      const data = XLSX.utils.sheet_to_json(ws, { defval: '' });
-      if (!data.length) { alert('El archivo está vacío.'); return; }
+      if (!ws) { alert('El archivo no tiene hojas legibles.'); return; }
+      const data = XLSX.utils.sheet_to_json(ws, { defval: '', raw: false });
+      if (!data.length) { alert('El archivo está vacío o no tiene datos.'); return; }
 
-      // Buscar columnas flexiblemente (Nombre/nombre, Lat/lat/Latitud, Long/Lng/Longitud)
+      // Normalizar: quitar acentos y pasar a minúsculas
+      const norm = s => String(s || '').trim().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       const keys = Object.keys(data[0]);
-      const findCol = (opts) => keys.find(k => opts.some(o => k.trim().toLowerCase() === o.toLowerCase()));
-      const colNombre = findCol(['nombre','name','operador','operator','usuario']);
-      const colLat = findCol(['lat','latitud','latitude']);
-      const colLng = findCol(['long','lng','longitud','longitude','lon']);
+
+      // Búsqueda flexible: primero coincidencia exacta, luego "contiene"
+      const findCol = (opts) => {
+        const nopts = opts.map(norm);
+        let f = keys.find(k => nopts.includes(norm(k)));
+        if (f) return f;
+        return keys.find(k => nopts.some(o => norm(k).includes(o)));
+      };
+
+      const colNombre = findCol(['nombre','name','operador','operator','usuario','empleado']);
+      const colLat    = findCol(['latitud','lat','latitude','y']);
+      const colLng    = findCol(['longitud','long','lng','longitude','lon','x']);
 
       if (!colNombre || !colLat || !colLng) {
-        alert('No se encontraron las columnas requeridas.\nSe esperan: Nombre, Lat, Long\nColumnas encontradas: ' + keys.join(', '));
+        alert(
+          'No se encontraron las columnas requeridas.\n\n' +
+          'Se esperan encabezados como: Nombre, Lat, Long (o Latitud/Longitud).\n\n' +
+          'Encabezados del archivo:\n  ' + keys.join('\n  ') + '\n\n' +
+          'Detectado:\n' +
+          '  Nombre → ' + (colNombre || 'NO ENCONTRADO') + '\n' +
+          '  Lat    → ' + (colLat    || 'NO ENCONTRADO') + '\n' +
+          '  Long   → ' + (colLng    || 'NO ENCONTRADO')
+        );
         return;
       }
 
       // Limpiar anteriores
       limpiarUsuarios(false);
 
+      // Aceptar coma decimal (25,6789) y punto (25.6789)
+      const toNum = v => {
+        const s = String(v == null ? '' : v).trim().replace(/,/g, '.');
+        const n = parseFloat(s);
+        return isNaN(n) ? null : n;
+      };
+
+      let ignoradas = 0;
       data.forEach(row => {
         const nombre = String(row[colNombre] || '').trim();
-        const lat = parseFloat(row[colLat]);
-        const lng = parseFloat(row[colLng]);
-        if (!nombre || isNaN(lat) || isNaN(lng)) return;
+        const lat = toNum(row[colLat]);
+        const lng = toNum(row[colLng]);
+        if (!nombre || lat == null || lng == null) { ignoradas++; return; }
         usuariosCargados.push({ nombre, lat, lng });
       });
 
       if (!usuariosCargados.length) {
-        alert('No se encontraron registros válidos con nombre y coordenadas.');
+        alert('No se encontraron registros válidos.\nFilas totales: ' + data.length + '\nIgnoradas: ' + ignoradas + '\n\nRevisa que cada fila tenga nombre y coordenadas numéricas.');
         return;
       }
 
@@ -2422,16 +2509,29 @@ function cargarUsuariosExcel(file) {
         m.addTo(usuariosLayer);
       });
 
-      // Actualizar UI
       actualizarUIUsuarios();
 
+      // Encuadrar la vista sobre los usuarios cargados
+      if (usuariosCargados.length > 1) {
+        try {
+          const b = L.latLngBounds(usuariosCargados.map(u => [u.lat, u.lng]));
+          map.fitBounds(b, { padding: [40, 40], maxZoom: 15 });
+        } catch(_) {}
+      }
+
+      // Permitir volver a subir el mismo archivo
+      document.getElementById('fileUsuarios').value = '';
+
+      let msg = usuariosCargados.length + ' usuarios cargados correctamente.';
+      if (ignoradas > 0) msg += '\n' + ignoradas + ' filas ignoradas por datos inválidos.';
+      console.log(msg);
     } catch (err) {
-      alert('Error al leer el archivo Excel:\n' + err.message);
+      alert('Error al leer el archivo:\n' + err.message);
       console.error(err);
     }
   };
   reader.onerror = function() {
-    alert('Error al leer el archivo.');
+    alert('Error al leer el archivo (FileReader).');
   };
   reader.readAsArrayBuffer(file);
 }
