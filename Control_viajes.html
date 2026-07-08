@@ -157,6 +157,24 @@
         .text-pending { color: #3B6D11; font-weight: 700; }
         .text-advance { color: var(--navy); font-weight: 700; }
 
+        /* Fila TOTAL por sección */
+        tr.total-row td {
+            background: #eef2f9;
+            font-weight: 800;
+            color: var(--navy);
+            border-top: 2px solid var(--navy2);
+            font-size: 12px;
+        }
+        tr.total-row td:first-child {
+            color: var(--navy);
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+        tr.total-row td.total-pct {
+            color: #3B6D11;
+            font-size: 13px;
+        }
+
         /* Panel gráfica */
         .chart-title {
             font-size: 12px;
@@ -212,6 +230,36 @@
             color: #1f2937;
         }
         .btn-save:hover { background: #65a30d; color: #fff; }
+        .btn-import { background: #2563eb; color: #fff; }
+        .btn-import:hover { background: #1d4ed8; }
+
+        /* Barra de reporte importado */
+        .import-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #eef7ff;
+            border: 1px solid #b8daff;
+            border-radius: 6px;
+            padding: 8px 14px;
+            font-size: 12px;
+            color: var(--navy);
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .import-bar.hidden { display: none; }
+        .import-bar .rep-file { font-weight: 700; }
+        .import-bar .rep-meta { color: var(--muted); }
+        .import-bar .rep-warn {
+            color: #854F0B; background: #FAEEDA;
+            padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 600;
+        }
+        .btn-clear-import {
+            background: transparent; border: 1px solid #b8daff;
+            color: var(--navy); padding: 3px 8px; border-radius: 4px;
+            font-size: 10.5px; cursor: pointer; font-family: 'Inter',sans-serif;
+        }
+        .btn-clear-import:hover { background: #ddebff; }
     </style>
 </head>
 <body>
@@ -233,9 +281,20 @@
             <strong>📅 Consultar/Capturar Fecha:</strong>
             <input type="date" id="fechaCaptura" value="2026-07-08">
         </div>
-        <div>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <button class="btn btn-import" style="padding:6px 12px;font-size:11px;" onclick="document.getElementById('fileReporte').click()">📤 Cargar Reporte Bustrax</button>
+            <input type="file" id="fileReporte" accept=".csv,.txt" style="display:none" onchange="procesarReporte(event)">
             <strong>Semana del Año:</strong> <span id="semanaAnio">28</span>
         </div>
+    </div>
+
+    <!-- Barra que muestra el reporte cargado -->
+    <div class="import-bar hidden" id="importBar">
+        <span>📄 Reporte:</span>
+        <span class="rep-file" id="repFile">–</span>
+        <span class="rep-meta" id="repMeta">–</span>
+        <span class="rep-warn hidden" id="repWarn">–</span>
+        <button class="btn-clear-import" onclick="limpiarReporte()">✕ quitar</button>
     </div>
 
     <div class="main-layout">
@@ -298,6 +357,48 @@
 </div>
 
 <script>
+    /* ══════════════════════════════════════════════════════════
+       MAPEO: código de "group" en el CSV Bustrax → planta del HTML
+       Todo lo que no esté aquí se ignora (viajes especiales, AMD,
+       SIT MANUFACTURING, etc.) y se avisa cuántos quedaron fuera.
+       ══════════════════════════════════════════════════════════ */
+    const MAPEO_GRUPO_PLANTA = {
+        // ── GARCIA ──
+        'BRU-BRUNNEN':                     'BRUNNEN',
+        'RYD-RYDER GARCIA':                'RYDER GARCIA',
+        'GAL-GRUPO ALEN':                  'ALEN',
+        'ACU-ACUMENT':                     'ACUMENT',
+        'ALC-ALCALI':                      'ALCALI',
+        'GRA-ARTIGRAF':                    'ARTIGRAF',
+        'FMI-FANTASIAS MIGUEL':            'FANTASIAS MIGUEL',
+        'GIN-GINO':                        'GINO',
+        'GON-GONHER':                      'GONHER',
+        'SID-GRUPO SID GARCIA':            'GRUPO SID GARCIA',
+        'HAR-HARIMASA':                    'HARIMASA',
+        'LBL-LUBRAL':                      'LUBRAL',
+        'MOL-MOLISABA':                    'MOLISANA',
+        'MOL-MOLISANA':                    'MOLISANA',
+        'MRM-MRM MTY':                     'MRM MTY',
+        'NEM-NEMAK':                       'NEMAK',
+        'NOV-NOVEM':                       'NOVEM',
+        'REG-MARATHON':                    'REGAL MARATHON',
+        'REH-REHAU':                       'REHAU',
+        'STD-SANTANDER MTY':               'SANTANDER MTY',
+        'TSO-TIENDAS SORIANA':             'SORIANA TIENDA',
+        'VTE-VERTEX MTY':                  'VERTEX MTY',
+        'EMC-EMPAQUES CARVAJAL':           'CARVAJAL',
+        'VIT-VITRO':                       'VITRO',
+        'JOH-JOHN DEERE':                  'JOHN DEERE',
+        'EYA-ENERYA':                      'ENERYA',
+        // ── CIENEGA (solo estos 6) ──
+        'RYC-RYDER CIENEGA':               'RYDER CIENEGA',
+        'BWY-BRAZEWAY':                    'BRAZEWAY',
+        'CON-CONMET':                      'CONMET',
+        'DND-DONALDSON':                   'DONALDSON',
+        'NAV-NAVISTAR':                    'NAVISTAR',
+        'YAN-YANFENG':                     'YANFENG'
+    };
+
     const plantasGarcia = [
         "BRUNNEN","RYDER GARCIA","ALEN","ACUMENT","ALCALI","ARTIGRAF",
         "BANAMEX","FANTASIAS MIGUEL","GINO","GONHER","GRUPO SID GARCIA",
@@ -309,7 +410,7 @@
         "RYDER CIENEGA","BRAZEWAY","CONMET","DONALDSON","NAVISTAR","YANFENG"
     ];
 
-    function cargarTabla(idElemento, lista) {
+    function cargarTabla(idElemento, lista, etiquetaTotal) {
         const tbody = document.getElementById(idElemento);
         lista.forEach(planta => {
             const tr = document.createElement('tr');
@@ -323,10 +424,22 @@
             `;
             tbody.appendChild(tr);
         });
+        // Fila TOTAL al final de la sección
+        const trTotal = document.createElement('tr');
+        trTotal.className = 'total-row';
+        trTotal.innerHTML = `
+            <td>TOTAL ${etiquetaTotal}</td>
+            <td class="total-bustrax">0</td>
+            <td class="total-programado">0</td>
+            <td class="total-pendientes">0</td>
+            <td class="total-pct">0%</td>
+            <td></td>
+        `;
+        tbody.appendChild(trTotal);
     }
 
-    cargarTabla('tbody-garcia', plantasGarcia);
-    cargarTabla('tbody-cienega', plantasCienega);
+    cargarTabla('tbody-garcia', plantasGarcia, 'GARCIA');
+    cargarTabla('tbody-cienega', plantasCienega, 'CIENEGA');
 
     const ctx = document.getElementById('globalChart').getContext('2d');
     let globalChart = new Chart(ctx, {
@@ -358,19 +471,186 @@
         calcularMetricasGlobales();
     }
 
+    /** Suma una sección (Garcia o Cienega) y actualiza su fila TOTAL.
+     *  Devuelve {bustrax, programado, pendientes} para la métrica global. */
+    function calcularTotalSeccion(tbodyId) {
+        const tbody = document.getElementById(tbodyId);
+        let tBustrax = 0, tProgramado = 0;
+        // Sumar solo filas de datos (excluir la .total-row)
+        tbody.querySelectorAll('tr:not(.total-row)').forEach(tr => {
+            tBustrax    += parseFloat(tr.querySelector('.input-bustrax').value)    || 0;
+            tProgramado += parseFloat(tr.querySelector('.input-programado').value) || 0;
+        });
+        const tPendientes = Math.max(0, tProgramado - tBustrax);
+        let pct = 0;
+        if (tProgramado > 0) pct = Math.min(100, Math.round((tBustrax / tProgramado) * 100));
+
+        const totalRow = tbody.querySelector('.total-row');
+        totalRow.querySelector('.total-bustrax').innerText    = tBustrax;
+        totalRow.querySelector('.total-programado').innerText = tProgramado;
+        totalRow.querySelector('.total-pendientes').innerText = tPendientes;
+        totalRow.querySelector('.total-pct').innerText        = pct + '%';
+
+        return { bustrax:tBustrax, programado:tProgramado, pendientes:tPendientes };
+    }
+
     function calcularMetricasGlobales() {
-        let granTotalBustrax = 0, granTotalProgramado = 0, granTotalPendientes = 0;
-        document.querySelectorAll('.input-bustrax').forEach(i => granTotalBustrax += parseFloat(i.value) || 0);
-        document.querySelectorAll('.input-programado').forEach(i => granTotalProgramado += parseFloat(i.value) || 0);
-        granTotalPendientes = Math.max(0, granTotalProgramado - granTotalBustrax);
+        // Totales por sección
+        const totGarcia  = calcularTotalSeccion('tbody-garcia');
+        const totCienega = calcularTotalSeccion('tbody-cienega');
+
+        // Sumatoria global = Garcia + Cienega
+        const granTotalBustrax    = totGarcia.bustrax    + totCienega.bustrax;
+        const granTotalProgramado = totGarcia.programado + totCienega.programado;
+        const granTotalPendientes = Math.max(0, granTotalProgramado - granTotalBustrax);
+
         let porcentajeGlobal = 0;
-        if (granTotalProgramado > 0) porcentajeGlobal = Math.min(100, Math.round((granTotalBustrax / granTotalProgramado) * 100));
+        if (granTotalProgramado > 0)
+            porcentajeGlobal = Math.min(100, Math.round((granTotalBustrax / granTotalProgramado) * 100));
+
         document.getElementById('global-percentage-text').innerText = porcentajeGlobal + '%';
         document.getElementById('total-bustrax-text').innerText = granTotalBustrax;
-        document.getElementById('total-prog-text').innerText = granTotalProgramado;
-        document.getElementById('total-pend-text').innerText = granTotalPendientes;
+        document.getElementById('total-prog-text').innerText    = granTotalProgramado;
+        document.getElementById('total-pend-text').innerText    = granTotalPendientes;
         globalChart.data.datasets[0].data = [porcentajeGlobal, 100 - porcentajeGlobal];
         globalChart.update();
+    }
+
+    // Pintar totales iniciales en 0
+    calcularMetricasGlobales();
+
+    /* ══════════════════════════════════════════════════════════
+       IMPORTAR REPORTE BUSTRAX (.csv)
+       ══════════════════════════════════════════════════════════ */
+    function parseCSVLine(line){
+        const cols = []; let cur = ''; let inQ = false;
+        for (let i=0; i<line.length; i++){
+            const ch = line[i];
+            if (ch === '"'){
+                if (inQ && line[i+1] === '"'){ cur += '"'; i++; }
+                else inQ = !inQ;
+            } else if (ch === ',' && !inQ){ cols.push(cur); cur=''; }
+            else cur += ch;
+        }
+        cols.push(cur);
+        return cols;
+    }
+
+    function procesarReporte(evt){
+        const file = evt.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            try { importarTextoCSV(e.target.result, file.name); }
+            catch(err){ alert('Error al leer el archivo:\n' + err); }
+        };
+        reader.readAsText(file, 'utf-8');
+        // permitir volver a cargar el mismo archivo
+        evt.target.value = '';
+    }
+
+    function importarTextoCSV(txt, nombreArchivo){
+        if (txt.charCodeAt(0) === 0xFEFF) txt = txt.slice(1);
+        const lines = txt.split(/\r?\n/).filter(l => l.trim().length);
+        if (lines.length < 2){ alert('El archivo no tiene datos.'); return; }
+
+        const hdrs = parseCSVLine(lines[0]).map(h => h.trim());
+        const idxGroup = hdrs.findIndex(h => h.toLowerCase() === 'group');
+        const idxDate  = hdrs.findIndex(h => h.toLowerCase() === 'start_date');
+        if (idxGroup < 0){
+            alert('El CSV no tiene la columna "group". No se puede procesar.');
+            return;
+        }
+
+        // Contar viajes por grupo
+        const conteoPorGrupo = {};
+        const fechasDetectadas = new Set();
+        let totalFilas = 0, sinMapeo = 0;
+        const gruposIgnorados = {};
+
+        for (let i=1; i<lines.length; i++){
+            const cols = parseCSVLine(lines[i]);
+            const grupo = (cols[idxGroup]||'').trim();
+            if (!grupo) continue;
+            totalFilas++;
+            if (idxDate >= 0){
+                const fd = (cols[idxDate]||'').trim();
+                if (fd) fechasDetectadas.add(fd);
+            }
+            const planta = MAPEO_GRUPO_PLANTA[grupo];
+            if (planta){
+                conteoPorGrupo[planta] = (conteoPorGrupo[planta]||0) + 1;
+            } else {
+                sinMapeo++;
+                gruposIgnorados[grupo] = (gruposIgnorados[grupo]||0) + 1;
+            }
+        }
+
+        // Escribir el conteo en cada input .input-bustrax
+        let plantasLlenas = 0, plantasNoEncontradas = [];
+        Object.keys(conteoPorGrupo).forEach(planta => {
+            let hallado = false;
+            document.querySelectorAll('tbody tr:not(.total-row)').forEach(tr => {
+                if ((tr.children[0].innerText||'').trim().toUpperCase() === planta.toUpperCase()){
+                    const inp = tr.querySelector('.input-bustrax');
+                    inp.value = conteoPorGrupo[planta];
+                    calcularFila(inp);
+                    hallado = true;
+                }
+            });
+            if (hallado) plantasLlenas++;
+            else plantasNoEncontradas.push(planta);
+        });
+
+        // Ajustar fecha si el reporte trae una sola fecha
+        if (fechasDetectadas.size === 1){
+            const f = [...fechasDetectadas][0]; // ej "08/07/2026"
+            const m = f.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+            if (m){
+                const iso = `${m[3]}-${m[2]}-${m[1]}`;
+                document.getElementById('fechaCaptura').value = iso;
+                document.getElementById('semanaAnio').innerText = semanaISO(iso);
+            }
+        }
+
+        // Mostrar barra informativa
+        const importBar = document.getElementById('importBar');
+        importBar.classList.remove('hidden');
+        document.getElementById('repFile').innerText = nombreArchivo;
+        const fechasTxt = fechasDetectadas.size === 1
+            ? `· Fecha: ${[...fechasDetectadas][0]}`
+            : (fechasDetectadas.size > 1 ? `· ${fechasDetectadas.size} fechas` : '');
+        document.getElementById('repMeta').innerText =
+            `· ${totalFilas} viajes leídos · ${plantasLlenas} plantas actualizadas ${fechasTxt}`;
+
+        const repWarn = document.getElementById('repWarn');
+        const avisos = [];
+        if (sinMapeo > 0){
+            const detalle = Object.entries(gruposIgnorados)
+                .sort((a,b)=>b[1]-a[1]).slice(0,3)
+                .map(([g,n])=>`${g} (${n})`).join(', ');
+            avisos.push(`⚠ ${sinMapeo} viajes ignorados: ${detalle}${Object.keys(gruposIgnorados).length>3?'...':''}`);
+        }
+        if (plantasNoEncontradas.length){
+            avisos.push(`⚠ Plantas no encontradas en tabla: ${plantasNoEncontradas.join(', ')}`);
+        }
+        if (avisos.length){
+            repWarn.classList.remove('hidden');
+            repWarn.innerText = avisos.join(' · ');
+        } else {
+            repWarn.classList.add('hidden');
+        }
+    }
+
+    function limpiarReporte(){
+        document.getElementById('importBar').classList.add('hidden');
+        document.querySelectorAll('.input-bustrax').forEach(i => { i.value = 0; });
+        calcularMetricasGlobales();
+        // recalcular todas las filas para actualizar pendientes/avance
+        document.querySelectorAll('tbody tr:not(.total-row)').forEach(tr => {
+            const inp = tr.querySelector('.input-bustrax');
+            if (inp) calcularFila(inp);
+        });
     }
 
     // Semana ISO
@@ -392,7 +672,7 @@
         const semana = document.getElementById('semanaAnio').innerText;
         const filas = [];
         [['GARCIA','tbody-garcia'],['CIENEGA','tbody-cienega']].forEach(([seccion,id])=>{
-            document.querySelectorAll('#'+id+' tr').forEach(tr=>{
+            document.querySelectorAll('#'+id+' tr:not(.total-row)').forEach(tr=>{
                 filas.push({
                     fecha, semana, seccion,
                     planta: tr.children[0].innerText,
@@ -425,7 +705,7 @@
        Después de publicar el script como Web App, pega aquí la URL
        que termina en /exec
        ══════════════════════════════════════════════════════════ */
-    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzMiVp5LSqXOYZBOIVwGti_in6tMJ3yiwwA865zoD_Lp1liFiykadRFia7NxG3yAJod1Q/exec'; 
+    const WEBAPP_URL = ''; // ← PEGA AQUÍ TU URL /exec
 
     const USUARIO = 'settepigarcia365';
 
