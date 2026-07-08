@@ -99,5 +99,688 @@ document.querySelectorAll(".tab").forEach(x=>x.addEventListener("click",()=>swit
 qs("fFecha").addEventListener("change",()=>setSnapshot(qs("fFecha").value));
 ["fGerente","fJefe","fCoord","fPlanta","fEstatus"].forEach(id=>qs(id).addEventListener("change",applyFilters));qs("fSearch").addEventListener("input",applyFilters);qs("clearFiltersBtn").addEventListener("click",()=>{currentDateKey=DEFAULT_DATE_KEY;["fGerente","fJefe","fCoord","fPlanta","fEstatus"].forEach(id=>qs(id).value="");qs("fSearch").value="";setSnapshot(currentDateKey)});qs("downloadBtn").addEventListener("click",exportCsv);qs("fitMapBtn").addEventListener("click",fitCurrentMap);qs("openFiltersBtn").addEventListener("click",()=>{qs("sidebar").classList.add("open");qs("drawerBg").classList.add("open")});qs("closeFiltersBtn").addEventListener("click",()=>{qs("sidebar").classList.remove("open");qs("drawerBg").classList.remove("open")});qs("drawerBg").addEventListener("click",()=>{qs("sidebar").classList.remove("open");qs("drawerBg").classList.remove("open")});qs("closeModalBtn").addEventListener("click",()=>qs("travelModal").classList.remove("open"));qs("travelModal").addEventListener("click",e=>{if(e.target.id==="travelModal")qs("travelModal").classList.remove("open")});initFilters();
 </script>
+
+<script>
+(function(){
+  "use strict";
+
+  const LIVE_CFG = {
+    mainId: "1aMXFJ6J15W9-EANFdwEBtYP16CqDDP24yLV5jvaXVhY",
+    histId: "11S6opWQ_YUy1ODpNHwRoDOKmEz2ZG44x",
+    refreshMs: 5 * 60 * 1000,
+    recentHours: 12
+  };
+
+  const SHEETS = {
+    report: "REPORT_DRIVES",
+    plantilla: "Plantilla Actualizada",
+    domicilios: "Domicilios FICO",
+    opHoras: "OP_HORAS",
+    opDd: "OP_DD"
+  };
+
+  function liveNorm(value){
+    return String(value || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "");
+  }
+
+  function cleanText(value){
+    if (value === null || value === undefined) return "";
+    return String(value).replace(/\s+/g, " ").trim();
+  }
+
+  function valueText(value){
+    if (value === null || value === undefined) return "";
+    if (value instanceof Date) return formatDateTime(value);
+    if (typeof value === "number" && Number.isFinite(value)) {
+      if (Math.abs(value - Math.round(value)) < 0.000001) return String(Math.round(value));
+      return String(value);
+    }
+    return cleanText(value);
+  }
+
+  function cleanId(value){
+    if (value === null || value === undefined || value === "") return "";
+    if (typeof value === "number" && Number.isFinite(value)) return String(Math.trunc(value));
+    let text = String(value).trim();
+    const numeric = Number(text.replace(",", "."));
+    if (Number.isFinite(numeric) && /^(?:\d+|\d+\.\d+|\d+(?:\.\d+)?e[+-]?\d+)$/i.test(text.replace(",", "."))) {
+      return String(Math.trunc(numeric));
+    }
+    return text.replace(/\.0$/, "").trim();
+  }
+
+  function parseNumber(value){
+    if (value === null || value === undefined || value === "") return null;
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    const normalized = String(value).replace(",", ".").replace(/[^\d.+-]/g, "");
+    if (!normalized) return null;
+    const number = Number(normalized);
+    return Number.isFinite(number) ? number : null;
+  }
+
+  function rawCell(cell){
+    if (!cell) return "";
+    if (cell.v !== null && cell.v !== undefined) return cell.v;
+    if (cell.f !== null && cell.f !== undefined) return cell.f;
+    return "";
+  }
+
+  function displayCell(cell){
+    if (!cell) return "";
+    if (cell.f !== null && cell.f !== undefined) return cell.f;
+    if (cell.v !== null && cell.v !== undefined) return cell.v;
+    return "";
+  }
+
+  function loadGvizSheet(spreadsheetId, sheetName){
+    return new Promise((resolve, reject) => {
+      const callbackName = "__descansosLiveCb_" + Date.now() + "_" + Math.floor(Math.random() * 1000000);
+      const script = document.createElement("script");
+      const cleanup = () => {
+        delete window[callbackName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+      };
+      window[callbackName] = response => {
+        cleanup();
+        if (!response || response.status !== "ok") {
+          reject(new Error("Google Sheets no devolvio datos: " + sheetName));
+          return;
+        }
+        resolve(toSheet(response.table || {}));
+      };
+      script.onerror = () => {
+        cleanup();
+        reject(new Error("No se pudo cargar Google Sheets: " + sheetName));
+      };
+      script.src = "https://docs.google.com/spreadsheets/d/" + encodeURIComponent(spreadsheetId) +
+        "/gviz/tq?tqx=responseHandler:" + callbackName + ";out:json&headers=1&sheet=" +
+        encodeURIComponent(sheetName) + "&cacheBust=" + Date.now();
+      document.head.appendChild(script);
+    });
+  }
+
+  function toSheet(table){
+    const cols = table.cols || [];
+    const headers = cols.map((col, index) => cleanText(col.label || col.id || ("__col" + index)));
+    const rows = (table.rows || []).map(row => {
+      const cells = row.c || [];
+      return {
+        values: cols.map((_, index) => rawCell(cells[index])),
+        displays: cols.map((_, index) => displayCell(cells[index]))
+      };
+    });
+    return { headers, rows };
+  }
+
+  function makeGetter(sheet){
+    const byNorm = new Map();
+    sheet.headers.forEach((header, index) => {
+      const key = liveNorm(header);
+      if (key && !byNorm.has(key)) byNorm.set(key, index);
+    });
+    return function(row, names, fallbackIndex, display){
+      let index = null;
+      for (const name of names || []) {
+        const key = liveNorm(name);
+        if (byNorm.has(key)) {
+          index = byNorm.get(key);
+          break;
+        }
+      }
+      if (index === null && Number.isInteger(fallbackIndex)) index = fallbackIndex;
+      if (index === null || index < 0) return "";
+      const primary = display ? row.displays[index] : row.values[index];
+      if (primary !== null && primary !== undefined && primary !== "") return primary;
+      return row.displays[index] ?? "";
+    };
+  }
+
+  function excelSerialToDate(value){
+    const whole = Math.floor(value);
+    const fraction = value - whole;
+    const utc = Date.UTC(1899, 11, 30) + whole * 86400000 + Math.round(fraction * 86400000);
+    const date = new Date(utc);
+    return new Date(
+      date.getUTCFullYear(),
+      date.getUTCMonth(),
+      date.getUTCDate(),
+      date.getUTCHours(),
+      date.getUTCMinutes(),
+      date.getUTCSeconds()
+    );
+  }
+
+  function parseDate(value, display){
+    const candidate = value || display;
+    if (!candidate && candidate !== 0) return null;
+    if (candidate instanceof Date) return new Date(candidate.getTime());
+    if (typeof candidate === "number" && Number.isFinite(candidate)) {
+      if (candidate > 20000 && candidate < 70000) return excelSerialToDate(candidate);
+      return null;
+    }
+    const text = String(candidate).trim();
+    if (!text) return null;
+    let match = text.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})(?:,(\d{1,2}),(\d{1,2}),(\d{1,2}))?\)$/);
+    if (match) {
+      return new Date(
+        Number(match[1]),
+        Number(match[2]),
+        Number(match[3]),
+        Number(match[4] || 0),
+        Number(match[5] || 0),
+        Number(match[6] || 0)
+      );
+    }
+    match = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+    if (match) {
+      return new Date(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3]),
+        Number(match[4] || 0),
+        Number(match[5] || 0),
+        Number(match[6] || 0)
+      );
+    }
+    match = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+    if (match) {
+      return new Date(
+        Number(match[3]),
+        Number(match[2]) - 1,
+        Number(match[1]),
+        Number(match[4] || 0),
+        Number(match[5] || 0),
+        Number(match[6] || 0)
+      );
+    }
+    const parsed = new Date(text);
+    return Number.isNaN(+parsed) ? null : parsed;
+  }
+
+  function parseHeaderDate(header){
+    return parseDate(header, header);
+  }
+
+  function parseDurationMinutes(value, display){
+    const candidate = value === "" || value === null || value === undefined ? display : value;
+    if (candidate === "" || candidate === null || candidate === undefined) return 0;
+    if (Array.isArray(candidate)) {
+      return (Number(candidate[0]) || 0) * 60 + (Number(candidate[1]) || 0) + (Number(candidate[2]) || 0) / 60;
+    }
+    if (candidate instanceof Date) return candidate.getHours() * 60 + candidate.getMinutes() + candidate.getSeconds() / 60;
+    if (typeof candidate === "number" && Number.isFinite(candidate)) {
+      if (candidate > 0 && candidate < 3) return candidate * 1440;
+      return candidate;
+    }
+    const text = String(candidate).trim();
+    let match = text.match(/^(-?\d+):(\d{2})(?::(\d{2}))?$/);
+    if (match) {
+      return Math.max(0, Number(match[1]) * 60 + Number(match[2]) + Number(match[3] || 0) / 60);
+    }
+    const number = parseNumber(text);
+    return number === null ? 0 : number;
+  }
+
+  function pad2(value){
+    return String(value).padStart(2, "0");
+  }
+
+  function dateKey(date){
+    return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate());
+  }
+
+  function dateFromKey(key){
+    const parts = String(key).split("-").map(Number);
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+  }
+
+  function nextDateKey(key){
+    const date = dateFromKey(key);
+    date.setDate(date.getDate() + 1);
+    return dateKey(date);
+  }
+
+  function prevDateKey(key){
+    const date = dateFromKey(key);
+    date.setDate(date.getDate() - 1);
+    return dateKey(date);
+  }
+
+  function compareKeys(a, b){
+    return String(a).localeCompare(String(b));
+  }
+
+  function daysBetween(startKey, endKey){
+    return Math.round((+dateFromKey(endKey) - +dateFromKey(startKey)) / 86400000);
+  }
+
+  function formatDate(date){
+    return pad2(date.getDate()) + "/" + pad2(date.getMonth() + 1) + "/" + date.getFullYear();
+  }
+
+  function formatDateTime(date){
+    return formatDate(date) + " " + pad2(date.getHours()) + ":" + pad2(date.getMinutes());
+  }
+
+  function formatCorte(date){
+    return formatDate(date) + " " + pad2(date.getHours()) + pad2(date.getMinutes());
+  }
+
+  function hhmmFromLiveMinutes(minutes){
+    const total = Math.max(0, Math.round(Number(minutes) || 0));
+    return pad2(Math.floor(total / 60)) + ":" + pad2(total % 60);
+  }
+
+  function statusForDays(days){
+    if (days >= 13) return "Cr\u00edtico";
+    if (days >= 10) return "Alto";
+    if (days >= 7) return "Medio";
+    return "Bajo";
+  }
+
+  function actionForStatus(status){
+    if (liveNorm(status) === "critico") return "No programar";
+    if (status === "Alto") return "Validar descanso";
+    if (status === "Medio") return "Monitorear";
+    return "Operable";
+  }
+
+  function overlapMinutes(start, end, key){
+    const dayStart = +dateFromKey(key);
+    const dayEnd = dayStart + 86400000;
+    return Math.max(0, (Math.min(+end, dayEnd) - Math.max(+start, dayStart)) / 60000);
+  }
+
+  function addDailyMinute(daily, emp, key, minutes){
+    if (!emp || !key || !minutes) return;
+    if (!daily.has(emp)) daily.set(emp, new Map());
+    const byDate = daily.get(emp);
+    byDate.set(key, (byDate.get(key) || 0) + minutes);
+  }
+
+  function parseReport(sheet){
+    const get = makeGetter(sheet);
+    const trips = [];
+    for (const [index, row] of sheet.rows.entries()) {
+      const emp = cleanId(get(row, ["Id Colaborador"], 7));
+      const start = parseDate(get(row, ["Inicio Recorrido"], 8, true), get(row, ["Inicio Recorrido"], 8));
+      const end = parseDate(get(row, ["Fin Recorrido"], 12, true), get(row, ["Fin Recorrido"], 12));
+      if (!emp || !start || !end || +end < +start) continue;
+      const durationMinutes = parseDurationMinutes(
+        get(row, ["Tiempo Total de Manejo"], 17),
+        get(row, ["Tiempo Total de Manejo"], 17, true)
+      ) || Math.max(0, (+end - +start) / 60000);
+      trips.push({
+        rowIndex: index + 2,
+        emp,
+        driver: cleanText(get(row, ["Nombre del conductor"], 4)),
+        unit: cleanId(get(row, ["N\u00fam. Eco.", "Num. Eco.", "N\u00fam. Econ\u00f3mico", "Num. Economico"], 0)) || cleanId(get(row, ["N\u00fam. Econ\u00f3mico"], 2)),
+        start,
+        end,
+        startLoc: cleanText(get(row, ["Ubicaci\u00f3n Inicial", "Ubicacion Inicial"], 9)),
+        endLoc: cleanText(get(row, ["Ubicaci\u00f3n Final", "Ubicacion Final"], 13)),
+        start_lat: parseNumber(get(row, ["Start latitud"], 10)),
+        start_lon: parseNumber(get(row, ["Empiezo de longitud"], 11)),
+        end_lat: parseNumber(get(row, ["Latitud Final*"], 14)),
+        end_lon: parseNumber(get(row, ["Longitud Final"], 15)),
+        km: parseNumber(get(row, ["Kilometraje"], 16)),
+        durationMinutes,
+        idleMinutes: parseDurationMinutes(get(row, ["Ralent\u00ed", "Ralenti"], 21), get(row, ["Ralent\u00ed", "Ralenti"], 21, true))
+      });
+    }
+    trips.sort((a, b) => +a.start - +b.start);
+    return trips;
+  }
+
+  function parsePlantilla(sheet){
+    const get = makeGetter(sheet);
+    const map = new Map();
+    for (const row of sheet.rows) {
+      const ids = [
+        cleanId(get(row, ["Id Colaborador", "Worker ID", "Nomina"], 2)),
+        cleanId(get(row, ["ID"], 0))
+      ].filter(Boolean);
+      const data = {
+        name: cleanText(get(row, ["Nombre del conductor", "Nombre"], 1)),
+        unidad: cleanId(get(row, ["Veh\u00edculo Ultimo Evento", "Vehiculo Ultimo Evento"], 3)),
+        planta: cleanText(get(row, ["Planta"], 5)),
+        zona: cleanText(get(row, ["Zona"], 6)),
+        coord: cleanText(get(row, ["Coordinador"], 7)),
+        jefe: cleanText(get(row, ["Jefe Operativo", "Jefe Operaciones"], 8)),
+        gerente: cleanText(get(row, ["Gerente", "Gerente de operaciones"], 9)),
+        statusOperador: cleanText(get(row, ["Status del Operador"], 10))
+      };
+      if (!data.planta || data.planta.toUpperCase() === "ND") {
+        data.planta = "";
+      }
+      for (const emp of ids) {
+        if (emp && !map.has(emp)) map.set(emp, data);
+      }
+    }
+    return map;
+  }
+
+  function parseDomicilios(sheet){
+    const get = makeGetter(sheet);
+    const map = new Map();
+    for (const row of sheet.rows) {
+      const emp = cleanId(get(row, ["Nom", "Worker ID", "Id Colaborador"], 0));
+      if (!emp) continue;
+      const data = {
+        name: cleanText(get(row, ["OP", "Nombre"], 1)),
+        homeLat: parseNumber(get(row, ["Latitude M-1", "Latitude M1"], 2)),
+        homeLon: parseNumber(get(row, ["Longitude M-1", "Longitude M1"], 3)),
+        planta: cleanText(get(row, ["planta"], 9)),
+        jefe: cleanText(get(row, ["jo"], 10)),
+        gerente: cleanText(get(row, ["gte"], 11))
+      };
+      map.set(emp, data);
+    }
+    return map;
+  }
+
+  function parseHistory(sheet){
+    const get = makeGetter(sheet);
+    const dateCols = sheet.headers
+      .map((header, index) => ({ header, index, date: parseHeaderDate(header) }))
+      .filter(item => item.date)
+      .map(item => ({ ...item, key: dateKey(item.date) }))
+      .sort((a, b) => compareKeys(a.key, b.key));
+    const rows = new Map();
+    for (const row of sheet.rows) {
+      const emp = cleanId(get(row, ["Worker ID", "Id Colaborador", "Nomina"], 1));
+      if (!emp) continue;
+      rows.set(emp, {
+        udn: cleanText(get(row, ["UDN"], 0)),
+        name: cleanText(get(row, ["Nombre", "Nombre del conductor"], 2)),
+        row
+      });
+    }
+    return { dateCols, rows };
+  }
+
+  function histValueAtOrBefore(history, emp, selectedKey){
+    const item = history.rows.get(emp);
+    if (!item) return null;
+    let selectedCol = null;
+    for (const col of history.dateCols) {
+      if (compareKeys(col.key, selectedKey) <= 0) selectedCol = col;
+      else break;
+    }
+    if (!selectedCol) return null;
+    const value = parseNumber(item.row.values[selectedCol.index]);
+    return { key: selectedCol.key, value: value === null ? 0 : value };
+  }
+
+  function hasDrivingFromHistory(history, emp, key){
+    const item = history.rows.get(emp);
+    if (!item) return false;
+    const col = history.dateCols.find(c => c.key === key);
+    if (!col) return false;
+    const value = parseNumber(item.row.values[col.index]);
+    return value !== null && value > 0;
+  }
+
+  function dailyMinutesFor(daily, emp, key){
+    return daily.get(emp)?.get(key) || 0;
+  }
+
+  function computeDays(emp, selectedKey, ddHistory, daily){
+    const hist = histValueAtOrBefore(ddHistory, emp, selectedKey);
+    if (hist) {
+      let days = Math.max(0, Math.round(Number(hist.value) || 0));
+      let cursor = nextDateKey(hist.key);
+      while (compareKeys(cursor, selectedKey) <= 0) {
+        days = dailyMinutesFor(daily, emp, cursor) > 0 ? days + 1 : 0;
+        cursor = nextDateKey(cursor);
+      }
+      return days;
+    }
+    let days = 0;
+    let cursor = selectedKey;
+    while (dailyMinutesFor(daily, emp, cursor) > 0) {
+      days += 1;
+      cursor = prevDateKey(cursor);
+      if (days > 400) break;
+    }
+    return days;
+  }
+
+  function computeNoDrivingDays(emp, selectedKey, horasHistory, daily){
+    let days = 0;
+    let cursor = selectedKey;
+    const firstHist = horasHistory.dateCols[0]?.key || selectedKey;
+    const lastHist = horasHistory.dateCols[horasHistory.dateCols.length - 1]?.key || "";
+    while (days < 400 && compareKeys(cursor, firstHist) >= 0) {
+      let drove = false;
+      if (lastHist && compareKeys(cursor, lastHist) <= 0) drove = hasDrivingFromHistory(horasHistory, emp, cursor);
+      else drove = dailyMinutesFor(daily, emp, cursor) > 0;
+      if (drove) break;
+      days += 1;
+      cursor = prevDateKey(cursor);
+    }
+    return days;
+  }
+
+  function lastDrivingDate(emp, selectedKey, horasHistory, daily){
+    let cursor = selectedKey;
+    const firstHist = horasHistory.dateCols[0]?.key || selectedKey;
+    const lastHist = horasHistory.dateCols[horasHistory.dateCols.length - 1]?.key || "";
+    while (compareKeys(cursor, firstHist) >= 0) {
+      let drove = false;
+      if (lastHist && compareKeys(cursor, lastHist) <= 0) drove = hasDrivingFromHistory(horasHistory, emp, cursor);
+      else drove = dailyMinutesFor(daily, emp, cursor) > 0;
+      if (drove) return formatDate(dateFromKey(cursor));
+      cursor = prevDateKey(cursor);
+    }
+    return "Sin historico";
+  }
+
+  function tripForModal(trip, selectedKey, index){
+    const todayMinutes = overlapMinutes(trip.start, trip.end, selectedKey);
+    const km = trip.km === null ? "" : Math.round(trip.km * 100) / 100;
+    return {
+      id: selectedKey + "-" + trip.emp + "-" + trip.rowIndex + "-" + index,
+      emp: trip.emp,
+      driver: trip.driver,
+      unit: trip.unit,
+      start: trip.start.toISOString(),
+      end: trip.end.toISOString(),
+      startLabel: formatDateTime(trip.start),
+      endLabel: formatDateTime(trip.end),
+      duration: hhmmFromLiveMinutes(trip.durationMinutes),
+      todayDuration: hhmmFromLiveMinutes(todayMinutes),
+      todayMinutes,
+      km,
+      obs: trip.startLoc && trip.endLoc ? trip.startLoc + " -> " + trip.endLoc : (trip.startLoc || trip.endLoc || ""),
+      start_lat: trip.start_lat,
+      start_lon: trip.start_lon,
+      end_lat: trip.end_lat,
+      end_lon: trip.end_lon,
+      crosses: dateKey(trip.start) !== dateKey(trip.end) || todayMinutes < trip.durationMinutes - 0.5
+    };
+  }
+
+  function latestTripForEmp(trips, emp, selectedKey){
+    const until = +dateFromKey(nextDateKey(selectedKey));
+    let latest = null;
+    for (const trip of trips) {
+      if (trip.emp === emp && +trip.start < until && (!latest || +trip.end > +latest.end)) latest = trip;
+    }
+    return latest;
+  }
+
+  function buildSnapshot(selectedKey, context){
+    const { trips, plantilla, domicilios, horasHistory, ddHistory, daily } = context;
+    const dayTrips = trips.filter(trip => overlapMinutes(trip.start, trip.end, selectedKey) > 0);
+    const maxEnd = dayTrips.length
+      ? new Date(Math.max(...dayTrips.map(trip => +trip.end)))
+      : new Date(+dateFromKey(nextDateKey(selectedKey)) - 1);
+    const minRecent = +maxEnd - LIVE_CFG.recentHours * 3600000;
+    const recentTrips = trips.filter(trip => +trip.end >= minRecent && +trip.start <= +maxEnd);
+    const tripsByEmp = {};
+    recentTrips.forEach((trip, index) => {
+      const item = tripForModal(trip, selectedKey, index + 1);
+      if (!tripsByEmp[trip.emp]) tripsByEmp[trip.emp] = [];
+      tripsByEmp[trip.emp].push(item);
+    });
+    Object.values(tripsByEmp).forEach(list => list.sort((a, b) => +new Date(a.start) - +new Date(b.start)));
+
+    const ids = new Set([
+      ...plantilla.keys(),
+      ...ddHistory.rows.keys(),
+      ...horasHistory.rows.keys(),
+      ...trips.map(trip => trip.emp)
+    ]);
+
+    const ops = [];
+    for (const emp of ids) {
+      const base = plantilla.get(emp) || {};
+      const dom = domicilios.get(emp) || {};
+      const hist = ddHistory.rows.get(emp) || horasHistory.rows.get(emp) || {};
+      const latest = latestTripForEmp(trips, emp, selectedKey) || {};
+      const driveMinutes = dailyMinutesFor(daily, emp, selectedKey);
+      const days = computeDays(emp, selectedKey, ddHistory, daily);
+      const estatus = statusForDays(days);
+      ops.push({
+        emp,
+        name: base.name || latest.driver || dom.name || hist.name || "",
+        days,
+        drive: hhmmFromLiveMinutes(driveMinutes),
+        driveHours: Math.round((driveMinutes / 60) * 10000) / 10000,
+        gerente: base.gerente || dom.gerente || "",
+        jefe: base.jefe || dom.jefe || "",
+        coord: base.coord || "",
+        planta: base.planta || dom.planta || hist.udn || "",
+        unidad: latest.unit || base.unidad || "",
+        homeLat: Number.isFinite(dom.homeLat) ? dom.homeLat : null,
+        homeLon: Number.isFinite(dom.homeLon) ? dom.homeLon : null,
+        estatus,
+        accion: actionForStatus(estatus)
+      });
+    }
+    ops.sort((a, b) => (b.days - a.days) || (b.driveHours - a.driveHours) || a.name.localeCompare(b.name, "es"));
+
+    const ausentismos = [];
+    for (const emp of horasHistory.rows.keys()) {
+      const days = computeNoDrivingDays(emp, selectedKey, horasHistory, daily);
+      if (days < 3) continue;
+      const base = ops.find(op => op.emp === emp) || {};
+      const item = horasHistory.rows.get(emp) || {};
+      const categoria = days > 7 ? "PB" : "Candidato";
+      ausentismos.push({
+        emp,
+        name: item.name || base.name || "",
+        diasSinConduccion: days,
+        categoria,
+        gerente: base.gerente || "",
+        jefe: base.jefe || "",
+        coord: base.coord || "",
+        planta: base.planta || item.udn || "",
+        ultimaConduccion: lastDrivingDate(emp, selectedKey, horasHistory, daily),
+        fechaCorte: formatDate(dateFromKey(selectedKey)),
+        accion: categoria === "PB" ? "PB" : "Validar ausentismo"
+      });
+    }
+    ausentismos.sort((a, b) => (a.diasSinConduccion - b.diasSinConduccion) || a.name.localeCompare(b.name, "es") || a.emp.localeCompare(b.emp));
+
+    return {
+      key: selectedKey,
+      label: formatDate(dateFromKey(selectedKey)),
+      corte: formatCorte(maxEnd),
+      ops,
+      trips: tripsByEmp,
+      ausentismos,
+      fuente: "Google Sheets: REPORT_DRIVES",
+      colConduccion: "Conduccion hoy (" + pad2(dateFromKey(selectedKey).getDate()) + pad2(dateFromKey(selectedKey).getMonth() + 1) + ")",
+      fechaHistorico: formatDate(dateFromKey(selectedKey))
+    };
+  }
+
+  function buildLiveSnapshots(data){
+    const trips = parseReport(data.report);
+    const plantilla = parsePlantilla(data.plantilla);
+    const domicilios = parseDomicilios(data.domicilios);
+    const horasHistory = parseHistory(data.opHoras);
+    const ddHistory = parseHistory(data.opDd);
+    const daily = new Map();
+    const dateSet = new Set();
+
+    for (const trip of trips) {
+      let cursor = dateKey(trip.start);
+      const last = dateKey(trip.end);
+      while (compareKeys(cursor, last) <= 0) {
+        const minutes = overlapMinutes(trip.start, trip.end, cursor);
+        if (minutes > 0) {
+          addDailyMinute(daily, trip.emp, cursor, minutes);
+          dateSet.add(cursor);
+        }
+        cursor = nextDateKey(cursor);
+      }
+    }
+    ddHistory.dateCols.forEach(col => dateSet.add(col.key));
+    horasHistory.dateCols.forEach(col => dateSet.add(col.key));
+
+    const keys = [...dateSet].sort((a, b) => b.localeCompare(a));
+    const context = { trips, plantilla, domicilios, horasHistory, ddHistory, daily };
+    const snapshots = {};
+    for (const key of keys) snapshots[key] = buildSnapshot(key, context);
+    return snapshots;
+  }
+
+  function applyLiveSnapshots(nextSnapshots){
+    const newKeys = Object.keys(nextSnapshots).sort((a, b) => b.localeCompare(a));
+    if (!newKeys.length) throw new Error("REPORT_DRIVES no tiene fechas validas.");
+    const oldLatest = snapshotKeys()[0];
+    const oldSelected = currentDateKey;
+    const keepSelected = oldSelected && oldSelected !== oldLatest && nextSnapshots[oldSelected];
+    Object.keys(SNAPSHOTS).forEach(key => delete SNAPSHOTS[key]);
+    Object.assign(SNAPSHOTS, nextSnapshots);
+    const target = keepSelected ? oldSelected : newKeys[0];
+    currentDateKey = target;
+    fillDateFilter();
+    setSnapshot(target);
+  }
+
+  async function loadLiveSnapshots(){
+    try {
+      const [report, plantilla, domicilios, opHoras, opDd] = await Promise.all([
+        loadGvizSheet(LIVE_CFG.mainId, SHEETS.report),
+        loadGvizSheet(LIVE_CFG.mainId, SHEETS.plantilla),
+        loadGvizSheet(LIVE_CFG.mainId, SHEETS.domicilios),
+        loadGvizSheet(LIVE_CFG.histId, SHEETS.opHoras),
+        loadGvizSheet(LIVE_CFG.histId, SHEETS.opDd)
+      ]);
+      const snapshots = buildLiveSnapshots({ report, plantilla, domicilios, opHoras, opDd });
+      applyLiveSnapshots(snapshots);
+    } catch (error) {
+      console.error(error);
+      const footer = document.getElementById("footerNote");
+      if (footer && !footer.dataset.liveErrorShown) {
+        footer.dataset.liveErrorShown = "1";
+        footer.textContent = (footer.textContent || "") + " | Sin conexion viva a Google Sheets; se muestra el respaldo del HTML.";
+      }
+    }
+  }
+
+  const clearButton = document.getElementById("clearFiltersBtn");
+  if (clearButton) {
+    clearButton.addEventListener("click", () => {
+      setTimeout(() => {
+        const latest = snapshotKeys()[0];
+        if (latest && currentDateKey !== latest) setSnapshot(latest);
+      }, 0);
+    });
+  }
+
+  loadLiveSnapshots();
+  window.setInterval(loadLiveSnapshots, LIVE_CFG.refreshMs);
+})();
+</script>
+
 </body>
 </html>
