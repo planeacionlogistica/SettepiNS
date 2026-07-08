@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control_viajes.html</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ============ NAV (idéntico a Flota) ============ */
+        :root{
+            --navy:#1a2236;--navy2:#222d42;--green:#7ed321;--lime:#84cc16;
+            --white:#fff;--bg:#f0f2f7;--border:#dde3f0;--text:#1a2236;--muted:#6b7a99;
+        }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        html,body{
+            background:var(--bg);color:var(--text);
+            font-family:"Inter",Arial,sans-serif;min-height:100vh;
+        }
+        nav{
+            background:#1f2937;padding:0 28px;display:flex;align-items:center;
+            height:48px;gap:14px;position:sticky;top:0;z-index:2000;
+            box-shadow:0 2px 8px rgba(0,0,0,.3);flex-shrink:0;
+            font-family:'Inter',sans-serif;
+        }
+        .nav-logo{color:#84cc16;font-weight:800;font-size:16px;text-decoration:none;}
+        .nav-sep{color:#4b5563;font-size:14px;font-weight:300;}
+        .nav-page{color:#e5e7eb;font-size:13px;font-weight:600;}
+
+        /* ============ CONTENIDO ============ */
+        .container {
+            max-width: 1300px;
+            margin: 20px auto;
+            background-color: var(--white);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(26,34,54,.07);
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .filter-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg);
+            border: 1px solid var(--border);
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-bottom: 15px;
+            color: var(--navy);
+        }
+        .filter-bar input[type="date"] {
+            padding: 3px 6px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: 'Inter',sans-serif;
+        }
+
+        .main-layout { display: flex; gap: 20px; align-items: flex-start; }
+        .tables-column { flex: 3; }
+        .sidebar-column {
+            flex: 1;
+            position: sticky;
+            top: 68px;
+            background-color: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(26,34,54,.05);
+            text-align: center;
+        }
+
+        /* Banner de sección — gris oscuro Traxión */
+        .section-banner {
+            background-color: var(--navy2);
+            color: rgba(255,255,255,.9);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            padding: 8px 12px;
+            border-radius: 6px 6px 0 0;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-bottom: 10px;
+            background: var(--white);
+        }
+        /* Headers de tabla — mismo gris oscuro (navy2) con texto blanco */
+        th {
+            background-color: var(--navy2);
+            color: rgba(255,255,255,.85);
+            font-weight: 600;
+            font-size: 10.5px;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            padding: 8px 6px;
+            border: 1px solid var(--navy2);
+            text-align: center;
+        }
+        td {
+            padding: 6px 5px;
+            border: 1px solid var(--border);
+            text-align: center;
+            vertical-align: middle;
+            color: var(--text);
+        }
+        td:first-child {
+            text-align: left;
+            font-weight: 600;
+            color: var(--navy);
+            width: 20%;
+            padding-left: 10px;
+        }
+        tbody tr:hover td { background: #f7f9ff; }
+        input[type="number"] {
+            width: 65px;
+            text-align: center;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 3px;
+            font-family: 'Inter',sans-serif;
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--lime);
+            box-shadow: 0 0 0 2px rgba(126,211,33,.15);
+        }
+        input[type="text"].comment-input {
+            width: 92%;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 4px 6px;
+            font-size: 11px;
+            font-family: 'Inter',sans-serif;
+        }
+        input[type="text"].comment-input:focus {
+            outline: none;
+            border-color: var(--lime);
+            box-shadow: 0 0 0 2px rgba(126,211,33,.15);
+        }
+        .text-pending { color: #3B6D11; font-weight: 700; }
+        .text-advance { color: var(--navy); font-weight: 700; }
+
+        /* Panel gráfica */
+        .chart-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            margin-bottom: 15px;
+        }
+        .global-percentage {
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--navy);
+            margin-top: 10px;
+            letter-spacing: -.02em;
+        }
+        .chart-summary {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 10px;
+            text-align: left;
+            line-height: 1.6;
+        }
+        .chart-summary strong { color: var(--navy); }
+
+        .footer-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            border-top: 1px solid var(--border);
+            padding-top: 15px;
+        }
+        .btn {
+            padding: 9px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: 'Inter',sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all .15s;
+        }
+        .btn-excel {
+            background: var(--navy2);
+            color: #fff;
+        }
+        .btn-excel:hover { background: var(--navy); }
+        .btn-save {
+            background: var(--lime);
+            color: #1f2937;
+        }
+        .btn-save:hover { background: #65a30d; color: #fff; }
+    </style>
+</head>
+<body>
+
+<!-- NAV (idéntico al de Flota) -->
+<nav>
+  <a class="nav-logo" href="index.html">TRAXIÓN</a>
+  <span class="nav-sep">|</span>
+  <span class="nav-page">Control de Viajes</span>
+</nav>
+
+<div class="container">
+    <div class="header-title">
+        📋 Control de Viajes por Facturar
+    </div>
+
+    <div class="filter-bar">
+        <div>
+            <strong>📅 Consultar/Capturar Fecha:</strong>
+            <input type="date" id="fechaCaptura" value="2026-07-08">
+        </div>
+        <div>
+            <strong>Semana del Año:</strong> <span id="semanaAnio">28</span>
+        </div>
+    </div>
+
+    <div class="main-layout">
+
+        <div class="tables-column">
+
+            <div class="section-banner">📍 PROGRAMACION GARCIA</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Planta</th>
+                        <th>Viajes Cargados en Bustrax</th>
+                        <th>Viajes Programados</th>
+                        <th>Pendientes</th>
+                        <th>Avance (%)</th>
+                        <th>Comentarios</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-garcia"></tbody>
+            </table>
+
+            <div class="section-banner">📍 PROGRAMACION CIENEGA</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Planta</th>
+                        <th>Viajes Cargados en Bustrax</th>
+                        <th>Viajes Programados</th>
+                        <th>Pendientes</th>
+                        <th>Avance (%)</th>
+                        <th>Comentarios</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-cienega"></tbody>
+            </table>
+        </div>
+
+        <div class="sidebar-column">
+            <div class="chart-title">📊 Avance Global del Día</div>
+            <div style="width: 100%; max-width: 220px; margin: 0 auto;">
+                <canvas id="globalChart"></canvas>
+            </div>
+            <div class="global-percentage" id="global-percentage-text">0%</div>
+
+            <div class="chart-summary">
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 10px 0;">
+                <strong>Totales del día:</strong><br>
+                • Total Bustrax: <span id="total-bustrax-text">0</span><br>
+                • Total Programado: <span id="total-prog-text">0</span><br>
+                • Total Pendientes: <span id="total-pend-text">0</span>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-buttons">
+        <button class="btn btn-excel" onclick="exportarCSV()">📊 Exportar a Excel (.CSV)</button>
+        <button class="btn btn-save" onclick="guardarDia()">💾 Guardar Día y Avanzar ➡️</button>
+    </div>
+</div>
+
+<script>
+    const plantasGarcia = [
+        "BRUNNEN","RYDER GARCIA","ALEN","ACUMENT","ALCALI","ARTIGRAF",
+        "BANAMEX","FANTASIAS MIGUEL","GINO","GONHER","GRUPO SID GARCIA",
+        "HARIMASA","LUBRAL","MOLISANA","MRM MTY","NEMAK","NOVEM",
+        "REGAL MARATHON","REHAU","SANTANDER MTY","SORIANA TIENDA",
+        "VERTEX MTY","CARVAJAL","VITRO","JOHN DEERE","ENERYA"
+    ];
+    const plantasCienega = [
+        "RYDER CIENEGA","BRAZEWAY","CONMET","DONALDSON","NAVISTAR","YANFENG"
+    ];
+
+    function cargarTabla(idElemento, lista) {
+        const tbody = document.getElementById(idElemento);
+        lista.forEach(planta => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${planta}</td>
+                <td><input type="number" class="input-bustrax" value="0" min="0" oninput="calcularFila(this)"></td>
+                <td><input type="number" class="input-programado" value="0" min="0" oninput="calcularFila(this)"></td>
+                <td class="text-pending td-pendiente">0</td>
+                <td class="text-advance td-avance">0%</td>
+                <td><input type="text" class="comment-input" placeholder="Agregar nota..."></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    cargarTabla('tbody-garcia', plantasGarcia);
+    cargarTabla('tbody-cienega', plantasCienega);
+
+    const ctx = document.getElementById('globalChart').getContext('2d');
+    let globalChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Completado','Pendiente'],
+            datasets: [{
+                data: [0,100],
+                backgroundColor: ['#84cc16','#e5e7eb'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false }, tooltip: { enabled: true } },
+            cutout: '75%'
+        }
+    });
+
+    function calcularFila(input) {
+        const fila = input.closest('tr');
+        const bustrax = parseFloat(fila.querySelector('.input-bustrax').value) || 0;
+        const programado = parseFloat(fila.querySelector('.input-programado').value) || 0;
+        const pendiente = Math.max(0, programado - bustrax);
+        fila.querySelector('.td-pendiente').innerText = pendiente;
+        let avance = 0;
+        if (programado > 0) avance = Math.min(100, Math.round((bustrax / programado) * 100));
+        fila.querySelector('.td-avance').innerText = avance + '%';
+        calcularMetricasGlobales();
+    }
+
+    function calcularMetricasGlobales() {
+        let granTotalBustrax = 0, granTotalProgramado = 0, granTotalPendientes = 0;
+        document.querySelectorAll('.input-bustrax').forEach(i => granTotalBustrax += parseFloat(i.value) || 0);
+        document.querySelectorAll('.input-programado').forEach(i => granTotalProgramado += parseFloat(i.value) || 0);
+        granTotalPendientes = Math.max(0, granTotalProgramado - granTotalBustrax);
+        let porcentajeGlobal = 0;
+        if (granTotalProgramado > 0) porcentajeGlobal = Math.min(100, Math.round((granTotalBustrax / granTotalProgramado) * 100));
+        document.getElementById('global-percentage-text').innerText = porcentajeGlobal + '%';
+        document.getElementById('total-bustrax-text').innerText = granTotalBustrax;
+        document.getElementById('total-prog-text').innerText = granTotalProgramado;
+        document.getElementById('total-pend-text').innerText = granTotalPendientes;
+        globalChart.data.datasets[0].data = [porcentajeGlobal, 100 - porcentajeGlobal];
+        globalChart.update();
+    }
+
+    // Semana ISO
+    function semanaISO(fechaStr){
+        const d = new Date(fechaStr + 'T00:00:00');
+        const target = new Date(d.valueOf());
+        const dayNr = (d.getDay() + 6) % 7;
+        target.setDate(target.getDate() - dayNr + 3);
+        const firstThursday = new Date(target.getFullYear(),0,4);
+        const diff = target - firstThursday;
+        return 1 + Math.round(diff / (7*24*3600*1000));
+    }
+    document.getElementById('fechaCaptura').addEventListener('change', e=>{
+        document.getElementById('semanaAnio').innerText = semanaISO(e.target.value);
+    });
+
+    function recolectarFilas(){
+        const fecha = document.getElementById('fechaCaptura').value;
+        const semana = document.getElementById('semanaAnio').innerText;
+        const filas = [];
+        [['GARCIA','tbody-garcia'],['CIENEGA','tbody-cienega']].forEach(([seccion,id])=>{
+            document.querySelectorAll('#'+id+' tr').forEach(tr=>{
+                filas.push({
+                    fecha, semana, seccion,
+                    planta: tr.children[0].innerText,
+                    bustrax: tr.querySelector('.input-bustrax').value || 0,
+                    programado: tr.querySelector('.input-programado').value || 0,
+                    pendientes: tr.querySelector('.td-pendiente').innerText,
+                    avance: tr.querySelector('.td-avance').innerText,
+                    comentario: tr.querySelector('.comment-input').value || ''
+                });
+            });
+        });
+        return filas;
+    }
+
+    function exportarCSV(){
+        const filas = recolectarFilas();
+        const hdr = ['Fecha','Semana','Seccion','Planta','Bustrax','Programado','Pendientes','Avance','Comentario'];
+        const csv = [hdr.join(',')].concat(
+            filas.map(f => [f.fecha,f.semana,f.seccion,f.planta,f.bustrax,f.programado,f.pendientes,f.avance,`"${f.comentario.replace(/"/g,'""')}"`].join(','))
+        ).join('\n');
+        const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `control_viajes_${document.getElementById('fechaCaptura').value}.csv`;
+        a.click();
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       CONEXIÓN CON GOOGLE SHEETS (Apps Script Web App)
+       Después de publicar el script como Web App, pega aquí la URL
+       que termina en /exec
+       ══════════════════════════════════════════════════════════ */
+    const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzMiVp5LSqXOYZBOIVwGti_in6tMJ3yiwwA865zoD_Lp1liFiykadRFia7NxG3yAJod1Q/exec'; 
+
+    const USUARIO = 'settepigarcia365';
+
+    async function guardarDia(sobrescribir = false){
+        if (!WEBAPP_URL){
+            alert('Falta configurar WEBAPP_URL en el HTML. Publica el Apps Script como Web App y pega la URL /exec.');
+            return;
+        }
+        const filas = recolectarFilas();
+        const fecha = document.getElementById('fechaCaptura').value;
+        const btn = document.querySelector('.btn-save');
+        const txtOriginal = btn.innerText;
+        btn.innerText = '⏳ Guardando...';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(WEBAPP_URL, {
+                method:'POST',
+                // text/plain evita el preflight CORS con Apps Script
+                headers:{'Content-Type':'text/plain;charset=utf-8'},
+                body: JSON.stringify({
+                    action:'guardar',
+                    fecha, usuario: USUARIO, sobrescribir,
+                    filas
+                })
+            });
+            const data = await res.json();
+
+            if (data.ok){
+                alert(`✅ Guardado: ${data.filasGuardadas} filas para ${data.fecha}` +
+                      (data.sobrescrito ? ' (día reemplazado)' : ''));
+                // Avanza al día siguiente
+                const d = new Date(fecha + 'T00:00:00');
+                d.setDate(d.getDate() + 1);
+                const nueva = d.toISOString().slice(0,10);
+                document.getElementById('fechaCaptura').value = nueva;
+                document.getElementById('semanaAnio').innerText = semanaISO(nueva);
+                // Limpia inputs
+                document.querySelectorAll('.input-bustrax,.input-programado').forEach(i=>i.value=0);
+                document.querySelectorAll('.comment-input').forEach(i=>i.value='');
+                document.querySelectorAll('.td-pendiente').forEach(td=>td.innerText='0');
+                document.querySelectorAll('.td-avance').forEach(td=>td.innerText='0%');
+                calcularMetricasGlobales();
+            } else if (data.code === 'DUPLICADO'){
+                if (confirm(data.msg + '\n\n¿Sobrescribir el día ' + fecha + '?')){
+                    return guardarDia(true);
+                }
+            } else {
+                alert('⚠ Error al guardar: ' + (data.error || data.msg || 'desconocido'));
+            }
+        } catch (err){
+            alert('⚠ No se pudo contactar al servidor:\n' + err);
+        } finally {
+            btn.innerText = txtOriginal;
+            btn.disabled = false;
+        }
+    }
+</script>
+
+</body>
+</html>
