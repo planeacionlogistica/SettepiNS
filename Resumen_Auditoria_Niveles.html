@@ -124,6 +124,38 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
 .pill-g{background:#f0fce8;color:#3B6D11;}
 .pill-y{background:#FAEEDA;color:#854F0B;}
 .pill-r{background:#FCEBEB;color:#A32D2D;}
+.pill-nivel{font-size:.62rem;padding:1px 6px;border-radius:6px;font-weight:700;}
+.pill-normal{background:#f0fce8;color:#3B6D11;}
+.pill-bajo{background:#FCEBEB;color:#A32D2D;}
+.pill-alto{background:#FAEEDA;color:#854F0B;}
+
+/* Clickable jefe / gerente rows */
+.jefe-row{cursor:pointer;}
+.jefe-row .caret,.ger-row .caret{display:inline-block;width:10px;color:var(--muted);font-size:.55rem;margin-right:4px;transition:transform .15s;}
+.jefe-row.open .caret,.ger-row.open .caret{transform:rotate(90deg);color:var(--green);}
+.jefe-row.open td{background:#f7f9ff;font-weight:600;}
+.ger-row{cursor:pointer;}
+.detail-row td{padding:0!important;background:#fafbff;border-bottom:1px solid var(--border);}
+.detail-inner{padding:.5rem 1rem .8rem 2.4rem;}
+.detail-title{font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem;}
+.detail-table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(26,34,54,.06);}
+.detail-table th{background:#eef1f8;color:var(--muted);font-size:.58rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:.35rem .6rem;text-align:left;white-space:nowrap;}
+.detail-table th.r{text-align:right;}
+.detail-table td{padding:.32rem .6rem;font-size:.7rem;color:var(--text);border-top:1px solid #eef1f8;vertical-align:middle;}
+.detail-table td.r{text-align:right;font-variant-numeric:tabular-nums;}
+.detail-empty{padding:.5rem;font-size:.72rem;color:var(--muted);font-style:italic;text-align:center;background:#fff;border-radius:6px;}
+
+/* Litros faltantes table */
+.lit-table{width:100%;border-collapse:collapse;}
+.lit-table thead th{background:#7a1c1c;color:rgba(255,255,255,.92);font-size:.62rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:.42rem .75rem;text-align:left;white-space:nowrap;}
+.lit-table thead th.r{text-align:right;}
+.lit-table tbody tr{border-bottom:1px solid var(--border);}
+.lit-table tbody tr:last-child{border-bottom:none;}
+.lit-table tbody tr:hover td{background:#fff8f8;}
+.lit-table tbody td{padding:.4rem .75rem;font-size:.73rem;color:var(--text);vertical-align:middle;}
+.lit-table tbody td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;color:#7a1c1c;}
+.lit-table tbody td.coment{color:var(--muted);font-size:.68rem;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lit-total-row td{background:#fef3f2;font-weight:800;color:#7a1c1c;border-top:2px solid #7a1c1c;font-size:.75rem;}
 </style>
 </head>
 <body>
@@ -226,7 +258,7 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
 
     <!-- Gerente / Jefe table -->
     <div class="section-divider">
-      <span class="sd-title">Resumen por responsable</span>
+      <span class="sd-title">Cumplimiento por responsable</span>
       <span class="sd-line"></span>
     </div>
 
@@ -234,7 +266,7 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
       <div class="table-hdr">
         <div>
           <div class="table-hdr-title">Cumplimiento por Gerente / Jefe</div>
-          <div class="table-hdr-sub">Unidades únicas auditadas en la semana seleccionada vs. flota total del responsable</div>
+          <div class="table-hdr-sub">Click en una fila para ver las unidades auditadas de esa semana</div>
         </div>
         <span class="table-count" id="cntGerentes">–</span>
       </div>
@@ -251,6 +283,41 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
             </tr>
           </thead>
           <tbody id="compTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Litros faltantes -->
+    <div class="section-divider">
+      <span class="sd-title">Unidades con litros faltantes</span>
+      <span class="sd-line"></span>
+    </div>
+
+    <div class="table-card">
+      <div class="table-hdr">
+        <div>
+          <div class="table-hdr-title">Unidades con aceite bajo · Litros por reponer</div>
+          <div class="table-hdr-sub">Registros con "Litros faltantes" > 0 dentro del filtro actual</div>
+        </div>
+        <span class="table-count" id="cntLitros">–</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="lit-table">
+          <thead>
+            <tr>
+              <th>Unidad</th>
+              <th>Cliente</th>
+              <th>Jefe</th>
+              <th>Gerente</th>
+              <th>Sem</th>
+              <th>Fecha</th>
+              <th>Aceite</th>
+              <th>Anticong.</th>
+              <th class="r">Litros faltantes</th>
+              <th>Comentario</th>
+            </tr>
+          </thead>
+          <tbody id="litTbody"></tbody>
         </table>
       </div>
     </div>
@@ -362,11 +429,16 @@ function detectCols(headers){
     return -1;
   };
   return{
-    sem  : find('semana','sem ','wk','week'),
-    fecha: find('fecha','date','dia','f captura','fecha captura'),
-    unid : find('id','unidad','economico','econ','id unidad','no eco','num eco'),
-    ger  : find('gerente','gte','gerencia'),
-    jef  : find('jefe','jfe','supervisor','coordinador'),
+    sem     : find('semana','sem ','wk','week'),
+    fecha   : find('fecha','date','dia','f captura','fecha captura'),
+    unid    : find('id','unidad','economico','econ','id unidad','no eco','num eco'),
+    ger     : find('gerente','gte','gerencia'),
+    jef     : find('jefe','jfe','supervisor','coordinador'),
+    aceite  : find('nivel de aceite','aceite'),
+    litros  : find('litros faltantes','litros'),
+    anticong: find('anticongelante','anticong'),
+    coment  : find('comentario','coment','obs','observ'),
+    cliente : find('cliente','clte'),
   };
 }
 
@@ -425,8 +497,21 @@ async function loadData(){
     const unid=String(v(C.unid)).trim().toUpperCase();
     const ger =String(v(C.ger)).trim()||'Sin asignar';
     const jef =String(v(C.jef)).trim()||'Sin asignar';
+    const fecha=String(v(C.fecha)).trim();
+    const aceite=String(v(C.aceite)).trim();
+    const anticong=String(v(C.anticong)).trim();
+    const coment=String(v(C.coment)).trim();
+    const cliente=String(v(C.cliente)).trim();
 
-    return{_sem:sem,_unid:unid,_ger:ger,_jef:jef};
+    // Litros faltantes → number (handles "1.5", "1,5", "2 litros", "")
+    let litrosRaw=String(v(C.litros)).trim();
+    let litros=0;
+    if(litrosRaw){
+      const m=litrosRaw.replace(',','.').match(/-?\d+(\.\d+)?/);
+      if(m)litros=parseFloat(m[0])||0;
+    }
+
+    return{_sem:sem,_unid:unid,_ger:ger,_jef:jef,_fecha:fecha,_aceite:aceite,_anticong:anticong,_coment:coment,_cliente:cliente,_litros:litros};
   }).filter(r=>r._sem&&r._unid);
 
   cascadeFilters();
@@ -503,16 +588,23 @@ function draw(){
 
   const semanasCon=uniqSorted(rows.map(r2=>r2._sem)).length;
 
+  // Litros faltantes en la semana seleccionada
+  const litRows=wkRows.filter(r2=>r2._litros>0);
+  const totLitros=litRows.reduce((s,r2)=>s+r2._litros,0);
+  const unidLit=new Set(litRows.map(r2=>r2._unid)).size;
+
   document.getElementById('kpiSection').innerHTML=[
     chip(b,bBg,bBd,'Total Flota',FLEET_TOTAL.toLocaleString('es-MX'),'unidades en operación'),
     chip(pC,pCbg,pCbd,'Cumplimiento',cumpl.toFixed(1)+'%',`Semana ${curWk||'–'}`),
     chip(g,gBg,gBd,'Auditadas',auditadas.toLocaleString('es-MX'),'unidades únicas esta semana'),
     chip(r,rBg,rBd,'Pendientes',pendientes.toLocaleString('es-MX'),'faltan por auditar'),
+    chip(o,oBg,oBd,'Litros faltantes',totLitros.toLocaleString('es-MX',{maximumFractionDigits:1}),`${unidLit} unidad${unidLit===1?'':'es'} con aceite bajo`),
     chip(v,vBg,vBd,'Semanas',semanasCon,'semanas con registro'),
   ].join('');
 
   drawChart(rows);
   drawTable(rows,curWk);
+  drawLitrosTable(rows,curWk);
 }
 
 function chip(color,bg,bd,lbl,val,sub){
@@ -619,6 +711,16 @@ function drawChart(rows){
 // ─────────────────────────────────────────────
 //  GERENTE / JEFE TABLE
 // ─────────────────────────────────────────────
+const OPEN_ROWS={ger:new Set(),jef:new Set()};
+
+function nivelPill(txt){
+  const t=(txt||'').trim().toLowerCase();
+  if(!t)return '<span style="color:var(--muted)">–</span>';
+  const cls=t==='normal'?'pill-normal':t==='bajo'?'pill-bajo':'pill-alto';
+  return `<span class="pill-nivel ${cls}">${txt}</span>`;
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
 function drawTable(rows,curWk){
   // Derive fleet size per jefe from all-time historical data
   const flotaByJef={};
@@ -628,20 +730,29 @@ function drawTable(rows,curWk){
     flotaByJef[key].add(r._unid);
   });
 
-  // Build gerente → jefe → { flota, auditadas_wk }
-  const byGer={};
-  rows.forEach(r=>{
-    if(!byGer[r._ger])byGer[r._ger]={};
-    if(!byGer[r._ger][r._jef])byGer[r._ger][r._jef]={wk:new Set()};
-    if(r._sem===curWk)byGer[r._ger][r._jef].wk.add(r._unid);
+  // Records in current week (respecting ger/jef filters, ignoring sem)
+  const wkRecs=DATA.filter(r=>{
+    if(r._sem!==curWk)return false;
+    if(SC_SEL.ger&&r._ger!==SC_SEL.ger)return false;
+    if(SC_SEL.jef&&r._jef!==SC_SEL.jef)return false;
+    return true;
   });
 
-  // Also ensure jefes that had historical records but 0 this week appear
+  // Build gerente → jefe → { wk:Set, recs:[] }
+  const byGer={};
+  wkRecs.forEach(r=>{
+    if(!byGer[r._ger])byGer[r._ger]={};
+    if(!byGer[r._ger][r._jef])byGer[r._ger][r._jef]={wk:new Set(),recs:[]};
+    byGer[r._ger][r._jef].wk.add(r._unid);
+    byGer[r._ger][r._jef].recs.push(r);
+  });
+
+  // Ensure jefes that had historical records but 0 this week appear
   DATA.forEach(r=>{
     if(SC_SEL.ger&&r._ger!==SC_SEL.ger)return;
     if(SC_SEL.jef&&r._jef!==SC_SEL.jef)return;
     if(!byGer[r._ger])byGer[r._ger]={};
-    if(!byGer[r._ger][r._jef])byGer[r._ger][r._jef]={wk:new Set()};
+    if(!byGer[r._ger][r._jef])byGer[r._ger][r._jef]={wk:new Set(),recs:[]};
   });
 
   const gerentes=Object.keys(byGer).filter(g=>g).sort();
@@ -659,38 +770,146 @@ function drawTable(rows,curWk){
     const gerAud  =new Set(jNames.flatMap(j=>([...(jefesMap[j].wk)]))).size;
     const gerPend =Math.max(0,gerFlota-gerAud);
     const gerP    =pct(gerAud,gerFlota||1);
+    const gerRecs =jNames.flatMap(j=>jefesMap[j].recs);
+    const gerOpen =OPEN_ROWS.ger.has(g);
 
     const gerTr=document.createElement('tr');
-    gerTr.className='ger-row';
+    gerTr.className='ger-row'+(gerOpen?' open':'');
     const initials=g.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
     gerTr.innerHTML=`
-      <td><span class="ger-icon">${initials||gi+1}</span>${g}</td>
+      <td><span class="caret">▶</span><span class="ger-icon">${initials||gi+1}</span>${esc(g)}</td>
       <td class="r">${gerFlota}</td>
       <td class="r"><b>${gerAud}</b></td>
       <td class="r" style="color:${gerPend>0?'#ef4444':'#3B6D11'}">${gerPend}</td>
       <td class="r"><span class="pill ${pillCls(gerP)}">${gerP.toFixed(1)}%</span></td>
       <td class="bar-cell"><div class="bar-wrap"><div class="bar-fill ${barCls(gerP)}" style="width:${Math.min(gerP,100).toFixed(1)}%"></div></div></td>
     `;
+    gerTr.addEventListener('click',()=>{
+      if(OPEN_ROWS.ger.has(g))OPEN_ROWS.ger.delete(g);else OPEN_ROWS.ger.add(g);
+      draw();
+    });
     tbody.appendChild(gerTr);
+
+    if(gerOpen){
+      tbody.appendChild(buildDetailRow('Unidades auditadas del gerente '+g+' · Semana '+(curWk||'–'),gerRecs));
+    }
 
     jNames.forEach(j=>{
       const fl=flotaByJef[g+'||'+j]?.size||0;
       const aud=jefesMap[j].wk.size;
       const pend=Math.max(0,fl-aud);
       const p=pct(aud,fl||1);
+      const key=g+'||'+j;
+      const isOpen=OPEN_ROWS.jef.has(key);
       const tr=document.createElement('tr');
-      tr.className='jefe-row';
+      tr.className='jefe-row'+(isOpen?' open':'');
       tr.innerHTML=`
-        <td>${j}</td>
+        <td><span class="caret">▶</span>${esc(j)}</td>
         <td class="r">${fl}</td>
         <td class="r">${aud}</td>
         <td class="r" style="color:${pend>0?'#ef4444':'#3B6D11'}">${pend}</td>
         <td class="r"><span class="pill ${pillCls(p)}">${p.toFixed(1)}%</span></td>
         <td class="bar-cell"><div class="bar-wrap"><div class="bar-fill ${barCls(p)}" style="width:${Math.min(p,100).toFixed(1)}%"></div></div></td>
       `;
+      tr.addEventListener('click',()=>{
+        if(OPEN_ROWS.jef.has(key))OPEN_ROWS.jef.delete(key);else OPEN_ROWS.jef.add(key);
+        draw();
+      });
       tbody.appendChild(tr);
+
+      if(isOpen){
+        tbody.appendChild(buildDetailRow('Unidades auditadas por '+j+' · Semana '+(curWk||'–'),jefesMap[j].recs));
+      }
     });
   });
+}
+
+function buildDetailRow(title,recs){
+  const tr=document.createElement('tr');
+  tr.className='detail-row';
+  // Group by unit: keep the latest record per unit
+  const byUnit=new Map();
+  recs.forEach(r=>{
+    const prev=byUnit.get(r._unid);
+    if(!prev)byUnit.set(r._unid,r);
+    else if(String(r._fecha)>String(prev._fecha))byUnit.set(r._unid,r);
+  });
+  const list=[...byUnit.values()].sort((a,b)=>String(a._fecha).localeCompare(String(b._fecha)));
+
+  let body='';
+  if(!list.length){
+    body='<div class="detail-empty">Sin unidades auditadas en esta semana</div>';
+  }else{
+    body=`
+      <table class="detail-table">
+        <thead>
+          <tr>
+            <th>Unidad</th><th>Cliente</th><th>Fecha</th>
+            <th>Aceite</th><th>Anticong.</th>
+            <th class="r">Litros falt.</th><th>Comentario</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(r=>`
+            <tr>
+              <td><b>${esc(r._unid)}</b></td>
+              <td>${esc(r._cliente||'–')}</td>
+              <td>${esc(r._fecha||'–')}</td>
+              <td>${nivelPill(r._aceite)}</td>
+              <td>${nivelPill(r._anticong)}</td>
+              <td class="r" style="color:${r._litros>0?'#7a1c1c':'var(--muted)'}">${r._litros>0?r._litros.toLocaleString('es-MX',{maximumFractionDigits:2}):'–'}</td>
+              <td style="color:var(--muted);font-size:.66rem;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r._coment||'–')}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+  tr.innerHTML=`<td colspan="6"><div class="detail-inner">
+    <div class="detail-title">${esc(title)} · ${list.length} unidad${list.length===1?'':'es'}</div>
+    ${body}
+  </div></td>`;
+  return tr;
+}
+
+// ─────────────────────────────────────────────
+//  LITROS FALTANTES TABLE
+// ─────────────────────────────────────────────
+function drawLitrosTable(rows,curWk){
+  // Only rows with litros > 0, respecting current filters
+  const lit=rows.filter(r=>r._litros>0).sort((a,b)=>{
+    if(a._sem!==b._sem)return parseInt(b._sem)-parseInt(a._sem);
+    return b._litros-a._litros;
+  });
+
+  const tbody=document.getElementById('litTbody');
+  const cnt=document.getElementById('cntLitros');
+  const totLit=lit.reduce((s,r)=>s+r._litros,0);
+  const unidLit=new Set(lit.map(r=>r._unid)).size;
+  cnt.textContent=`${unidLit} unidad${unidLit===1?'':'es'} · ${totLit.toLocaleString('es-MX',{maximumFractionDigits:1})} L`;
+
+  if(!lit.length){
+    tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:1.2rem;color:var(--muted);font-style:italic">Sin unidades con litros faltantes en el filtro actual ✓</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML=lit.map(r=>`
+    <tr>
+      <td><b>${esc(r._unid)}</b></td>
+      <td>${esc(r._cliente||'–')}</td>
+      <td>${esc(r._jef)}</td>
+      <td>${esc(r._ger)}</td>
+      <td>${esc(r._sem)}</td>
+      <td style="color:var(--muted);font-size:.68rem">${esc(r._fecha||'–')}</td>
+      <td>${nivelPill(r._aceite)}</td>
+      <td>${nivelPill(r._anticong)}</td>
+      <td class="r">${r._litros.toLocaleString('es-MX',{maximumFractionDigits:2})} L</td>
+      <td class="coment" title="${esc(r._coment||'')}">${esc(r._coment||'–')}</td>
+    </tr>
+  `).join('')+`
+    <tr class="lit-total-row">
+      <td colspan="8" style="text-align:right">TOTAL LITROS FALTANTES</td>
+      <td class="r" style="color:#7a1c1c">${totLit.toLocaleString('es-MX',{maximumFractionDigits:1})} L</td>
+      <td></td>
+    </tr>`;
 }
 
 // ─────────────────────────────────────────────
