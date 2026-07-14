@@ -48,7 +48,14 @@ body {
 }
 .top-header .brand {
   font-size: 20px; font-weight: 800; color: var(--accent); letter-spacing: 0.5px;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: background 0.15s;
+  text-decoration: none;
+  display: inline-block;
 }
+.top-header .brand:hover { background: rgba(132,204,22,0.15); }
 .top-header .divider { width: 1px; height: 22px; background: rgba(255,255,255,0.15); margin: 0 18px; }
 .top-header .title { font-size: 15px; font-weight: 500; color: #e5e7eb; }
 .layout-wrap { display: flex; }
@@ -419,10 +426,33 @@ tbody tr:hover { background: var(--bg-card-2); cursor: pointer; }
 </head>
 <body>
 <header class="top-header">
-  <div class="brand">TRAXIÓN</div>
+  <a class="brand" id="brandLink" href="#" title="Regresar al lobby">TRAXIÓN</a>
   <div class="divider"></div>
   <div class="title">Score de operaciones</div>
 </header>
+<script>
+// ============================================================
+// LOBBY: URL a la que va el logo TRAXIÓN cuando le haces click.
+// EDITA esta variable con la ruta de tu página principal.
+// Ejemplos:
+//   const LOBBY_URL = 'lobby.html';                          // archivo hermano
+//   const LOBBY_URL = '../index.html';                       // carpeta padre
+//   const LOBBY_URL = 'C:/Users/RESPINOZA-STP-PC/Downloads/Traxion_Lobby.html';
+//   const LOBBY_URL = 'https://traxion.mx/portal';           // sitio web
+// Si lo dejas vacío ('') hace history.back() (regresar de donde venías).
+// ============================================================
+const LOBBY_URL = '';
+document.getElementById('brandLink').addEventListener('click', function(e){
+  e.preventDefault();
+  if (LOBBY_URL && LOBBY_URL.trim().length > 0) {
+    window.location.href = LOBBY_URL;
+  } else if (window.history.length > 1) {
+    window.history.back();
+  } else {
+    alert('Configura la variable LOBBY_URL en el archivo HTML con la ruta de tu página principal.');
+  }
+});
+</script>
 <button class="mobile-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
 <div id="loader" class="loader">
   <div style="text-align:center">
@@ -1148,17 +1178,22 @@ async function recargarDesdeGoogleSheets() {
 }
 
 function llenarFiltros() {
-  // Año
-  const años = [...new Set(DATA.r.año)].sort((a,b)=>a-b);
+  // Año: combinamos años presentes en SCORE + RENDIMIENTO (así rendimiento 2026
+  // aparece aunque score aún no tenga 2026)
+  const añosSet = new Set(DATA.r.año);
+  (DATA.rend_rows || []).forEach(rr => añosSet.add(rr.año));
+  const años = [...añosSet].filter(y => y > 0).sort((a,b)=>a-b);
   const fAño = document.getElementById('filtroAño');
   años.forEach(y => {
     const o = document.createElement('option');
     o.value = y; o.textContent = y;
     fAño.appendChild(o);
   });
-  // Mes
+  // Mes: mismo criterio, combinar score + rendimiento
   const meses = ['', 'Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const mesesUniq = [...new Set(DATA.r.mes)].sort((a,b)=>a-b);
+  const mesesSet = new Set(DATA.r.mes);
+  (DATA.rend_rows || []).forEach(rr => mesesSet.add(rr.mes));
+  const mesesUniq = [...mesesSet].filter(m => m > 0).sort((a,b)=>a-b);
   const fMes = document.getElementById('filtroMes');
   mesesUniq.forEach(m => {
     const o = document.createElement('option');
@@ -1227,11 +1262,26 @@ function getRendimientoFiltrado() {
   if (!DATA || !DATA.rend_rows) return { porNomina: {}, resumen: null, porMes: {} };
   const año = document.getElementById('filtroAño').value;
   const mes = document.getElementById('filtroMes').value;
+  const gerF = document.getElementById('filtroGerente').value;
+  const jefF = document.getElementById('filtroJefe').value;
+  const plF  = document.getElementById('filtroPlanta').value;
 
-  // Nóminas activas según filtros de gerente/jefe/planta (usa filtro de score)
-  const idxScore = getIndicesFiltrados();
-  const nominasActivas = new Set();
-  idxScore.forEach(i => nominasActivas.add(DATA.r.nom[i]));
+  // Mapa nomina -> {gerentes, jefes, plantas} SIN filtrar por periodo — así
+  // aunque score no tenga datos del mismo mes/año, sabemos a qué gerente/jefe/planta
+  // pertenece esa nómina, y podemos aplicar esos filtros al rendimiento.
+  if (!DATA._nominaInfo) {
+    const info = {};
+    for (let i=0; i<DATA.r.nom.length; i++) {
+      const n = DATA.r.nom[i];
+      if (!info[n]) info[n] = {gers:new Set(), jefs:new Set(), pls:new Set()};
+      info[n].gers.add(DATA.r.ger[i]);
+      info[n].jefs.add(DATA.r.jef[i]);
+      info[n].pls.add(DATA.r.pl[i]);
+    }
+    DATA._nominaInfo = info;
+  }
+  const nominaInfo = DATA._nominaInfo;
+  const aplicaFiltroOrg = (gerF !== '' || jefF !== '' || plF !== '');
 
   const agg = {};       // nomina -> {km, lt, raSum, raN, cargas}
   const porMes = {};    // "año-mes" -> {km, lt, raSum, raN, cargas}
@@ -1240,7 +1290,14 @@ function getRendimientoFiltrado() {
   for (const row of DATA.rend_rows) {
     if (año !== '' && row.año !== +año) continue;
     if (mes !== '' && row.mes !== +mes) continue;
-    if (!nominasActivas.has(row.nom)) continue;
+    // Filtro organizacional (gerente/jefe/planta) — solo si está aplicado
+    if (aplicaFiltroOrg) {
+      const info = nominaInfo[row.nom];
+      if (!info) continue; // no hay registro de score para esta nómina, no podemos verificar
+      if (gerF !== '' && !info.gers.has(+gerF)) continue;
+      if (jefF !== '' && !info.jefs.has(+jefF)) continue;
+      if (plF  !== '' && !info.pls.has(+plF)) continue;
+    }
 
     if (!agg[row.nom]) agg[row.nom] = {km:0, lt:0, raSum:0, raN:0, cargas:0};
     agg[row.nom].km += row.km;
@@ -1633,9 +1690,10 @@ function renderRendimientoResumen() {
       .sort((a,b) => b.r - a.r).slice(0, 10);
     tbody.innerHTML = arr.map(x => {
       const nombre = (function(){
-        // buscar nombre por nomina en DATA.r
+        // buscar nombre por nomina en DATA.r (cualquier registro con esa nómina)
         const nomI = DATA.r.nom.indexOf(parseInt(x.nom));
-        return nomI >= 0 ? DATA.operadores[DATA.r.op[nomI]] : '-';
+        if (nomI >= 0) return DATA.operadores[DATA.r.op[nomI]];
+        return '(sin score)';
       })();
       const cls = x.cump >= 95 ? 'chip-good' : x.cump >= 85 ? 'chip-warn' : 'chip-bad';
       return `<tr>
