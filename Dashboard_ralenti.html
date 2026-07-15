@@ -291,6 +291,16 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       Autobús personal (Mercedes, VW, International): ~2 L/hr<br>
       <span style="font-size:.58rem;color:#a16207">US DOE / Webfleet</span>
     </div>
+
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:.5rem .55rem;margin-top:.2rem;">
+      <label style="display:flex;align-items:flex-start;gap:.4rem;cursor:pointer;font-size:.66rem;font-weight:600;color:#1e3a8a;line-height:1.35;">
+        <input type="checkbox" id="fExGps" onchange="draw()" style="margin-top:2px;cursor:pointer;accent-color:#1e3a8a;">
+        <span>Excluir unidades con falla GPS
+          <span style="display:block;font-size:.58rem;font-weight:500;color:#3b82f6;margin-top:.15rem">Descarta del cálculo las unidades identificadas en el módulo "Diagnóstico avanzado GPS"</span>
+        </span>
+      </label>
+    </div>
+
     <button class="btn-reset" onclick="resetFilters()">↺ Limpiar filtros</button>
   </aside>
 
@@ -393,8 +403,61 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
           </tr></thead><tbody id="tGpsBody"></tbody></table>
         </div>
       </div>
+
+      <div class="table-card" style="grid-column:1 / -1">
+        <div class="table-hdr">
+          <div>
+            <div class="table-hdr-title">🛰️ Diagnóstico avanzado GPS <span style="font-size:.6rem;background:#dbeafe;color:#1e3a8a;padding:.1rem .4rem;border-radius:8px;margin-left:.3rem;font-weight:600">NUEVO</span></div>
+            <div class="table-hdr-sub">Unidades sin lectura de velocidad ni km — click para ver saltos GPS validados por coordenadas</div>
+          </div>
+          <div class="tbl-actions">
+            <span class="table-count" id="cntGpsAdv">–</span>
+            <button class="btn-capture" onclick="exportTable('gpsadv')">⬇ Excel</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="data-table"><thead><tr>
+            <th style="width:28px">#</th>
+            <th>Unidad</th>
+            <th>Cliente</th>
+            <th>Operador</th>
+            <th class="r">Eventos</th>
+            <th class="r">Km reg.</th>
+            <th class="r">Vel prom</th>
+            <th class="r">Saltos GPS</th>
+            <th class="r">Km fantasma</th>
+            <th class="r">Sospecha</th>
+          </tr></thead><tbody id="tGpsAdvBody"></tbody></table>
+        </div>
+      </div>
     </div>
   </main>
+</div>
+
+<!-- ══ MODAL DETALLE FALLA GPS ══ -->
+<div class="modal-overlay" id="gpsAdvModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div><h3 id="gpsAdvModalTitle">Saltos GPS detectados</h3><span id="gpsAdvModalSub"></span></div>
+      <button class="modal-close" onclick="document.getElementById('gpsAdvModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <table class="modal-table">
+        <thead><tr>
+          <th>Fecha T1</th>
+          <th>Coord T1</th>
+          <th>Fecha T2</th>
+          <th>Coord T2</th>
+          <th class="r">Distancia</th>
+          <th class="r">Vel T1</th>
+          <th class="r">Vel T2</th>
+          <th>Mapa</th>
+        </tr></thead>
+        <tbody id="gpsAdvModalBody"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot" id="gpsAdvModalFoot"></div>
+  </div>
 </div>
 
 <!-- ══ MODAL DETALLE UNIDAD ══ -->
@@ -479,6 +542,8 @@ const C = {
   cliente:  'Cliente',
   jefe:     'Jefe',
   gerente:  'Gerente',
+  mileage:  'Mileage',
+  speed:    'Speed',
 };
 
 let DATA=[], chartInst=null, chartGroup='dia';
@@ -754,7 +819,10 @@ function getF(){
 }
 function filterRows(){
   const f=getF();
+  const exGps=document.getElementById('fExGps')?.checked;
+  const gpsSet=exGps?detectGpsFailures().unitsSet:null;
   return DATA.filter(r=>{
+    if(gpsSet&&gpsSet.has(String(r[C.unidad]||'').trim()))return false;
     if(f.mes&&(r[C.mes]||'').trim().toLowerCase()!==f.mes.toLowerCase())return false;
     if(f.cli&&(r[C.cliente]||'').trim()!==f.cli)return false;
     if(f.ger&&(r[C.gerente]||'').trim()!==f.ger)return false;
@@ -765,6 +833,138 @@ function filterRows(){
     const d=getFecha(r);if(f.fi&&d<f.fi)return false;if(f.ff&&d>f.ff)return false;
     return true;
   });
+}
+
+// ── Diagnóstico avanzado GPS ─────────────────────────────
+// Detecta unidades cuyo GPS reporta velocidad = 0 y km ≈ 0 constantemente,
+// aunque las coordenadas de inicio SÍ se mueven entre eventos consecutivos.
+// Corre sobre TODA la DATA (no la filtrada) y se memoiza en la carga.
+let _GPS_CACHE=null,_GPS_CACHE_KEY=null;
+function _parseNum(v){if(v==null||v==='')return 0;const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?0:n;}
+function _parseTs(s){
+  if(!s)return 0;
+  const m=String(s).trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})/);
+  if(!m)return 0;
+  return new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5]).getTime();
+}
+function _haversineKm(lat1,lon1,lat2,lon2){
+  const R=6371,toR=x=>x*Math.PI/180;
+  const dLat=toR(lat2-lat1),dLon=toR(lon2-lon1);
+  const a=Math.sin(dLat/2)**2+Math.cos(toR(lat1))*Math.cos(toR(lat2))*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+function detectGpsFailures(){
+  const key=DATA.length+'|'+(DATA[0]?String(DATA[0][C.unidad]||'')+String(DATA[0][C.inicio]||''):'');
+  if(_GPS_CACHE_KEY===key&&_GPS_CACHE)return _GPS_CACHE;
+  const byUnit={};
+  DATA.forEach(r=>{
+    const u=String(r[C.unidad]||'').trim();if(!u)return;
+    if(!byUnit[u])byUnit[u]={events:[],sumMi:0,sumSp:0,count:0,cliente:'',operador:'',gerente:''};
+    const mi=_parseNum(r[C.mileage]);
+    const sp=_parseNum(r[C.speed]);
+    const lat=_parseNum(r[C.lat]);
+    const lng=_parseNum(r[C.lng]);
+    const ts=_parseTs(r[C.inicio]);
+    byUnit[u].events.push({ts,lat,lng,mi,sp,fecha:r[C.inicio]||''});
+    byUnit[u].sumMi+=mi; byUnit[u].sumSp+=sp; byUnit[u].count++;
+    if(!byUnit[u].cliente)byUnit[u].cliente=(r[C.cliente]||'').trim();
+    if(!byUnit[u].operador)byUnit[u].operador=(r[C.driver]||'').trim();
+    if(!byUnit[u].gerente)byUnit[u].gerente=(r[C.gerente]||'').trim();
+  });
+  const suspects=[];
+  Object.entries(byUnit).forEach(([u,d])=>{
+    const avgSp=d.count?d.sumSp/d.count:0;
+    const miPerEv=d.count?d.sumMi/d.count:0;
+    const frozenSpeed=avgSp===0;
+    // Ignorar unidades con "sum_mileage" gigante (odómetro leído mal, otro tipo de dato)
+    const mileageOk=d.sumMi<50;
+    let tier=null;
+    if(d.count>=100&&mileageOk&&d.sumMi<1&&frozenSpeed)tier='ALTA';
+    else if(d.count>=50&&mileageOk&&d.sumMi<0.5&&frozenSpeed)tier='MEDIA';
+    else if(d.count>=30&&mileageOk&&frozenSpeed&&miPerEv<0.005)tier='BAJA';
+    if(!tier)return;
+    // Validación por saltos de coordenadas
+    d.events.sort((a,b)=>a.ts-b.ts);
+    let nJumps=0,ghostKm=0,maxJump=0;
+    const jumps=[];
+    for(let i=1;i<d.events.length;i++){
+      const a=d.events[i-1],b=d.events[i];
+      if(!a.lat||!b.lat||!a.ts||!b.ts)continue;
+      const dkm=_haversineKm(a.lat,a.lng,b.lat,b.lng);
+      if(dkm>0.5&&a.sp===0&&b.sp===0){
+        nJumps++; ghostKm+=dkm;
+        if(dkm>maxJump)maxJump=dkm;
+        jumps.push({a,b,dkm});
+      }
+    }
+    suspects.push({unidad:u,tier,eventos:d.count,kmSum:d.sumMi,avgSpeed:avgSp,
+      nJumps,ghostKm,maxJump,jumps,cliente:d.cliente,operador:d.operador,gerente:d.gerente});
+  });
+  const tOrd={ALTA:0,MEDIA:1,BAJA:2};
+  suspects.sort((a,b)=>tOrd[a.tier]-tOrd[b.tier]||b.nJumps-a.nJumps||b.eventos-a.eventos);
+  const unitsSet=new Set(suspects.map(s=>s.unidad));
+  _GPS_CACHE={unitsSet,suspects}; _GPS_CACHE_KEY=key;
+  return _GPS_CACHE;
+}
+
+function drawTableGpsAdv(){
+  const {suspects}=detectGpsFailures();
+  const cnt=document.getElementById('cntGpsAdv');
+  if(cnt)cnt.textContent=suspects.length+(suspects.length===1?' unidad':' unidades');
+  const body=document.getElementById('tGpsAdvBody');
+  if(!body)return;
+  if(!suspects.length){
+    body.innerHTML='<tr><td colspan="10" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.8rem">Sin sospechosos de falla GPS 👍</td></tr>';
+    return;
+  }
+  const tierStyle={ALTA:{bg:'#fee2e2',fg:'#991b1b'},MEDIA:{bg:'#fef3c7',fg:'#92400e'},BAJA:{bg:'#dbeafe',fg:'#1e3a8a'}};
+  body.innerHTML=suspects.map((s,i)=>{
+    const ts=tierStyle[s.tier];
+    const safeU=String(s.unidad).replace(/'/g,"\\'");
+    return`<tr class="row-clickable" onclick="openGpsAdvDetail('${safeU}')">
+      <td style="color:var(--muted)">${i+1}</td>
+      <td class="unit-cell" style="font-weight:600">${s.unidad} <span style="font-size:.6rem;color:var(--muted)">▶</span></td>
+      <td style="font-size:.7rem;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${s.cliente}">${s.cliente||'–'}</td>
+      <td style="font-size:.7rem;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${s.operador}">${s.operador||'–'}</td>
+      <td class="r" style="color:var(--navy);font-weight:600">${s.eventos}</td>
+      <td class="r" style="color:var(--muted)">${s.kmSum.toFixed(2)}</td>
+      <td class="r" style="color:var(--muted)">${s.avgSpeed.toFixed(2)}</td>
+      <td class="r" style="color:${s.nJumps>0?'#dc2626':'#6b7a99'};font-weight:${s.nJumps>0?'700':'400'}">${s.nJumps}</td>
+      <td class="r" style="color:#dc2626;font-weight:600">${s.ghostKm.toFixed(1)} km</td>
+      <td class="r"><span style="display:inline-block;padding:.15rem .5rem;border-radius:10px;font-size:.65rem;font-weight:700;background:${ts.bg};color:${ts.fg}">${s.tier}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function openGpsAdvDetail(unidad){
+  const {suspects}=detectGpsFailures();
+  const s=suspects.find(x=>x.unidad===unidad);
+  if(!s)return;
+  document.getElementById('gpsAdvModalTitle').textContent='Unidad '+unidad+' — evidencia de falla GPS';
+  document.getElementById('gpsAdvModalSub').textContent=
+    `Sospecha ${s.tier} · ${s.eventos} eventos · ${s.nJumps} saltos GPS · ${s.ghostKm.toFixed(1)} km 'fantasma' · salto máx ${s.maxJump.toFixed(1)} km`;
+  const body=document.getElementById('gpsAdvModalBody');
+  if(!s.jumps.length){
+    body.innerHTML='<tr><td colspan="8" style="text-align:center;padding:1.5rem;color:var(--muted);font-size:.8rem">Firma agregada sospechosa, pero sin saltos > 0.5 km validados en la ventana con coordenadas.</td></tr>';
+  }else{
+    body.innerHTML=s.jumps.slice(0,500).map(j=>{
+      const url=`https://www.google.com/maps?q=${j.b.lat},${j.b.lng}`;
+      return`<tr>
+        <td style="font-size:.7rem">${j.a.fecha}</td>
+        <td style="font-size:.68rem;color:var(--muted)">${j.a.lat.toFixed(4)}, ${j.a.lng.toFixed(4)}</td>
+        <td style="font-size:.7rem">${j.b.fecha}</td>
+        <td style="font-size:.68rem;color:var(--muted)">${j.b.lat.toFixed(4)}, ${j.b.lng.toFixed(4)}</td>
+        <td class="r" style="color:#dc2626;font-weight:700">${j.dkm.toFixed(2)} km</td>
+        <td class="r" style="color:var(--muted)">${j.a.sp}</td>
+        <td class="r" style="color:var(--muted)">${j.b.sp}</td>
+        <td><a class="map-link" href="${url}" target="_blank" rel="noopener">ver en mapa ↗</a></td>
+      </tr>`;
+    }).join('');
+  }
+  const total=s.jumps.length;
+  document.getElementById('gpsAdvModalFoot').innerHTML=
+    `<b>${total}</b> saltos GPS · ${s.ghostKm.toFixed(1)} km de movimiento real que el sistema NO registró${total>500?' · mostrando primeros 500':''}`;
+  document.getElementById('gpsAdvModal').classList.add('open');
 }
 
 // Solo excluye filas sin dato en Horas en ralenti (null), NO las de valor 0
@@ -783,7 +983,7 @@ function draw(){
   document.getElementById('kLts').textContent=fmtN(totalLts)+' L';
   document.getElementById('kCosto').textContent=fmtM(totalCosto);
   drawChart(ded);drawTableCli(ded);drawTableUnits(ded);
-  drawTableOpe(ded);drawTableResp(ded);drawTableTipo(ded);drawTableGps(ded);
+  drawTableOpe(ded);drawTableResp(ded);drawTableTipo(ded);drawTableGps(ded);drawTableGpsAdv();
 }
 
 function setGroup(g){
@@ -1052,6 +1252,18 @@ function exportTable(type){
   if(type==='cli'){
     const ws=XLSX.utils.aoa_to_sheet([['#','Cliente','Unidades','Horas','Km'],...tCliData.map((r,i)=>[i+1,r.k,r.units,fmtH(r.hrs),+r.km.toFixed(1)])]);
     const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Clientes');XLSX.writeFile(wb,`Ralenti_Clientes_${new Date().toISOString().slice(0,10)}.xlsx`);
+  }else if(type==='gpsadv'){
+    const {suspects}=detectGpsFailures();
+    const resumen=[['#','Unidad','Cliente','Operador','Gerente','Eventos','Km reg.','Vel prom','Saltos GPS','Km fantasma','Salto máx km','Sospecha'],
+      ...suspects.map((s,i)=>[i+1,s.unidad,s.cliente,s.operador,s.gerente,s.eventos,+s.kmSum.toFixed(2),+s.avgSpeed.toFixed(2),s.nJumps,+s.ghostKm.toFixed(1),+s.maxJump.toFixed(1),s.tier])];
+    const detalle=[['Unidad','Sospecha','Fecha T1','Lat T1','Lon T1','Fecha T2','Lat T2','Lon T2','Distancia km','Vel T1','Vel T2','Mapa T2 (URL)']];
+    suspects.forEach(s=>s.jumps.forEach(j=>{
+      detalle.push([s.unidad,s.tier,j.a.fecha,j.a.lat,j.a.lng,j.b.fecha,j.b.lat,j.b.lng,+j.dkm.toFixed(2),j.a.sp,j.b.sp,`https://www.google.com/maps?q=${j.b.lat},${j.b.lng}`]);
+    }));
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(resumen),'Sospechosos');
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(detalle),'Saltos GPS');
+    XLSX.writeFile(wb,`Ralenti_Diagnostico_GPS_${new Date().toISOString().slice(0,10)}.xlsx`);
   }else{
     const ws=XLSX.utils.aoa_to_sheet([['#','Unidad','Operador','Hora Evento','Horas'],...tUnitData.map((r,i)=>[i+1,r.k,r.operador,r.hora,fmtH(r.hrs)])]);
     const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Unidades');XLSX.writeFile(wb,`Ralenti_Unidades_${new Date().toISOString().slice(0,10)}.xlsx`);
@@ -1061,6 +1273,7 @@ function exportTable(type){
 function resetFilters(){
   SC_KEYS.forEach(k=>{SC_SEL[k]='';const inp=document.getElementById('sc-'+k+'-input');if(inp){inp.value='';inp.setAttribute('data-selected-lbl','');}});
   document.getElementById('fFi').value='';document.getElementById('fFf').value='';
+  const ex=document.getElementById('fExGps');if(ex)ex.checked=false;
   cascadeSelects();draw();
 }
 function toggleSidebar(){const s=document.getElementById('mobileSidebar');s.classList.toggle('sb-collapsed');s.classList.toggle('sb-expanded');}
