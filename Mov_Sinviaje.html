@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movimientos sin viaje | Traxión</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ── Nav (mismo estilo que Dashboard Flota) ── */
+        nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48px;gap:14px;position:sticky;top:0;z-index:2000;box-shadow:0 2px 8px rgba(0,0,0,.3);flex-shrink:0;font-family:'Inter',sans-serif;}
+        .nav-logo{color:#84cc16;font-weight:800;font-size:16px;text-decoration:none;}
+        .nav-sep{color:#4b5563;font-size:14px;font-weight:300;}
+        .nav-page{color:#e5e7eb;font-size:13px;font-weight:600;}
+
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 0;
+        }
+        .page-wrap {
+            padding: 20px;
+        }
+        .container {
+            max-width: 1350px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #1e465a;
+            border-bottom: 3px solid #2ecc71;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .top-bar {
+            background-color: #eaeded;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group.span-2 {
+            grid-column: span 2;
+        }
+        .form-group label {
+            font-size: 13px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .form-group input, .form-group select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            grid-column: span 2;
+            padding-top: 20px;
+        }
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .btn-add {
+            background-color: #2ecc71;
+            color: white;
+            padding: 10px 20px;
+            font-size: 15px;
+            grid-column: 1 / -1;
+            max-width: 250px;
+        }
+        .btn-add:hover { background-color: #27ae60; }
+        
+        /* Estilo para cuando se está editando */
+        .btn-update {
+            background-color: #e67e22;
+            color: white;
+            padding: 10px 20px;
+            font-size: 15px;
+            grid-column: 1 / -1;
+            max-width: 250px;
+        }
+        .btn-update:hover { background-color: #d35400; }
+
+        .btn-export {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            font-size: 14px;
+        }
+        .btn-export:hover { background-color: #2980b9; }
+        
+        .btn-delete {
+            background-color: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+            font-size: 11px;
+            border-radius: 3px;
+        }
+        .btn-delete:hover { background-color: #c0392b; }
+
+        .btn-edit {
+            background-color: #3498db;
+            color: white;
+            padding: 5px 10px;
+            font-size: 11px;
+            border-radius: 3px;
+            margin-right: 5px;
+        }
+        .btn-edit:hover { background-color: #2980b9; }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th {
+            background-color: #2ecc71;
+            color: white;
+            padding: 12px 10px;
+            text-align: left;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            background-color: #ffffcc;
+            white-space: normal;
+            max-width: 200px;
+            word-wrap: break-word;
+        }
+        tr.total-row td {
+            background-color: #e8f8f5;
+            font-weight: bold;
+            border-top: 2px solid #2ecc71;
+            border-bottom: 2px solid #2ecc71;
+        }
+        .date-badge {
+            background-color: #1e465a;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">TRAXIÓN</a>
+  <span class="nav-sep">|</span>
+  <span class="nav-page">Movimientos sin viaje</span>
+</nav>
+
+<div class="page-wrap">
+<div class="container">
+    <h2>Movimientos sin viaje</h2>
+    
+    <div class="top-bar">
+        <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
+            <label style="margin: 0;">Semana de Trabajo (Año 2026):</label>
+            <select id="semana">
+                <option value="">-- Seleccionar --</option>
+            </select>
+        </div>
+        
+        <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px;">
+            <label style="margin: 0; color: #d35400;">Visualizar/Capturar Fecha:</label>
+            <input type="date" id="filtroFecha" onchange="cambiarFechaFiltro()">
+        </div>
+
+        <button class="btn-export" onclick="exportarExcel()">Exportar Semana a Excel (.xlsx)</button>
+    </div>
+
+    <div class="form-grid">
+        <div class="form-group">
+            <label>Cliente / Planta</label>
+            <input type="text" id="cliente" placeholder="Ej. Nemak">
+        </div>
+        <div class="form-group">
+            <label>Operador</label>
+            <input type="text" id="operador" placeholder="Ej. Emir Garcia">
+        </div>
+        <div class="form-group">
+            <label>Nómina</label>
+            <input type="text" id="nomina">
+        </div>
+        <div class="form-group">
+            <label>Unidad</label>
+            <input type="text" id="unidad">
+        </div>
+        <div class="form-group">
+            <label>Fecha y Hora del Viaje</label>
+            <input type="text" id="horaViaje" placeholder="DD/MM/YYYY HH:MM">
+        </div>
+        <div class="form-group">
+            <label>Km Recorrido</label>
+            <input type="number" id="km" step="0.01" placeholder="0.00">
+        </div>
+        <div class="form-group span-2">
+            <label>Comentarios / Observaciones</label>
+            <input type="text" id="comentarios" placeholder="Ej. Retraso en caseta, desvío de ruta, etc.">
+        </div>
+        <div class="checkbox-group">
+            <input type="checkbox" id="aplicaIncidencia" checked>
+            <label for="aplicaIncidencia">Aplica Incidencia ($500) - Sí, aplicar</label>
+        </div>
+        <!-- Guardamos un input invisible para saber si estamos editando -->
+        <input type="hidden" id="editId" value="">
+        <button class="btn-add" id="btnAccionForm" onclick="guardarRegistro()">Agregar Registro a esta Fecha</button>
+    </div>
+
+    <div class="table-container">
+        <div style="display: flex; margin-bottom: 10px; align-items: center;">
+            <h3 style="margin: 0; color: #2c3e50;">Registros del día seleccionado</h3>
+            <div id="badgeDia" class="date-badge">Día: --/--/----</div>
+        </div>
+        <table id="tablaViajes">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Operador</th>
+                    <th>Nómina</th>
+                    <th>Unidad</th>
+                    <th>Fecha / Hora</th>
+                    <th>Km recorrido</th>
+                    <th>$10.00 x km</th>
+                    <th>Incidencia $500</th>
+                    <th>Total</th>
+                    <th>Comentarios</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoTabla">
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td colspan="5">TOTALES DEL DÍA SELECCIONADO</td>
+                    <td id="totKm">0.00</td>
+                    <td id="totXKm">$0.00</td>
+                    <td id="totInc">$0.00</td>
+                    <td id="totFinal">$0.00</td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+</div><!-- /page-wrap -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+    let registros = [];
+
+    // Función auxiliar para obtener la fecha y hora actual en formato "DD/MM/YYYY HH:MM"
+    function obtenerFechaHoraActualFormateada() {
+        const hoy = new Date();
+        const dia = String(hoy.getDate()).padStart(2, '0');
+        const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+        const año = hoy.getFullYear();
+        const horas = String(hoy.getHours()).padStart(2, '0');
+        const minutos = String(hoy.getMinutes()).padStart(2, '0');
+        return `${dia}/${mes}/${año} ${horas}:${minutos}`;
+    }
+
+    window.onload = function() {
+        const datosLocales = localStorage.getItem('registrosNPI');
+        if (datosLocales) {
+            registros = JSON.parse(datosLocales);
+        }
+
+        const hoy = new Date();
+        const año = hoy.getFullYear();
+        const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+        const dia = String(hoy.getDate()).padStart(2, '0');
+        
+        document.getElementById('filtroFecha').value = `${año}-${mes}-${dia}`;
+        
+        // Inicializamos con el formato DD/MM/YYYY HH:MM de 24 horas
+        document.getElementById('horaViaje').value = obtenerFechaHoraActualFormateada();
+
+        const selectSemana = document.getElementById('semana');
+        for (let i = 1; i <= 53; i++) {
+            const opcion = document.createElement('option');
+            opcion.value = `Semana ${i}`;
+            opcion.innerText = `Semana ${i}`;
+            selectSemana.appendChild(opcion);
+        }
+
+        renderizarTabla();
+    }
+
+    function cambiarFechaFiltro() {
+        cancelarEdicion();
+        renderizarTabla();
+    }
+
+    // Procesa si se está editando un registro existente o agregando uno nuevo
+    function guardarRegistro() {
+        const cliente = document.getElementById('cliente').value.trim();
+        const operador = document.getElementById('operador').value.trim();
+        const nomina = document.getElementById('nomina').value.trim();
+        const unidad = document.getElementById('unidad').value.trim();
+        const fechaBase = document.getElementById('filtroFecha').value; 
+        const horaViaje = document.getElementById('horaViaje').value.trim() || "Sin fecha/hora";
+        const km = parseFloat(document.getElementById('km').value) || 0;
+        const aplicaIncidencia = document.getElementById('aplicaIncidencia').checked;
+        const comentarios = document.getElementById('comentarios').value.trim();
+        const editId = document.getElementById('editId').value;
+
+        if (!fechaBase) {
+            alert("Por favor selecciona una fecha de trabajo válida en el buscador.");
+            return;
+        }
+        if (!cliente || !operador || km <= 0) {
+            alert("Por favor introduce Cliente, Operador y Kilómetros válidos.");
+            return;
+        }
+
+        const pagoPorKm = km * 10;
+        const costoIncidencia = aplicaIncidencia ? 500 : 0;
+        const granTotal = pagoPorKm + costoIncidencia;
+
+        if (editId) {
+            // Modo Edición: Actualizar registro existente
+            const index = registros.findIndex(r => r.id === parseInt(editId));
+            if (index !== -1) {
+                registros[index] = {
+                    ...registros[index],
+                    cliente,
+                    operador,
+                    nomina,
+                    unidad,
+                    hora: horaViaje,
+                    km,
+                    pagoPorKm,
+                    incidencia: costoIncidencia,
+                    total: granTotal,
+                    comentarios: comentarios || "Sin observaciones"
+                };
+            }
+        } else {
+            // Modo Creación: Agregar nuevo registro
+            const idUnico = Date.now();
+            const nuevoRegistro = {
+                id: idUnico,
+                fechaLlave: fechaBase,
+                cliente, 
+                operador, 
+                nomina, 
+                unidad, 
+                hora: horaViaje, 
+                km, 
+                pagoPorKm, 
+                incidencia: costoIncidencia, 
+                total: granTotal,
+                comentarios: comentarios || "Sin observaciones"
+            };
+            registros.push(nuevoRegistro);
+        }
+        
+        guardarEnMemoria();
+        renderizarTabla();
+        cancelarEdicion(); // Limpia el formulario y restablece el botón
+    }
+
+    // Carga los datos del registro seleccionado en los campos superiores
+    function editarRegistro(id) {
+        const registro = registros.find(r => r.id === id);
+        if (!registro) return;
+
+        document.getElementById('cliente').value = registro.cliente;
+        document.getElementById('operador').value = registro.operador;
+        document.getElementById('nomina').value = registro.nomina;
+        document.getElementById('unidad').value = registro.unidad;
+        
+        // Al ser texto directo, lo pasamos tal cual al campo sin conversiones complejas
+        document.getElementById('horaViaje').value = registro.hora || "";
+        
+        document.getElementById('km').value = registro.km;
+        document.getElementById('aplicaIncidencia').checked = registro.incidencia > 0;
+        document.getElementById('comentarios').value = registro.comentarios === "Sin observaciones" ? "" : registro.comentarios;
+        
+        // Guardamos el ID del registro que se está editando
+        document.getElementById('editId').value = registro.id;
+
+        // Cambiamos el estilo del botón
+        const btnAccion = document.getElementById('btnAccionForm');
+        btnAccion.innerText = "Actualizar Registro";
+        btnAccion.className = "btn-update";
+        
+        // Hace scroll hacia arriba para que el usuario empiece a editar cómodamente
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Restablece el formulario a su estado normal (modo inserción)
+    function cancelarEdicion() {
+        document.getElementById('cliente').value = '';
+        document.getElementById('operador').value = '';
+        document.getElementById('nomina').value = '';
+        document.getElementById('unidad').value = '';
+        document.getElementById('km').value = '';
+        document.getElementById('comentarios').value = '';
+        document.getElementById('editId').value = '';
+        document.getElementById('aplicaIncidencia').checked = true;
+
+        // Colocamos de nuevo la hora actual en formato de 24 horas
+        document.getElementById('horaViaje').value = obtenerFechaHoraActualFormateada();
+
+        const btnAccion = document.getElementById('btnAccionForm');
+        btnAccion.innerText = "Agregar Registro a esta Fecha";
+        btnAccion.className = "btn-add";
+    }
+
+    function renderizarTabla() {
+        const cuerpo = document.getElementById('cuerpoTabla');
+        cuerpo.innerHTML = ""; 
+
+        const fechaActiva = document.getElementById('filtroFecha').value;
+        
+        if(fechaActiva) {
+            const partes = fechaActiva.split('-');
+            document.getElementById('badgeDia').innerText = `Día: ${partes[2]}/${partes[1]}/${partes[0]}`;
+        } else {
+            document.getElementById('badgeDia').innerText = "Día: No seleccionado";
+        }
+
+        let totKm = 0, totXKm = 0, totInc = 0, totFinal = 0;
+
+        const registrosFiltrados = registros.filter(r => r.fechaLlave === fechaActiva);
+
+        registrosFiltrados.forEach(r => {
+            const nuevaFila = cuerpo.insertRow();
+            nuevaFila.innerHTML = `
+                <td>${r.cliente}</td>
+                <td>${r.operador}</td>
+                <td>${r.nomina}</td>
+                <td>${r.unidad}</td>
+                <td>${r.hora}</td>
+                <td>${r.km.toFixed(2)}</td>
+                <td>$${r.pagoPorKm.toFixed(2)}</td>
+                <td>$${r.incidencia.toFixed(2)}</td>
+                <td><strong>$${r.total.toFixed(2)}</strong></td>
+                <td style="font-style: italic; color: #555;">${r.comentarios}</td>
+                <td>
+                    <button class="btn-edit" onclick="editarRegistro(${r.id})">Editar</button>
+                    <button class="btn-delete" onclick="eliminarRegistro(${r.id})">Eliminar</button>
+                </td>
+            `;
+
+            totKm += r.km;
+            totXKm += r.pagoPorKm;
+            totInc += r.incidencia;
+            totFinal += r.total;
+        });
+
+        document.getElementById('totKm').innerText = totKm.toFixed(2);
+        document.getElementById('totXKm').innerText = "$" + totXKm.toFixed(2);
+        document.getElementById('totInc').innerText = "$" + totInc.toFixed(2);
+        document.getElementById('totFinal').innerText = "$" + totFinal.toFixed(2);
+    }
+
+    function eliminarRegistro(idParaEliminar) {
+        if(confirm("¿Seguro que deseas eliminar este registro capturado?")) {
+            registros = registros.filter(reg => reg.id !== idParaEliminar);
+            guardarEnMemoria();
+            renderizarTabla();
+            
+            // Si eliminamos el registro que actualmente se estaba editando, cancelamos la edición
+            if(document.getElementById('editId').value == idParaEliminar) {
+                cancelarEdicion();
+            }
+        }
+    }
+
+    function guardarEnMemoria() {
+        localStorage.setItem('registrosNPI', JSON.stringify(registros));
+    }
+
+    function exportarExcel() {
+        const semanaSeleccionada = document.getElementById('semana').value;
+        if (!semanaSeleccionada) {
+            alert("Por favor, selecciona una Semana de Trabajo antes de exportar.");
+            return;
+        }
+        if (registros.length === 0) {
+            alert("No tienes ningún registro en la base de datos local para exportar.");
+            return;
+        }
+
+        const datosMatriz = [];
+        datosMatriz.push([`Movimientos sin viaje - Resumen Guardado (${semanaSeleccionada})`]);
+        datosMatriz.push([]); 
+        datosMatriz.push(["Fecha del Día", "Cliente", "Operador", "Nómina", "Unidad", "Fecha / Hora Viaje", "Km Recorrido", "$10.00 x Km", "Incidencia $500", "Total", "Comentarios / Observaciones"]);
+
+        let totKm = 0, totXKm = 0, totInc = 0, totFinal = 0;
+
+        const registrosOrdenados = [...registros].sort((a,b) => a.fechaLlave.localeCompare(b.fechaLlave));
+
+        registrosOrdenados.forEach(r => {
+            const p = r.fechaLlave.split('-');
+            const fechaBonita = `${p[2]}/${p[1]}/${p[0]}`;
+
+            datosMatriz.push([fechaBonita, r.cliente, r.operador, r.nomina, r.unidad, r.hora, r.km, r.pagoPorKm, r.incidencia, r.total, r.comentarios]);
+            totKm += r.km;
+            totXKm += r.pagoPorKm;
+            totInc += r.incidencia;
+            totFinal += r.total;
+        });
+
+        datosMatriz.push([]);
+        datosMatriz.push(["TOTALES ACUMULADOS", "", "", "", "", "", totKm, totXKm, totInc, totFinal, ""]);
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(datosMatriz);
+        XLSX.utils.book_append_sheet(wb, ws, "Movimientos_sin_viaje");
+
+        const nombreArchivo = `Movimientos_sin_viaje_${semanaSeleccionada.replace(" ", "_")}.xlsx`;
+        XLSX.writeFile(wb, nombreArchivo);
+    }
+</script>
+
+</body>
+</html>
