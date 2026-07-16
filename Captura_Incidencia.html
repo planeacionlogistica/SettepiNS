@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captura de Incidencias | Traxión</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="favicon-traxion.svg">
+    <style>
+        /* ═══════════ MENÚ TRAXIÓN ═══════════ */
+        nav{background:#1f2937;padding:15px 30px;display:flex;gap:25px;align-items:center;box-shadow:0 2px 8px rgba(0,0,0,0.3);position:sticky;top:0;z-index:300;flex-wrap:wrap;font-family:"Inter",sans-serif;}
+        nav>a{color:#e5e7eb;text-decoration:none;font-weight:600;padding:8px 16px;border-radius:8px;transition:all .3s;white-space:nowrap;}
+        nav>a:first-child{color:#84cc16;font-weight:800;font-size:18px;}
+        nav>a:hover{background:#374151;}
+        .dropdown{position:relative;display:inline-block;}
+        .dropdown-toggle{color:#e5e7eb;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;background:transparent;border:none;font-size:14px;font-family:inherit;}
+        .dropdown-toggle:hover{background:#374151;}
+        .dropdown-arrow{font-size:12px;transition:transform .3s;}
+        .dropdown.open .dropdown-arrow{transform:rotate(180deg);}
+        .dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#374151;min-width:220px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.3);margin-top:8px;z-index:1000;overflow:hidden;}
+        .dropdown.open .dropdown-menu{display:block;}
+        .dropdown-menu a{display:block;padding:12px 20px;color:#e5e7eb;text-decoration:none;font-weight:600;transition:all .3s;}
+        .dropdown-menu a:hover{background:#4b5563;padding-left:25px;}
+        .dropdown-menu a.active{background:#84cc16;color:#1f2937;}
+
+        :root {
+            --primary-color: #00E676;
+            --dark-bg: #111;
+            --table-header: #000;
+            --accent-blue: #1565c0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        .page-wrapper {
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 98%;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .header-title {
+            background-color: var(--dark-bg);
+            color: var(--primary-color);
+            text-align: center;
+            padding: 15px;
+            font-size: 26px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            border-radius: 6px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+        }
+
+        fieldset {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 25px;
+            background-color: #fafafa;
+        }
+
+        legend {
+            font-weight: bold;
+            color: #555;
+            padding: 0 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group input[readonly] {
+            background-color: #e9ecef;
+            color: #495057;
+            font-weight: bold;
+        }
+
+        .actions-bar {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: bold;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .btn-add { background-color: #2e7d32; color: white; }
+        .btn-add:hover { background-color: #1b5e20; }
+
+        /* Estilo para botón cuando está en modo edición */
+        .btn-edit-mode { background-color: #ff9800; color: white; }
+        .btn-edit-mode:hover { background-color: #e68a00; }
+
+        .btn-export { background-color: var(--accent-blue); color: white; }
+        .btn-export:hover { background-color: #0d47a1; }
+
+        .btn-clear { background-color: #c62828; color: white; }
+        .btn-clear:hover { background-color: #b71c1c; }
+
+        /* Filtros diarios */
+        .filter-panel {
+            background: #eef2f7;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            border-left: 5px solid var(--accent-blue);
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-group label {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .filter-group input[type="date"] {
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* Tabla */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            background-color: var(--table-header);
+            color: #fff;
+            padding: 12px 10px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #333;
+            text-align: center;
+        }
+
+        td {
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            background-color: #fff;
+            text-align: center;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #f9f9f9;
+        }
+
+        .badge-desfase {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .badge-ontime {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .btn-action-table {
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 3px;
+            color: white;
+            font-weight: normal;
+            margin: 2px;
+        }
+        .btn-delete { background-color: #ff3d00; }
+        .btn-delete:hover { background-color: #b32a00; }
+        .btn-table-edit { background-color: #ff9800; }
+        .btn-table-edit:hover { background-color: #e68a00; }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════ MENÚ TRAXIÓN ═══════════ -->
+<nav>
+  <a href="index.html">TRAXIÓN</a>
+  <div class="dropdown" id="dropdownLogistica">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownLogistica')">
+      Logística <span class="dropdown-arrow">▼</span>
+    </button>
+    <div class="dropdown-menu">
+      <a href="Dashboard_NS.html">Nivel de Servicio</a>
+      <a href="Dashboard_Kilometros.html">Kilómetros</a>
+      <a href="Dashboard_Flota.html">Flota</a>
+      <a href="Cambio_Manos.html">Cambio de manos</a>
+      <a href="Auditar_Folios.html">Auditoría de folios</a>
+      <a href="Planeador_Territorio.html">Eficiencias internas</a>
+      <a href="Captura_Incidencias.html" class="active">Captura de Incidencias</a>
+    </div>
+  </div>
+  <div class="dropdown" id="dropdownSeguridad">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownSeguridad')">
+      Seguridad Vial <span class="dropdown-arrow">▼</span>
+    </button>
+    <div class="dropdown-menu">
+      <a href="Radar_Riesgos.html">Radar de Riesgos</a>
+    </div>
+  </div>
+  <div class="dropdown" id="dropdownCombustible">
+    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownCombustible')">
+      Combustible <span class="dropdown-arrow">▼</span>
+    </button>
+    <div class="dropdown-menu">
+      <a href="Dashboard_ralenti.html">Ralentí</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+<div class="container">
+    <div class="header-title">Incidencias T2 - Panel de Control</div>
+
+    <form id="incidenciaForm">
+        <input type="hidden" id="editandoId" value="">
+
+        <fieldset>
+            <legend id="legendForm">Captura de Nuevo Registro</legend>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Fecha del Registro</label>
+                    <input type="date" id="fecha" required>
+                </div>
+                <div class="form-group">
+                    <label>Planta</label>
+                    <input type="text" id="planta" required placeholder="Ej. RYDER">
+                </div>
+                <div class="form-group">
+                    <label>Ruta</label>
+                    <input type="text" id="ruta" required placeholder="Ej. GARCIA ESPECIAL">
+                </div>
+                <div class="form-group">
+                    <label>N° Unidad</label>
+                    <input type="text" id="unidad" placeholder="Ej. 5732">
+                </div>
+                <div class="form-group">
+                    <label>Inicio Programado</label>
+                    <input type="time" id="inicioProg" required>
+                </div>
+                <div class="form-group">
+                    <label>Hora de Inicio Real</label>
+                    <input type="time" id="inicioReal" required>
+                </div>
+                <div class="form-group">
+                    <label>Desfase Inicio</label>
+                    <input type="text" id="desfaseVisual" readonly value="A tiempo">
+                </div>
+                <div class="form-group">
+                    <label>Hora de Finalización</label>
+                    <input type="time" id="finProg">
+                </div>
+                <div class="form-group">
+                    <label>Finalización Real</label>
+                    <input type="time" id="finReal">
+                </div>
+                <div class="form-group">
+                    <label>Desfase Finalización</label>
+                    <input type="text" id="desfaseFinVisual" readonly value="A tiempo">
+                </div>
+                <div class="form-group">
+                    <label>Tipo de Servicio</label>
+                    <select id="tipoServicio">
+                        <option value="IN">IN</option>
+                        <option value="OUT">OUT</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Motivo</label>
+                    <input type="text" id="motivo" placeholder="Ej. TRAFICO EN EL TRAYECTO">
+                </div>
+                <div class="form-group">
+                    <label>Zona</label>
+                    <input type="text" id="zona" value="GARCIA">
+                </div>
+                <div class="form-group">
+                    <label>Monitorista</label>
+                    <input type="text" id="monitorista" placeholder="Nombre">
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Comentarios</label>
+                <textarea id="comentarios" placeholder="Ej. INICIA CON 10 MIN DE DESFASE..."></textarea>
+            </div>
+
+            <div class="actions-bar">
+                <button type="button" class="btn-clear" onclick="limpiarFormulario()">Limpiar Campos</button>
+                <button type="submit" id="btnSubmitForm" class="btn-add">Guardar Registro</button>
+            </div>
+        </fieldset>
+    </form>
+
+    <div class="filter-panel">
+        <div class="filter-group">
+            <label for="filtroFecha">📅 Seleccionar Día para Ver / Exportar:</label>
+            <input type="date" id="filtroFecha" onchange="mostrarDatos()">
+            <button type="button" onclick="establecerFechaFiltro('hoy')" style="background:#fff; border:1px solid #ccc; padding: 5px 10px;">Hoy</button>
+            <button type="button" onclick="establecerFechaFiltro('ayer')" style="background:#fff; border:1px solid #ccc; padding: 5px 10px;">Ayer</button>
+        </div>
+        <div>
+            <button class="btn-export" onclick="exportarExcelFiltrado()">📥 Exportar Día Seleccionado</button>
+            <button class="btn-export" onclick="exportarTodoHistorial()" style="background-color: #37474f;">🗂️ Exportar Todo el Historial</button>
+        </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h3 style="margin: 0; color: #444;" id="tituloTabla">Registros del Día</h3>
+        <button class="btn-clear" onclick="borrarTodo()" style="background-color: #d32f2f; padding: 6px 12px; font-size:11px;">Borrar Base Completa</button>
+    </div>
+
+    <div class="table-container">
+        <table id="tablaIncidencias">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Planta</th>
+                    <th>Ruta</th>
+                    <th>N° Unidad</th>
+                    <th>Inicio Programado</th>
+                    <th>Hora de Inicio Real</th>
+                    <th>Desfase Inicio</th>
+                    <th>Hora de Finalización</th>
+                    <th>Finalización Real</th>
+                    <th>Desfase Fin</th>
+                    <th>Tipo de Servicio</th>
+                    <th>Motivo</th>
+                    <th>Comentarios</th>
+                    <th>Zona</th>
+                    <th>Monitorista</th>
+                    <th style="background-color: #333; min-width: 120px;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyIncidencias">
+                </tbody>
+        </table>
+    </div>
+</div>
+</div>
+
+<script>
+    // ═══════════ MENÚ TRAXIÓN - Dropdowns ═══════════
+    function toggleDropdown(id){
+        const d=document.getElementById(id);
+        document.querySelectorAll('.dropdown').forEach(x=>{if(x.id!==id)x.classList.remove('open');});
+        d.classList.toggle('open');
+    }
+    document.addEventListener('click',e=>{
+        if(!e.target.closest('.dropdown'))
+            document.querySelectorAll('.dropdown').forEach(d=>d.classList.remove('open'));
+    });
+
+    // Al cargar la página
+    document.addEventListener('DOMContentLoaded', () => {
+        const hoyStr = obtenerFechaLocalISO(new Date());
+        document.getElementById('fecha').value = hoyStr;
+        document.getElementById('filtroFecha').value = hoyStr;
+
+        // Escuchadores para calcular desfase automáticamente en tiempo real (Inicio)
+        document.getElementById('inicioProg').addEventListener('input', () => calcularDesfase('inicioProg', 'inicioReal', 'desfaseVisual'));
+        document.getElementById('inicioReal').addEventListener('input', () => calcularDesfase('inicioProg', 'inicioReal', 'desfaseVisual'));
+
+        // Escuchadores para calcular desfase automáticamente en tiempo real (Finalización)
+        document.getElementById('finProg').addEventListener('input', () => calcularDesfase('finProg', 'finReal', 'desfaseFinVisual'));
+        document.getElementById('finReal').addEventListener('input', () => calcularDesfase('finProg', 'finReal', 'desfaseFinVisual'));
+
+        mostrarDatos();
+    });
+
+    // Función auxiliar para evitar desajustes de zona horaria al formatear fechas YYYY-MM-DD
+    function obtenerFechaLocalISO(fechaObj) {
+        const yyyy = fechaObj.getFullYear();
+        const mm = String(fechaObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(fechaObj.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    }
+
+    // Cambiar rápidamente la fecha del filtro secundario
+    function establecerFechaFiltro(tipo) {
+        const target = new Date();
+        if (tipo === 'ayer') {
+            target.setDate(target.getDate() - 1);
+        }
+        document.getElementById('filtroFecha').value = obtenerFechaLocalISO(target);
+        mostrarDatos();
+    }
+
+    // Cálculo automático universal de minutos de desfase
+    function calcularDesfase(idProg, idReal, idVisual) {
+        const prog = document.getElementById(idProg).value;
+        const real = document.getElementById(idReal).value;
+        const indicador = document.getElementById(idVisual);
+
+        if (!prog || !real) {
+            indicador.value = "A tiempo";
+            indicador.style.color = '#2e7d32';
+            return "A tiempo";
+        }
+
+        const [hProg, mProg] = prog.split(':').map(Number);
+        const [hReal, mReal] = real.split(':').map(Number);
+
+        let minProg = hProg * 60 + mProg;
+        let minReal = hReal * 60 + mReal;
+
+        if (minReal < minProg && (minProg - minReal) > 720) {
+            minReal += 1440;
+        }
+
+        const diferencia = minReal - minProg;
+
+        if (diferencia > 0) {
+            indicador.value = `${diferencia} min de desfase`;
+            indicador.style.color = '#c62828';
+            return `${diferencia} min de desfase`;
+        } else {
+            indicador.value = "A tiempo";
+            indicador.style.color = '#2e7d32';
+            return "A tiempo";
+        }
+    }
+
+    // Escuchar el envío del formulario (Guardar o Actualizar)
+    document.getElementById('incidenciaForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const fechaInput = document.getElementById('fecha').value;
+        const desfaseInicio = calcularDesfase('inicioProg', 'inicioReal', 'desfaseVisual');
+        const desfaseFin = calcularDesfase('finProg', 'finReal', 'desfaseFinVisual');
+        const idEditando = document.getElementById('editandoId').value;
+
+        let comentarios = document.getElementById('comentarios').value.trim();
+        if (comentarios === "" && desfaseInicio !== "A tiempo" && desfaseInicio !== "") {
+            comentarios = `INICIA CON ${desfaseInicio.toUpperCase()}`;
+        }
+
+        let lista = JSON.parse(localStorage.getItem('incidencias_diarias_t2')) || [];
+
+        if (idEditando !== "") {
+            // MODO EDICIÓN: Buscar el elemento y actualizar sus propiedades
+            lista = lista.map(reg => {
+                if (reg.id == idEditando) {
+                    return {
+                        ...reg,
+                        fecha: fechaInput,
+                        planta: document.getElementById('planta').value.toUpperCase(),
+                        ruta: document.getElementById('ruta').value.toUpperCase(),
+                        unidad: document.getElementById('unidad').value,
+                        inicioProg: document.getElementById('inicioProg').value || '00:00',
+                        inicioReal: document.getElementById('inicioReal').value || '00:00',
+                        desfase: desfaseInicio || 'A tiempo',
+                        finProg: document.getElementById('finProg').value || '00:00',
+                        finReal: document.getElementById('finReal').value || '00:00',
+                        desfaseFin: desfaseFin || 'A tiempo',
+                        tipoServicio: document.getElementById('tipoServicio').value,
+                        motivo: document.getElementById('motivo').value.toUpperCase(),
+                        comentarios: comentarios.toUpperCase(),
+                        zona: document.getElementById('zona').value.toUpperCase(),
+                        monitorista: document.getElementById('monitorista').value.toUpperCase()
+                    };
+                }
+                return reg;
+            });
+        } else {
+            // MODO NUEVO REGISTRO: Crear un elemento completamente nuevo
+            const nuevoRegistro = {
+                id: Date.now(),
+                fecha: fechaInput,
+                planta: document.getElementById('planta').value.toUpperCase(),
+                ruta: document.getElementById('ruta').value.toUpperCase(),
+                unidad: document.getElementById('unidad').value,
+                inicioProg: document.getElementById('inicioProg').value || '00:00',
+                inicioReal: document.getElementById('inicioReal').value || '00:00',
+                desfase: desfaseInicio || 'A tiempo',
+                finProg: document.getElementById('finProg').value || '00:00',
+                finReal: document.getElementById('finReal').value || '00:00',
+                desfaseFin: desfaseFin || 'A tiempo',
+                tipoServicio: document.getElementById('tipoServicio').value,
+                motivo: document.getElementById('motivo').value.toUpperCase(),
+                comentarios: comentarios.toUpperCase(),
+                zona: document.getElementById('zona').value.toUpperCase(),
+                monitorista: document.getElementById('monitorista').value.toUpperCase()
+            };
+            lista.push(nuevoRegistro);
+        }
+
+        localStorage.setItem('incidencias_diarias_t2', JSON.stringify(lista));
+
+        // Sincronizar el visor al día del registro guardado
+        document.getElementById('filtroFecha').value = fechaInput;
+
+        mostrarDatos();
+        limpiarFormulario();
+    });
+
+    // Cargar datos en el formulario para poder editarlos
+    function editarRegistro(id) {
+        let lista = JSON.parse(localStorage.getItem('incidencias_diarias_t2')) || [];
+        const registro = lista.find(reg => reg.id == id);
+
+        if (!registro) return;
+
+        // Rellenar campos del formulario con los valores existentes
+        document.getElementById('editandoId').value = registro.id;
+        document.getElementById('fecha').value = registro.fecha;
+        document.getElementById('planta').value = registro.planta;
+        document.getElementById('ruta').value = registro.ruta;
+        document.getElementById('unidad').value = registro.unidad;
+        document.getElementById('inicioProg').value = registro.inicioProg;
+        document.getElementById('inicioReal').value = registro.inicioReal;
+        document.getElementById('finProg').value = registro.finProg;
+        document.getElementById('finReal').value = registro.finReal;
+        document.getElementById('tipoServicio').value = registro.tipoServicio;
+        document.getElementById('motivo').value = registro.motivo;
+        document.getElementById('zona').value = registro.zona;
+        document.getElementById('monitorista').value = registro.monitorista;
+        document.getElementById('comentarios').value = registro.comentarios;
+
+        // Recalcular los estados visuales en el formulario
+        calcularDesfase('inicioProg', 'inicioReal', 'desfaseVisual');
+        calcularDesfase('finProg', 'finReal', 'desfaseFinVisual');
+
+        // Cambiar la interfaz del botón al modo Edición
+        document.getElementById('legendForm').innerText = "Modificar Registro Seleccionado";
+        const btnSubmit = document.getElementById('btnSubmitForm');
+        btnSubmit.innerText = "Actualizar Registro";
+        btnSubmit.className = "btn-add btn-edit-mode";
+
+        // Mover la pantalla suavemente hacia arriba para que el usuario vea el formulario cargado
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Mostrar filas filtradas en la tabla según el día seleccionado
+    function mostrarDatos() {
+        const tbody = document.getElementById('tbodyIncidencias');
+        tbody.innerHTML = '';
+
+        const fechaFiltro = document.getElementById('filtroFecha').value;
+        let lista = JSON.parse(localStorage.getItem('incidencias_diarias_t2')) || [];
+
+        const listaFiltrada = lista.filter(reg => reg.fecha === fechaFiltro);
+
+        const [y, m, d] = fechaFiltro.split('-');
+        document.getElementById('tituloTabla').innerText = `Registros del Día: ${d}/${m}/${y}`;
+
+        if(listaFiltrada.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="16" style="color: #888; padding: 20px;">No hay incidencias capturadas en esta fecha.</td></tr>`;
+            return;
+        }
+
+        listaFiltrada.forEach(reg => {
+            const tr = document.createElement('tr');
+
+            const [year, month, day] = reg.fecha.split('-');
+            const fechaVista = `${day}/${month}/${year}`;
+
+            const badgeStyleInicio = reg.desfase === "A tiempo" ? "badge-ontime" : "badge-desfase";
+            const valorDesfaseFin = reg.desfaseFin || "A tiempo";
+            const badgeStyleFin = valorDesfaseFin === "A tiempo" ? "badge-ontime" : "badge-desfase";
+
+            tr.innerHTML = `
+                <td><b>${fechaVista}</b></td>
+                <td>${reg.planta}</td>
+                <td>${reg.ruta}</td>
+                <td>${reg.unidad}</td>
+                <td>${reg.inicioProg}</td>
+                <td>${reg.inicioReal}</td>
+                <td><span class="${badgeStyleInicio}">${reg.desfase}</span></td>
+                <td>${reg.finProg}</td>
+                <td>${reg.finReal}</td>
+                <td><span class="${badgeStyleFin}">${valorDesfaseFin}</span></td>
+                <td>${reg.tipoServicio}</td>
+                <td>${reg.motivo}</td>
+                <td>${reg.comentarios}</td>
+                <td>${reg.zona}</td>
+                <td>${reg.monitorista}</td>
+                <td>
+                    <button class="btn-action-table btn-table-edit" onclick="editarRegistro(${reg.id})">Editar</button>
+                    <button class="btn-action-table btn-delete" onclick="eliminarRegistro(${reg.id})">Eliminar</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function eliminarRegistro(id) {
+        if(confirm('¿Seguro que deseas eliminar este registro?')) {
+            let lista = JSON.parse(localStorage.getItem('incidencias_diarias_t2')) || [];
+            lista = lista.filter(reg => reg.id !== id);
+            localStorage.setItem('incidencias_diarias_t2', JSON.stringify(lista));
+
+            // Si eliminamos el registro que estábamos editando, limpiamos el formulario
+            if(document.getElementById('editandoId').value == id){
+                limpiarFormulario();
+            }
+            mostrarDatos();
+        }
+    }
+
+    function borrarTodo() {
+        if(confirm('¡Peligro! Esto eliminará de forma PERMANENTE todo el historial completo de todos los días. ¿Deseas continuar?')) {
+            localStorage.removeItem('incidencias_diarias_t2');
+            limpiarFormulario();
+            mostrarDatos();
+        }
+    }
+
+    function limpiarFormulario() {
+        document.getElementById('incidenciaForm').reset();
+        document.getElementById('editandoId').value = "";
+
+        const hoyStr = obtenerFechaLocalISO(new Date());
+        document.getElementById('fecha').value = hoyStr;
+
+        document.getElementById('desfaseVisual').value = "A tiempo";
+        document.getElementById('desfaseVisual').style.color = '#2e7d32';
+        document.getElementById('desfaseFinVisual').value = "A tiempo";
+        document.getElementById('desfaseFinVisual').style.color = '#2e7d32';
+        document.getElementById('zona').value = "GARCIA";
+
+        // Restablecer el botón al estado normal de guardado
+        document.getElementById('legendForm').innerText = "Captura de Nuevo Registro";
+        const btnSubmit = document.getElementById('btnSubmitForm');
+        btnSubmit.innerText = "Guardar Registro";
+        btnSubmit.className = "btn-add";
+    }
+
+    function exportarExcelFiltrado() {
+        const fechaFiltro = document.getElementById('filtroFecha').value;
+        let lista = JSON.parse(localStorage.getItem('incidencias_diarias_t2')) || [];
+        const datosFiltrados = lista.filter(reg => reg.fecha === fechaFiltro);
+
+        if(datosFiltrados.length === 0) {
+            alert('No hay datos en el día seleccionado para exportar.');
+            return;
+        }
+
+        const [y, m, d] = fechaFiltro.split('-');
+        const nombreArchivo = `Incidencias_T2_${d}_${m}_${y}.xls`;
+
+        generarArchivoExcel(datosFiltrados, nombreArchivo);
+    }
+
+    function exportarTodoHistorial() {
+        let lista = JSON.parse(localStorage.getItem('incidencias_diarias_t2')) || [];
+        if(lista.length === 0) {
+            alert('El historial está completamente vacío.');
+            return;
+        }
+        generarArchivoExcel(lista, 'Historial_Completo_Incidencias.xls');
+    }
+
+    function generarArchivoExcel(registros, nombreArchivo) {
+        let xml = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+        xml += '<head><meta charset="UTF-8"></head><body>';
+
+        xml += '<table border="1" style="font-family:Segoe UI, sans-serif; font-size:11pt;">';
+
+        xml += '<tr style="background-color:#000000; color:#00E676; font-weight:bold; text-align:center;">';
+        xml += '<th>FECHA</th><th>PLANTA</th><th>RUTA</th><th>N° UNIDAD</th><th>INICIO PROGRAMADO</th><th>HORA DE INICIO REAL</th><th>DESFASE INICIO</th><th>HORA DE FINALIZACION</th><th>FINALIZACION REAL</th><th>DESFASE FIN</th><th>TIPO DE SERVICIO</th><th>MOTIVO</th><th>COMENTARIOS</th><th>ZONA</th><th>MONITORISTA</th>';
+        xml += '</tr>';
+
+        registros.forEach(reg => {
+            const [year, month, day] = reg.fecha.split('-');
+            const fechaFormat = `${day}/${month}/${year}`;
+            const valorDesfaseFin = reg.desfaseFin || "A tiempo";
+
+            xml += '<tr style="text-align:center;">';
+            xml += `<td>${fechaFormat}</td>`;
+            xml += `<td>${reg.planta}</td>`;
+            xml += `<td>${reg.ruta}</td>`;
+            xml += `<td>${reg.unidad}</td>`;
+            xml += `<td>${reg.inicioProg}</td>`;
+            xml += `<td>${reg.inicioReal}</td>`;
+            xml += `<td>${reg.desfase}</td>`;
+            xml += `<td>${reg.finProg}</td>`;
+            xml += `<td>${reg.finReal}</td>`;
+            xml += `<td>${valorDesfaseFin}</td>`;
+            xml += `<td>${reg.tipoServicio}</td>`;
+            xml += `<td>${reg.motivo}</td>`;
+            xml += `<td>${reg.comentarios}</td>`;
+            xml += `<td>${reg.zona}</td>`;
+            xml += `<td>${reg.monitorista}</td>`;
+            xml += '</tr>';
+        });
+
+        xml += '</table></body></html>';
+
+        const blob = new Blob([xml], { type: 'application/vnd.ms-excel' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nombreArchivo;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+</script>
+
+</body>
+</html>
