@@ -346,7 +346,7 @@
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <h3 style="margin: 0; color: #444;" id="tituloTabla">Registros del Día</h3>
-        <button class="btn-clear" onclick="borrarTodo()" style="background-color: #d32f2f; padding: 6px 12px; font-size:11px;">Borrar Base Completa</button>
+        <span id="syncStatus" style="font-size:12px; color:#666;"></span>
     </div>
 
     <div class="table-container">
@@ -389,6 +389,40 @@
         if(!e.target.closest('.dropdown'))
             document.querySelectorAll('.dropdown').forEach(d=>d.classList.remove('open'));
     });
+
+    // ═══════════ SINCRONIZACIÓN CON GOOGLE SHEETS ═══════════
+    // Pega aquí la URL del Web App que obtengas al desplegar el Google Apps Script
+    // (ver instrucciones al final del archivo).
+    const SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwPcDyYWKpqIklhAGvap5wSLABKhH5uHVBeD_TnpmYjvbWPGdMRVfS-VEGoAdm94Ifi/exec";
+
+    function setSyncStatus(msg, color){
+        const el = document.getElementById('syncStatus');
+        if(!el) return;
+        el.innerText = msg;
+        el.style.color = color || '#666';
+        if(msg){ setTimeout(()=>{ el.innerText=''; }, 4000); }
+    }
+
+    async function enviarASheets(accion, registro){
+        if(!SHEETS_WEBAPP_URL){
+            setSyncStatus('⚠️ Guardado local (falta configurar URL de Sheets)', '#c62828');
+            return;
+        }
+        try{
+            setSyncStatus('⏳ Sincronizando con Drive...', '#1565c0');
+            const payload = { accion, registro };
+            await fetch(SHEETS_WEBAPP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {'Content-Type': 'text/plain;charset=utf-8'},
+                body: JSON.stringify(payload)
+            });
+            setSyncStatus('✅ Guardado en Drive', '#2e7d32');
+        }catch(err){
+            console.error(err);
+            setSyncStatus('❌ Error al sincronizar (guardado local OK)', '#c62828');
+        }
+    }
 
     // Al cargar la página
     document.addEventListener('DOMContentLoaded', () => {
@@ -475,12 +509,13 @@
         }
 
         let lista = JSON.parse(localStorage.getItem('incidencias_diarias_t2')) || [];
+        let registroFinal = null;
 
         if (idEditando !== "") {
             // MODO EDICIÓN: Buscar el elemento y actualizar sus propiedades
             lista = lista.map(reg => {
                 if (reg.id == idEditando) {
-                    return {
+                    registroFinal = {
                         ...reg,
                         fecha: fechaInput,
                         planta: document.getElementById('planta').value.toUpperCase(),
@@ -498,6 +533,7 @@
                         zona: document.getElementById('zona').value.toUpperCase(),
                         monitorista: document.getElementById('monitorista').value.toUpperCase()
                     };
+                    return registroFinal;
                 }
                 return reg;
             });
@@ -522,9 +558,15 @@
                 monitorista: document.getElementById('monitorista').value.toUpperCase()
             };
             lista.push(nuevoRegistro);
+            registroFinal = nuevoRegistro;
         }
 
         localStorage.setItem('incidencias_diarias_t2', JSON.stringify(lista));
+
+        // Enviar el registro al Google Sheet
+        if(registroFinal){
+            enviarASheets(idEditando !== "" ? 'actualizar' : 'nuevo', registroFinal);
+        }
 
         // Sincronizar el visor al día del registro guardado
         document.getElementById('filtroFecha').value = fechaInput;
@@ -629,18 +671,13 @@
             lista = lista.filter(reg => reg.id !== id);
             localStorage.setItem('incidencias_diarias_t2', JSON.stringify(lista));
 
+            // Sincronizar la eliminación con Google Sheets
+            enviarASheets('eliminar', { id: id });
+
             // Si eliminamos el registro que estábamos editando, limpiamos el formulario
             if(document.getElementById('editandoId').value == id){
                 limpiarFormulario();
             }
-            mostrarDatos();
-        }
-    }
-
-    function borrarTodo() {
-        if(confirm('¡Peligro! Esto eliminará de forma PERMANENTE todo el historial completo de todos los días. ¿Deseas continuar?')) {
-            localStorage.removeItem('incidencias_diarias_t2');
-            limpiarFormulario();
             mostrarDatos();
         }
     }
