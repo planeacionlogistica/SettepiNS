@@ -12,6 +12,7 @@
         nav>a{color:#e5e7eb;text-decoration:none;font-weight:600;padding:8px 16px;border-radius:8px;transition:all .3s;white-space:nowrap;}
         nav>a:first-child{color:#84cc16;font-weight:800;font-size:18px;}
         nav>a:hover{background:#374151;}
+        .nav-title{color:#e5e7eb;font-weight:600;font-size:15px;letter-spacing:.5px;}
         .dropdown{position:relative;display:inline-block;}
         .dropdown-toggle{color:#e5e7eb;font-weight:600;padding:8px 16px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:6px;background:transparent;border:none;font-size:14px;font-family:inherit;}
         .dropdown-toggle:hover{background:#374151;}
@@ -245,36 +246,7 @@
 <!-- ═══════════ MENÚ TRAXIÓN ═══════════ -->
 <nav>
   <a href="index.html">TRAXIÓN</a>
-  <div class="dropdown" id="dropdownLogistica">
-    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownLogistica')">
-      Logística <span class="dropdown-arrow">▼</span>
-    </button>
-    <div class="dropdown-menu">
-      <a href="Dashboard_NS.html">Nivel de Servicio</a>
-      <a href="Dashboard_Kilometros.html">Kilómetros</a>
-      <a href="Dashboard_Flota.html">Flota</a>
-      <a href="Cambio_Manos.html">Cambio de manos</a>
-      <a href="Auditar_Folios.html">Auditoría de folios</a>
-      <a href="Planeador_Territorio.html">Eficiencias internas</a>
-      <a href="Captura_Incidencias.html" class="active">Captura de Incidencias</a>
-    </div>
-  </div>
-  <div class="dropdown" id="dropdownSeguridad">
-    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownSeguridad')">
-      Seguridad Vial <span class="dropdown-arrow">▼</span>
-    </button>
-    <div class="dropdown-menu">
-      <a href="Radar_Riesgos.html">Radar de Riesgos</a>
-    </div>
-  </div>
-  <div class="dropdown" id="dropdownCombustible">
-    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownCombustible')">
-      Combustible <span class="dropdown-arrow">▼</span>
-    </button>
-    <div class="dropdown-menu">
-      <a href="Dashboard_ralenti.html">Ralentí</a>
-    </div>
-  </div>
+  <span class="nav-title">Captura de Incidencias</span>
 </nav>
 
 <div class="page-wrapper">
