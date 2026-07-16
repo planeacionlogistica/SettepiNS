@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Auditoría de Niveles | Traxión</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="favicon-traxion.svg">
 <style>
@@ -17,6 +18,11 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
 .nav-logo{color:#84cc16;font-weight:800;font-size:16px;text-decoration:none;}
 .nav-sep{color:#4b5563;font-size:14px;font-weight:300;}
 .nav-page{color:#e5e7eb;font-size:13px;font-weight:600;}
+.nav-spacer{flex:1;}
+.nav-btn{background:#84cc16;color:#1a2236;border:none;font-weight:700;font-size:12px;padding:.42rem .85rem;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;font-family:"Inter",sans-serif;transition:background .15s,transform .1s;}
+.nav-btn:hover{background:#a3e635;}
+.nav-btn:active{transform:translateY(1px);}
+.nav-btn svg{width:14px;height:14px;}
 
 /* ── Layout ── */
 .layout{display:flex;align-items:flex-start;min-height:calc(100vh - 48px);}
@@ -49,6 +55,9 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
 .sc-opt.sc-none:hover{background:transparent;}
 .btn-reset{width:100%;background:transparent;border:1.5px solid var(--border);border-radius:7px;color:var(--muted);padding:.42rem;font-size:.74rem;font-family:"Inter",sans-serif;font-weight:600;cursor:pointer;margin-top:.3rem;}
 .btn-reset:hover{border-color:var(--red);color:var(--red);}
+.btn-xlsx{width:100%;background:#166534;color:#fff;border:none;border-radius:7px;padding:.5rem;font-size:.74rem;font-family:"Inter",sans-serif;font-weight:700;cursor:pointer;margin-top:.1rem;display:flex;align-items:center;justify-content:center;gap:.35rem;transition:background .15s;}
+.btn-xlsx:hover{background:#15803d;}
+.btn-xlsx:disabled{background:#94a3b8;cursor:not-allowed;}
 
 /* ── Main ── */
 .main{flex:1;padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0;}
@@ -71,12 +80,12 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
 .err.hidden{display:none;}
 
 /* ── KPI strip ── */
-.kpi-section{display:flex;gap:.7rem;align-items:stretch;}
-.kpi-chip{flex:1;border-radius:10px;padding:.9rem 1rem;display:flex;flex-direction:column;justify-content:space-between;min-width:0;border:1px solid transparent;}
+.kpi-section{display:flex;gap:.7rem;align-items:stretch;flex-wrap:wrap;}
+.kpi-chip{flex:1;min-width:150px;border-radius:10px;padding:.9rem 1rem;display:flex;flex-direction:column;justify-content:space-between;border:1px solid transparent;}
 .kpi-chip-lbl{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;}
 .kpi-chip-val{font-size:2rem;font-weight:700;line-height:1;letter-spacing:-.02em;}
 .kpi-chip-sub{font-size:.67rem;margin-top:.3rem;}
-.kpi-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;}
+.kpi-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;flex-wrap:wrap;gap:.5rem;}
 .fecha-badge{display:inline-flex;align-items:center;gap:.4rem;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:.28rem .75rem;font-size:.7rem;font-weight:600;color:var(--muted);box-shadow:0 1px 4px rgba(26,34,54,.06);}
 .fecha-badge-dot{width:6px;height:6px;border-radius:50%;background:#84cc16;flex-shrink:0;}
 
@@ -87,7 +96,7 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
 
 /* ── Cards ── */
 .table-card{background:var(--white);border-radius:12px;box-shadow:0 2px 10px rgba(26,34,54,.07);overflow:hidden;}
-.table-hdr{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);}
+.table-hdr{display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);gap:.75rem;flex-wrap:wrap;}
 .table-hdr-title{font-size:.9rem;font-weight:700;color:var(--text);}
 .table-hdr-sub{font-size:.68rem;color:var(--muted);margin-top:.1rem;}
 .table-count{font-size:.7rem;color:var(--muted);background:var(--bg);border-radius:20px;padding:.2rem .65rem;white-space:nowrap;}
@@ -128,6 +137,10 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
 .pill-normal{background:#f0fce8;color:#3B6D11;}
 .pill-bajo{background:#FCEBEB;color:#A32D2D;}
 .pill-alto{background:#FAEEDA;color:#854F0B;}
+.pill-estatus{display:inline-block;font-size:.6rem;padding:1px 7px;border-radius:6px;font-weight:700;background:#eef2ff;color:#3730a3;}
+.pill-estatus.operando{background:#f0fce8;color:#3B6D11;}
+.pill-estatus.mtto{background:#FAEEDA;color:#854F0B;}
+.pill-estatus.baja{background:#FCEBEB;color:#A32D2D;}
 
 /* Clickable rows */
 .comp-table tbody tr.click-row{cursor:pointer;}
@@ -168,6 +181,13 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
 .lit-table tbody td.r{text-align:right;font-variant-numeric:tabular-nums;font-weight:700;color:#7a1c1c;}
 .lit-table tbody td.coment{color:var(--muted);font-size:.68rem;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .lit-total-row td{background:#fef3f2;font-weight:800;color:#7a1c1c;border-top:2px solid #7a1c1c;font-size:.75rem;}
+
+/* Faltantes table */
+.falt-table{width:100%;border-collapse:collapse;}
+.falt-table thead th{background:#7c2d12;color:rgba(255,255,255,.92);font-size:.62rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;padding:.42rem .75rem;text-align:left;white-space:nowrap;}
+.falt-table tbody tr{border-bottom:1px solid var(--border);}
+.falt-table tbody tr:hover td{background:#fff7ed;}
+.falt-table tbody td{padding:.4rem .75rem;font-size:.73rem;color:var(--text);vertical-align:middle;}
 </style>
 </head>
 <body>
@@ -176,6 +196,11 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
   <a class="nav-logo" href="index.html">TRAXIÓN</a>
   <span class="nav-sep">|</span>
   <span class="nav-page">Auditoría de Niveles</span>
+  <span class="nav-spacer"></span>
+  <button class="nav-btn" onclick="exportAllXlsx()" title="Descargar todas las tablas en Excel">
+    <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/><path d="M8.5 17l1.7-2.6L8.4 12H10l1 1.9L12.1 12h1.5l-1.8 2.4 1.9 2.6h-1.6l-1.1-2-1.1 2H8.5z"/></svg>
+    Descargar Excel
+  </button>
 </nav>
 
 <!-- Loading -->
@@ -184,7 +209,7 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
   <div class="loading-box">
     <div class="loading-spinner"></div>
     <div class="loading-title">Cargando Auditoría...</div>
-    <div class="loading-sub">Conectando con Google Sheets · Hoja: Auditoria</div>
+    <div class="loading-sub">Conectando con Google Sheets · Auditoria + Flota</div>
     <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
   </div>
 </div>
@@ -198,7 +223,7 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
     <div class="sb-prod">
       <div class="sb-prod-pct" id="sbPct">–%</div>
       <div class="sb-prod-lbl">Cumplimiento</div>
-      <div class="sb-prod-sub" id="sbSub">– de 459 unidades</div>
+      <div class="sb-prod-sub" id="sbSub">– unidades</div>
       <div class="sb-prod-total" id="sbWk">Semana actual</div>
     </div>
 
@@ -209,6 +234,16 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
           oninput="scFilter('sem')" onfocus="scOpen('sem')" onkeydown="scKey(event,'sem')">
         <span class="sc-arrow">▼</span>
         <div class="sc-dropdown" id="sc-sem-dd"></div>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>Planta</label>
+      <div class="sc-wrap" id="sc-pla">
+        <input class="sc-input" type="text" placeholder="Todas" autocomplete="off" id="sc-pla-input"
+          oninput="scFilter('pla')" onfocus="scOpen('pla')" onkeydown="scKey(event,'pla')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-pla-dd"></div>
       </div>
     </div>
 
@@ -232,7 +267,18 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
       </div>
     </div>
 
+    <div class="fg">
+      <label>Estatus flota</label>
+      <div class="sc-wrap" id="sc-est">
+        <input class="sc-input" type="text" placeholder="Todos" autocomplete="off" id="sc-est-input"
+          oninput="scFilter('est')" onfocus="scOpen('est')" onkeydown="scKey(event,'est')">
+        <span class="sc-arrow">▼</span>
+        <div class="sc-dropdown" id="sc-est-dd"></div>
+      </div>
+    </div>
+
     <button class="btn-reset" onclick="resetFilters()">↺ Limpiar filtros</button>
+    <button class="btn-xlsx" onclick="exportAllXlsx()">⬇ Excel</button>
   </aside>
 
   <main class="main">
@@ -259,12 +305,44 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
       <div class="table-hdr">
         <div>
           <div class="table-hdr-title">Tendencia de registro semanal</div>
-          <div class="table-hdr-sub">Meta: 459 unidades auditadas por semana · Verde ≥ 80% · Amarillo ≥ 50% · Rojo &lt; 50%</div>
+          <div class="table-hdr-sub">Meta dinámica según filtro · Verde ≥ 80% · Amarillo ≥ 50% · Rojo &lt; 50%</div>
         </div>
         <span class="table-count" id="cntSemanas">–</span>
       </div>
       <div class="chart-wrap">
         <canvas id="weeklyChart" height="72"></canvas>
+      </div>
+    </div>
+
+    <!-- Plantas -->
+    <div class="section-divider">
+      <span class="sd-title">Cumplimiento por planta</span>
+      <span class="sd-line"></span>
+    </div>
+
+    <div class="table-card">
+      <div class="table-hdr">
+        <div>
+          <div class="table-hdr-title">Plantas</div>
+          <div class="table-hdr-sub">Click en una fila para ver las unidades auditadas</div>
+        </div>
+        <span class="table-count" id="cntPlantas">–</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="comp-table">
+          <thead>
+            <tr>
+              <th>Planta</th>
+              <th class="r">Flota</th>
+              <th class="r">Auditadas</th>
+              <th class="r">Pendientes</th>
+              <th class="r">Litros falt.</th>
+              <th class="r">% Cumpl.</th>
+              <th style="min-width:110px">Avance</th>
+            </tr>
+          </thead>
+          <tbody id="plaTbody"></tbody>
+        </table>
       </div>
     </div>
 
@@ -333,6 +411,40 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
       </div>
     </div>
 
+    <!-- Unidades faltantes de la flota -->
+    <div class="section-divider">
+      <span class="sd-title">Unidades faltantes de auditar</span>
+      <span class="sd-line"></span>
+    </div>
+
+    <div class="table-card">
+      <div class="table-hdr">
+        <div>
+          <div class="table-hdr-title">Faltantes de auditoría · cruce con roster Flota</div>
+          <div class="table-hdr-sub">Unidades del roster que <b>no</b> aparecen auditadas en el ámbito seleccionado</div>
+        </div>
+        <span class="table-count" id="cntFalt">–</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="falt-table">
+          <thead>
+            <tr>
+              <th>Unidad</th>
+              <th>Planta</th>
+              <th>Jefe</th>
+              <th>Gerente</th>
+              <th>Estatus</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Año</th>
+              <th>Tipo</th>
+            </tr>
+          </thead>
+          <tbody id="faltTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Litros faltantes -->
     <div class="section-divider">
       <span class="sd-title">Unidades con litros faltantes</span>
@@ -352,6 +464,7 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
           <thead>
             <tr>
               <th>Unidad</th>
+              <th>Planta</th>
               <th>Cliente</th>
               <th>Jefe</th>
               <th>Gerente</th>
@@ -390,24 +503,27 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
 // ─────────────────────────────────────────────
 //  CONFIG — ajusta si cambia el Sheet
 // ─────────────────────────────────────────────
-const SHEET_ID   = '1WJfJd1eANDXyBq5CXKw0aPbxB_giafCN7j-Aqtt9cVw';
-const SHEET_NAME = 'Auditoria';
-const FLEET_TOTAL = 459;
+const AUD_SHEET_ID   = '1WJfJd1eANDXyBq5CXKw0aPbxB_giafCN7j-Aqtt9cVw';
+const AUD_SHEET_NAME = 'Auditoria';
+const FLEET_SHEET_ID = '1YZG92UT4EI8VbNoKy0Vm0mWrujTr-8mSccJHphswKeg';
+const FLEET_SHEET_NAME = 'Flota';
 
 // ─────────────────────────────────────────────
 //  STATE
 // ─────────────────────────────────────────────
-let DATA = [];
-let C    = {};   // detected column indices
+let DATA  = [];    // audit records
+let FLEET = [];    // fleet roster [{unid,planta,jefe,ger,estatus,marca,modelo,anio,tipo}]
+let FLEET_MAP = {}; // unid -> fleet row
+let C     = {};    // detected audit columns
 let chartInst = null;
 
 // ─────────────────────────────────────────────
 //  SEARCHABLE SELECTS
 // ─────────────────────────────────────────────
-const SC_KEYS = ['sem','ger','jef'];
-const SC_SEL  = {sem:'',ger:'',jef:''};
-const SC_VALS = {sem:[],ger:[],jef:[]};
-const SC_FOCUS= {sem:-1,ger:-1,jef:-1};
+const SC_KEYS = ['sem','pla','ger','jef','est'];
+const SC_SEL  = {sem:'',pla:'',ger:'',jef:'',est:''};
+const SC_VALS = {sem:[],pla:[],ger:[],jef:[],est:[]};
+const SC_FOCUS= {sem:-1,pla:-1,ger:-1,jef:-1,est:-1};
 
 function scOpen(k){
   document.querySelectorAll('.sc-wrap.open').forEach(el=>{if(el.id!=='sc-'+k)el.classList.remove('open');});
@@ -468,19 +584,33 @@ function uniqSorted(arr){
     return(!isNaN(na)&&!isNaN(nb))? na-nb : String(a).localeCompare(String(b),'es');
   });
 }
+
+// Cascada: cada filtro reduce las opciones de los siguientes.
+// Orden: sem → pla → ger → jef → est.
+// Las opciones se calculan del universo combinado (auditoría + roster) para no perder plantas/gerentes sin registros.
 function cascadeFilters(){
-  SC_VALS.sem=uniqSorted(DATA.map(r=>r._sem));
-  const bS=SC_SEL.sem?DATA.filter(r=>r._sem===SC_SEL.sem):DATA;
-  SC_VALS.ger=uniqSorted(bS.map(r=>r._ger));
-  const bG=SC_SEL.ger?bS.filter(r=>r._ger===SC_SEL.ger):bS;
-  SC_VALS.jef=uniqSorted(bG.map(r=>r._jef));
+  // Universo unificado: para cada unidad del roster, +1 "virtual" con sus atributos.
+  // Para auditoría, cada registro contribuye con sus atributos.
+  const uni=[];
+  DATA.forEach(r=>uni.push({sem:r._sem,pla:r._planta,ger:r._ger,jef:r._jef,est:r._estatus}));
+  FLEET.forEach(f=>uni.push({sem:'',pla:f.planta,ger:f.ger,jef:f.jef,est:f.estatus}));
+
+  const bySem=SC_SEL.sem?uni.filter(r=>r.sem===SC_SEL.sem):uni;
+  SC_VALS.sem=uniqSorted(uni.map(r=>r.sem));
+  SC_VALS.pla=uniqSorted(bySem.map(r=>r.pla));
+  const byPla=SC_SEL.pla?bySem.filter(r=>r.pla===SC_SEL.pla):bySem;
+  SC_VALS.ger=uniqSorted(byPla.map(r=>r.ger));
+  const byGer=SC_SEL.ger?byPla.filter(r=>r.ger===SC_SEL.ger):byPla;
+  SC_VALS.jef=uniqSorted(byGer.map(r=>r.jef));
+  const byJef=SC_SEL.jef?byGer.filter(r=>r.jef===SC_SEL.jef):byGer;
+  SC_VALS.est=uniqSorted(byJef.map(r=>r.est));
   SC_KEYS.forEach(k=>scRenderDD(k));
 }
 
 // ─────────────────────────────────────────────
-//  COLUMN DETECTION
+//  COLUMN DETECTION - AUDITORIA
 // ─────────────────────────────────────────────
-function detectCols(headers){
+function detectAudCols(headers){
   const h=headers.map(s=>(s||'').toLowerCase().replace(/[#°\.]/g,'').trim());
   const find=(...keys)=>{
     for(const k of keys){
@@ -500,6 +630,8 @@ function detectCols(headers){
     anticong: find('anticongelante','anticong'),
     coment  : find('comentario','coment','obs','observ'),
     cliente : find('cliente','clte'),
+    planta  : find('planta','plant','sitio','ubicacion'),
+    estatus : find('estatus','status','estado'),
   };
 }
 
@@ -510,7 +642,6 @@ function weekFromDate(raw){
   if(!raw)return null;
   let d;
   const s=String(raw).trim();
-  // gviz Date(yyyy,m,d) format
   const gv=s.match(/Date\((\d+),(\d+),(\d+)\)/);
   if(gv){d=new Date(+gv[1],+gv[2],+gv[3]);}
   else{
@@ -526,45 +657,105 @@ function weekFromDate(raw){
 }
 
 // ─────────────────────────────────────────────
+//  FETCH SHEET (gviz)
+// ─────────────────────────────────────────────
+async function fetchSheet(id,name){
+  const url=`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(name)}&t=${Date.now()}`;
+  const res=await fetch(url);
+  if(!res.ok)throw new Error(`HTTP ${res.status} en ${name}`);
+  const text=await res.text();
+  return JSON.parse(text.replace(/^[^{]*/,'').replace(/[^}]*$/,''));
+}
+
+// ─────────────────────────────────────────────
 //  LOAD DATA
 // ─────────────────────────────────────────────
-async function loadData(){
-  const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}&t=${Date.now()}`;
-  const res=await fetch(url);
-  if(!res.ok)throw new Error(`HTTP ${res.status}`);
-  const text=await res.text();
-  const json=JSON.parse(text.replace(/^[^{]*/,'').replace(/[^}]*$/,''));
+async function loadAll(){
+  // Fetch both sheets in parallel
+  const [audJ,fleJ]=await Promise.all([
+    fetchSheet(AUD_SHEET_ID,AUD_SHEET_NAME),
+    fetchSheet(FLEET_SHEET_ID,FLEET_SHEET_NAME),
+  ]);
 
-  const headers=json.table.cols.map(c=>c.label||c.id||'');
-  C=detectCols(headers);
+  // ── FLEET ──
+  const fH=fleJ.table.cols.map(c=>(c.label||c.id||'').toString());
+  // Column indexes for fleet by header text (case-insensitive)
+  const fh=fH.map(s=>s.toLowerCase().trim());
+  const fFind=(...keys)=>{
+    for(const k of keys){
+      const i=fh.findIndex(x=>x===k||x.includes(k));
+      if(i!==-1)return i;
+    }
+    return -1;
+  };
+  // ID unidad = primera columna (o la que tenga id/unidad/economico)
+  let fUnid=fFind('id','unidad','economico','no eco','num eco');
+  if(fUnid===-1)fUnid=0;
+  const fPla=fFind('planta','plant','sitio');
+  const fJef=fFind('jefe','jfe','supervisor');
+  const fGer=fFind('gerente','gte','gerencia');
+  const fEst=fFind('estatus','status','estado');
+  const fMar=fFind('marca');
+  const fMod=fFind('modelo');
+  const fAno=fFind('año','ano','anio','year');
+  const fTip=fFind('tipo');
 
-  const rows=json.table.rows||[];
+  const fRows=fleJ.table.rows||[];
+  FLEET=fRows.map(row=>{
+    const v=i=>(i>=0&&row.c[i]!=null)?(row.c[i].f??row.c[i].v??''):'';
+    const unid=String(v(fUnid)).trim().toUpperCase();
+    if(!unid||unid==='#N/A'||unid==='#REF!')return null;
+    return{
+      unid,
+      planta :(String(v(fPla)).trim()||'SIN PLANTA'),
+      jef    :(String(v(fJef)).trim()||'SIN ASIGNACION'),
+      ger    :(String(v(fGer)).trim()||'SIN ASIGNACION'),
+      estatus:(String(v(fEst)).trim()||'SIN ESTATUS'),
+      marca  :String(v(fMar)).trim(),
+      modelo :String(v(fMod)).trim(),
+      anio   :String(v(fAno)).trim(),
+      tipo   :String(v(fTip)).trim(),
+    };
+  }).filter(x=>x);
+
+  FLEET_MAP={};
+  FLEET.forEach(f=>{FLEET_MAP[f.unid]=f;});
+
+  // ── AUDITORIA ──
+  const headers=audJ.table.cols.map(c=>c.label||c.id||'');
+  C=detectAudCols(headers);
+  const rows=audJ.table.rows||[];
   DATA=rows.map(row=>{
     const v=i=>(i>=0&&row.c[i]!=null)?(row.c[i].f??row.c[i].v??''):'';
     const vRaw=i=>(i>=0&&row.c[i]!=null)?(row.c[i].v??''):'';
 
-    // Semana: prefer explicit column, else derive from fecha
     let sem='';
-    if(C.sem>=0){
-      sem=String(v(C.sem)).trim().replace(/semana\s*/i,'').trim();
-    }
+    if(C.sem>=0){sem=String(v(C.sem)).trim().replace(/semana\s*/i,'').trim();}
     if(!sem&&C.fecha>=0){
       const wk=weekFromDate(vRaw(C.fecha)||v(C.fecha));
       if(wk)sem=String(wk);
     }
-    // Normalise: strip leading zeros, keep as string for comparison
     sem=sem.replace(/^0+/,'');
 
     const unid=String(v(C.unid)).trim().toUpperCase();
-    const ger =String(v(C.ger)).trim()||'Sin asignar';
-    const jef =String(v(C.jef)).trim()||'Sin asignar';
+    const gerA=String(v(C.ger)).trim();
+    const jefA=String(v(C.jef)).trim();
+    const plaA=String(v(C.planta)).trim();
+    const estA=String(v(C.estatus)).trim();
+
+    const fm=FLEET_MAP[unid];
+    // Prioridad al roster; si no hay unidad en roster, usar Auditoria
+    const ger=(fm&&fm.ger)||gerA||'Sin asignar';
+    const jef=(fm&&fm.jef)||jefA||'Sin asignar';
+    const planta=(fm&&fm.planta)||plaA||'SIN PLANTA';
+    const estatus=(fm&&fm.estatus)||estA||'';
+
     const fecha=String(v(C.fecha)).trim();
     const aceite=String(v(C.aceite)).trim();
     const anticong=String(v(C.anticong)).trim();
     const coment=String(v(C.coment)).trim();
     const cliente=String(v(C.cliente)).trim();
 
-    // Litros faltantes → number (handles "1.5", "1,5", "2 litros", "")
     let litrosRaw=String(v(C.litros)).trim();
     let litros=0;
     if(litrosRaw){
@@ -572,7 +763,7 @@ async function loadData(){
       if(m)litros=parseFloat(m[0])||0;
     }
 
-    return{_sem:sem,_unid:unid,_ger:ger,_jef:jef,_fecha:fecha,_aceite:aceite,_anticong:anticong,_coment:coment,_cliente:cliente,_litros:litros};
+    return{_sem:sem,_unid:unid,_ger:ger,_jef:jef,_planta:planta,_estatus:estatus,_fecha:fecha,_aceite:aceite,_anticong:anticong,_coment:coment,_cliente:cliente,_litros:litros,_inFleet:!!fm};
   }).filter(r=>r._sem&&r._unid);
 
   cascadeFilters();
@@ -591,12 +782,38 @@ function latestWeek(arr){
   const ws=arr.map(r=>parseInt(r._sem)).filter(n=>!isNaN(n));
   return ws.length?String(Math.max(...ws)):null;
 }
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function estatusPillCls(e){
+  const t=(e||'').toLowerCase();
+  if(t.includes('operando'))return 'operando';
+  if(t.includes('mtto')||t.includes('mantenimiento'))return 'mtto';
+  if(t.includes('baja'))return 'baja';
+  return '';
+}
+function estatusPill(e){
+  if(!e)return '<span style="color:var(--muted)">–</span>';
+  return `<span class="pill-estatus ${estatusPillCls(e)}">${esc(e)}</span>`;
+}
 
+// Roster scope: applies planta/ger/jef/estatus filters (semana no aplica al roster).
+function scopedFleet(){
+  return FLEET.filter(f=>{
+    if(SC_SEL.pla&&f.planta!==SC_SEL.pla)return false;
+    if(SC_SEL.ger&&f.ger!==SC_SEL.ger)return false;
+    if(SC_SEL.jef&&f.jef!==SC_SEL.jef)return false;
+    if(SC_SEL.est&&f.estatus!==SC_SEL.est)return false;
+    return true;
+  });
+}
+
+// Audit rows scoped by all filters
 function filteredData(){
   return DATA.filter(r=>{
     if(SC_SEL.sem&&r._sem!==SC_SEL.sem)return false;
+    if(SC_SEL.pla&&r._planta!==SC_SEL.pla)return false;
     if(SC_SEL.ger&&r._ger!==SC_SEL.ger)return false;
     if(SC_SEL.jef&&r._jef!==SC_SEL.jef)return false;
+    if(SC_SEL.est&&r._estatus!==SC_SEL.est)return false;
     return true;
   });
 }
@@ -609,17 +826,22 @@ function draw(){
   const isAllWeeks=!SC_SEL.sem;
   const curWk=SC_SEL.sem||latestWeek(DATA);
 
-  // "Scope rows" = the working set for KPIs and tables.
-  //   · Todas   → todos los registros filtrados por gerente/jefe
-  //   · Semana  → solo esa semana (ya filtrado en `rows`)
   const scopeRows=rows;
   const scopeLabel=isAllWeeks?'Todas las semanas':`Semana ${curWk}`;
 
-  const auditadas=new Set(scopeRows.map(r=>r._unid)).size;
-  const cumpl=pct(auditadas,FLEET_TOTAL);
-  const pendientes=Math.max(0,FLEET_TOTAL-auditadas);
+  const fleetScope=scopedFleet();
+  const fleetTotal=fleetScope.length||1;
+  const fleetUnidSet=new Set(fleetScope.map(f=>f.unid));
 
-  // Litros faltantes en el ámbito
+  // Auditadas del roster (dentro del scope)
+  const audUnidSet=new Set(scopeRows.map(r=>r._unid));
+  const auditadasFleet=[...audUnidSet].filter(u=>fleetUnidSet.has(u)).length;
+  // Auditadas totales (incluye unidades no listadas en roster)
+  const auditadasAll=audUnidSet.size;
+
+  const cumpl=pct(auditadasFleet,fleetTotal);
+  const pendientes=Math.max(0,fleetTotal-auditadasFleet);
+
   const litRows=scopeRows.filter(r2=>r2._litros>0);
   const totLitros=litRows.reduce((s,r2)=>s+r2._litros,0);
   const unidLit=new Set(litRows.map(r2=>r2._unid)).size;
@@ -629,10 +851,9 @@ function draw(){
   const sbEl=document.getElementById('sbPct');
   sbEl.textContent=cumpl.toFixed(1)+'%';
   sbEl.style.color=sbColor;
-  document.getElementById('sbSub').textContent=`${auditadas.toLocaleString('es-MX')} de ${FLEET_TOTAL.toLocaleString('es-MX')} unidades`;
+  document.getElementById('sbSub').textContent=`${auditadasFleet.toLocaleString('es-MX')} de ${fleetTotal.toLocaleString('es-MX')} unidades`;
   document.getElementById('sbWk').textContent=isAllWeeks?'Acumulado (todas)':`Semana ${curWk}`;
 
-  // Fecha badge
   document.getElementById('fechaBadge').style.display='';
   document.getElementById('fechaVal').textContent=isAllWeeks?'Todas':curWk;
 
@@ -650,17 +871,19 @@ function draw(){
   const semanasCon=uniqSorted(scopeRows.map(r2=>r2._sem)).length;
 
   document.getElementById('kpiSection').innerHTML=[
-    chip(b,bBg,bBd,'Total Flota',FLEET_TOTAL.toLocaleString('es-MX'),'unidades en operación'),
+    chip(b,bBg,bBd,'Flota (roster)',fleetTotal.toLocaleString('es-MX'),'unidades en scope'),
     chip(pC,pCbg,pCbd,'Cumplimiento',cumpl.toFixed(1)+'%',scopeLabel),
-    chip(g,gBg,gBd,'Auditadas',auditadas.toLocaleString('es-MX'),`unidades únicas · ${scopeLabel.toLowerCase()}`),
-    chip(r,rBg,rBd,'Pendientes',pendientes.toLocaleString('es-MX'),'faltan por auditar'),
+    chip(g,gBg,gBd,'Auditadas',auditadasFleet.toLocaleString('es-MX'),`del roster · ${auditadasAll} totales`),
+    chip(r,rBg,rBd,'Faltantes',pendientes.toLocaleString('es-MX'),'unidades por auditar'),
     chip(o,oBg,oBd,'Litros faltantes',totLitros.toLocaleString('es-MX',{maximumFractionDigits:1}),`${unidLit} unidad${unidLit===1?'':'es'} con aceite bajo`),
     chip(v,vBg,vBd,'Semanas',semanasCon,'semanas con registro'),
   ].join('');
 
-  drawChart(scopeRows);
-  drawGerentes(scopeRows,scopeLabel);
-  drawJefes(scopeRows,scopeLabel);
+  drawChart(scopeRows,fleetTotal);
+  drawPlantas(scopeRows,scopeLabel,fleetScope);
+  drawGerentes(scopeRows,scopeLabel,fleetScope);
+  drawJefes(scopeRows,scopeLabel,fleetScope);
+  drawFaltantes(scopeRows,scopeLabel,fleetScope);
   drawLitrosTable(scopeRows,scopeLabel);
 }
 
@@ -675,11 +898,13 @@ function chip(color,bg,bd,lbl,val,sub){
 // ─────────────────────────────────────────────
 //  CHART
 // ─────────────────────────────────────────────
-function drawChart(rows){
-  // Aggregate by semana (all rows, no semana-filter)
+function drawChart(rows,fleetTotal){
+  // Aggregate by semana (all rows, ignoring semana filter but respecting the rest)
   const base=DATA.filter(r=>{
+    if(SC_SEL.pla&&r._planta!==SC_SEL.pla)return false;
     if(SC_SEL.ger&&r._ger!==SC_SEL.ger)return false;
     if(SC_SEL.jef&&r._jef!==SC_SEL.jef)return false;
+    if(SC_SEL.est&&r._estatus!==SC_SEL.est)return false;
     return true;
   });
 
@@ -695,7 +920,7 @@ function drawChart(rows){
 
   const labels=weeks.map(w=>'S'+w);
   const vals=weeks.map(w=>byWk[w].size);
-  const pcts=vals.map(v=>pct(v,FLEET_TOTAL));
+  const pcts=vals.map(v=>pct(v,fleetTotal));
   const colors=pcts.map(p=>barColor(p));
 
   if(chartInst){chartInst.destroy();chartInst=null;}
@@ -705,68 +930,37 @@ function drawChart(rows){
     data:{
       labels,
       datasets:[
-        {
-          label:'Unidades auditadas',
-          data:vals,
-          backgroundColor:colors,
-          borderColor:colors.map(c=>c.replace(',.85)',',1)')),
-          borderWidth:1,
-          borderRadius:5,
-          borderSkipped:false,
-        },
-        {
-          label:'Meta (459)',
-          data:weeks.map(()=>FLEET_TOTAL),
-          type:'line',
-          borderColor:'rgba(34,45,66,.2)',
-          borderDash:[5,4],
-          pointRadius:0,
-          borderWidth:1.5,
-          fill:false,
-          tension:0,
-        }
+        {label:'Unidades auditadas',data:vals,backgroundColor:colors,borderColor:colors.map(c=>c.replace(',.85)',',1)')),borderWidth:1,borderRadius:5,borderSkipped:false},
+        {label:`Meta (${fleetTotal})`,data:weeks.map(()=>fleetTotal),type:'line',borderColor:'rgba(34,45,66,.2)',borderDash:[5,4],pointRadius:0,borderWidth:1.5,fill:false,tension:0}
       ]
     },
     options:{
-      responsive:true,
-      maintainAspectRatio:true,
+      responsive:true,maintainAspectRatio:true,
       plugins:{
         legend:{display:false},
         tooltip:{
-          backgroundColor:'#1f2937',
-          titleFont:{family:'Inter',size:11,weight:'700'},
-          bodyFont:{family:'Inter',size:11},
-          padding:10,
-          cornerRadius:8,
+          backgroundColor:'#1f2937',titleFont:{family:'Inter',size:11,weight:'700'},bodyFont:{family:'Inter',size:11},padding:10,cornerRadius:8,
           callbacks:{
             title:items=>'Semana '+weeks[items[0].dataIndex],
             label:ctx2=>{
-              if(ctx2.datasetIndex===1)return ' Meta: '+FLEET_TOTAL+' unidades';
+              if(ctx2.datasetIndex===1)return ' Meta: '+fleetTotal+' unidades';
               const n=ctx2.parsed.y;
-              const p=pct(n,FLEET_TOTAL).toFixed(1);
+              const p=pct(n,fleetTotal).toFixed(1);
               return ` ${n} auditadas · ${p}% cumplimiento`;
             }
           }
         }
       },
       scales:{
-        x:{
-          grid:{display:false},
-          ticks:{font:{size:10,family:'Inter'},color:'#6b7a99'}
-        },
-        y:{
-          grid:{color:'#f0f2f7'},
-          ticks:{font:{size:10,family:'Inter'},color:'#6b7a99'},
-          max:Math.ceil(FLEET_TOTAL*1.08/50)*50,
-          min:0,
-        }
+        x:{grid:{display:false},ticks:{font:{size:10,family:'Inter'},color:'#6b7a99'}},
+        y:{grid:{color:'#f0f2f7'},ticks:{font:{size:10,family:'Inter'},color:'#6b7a99'},max:Math.ceil(fleetTotal*1.08/50)*50,min:0}
       }
     }
   });
 }
 
 // ─────────────────────────────────────────────
-//  HELPERS
+//  HELPERS UI
 // ─────────────────────────────────────────────
 function nivelPill(txt){
   const t=(txt||'').trim().toLowerCase();
@@ -774,34 +968,67 @@ function nivelPill(txt){
   const cls=t==='normal'?'pill-normal':t==='bajo'?'pill-bajo':'pill-alto';
   return `<span class="pill-nivel ${cls}">${txt}</span>`;
 }
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
-// Fleet size per (ger,jef) from ALL historical data
-function fleetByJef(){
-  const m={};
-  DATA.forEach(r=>{
-    const k=r._ger+'||'+r._jef;
-    if(!m[k])m[k]=new Set();
-    m[k].add(r._unid);
+// ─────────────────────────────────────────────
+//  PLANTAS TABLE
+// ─────────────────────────────────────────────
+function drawPlantas(scopeRows,scopeLabel,fleetScope){
+  const flotaPla={};
+  fleetScope.forEach(f=>{
+    if(!flotaPla[f.planta])flotaPla[f.planta]=new Set();
+    flotaPla[f.planta].add(f.unid);
   });
-  return m;
+
+  const byP={};
+  scopeRows.forEach(r=>{
+    if(!byP[r._planta])byP[r._planta]={aud:new Set(),lit:0,recs:[]};
+    byP[r._planta].aud.add(r._unid);
+    if(r._litros>0)byP[r._planta].lit+=r._litros;
+    byP[r._planta].recs.push(r);
+  });
+  Object.keys(flotaPla).forEach(p=>{if(!byP[p])byP[p]={aud:new Set(),lit:0,recs:[]};});
+
+  const plantas=Object.keys(byP).filter(p=>p).sort();
+  document.getElementById('cntPlantas').textContent=plantas.length+(plantas.length===1?' planta':' plantas');
+
+  const tbody=document.getElementById('plaTbody');
+  tbody.innerHTML=plantas.map(p=>{
+    const fl=flotaPla[p]?.size||0;
+    const audAll=byP[p].aud.size;
+    const audFleet=[...byP[p].aud].filter(u=>flotaPla[p]?.has(u)).length;
+    const pend=Math.max(0,fl-audFleet);
+    const pc=pct(audFleet,fl||1);
+    const lit=byP[p].lit;
+    return `
+      <tr class="click-row" data-pla="${esc(p)}">
+        <td><b>${esc(p)}</b></td>
+        <td class="r">${fl}</td>
+        <td class="r"><b>${audFleet}</b>${audAll>audFleet?` <span style="color:var(--muted);font-size:.65rem">(+${audAll-audFleet})</span>`:''}</td>
+        <td class="r" style="color:${pend>0?'#ef4444':'#3B6D11'}">${pend}</td>
+        <td class="r" style="color:${lit>0?'#7a1c1c':'var(--muted)'}">${lit>0?lit.toLocaleString('es-MX',{maximumFractionDigits:1})+' L':'0'}</td>
+        <td class="r"><span class="pill ${pillCls(pc)}">${pc.toFixed(1)}%</span></td>
+        <td class="bar-cell"><div class="bar-wrap"><div class="bar-fill ${barCls(pc)}" style="width:${Math.min(pc,100).toFixed(1)}%"></div></div></td>
+      </tr>`;
+  }).join('');
+
+  tbody.querySelectorAll('tr.click-row').forEach(tr=>{
+    tr.addEventListener('click',()=>{
+      const p=tr.getAttribute('data-pla');
+      openModal({title:'Planta · '+p,sub:scopeLabel+' · Unidades auditadas',flotaTotal:flotaPla[p]?.size||0,recs:byP[p]?.recs||[]});
+    });
+  });
 }
 
 // ─────────────────────────────────────────────
 //  GERENTES TABLE
 // ─────────────────────────────────────────────
-function drawGerentes(scopeRows,scopeLabel){
-  const flotaJef=fleetByJef();
-
-  // fleet per gerente = union of its jefes' fleets
+function drawGerentes(scopeRows,scopeLabel,fleetScope){
   const flotaGer={};
-  Object.keys(flotaJef).forEach(k=>{
-    const [g]=k.split('||');
-    if(!flotaGer[g])flotaGer[g]=new Set();
-    flotaJef[k].forEach(u=>flotaGer[g].add(u));
+  fleetScope.forEach(f=>{
+    if(!flotaGer[f.ger])flotaGer[f.ger]=new Set();
+    flotaGer[f.ger].add(f.unid);
   });
 
-  // Aggregate scope rows by gerente
   const byG={};
   scopeRows.forEach(r=>{
     if(!byG[r._ger])byG[r._ger]={aud:new Set(),lit:0,recs:[]};
@@ -809,12 +1036,7 @@ function drawGerentes(scopeRows,scopeLabel){
     if(r._litros>0)byG[r._ger].lit+=r._litros;
     byG[r._ger].recs.push(r);
   });
-
-  // Include gerentes that appear in fleet but have 0 audits in scope (respecting filters)
-  Object.keys(flotaGer).forEach(g=>{
-    if(SC_SEL.ger&&g!==SC_SEL.ger)return;
-    if(!byG[g])byG[g]={aud:new Set(),lit:0,recs:[]};
-  });
+  Object.keys(flotaGer).forEach(g=>{if(!byG[g])byG[g]={aud:new Set(),lit:0,recs:[]};});
 
   const gerentes=Object.keys(byG).filter(g=>g).sort();
   document.getElementById('cntGerentes').textContent=gerentes.length+(gerentes.length===1?' gerente':' gerentes');
@@ -822,16 +1044,17 @@ function drawGerentes(scopeRows,scopeLabel){
   const tbody=document.getElementById('gerTbody');
   tbody.innerHTML=gerentes.map((g,gi)=>{
     const fl=flotaGer[g]?.size||0;
-    const aud=byG[g].aud.size;
-    const pend=Math.max(0,fl-aud);
-    const p=pct(aud,fl||1);
+    const audAll=byG[g].aud.size;
+    const audFleet=[...byG[g].aud].filter(u=>flotaGer[g]?.has(u)).length;
+    const pend=Math.max(0,fl-audFleet);
+    const p=pct(audFleet,fl||1);
     const lit=byG[g].lit;
     const initials=g.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
     return `
       <tr class="click-row" data-ger="${esc(g)}">
         <td><span class="ger-icon">${esc(initials||String(gi+1))}</span><b>${esc(g)}</b></td>
         <td class="r">${fl}</td>
-        <td class="r"><b>${aud}</b></td>
+        <td class="r"><b>${audFleet}</b>${audAll>audFleet?` <span style="color:var(--muted);font-size:.65rem">(+${audAll-audFleet})</span>`:''}</td>
         <td class="r" style="color:${pend>0?'#ef4444':'#3B6D11'}">${pend}</td>
         <td class="r" style="color:${lit>0?'#7a1c1c':'var(--muted)'}">${lit>0?lit.toLocaleString('es-MX',{maximumFractionDigits:1})+' L':'0'}</td>
         <td class="r"><span class="pill ${pillCls(p)}">${p.toFixed(1)}%</span></td>
@@ -839,16 +1062,10 @@ function drawGerentes(scopeRows,scopeLabel){
       </tr>`;
   }).join('');
 
-  // Bind clicks
   tbody.querySelectorAll('tr.click-row').forEach(tr=>{
     tr.addEventListener('click',()=>{
       const g=tr.getAttribute('data-ger');
-      openModal({
-        title:'Gerente · '+g,
-        sub:scopeLabel+' · Unidades auditadas',
-        flotaTotal:flotaGer[g]?.size||0,
-        recs:byG[g]?.recs||[],
-      });
+      openModal({title:'Gerente · '+g,sub:scopeLabel+' · Unidades auditadas',flotaTotal:flotaGer[g]?.size||0,recs:byG[g]?.recs||[]});
     });
   });
 }
@@ -856,10 +1073,14 @@ function drawGerentes(scopeRows,scopeLabel){
 // ─────────────────────────────────────────────
 //  JEFES TABLE
 // ─────────────────────────────────────────────
-function drawJefes(scopeRows,scopeLabel){
-  const flotaJef=fleetByJef();
+function drawJefes(scopeRows,scopeLabel,fleetScope){
+  const flotaJef={};
+  fleetScope.forEach(f=>{
+    const k=f.ger+'||'+f.jef;
+    if(!flotaJef[k])flotaJef[k]=new Set();
+    flotaJef[k].add(f.unid);
+  });
 
-  // Which jefes appear in scope
   const byJ={};
   scopeRows.forEach(r=>{
     const k=r._ger+'||'+r._jef;
@@ -868,13 +1089,8 @@ function drawJefes(scopeRows,scopeLabel){
     if(r._litros>0)byJ[k].lit+=r._litros;
     byJ[k].recs.push(r);
   });
-
-  // Include jefes from history that pass filters but no scope activity
   Object.keys(flotaJef).forEach(k=>{
-    const [g,j]=k.split('||');
-    if(SC_SEL.ger&&g!==SC_SEL.ger)return;
-    if(SC_SEL.jef&&j!==SC_SEL.jef)return;
-    if(!byJ[k])byJ[k]={ger:g,jef:j,aud:new Set(),lit:0,recs:[]};
+    if(!byJ[k]){const[g,j]=k.split('||');byJ[k]={ger:g,jef:j,aud:new Set(),lit:0,recs:[]};}
   });
 
   const keys=Object.keys(byJ).filter(k=>{const[g,j]=k.split('||');return g&&j;}).sort((a,b)=>{
@@ -887,16 +1103,17 @@ function drawJefes(scopeRows,scopeLabel){
   tbody.innerHTML=keys.map(k=>{
     const o=byJ[k];
     const fl=flotaJef[k]?.size||0;
-    const aud=o.aud.size;
-    const pend=Math.max(0,fl-aud);
-    const p=pct(aud,fl||1);
+    const audAll=o.aud.size;
+    const audFleet=[...o.aud].filter(u=>flotaJef[k]?.has(u)).length;
+    const pend=Math.max(0,fl-audFleet);
+    const p=pct(audFleet,fl||1);
     const lit=o.lit;
     return `
       <tr class="click-row" data-k="${esc(k)}">
         <td><b>${esc(o.jef)}</b></td>
         <td style="color:var(--muted);font-size:.7rem">${esc(o.ger)}</td>
         <td class="r">${fl}</td>
-        <td class="r"><b>${aud}</b></td>
+        <td class="r"><b>${audFleet}</b>${audAll>audFleet?` <span style="color:var(--muted);font-size:.65rem">(+${audAll-audFleet})</span>`:''}</td>
         <td class="r" style="color:${pend>0?'#ef4444':'#3B6D11'}">${pend}</td>
         <td class="r" style="color:${lit>0?'#7a1c1c':'var(--muted)'}">${lit>0?lit.toLocaleString('es-MX',{maximumFractionDigits:1})+' L':'0'}</td>
         <td class="r"><span class="pill ${pillCls(p)}">${p.toFixed(1)}%</span></td>
@@ -908,21 +1125,44 @@ function drawJefes(scopeRows,scopeLabel){
     tr.addEventListener('click',()=>{
       const k=tr.getAttribute('data-k');
       const o=byJ[k];
-      openModal({
-        title:'Jefe · '+o.jef,
-        sub:'Gerente: '+o.ger+' · '+scopeLabel,
-        flotaTotal:flotaJef[k]?.size||0,
-        recs:o.recs,
-      });
+      openModal({title:'Jefe · '+o.jef,sub:'Gerente: '+o.ger+' · '+scopeLabel,flotaTotal:flotaJef[k]?.size||0,recs:o.recs});
     });
   });
+}
+
+// ─────────────────────────────────────────────
+//  FALTANTES TABLE  (roster - auditadas)
+// ─────────────────────────────────────────────
+function drawFaltantes(scopeRows,scopeLabel,fleetScope){
+  const audSet=new Set(scopeRows.map(r=>r._unid));
+  const missing=fleetScope.filter(f=>!audSet.has(f.unid));
+  missing.sort((a,b)=>String(a.planta).localeCompare(String(b.planta),'es')||String(a.unid).localeCompare(String(b.unid),'es'));
+
+  document.getElementById('cntFalt').textContent=missing.length+(missing.length===1?' unidad':' unidades')+' · '+scopeLabel;
+
+  const tbody=document.getElementById('faltTbody');
+  if(!missing.length){
+    tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:1.2rem;color:#3B6D11;font-style:italic">✓ Todas las unidades del roster están auditadas en este ámbito</td></tr>`;
+    return;
+  }
+  tbody.innerHTML=missing.map(f=>`
+    <tr>
+      <td><b>${esc(f.unid)}</b></td>
+      <td>${esc(f.planta)}</td>
+      <td>${esc(f.jef)}</td>
+      <td>${esc(f.ger)}</td>
+      <td>${estatusPill(f.estatus)}</td>
+      <td style="color:var(--muted)">${esc(f.marca||'–')}</td>
+      <td style="color:var(--muted)">${esc(f.modelo||'–')}</td>
+      <td style="color:var(--muted)">${esc(f.anio||'–')}</td>
+      <td style="color:var(--muted)">${esc(f.tipo||'–')}</td>
+    </tr>`).join('');
 }
 
 // ─────────────────────────────────────────────
 //  MODAL
 // ─────────────────────────────────────────────
 function openModal({title,sub,flotaTotal,recs}){
-  // Group by unit: keep latest record per unit
   const byUnit=new Map();
   recs.forEach(r=>{
     const prev=byUnit.get(r._unid);
@@ -958,7 +1198,7 @@ function openModal({title,sub,flotaTotal,recs}){
       <table class="modal-table">
         <thead>
           <tr>
-            <th>Unidad</th><th>Cliente</th><th>Sem</th><th>Fecha</th>
+            <th>Unidad</th><th>Planta</th><th>Cliente</th><th>Sem</th><th>Fecha</th>
             <th>Aceite</th><th>Anticong.</th>
             <th class="r">Litros falt.</th><th>Comentario</th>
           </tr>
@@ -967,6 +1207,7 @@ function openModal({title,sub,flotaTotal,recs}){
           ${list.map(r=>`
             <tr>
               <td><b>${esc(r._unid)}</b></td>
+              <td>${esc(r._planta||'–')}</td>
               <td>${esc(r._cliente||'–')}</td>
               <td>${esc(r._sem)}</td>
               <td style="color:var(--muted);font-size:.7rem">${esc(r._fecha||'–')}</td>
@@ -991,7 +1232,6 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 //  LITROS FALTANTES TABLE
 // ─────────────────────────────────────────────
 function drawLitrosTable(rows,scopeLabel){
-  // Only rows with litros > 0, respecting current filters
   const lit=rows.filter(r=>r._litros>0).sort((a,b)=>{
     if(a._sem!==b._sem)return parseInt(b._sem)-parseInt(a._sem);
     return b._litros-a._litros;
@@ -1004,13 +1244,14 @@ function drawLitrosTable(rows,scopeLabel){
   cnt.textContent=`${unidLit} unidad${unidLit===1?'':'es'} · ${totLit.toLocaleString('es-MX',{maximumFractionDigits:1})} L`;
 
   if(!lit.length){
-    tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:1.2rem;color:var(--muted);font-style:italic">Sin unidades con litros faltantes en el filtro actual ✓</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="11" style="text-align:center;padding:1.2rem;color:var(--muted);font-style:italic">Sin unidades con litros faltantes en el filtro actual ✓</td></tr>`;
     return;
   }
 
   tbody.innerHTML=lit.map(r=>`
     <tr>
       <td><b>${esc(r._unid)}</b></td>
+      <td>${esc(r._planta||'–')}</td>
       <td>${esc(r._cliente||'–')}</td>
       <td>${esc(r._jef)}</td>
       <td>${esc(r._ger)}</td>
@@ -1023,10 +1264,166 @@ function drawLitrosTable(rows,scopeLabel){
     </tr>
   `).join('')+`
     <tr class="lit-total-row">
-      <td colspan="8" style="text-align:right">TOTAL LITROS FALTANTES</td>
+      <td colspan="9" style="text-align:right">TOTAL LITROS FALTANTES</td>
       <td class="r" style="color:#7a1c1c">${totLit.toLocaleString('es-MX',{maximumFractionDigits:1})} L</td>
       <td></td>
     </tr>`;
+}
+
+// ─────────────────────────────────────────────
+//  EXCEL EXPORT
+// ─────────────────────────────────────────────
+function exportAllXlsx(){
+  if(typeof XLSX==='undefined'){alert('La librería XLSX aún no ha cargado, intenta de nuevo en un momento.');return;}
+  const rows=filteredData();
+  const fleetScope=scopedFleet();
+  const scopeLabel=(SC_SEL.sem?`Semana ${SC_SEL.sem}`:'Todas semanas')
+    +(SC_SEL.pla?` · Planta ${SC_SEL.pla}`:'')
+    +(SC_SEL.ger?` · Ger ${SC_SEL.ger}`:'')
+    +(SC_SEL.jef?` · Jefe ${SC_SEL.jef}`:'')
+    +(SC_SEL.est?` · ${SC_SEL.est}`:'');
+
+  const wb=XLSX.utils.book_new();
+
+  // ── RESUMEN ──
+  const audSet=new Set(rows.map(r=>r._unid));
+  const audFleet=[...audSet].filter(u=>new Set(fleetScope.map(f=>f.unid)).has(u)).length;
+  const litSum=rows.filter(r=>r._litros>0).reduce((s,r)=>s+r._litros,0);
+  const resumen=[
+    ['Auditoría de Niveles · Resumen'],
+    ['Generado',new Date().toLocaleString('es-MX')],
+    ['Filtro',scopeLabel],
+    [],
+    ['Métrica','Valor'],
+    ['Flota (roster)',fleetScope.length],
+    ['Unidades auditadas del roster',audFleet],
+    ['Unidades auditadas totales',audSet.size],
+    ['Pendientes',Math.max(0,fleetScope.length-audFleet)],
+    ['% Cumplimiento',fleetScope.length?(audFleet/fleetScope.length*100).toFixed(2)+'%':'—'],
+    ['Litros faltantes totales',litSum.toFixed(2)],
+    ['Registros auditoría (raw)',rows.length],
+  ];
+  const wsR=XLSX.utils.aoa_to_sheet(resumen);
+  wsR['!cols']=[{wch:32},{wch:26}];
+  XLSX.utils.book_append_sheet(wb,wsR,'Resumen');
+
+  // ── PLANTAS ──
+  const flotaPla={};
+  fleetScope.forEach(f=>{(flotaPla[f.planta]=flotaPla[f.planta]||new Set()).add(f.unid);});
+  const byP={};
+  rows.forEach(r=>{
+    (byP[r._planta]=byP[r._planta]||{aud:new Set(),lit:0}).aud.add(r._unid);
+    if(r._litros>0)byP[r._planta].lit+=r._litros;
+  });
+  Object.keys(flotaPla).forEach(p=>{if(!byP[p])byP[p]={aud:new Set(),lit:0};});
+  const plaRows=[['Planta','Flota','Auditadas roster','Auditadas totales','Pendientes','Litros faltantes','% Cumpl.']];
+  Object.keys(byP).sort().forEach(p=>{
+    const fl=flotaPla[p]?.size||0;
+    const audAll=byP[p].aud.size;
+    const audFl=[...byP[p].aud].filter(u=>flotaPla[p]?.has(u)).length;
+    plaRows.push([p,fl,audFl,audAll,Math.max(0,fl-audFl),+byP[p].lit.toFixed(2),fl?+(audFl/fl*100).toFixed(2):0]);
+  });
+  const wsP=XLSX.utils.aoa_to_sheet(plaRows);
+  wsP['!cols']=[{wch:32},{wch:8},{wch:16},{wch:16},{wch:12},{wch:16},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,wsP,'Plantas');
+
+  // ── GERENTES ──
+  const flotaGer={};
+  fleetScope.forEach(f=>{(flotaGer[f.ger]=flotaGer[f.ger]||new Set()).add(f.unid);});
+  const byG={};
+  rows.forEach(r=>{
+    (byG[r._ger]=byG[r._ger]||{aud:new Set(),lit:0}).aud.add(r._unid);
+    if(r._litros>0)byG[r._ger].lit+=r._litros;
+  });
+  Object.keys(flotaGer).forEach(g=>{if(!byG[g])byG[g]={aud:new Set(),lit:0};});
+  const gerRows=[['Gerente','Flota','Auditadas roster','Auditadas totales','Pendientes','Litros faltantes','% Cumpl.']];
+  Object.keys(byG).sort().forEach(g=>{
+    const fl=flotaGer[g]?.size||0;
+    const audAll=byG[g].aud.size;
+    const audFl=[...byG[g].aud].filter(u=>flotaGer[g]?.has(u)).length;
+    gerRows.push([g,fl,audFl,audAll,Math.max(0,fl-audFl),+byG[g].lit.toFixed(2),fl?+(audFl/fl*100).toFixed(2):0]);
+  });
+  const wsG=XLSX.utils.aoa_to_sheet(gerRows);
+  wsG['!cols']=[{wch:26},{wch:8},{wch:16},{wch:16},{wch:12},{wch:16},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,wsG,'Gerentes');
+
+  // ── JEFES ──
+  const flotaJef={};
+  fleetScope.forEach(f=>{const k=f.ger+'||'+f.jef;(flotaJef[k]=flotaJef[k]||new Set()).add(f.unid);});
+  const byJ={};
+  rows.forEach(r=>{
+    const k=r._ger+'||'+r._jef;
+    (byJ[k]=byJ[k]||{ger:r._ger,jef:r._jef,aud:new Set(),lit:0}).aud.add(r._unid);
+    if(r._litros>0)byJ[k].lit+=r._litros;
+  });
+  Object.keys(flotaJef).forEach(k=>{if(!byJ[k]){const[g,j]=k.split('||');byJ[k]={ger:g,jef:j,aud:new Set(),lit:0};}});
+  const jefRows=[['Jefe','Gerente','Flota','Auditadas roster','Auditadas totales','Pendientes','Litros faltantes','% Cumpl.']];
+  Object.keys(byJ).sort().forEach(k=>{
+    const o=byJ[k];
+    const fl=flotaJef[k]?.size||0;
+    const audAll=o.aud.size;
+    const audFl=[...o.aud].filter(u=>flotaJef[k]?.has(u)).length;
+    jefRows.push([o.jef,o.ger,fl,audFl,audAll,Math.max(0,fl-audFl),+o.lit.toFixed(2),fl?+(audFl/fl*100).toFixed(2):0]);
+  });
+  const wsJ=XLSX.utils.aoa_to_sheet(jefRows);
+  wsJ['!cols']=[{wch:24},{wch:24},{wch:8},{wch:16},{wch:16},{wch:12},{wch:16},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,wsJ,'Jefes');
+
+  // ── SEMANAL ──
+  const base=DATA.filter(r=>{
+    if(SC_SEL.pla&&r._planta!==SC_SEL.pla)return false;
+    if(SC_SEL.ger&&r._ger!==SC_SEL.ger)return false;
+    if(SC_SEL.jef&&r._jef!==SC_SEL.jef)return false;
+    if(SC_SEL.est&&r._estatus!==SC_SEL.est)return false;
+    return true;
+  });
+  const byWk={};
+  base.forEach(r=>{if(r._sem){(byWk[r._sem]=byWk[r._sem]||new Set()).add(r._unid);}});
+  const wks=Object.keys(byWk).sort((a,b)=>parseInt(a)-parseInt(b));
+  const semRows=[['Semana','Unidades auditadas','Meta (roster)','% Cumpl.']];
+  wks.forEach(w=>{
+    const n=byWk[w].size;
+    semRows.push(['S'+w,n,fleetScope.length,fleetScope.length?+(n/fleetScope.length*100).toFixed(2):0]);
+  });
+  const wsSem=XLSX.utils.aoa_to_sheet(semRows);
+  wsSem['!cols']=[{wch:10},{wch:22},{wch:16},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,wsSem,'Semanal');
+
+  // ── FALTANTES ──
+  const missing=fleetScope.filter(f=>!audSet.has(f.unid));
+  const faltRows=[['Unidad','Planta','Jefe','Gerente','Estatus','Marca','Modelo','Año','Tipo']];
+  missing.forEach(f=>faltRows.push([f.unid,f.planta,f.jef,f.ger,f.estatus,f.marca,f.modelo,f.anio,f.tipo]));
+  const wsF=XLSX.utils.aoa_to_sheet(faltRows);
+  wsF['!cols']=[{wch:10},{wch:28},{wch:22},{wch:22},{wch:18},{wch:14},{wch:14},{wch:8},{wch:14}];
+  XLSX.utils.book_append_sheet(wb,wsF,'Faltantes');
+
+  // ── LITROS FALTANTES ──
+  const litRows=rows.filter(r=>r._litros>0).sort((a,b)=>b._litros-a._litros);
+  const litOut=[['Unidad','Planta','Cliente','Jefe','Gerente','Semana','Fecha','Aceite','Anticongelante','Litros faltantes','Comentario']];
+  litRows.forEach(r=>litOut.push([r._unid,r._planta,r._cliente,r._jef,r._ger,r._sem,r._fecha,r._aceite,r._anticong,+r._litros.toFixed(2),r._coment]));
+  litOut.push([]);
+  litOut.push(['TOTAL','','','','','','','','',+litRows.reduce((s,r)=>s+r._litros,0).toFixed(2),'']);
+  const wsL=XLSX.utils.aoa_to_sheet(litOut);
+  wsL['!cols']=[{wch:10},{wch:26},{wch:22},{wch:22},{wch:22},{wch:8},{wch:14},{wch:10},{wch:14},{wch:16},{wch:40}];
+  XLSX.utils.book_append_sheet(wb,wsL,'Litros faltantes');
+
+  // ── DETALLE (todas las filas filtradas) ──
+  const det=[['Unidad','Planta','Semana','Fecha','Cliente','Jefe','Gerente','Estatus','Aceite','Anticongelante','Litros faltantes','Comentario','En roster']];
+  rows.sort((a,b)=>(parseInt(b._sem)-parseInt(a._sem))||String(a._unid).localeCompare(b._unid))
+      .forEach(r=>det.push([r._unid,r._planta,r._sem,r._fecha,r._cliente,r._jef,r._ger,r._estatus,r._aceite,r._anticong,+r._litros.toFixed(2),r._coment,r._inFleet?'Sí':'No']));
+  const wsD=XLSX.utils.aoa_to_sheet(det);
+  wsD['!cols']=[{wch:10},{wch:26},{wch:8},{wch:14},{wch:22},{wch:22},{wch:22},{wch:16},{wch:10},{wch:14},{wch:16},{wch:40},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,wsD,'Detalle auditoría');
+
+  // ── FLOTA (roster completo del scope) ──
+  const flo=[['Unidad','Planta','Jefe','Gerente','Estatus','Marca','Modelo','Año','Tipo','Auditada']];
+  fleetScope.forEach(f=>flo.push([f.unid,f.planta,f.jef,f.ger,f.estatus,f.marca,f.modelo,f.anio,f.tipo,audSet.has(f.unid)?'Sí':'No']));
+  const wsFl=XLSX.utils.aoa_to_sheet(flo);
+  wsFl['!cols']=[{wch:10},{wch:26},{wch:22},{wch:22},{wch:18},{wch:14},{wch:14},{wch:8},{wch:14},{wch:10}];
+  XLSX.utils.book_append_sheet(wb,wsFl,'Flota');
+
+  const stamp=new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb,`Auditoria_Niveles_${stamp}.xlsx`);
 }
 
 // ─────────────────────────────────────────────
@@ -1034,13 +1431,14 @@ function drawLitrosTable(rows,scopeLabel){
 // ─────────────────────────────────────────────
 (async()=>{
   try{
-    await loadData();
+    await loadAll();
   }catch(e){
     document.getElementById('loadingOverlay').classList.add('hidden');
     const b=document.getElementById('errBanner');
     b.classList.remove('hidden');
     document.getElementById('errMsg').textContent=
-      'No se pudo cargar el Sheet. Verifica que esté compartido como "Cualquier persona con el enlace puede ver". Detalle: '+e.message;
+      'No se pudo cargar. Verifica que ambos Sheets estén compartidos como "Cualquier persona con el enlace puede ver". Detalle: '+e.message;
+    console.error(e);
   }
 })();
 </script>
