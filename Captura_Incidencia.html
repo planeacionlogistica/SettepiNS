@@ -264,12 +264,16 @@
                     <input type="date" id="fecha" required>
                 </div>
                 <div class="form-group">
-                    <label>Planta</label>
-                    <input type="text" id="planta" required placeholder="Ej. RYDER">
+                    <label>Planta / Cliente</label>
+                    <select id="planta" required onchange="cargarRutasCliente()">
+                        <option value="">Cargando clientes...</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Ruta</label>
-                    <input type="text" id="ruta" required placeholder="Ej. GARCIA ESPECIAL">
+                    <select id="ruta" required>
+                        <option value="">-- Elige un cliente primero --</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>N° Unidad</label>
@@ -337,7 +341,7 @@
             <input type="date" id="filtroFecha" onchange="mostrarDatos()">
             <button type="button" onclick="establecerFechaFiltro('hoy')" style="background:#fff; border:1px solid #ccc; padding: 5px 10px;">Hoy</button>
             <button type="button" onclick="establecerFechaFiltro('ayer')" style="background:#fff; border:1px solid #ccc; padding: 5px 10px;">Ayer</button>
-            <button type="button" onclick="cargarDesdeDrive()" style="background:#00E676; color:#111; border:none; padding: 6px 14px; font-weight:bold; border-radius:4px; cursor:pointer;">🔄 Ver Registros</button>
+            <button type="button" onclick="cargarDesdeDrive()" style="background:#00E676; color:#111; border:none; padding: 6px 14px; font-weight:bold; border-radius:4px; cursor:pointer;">🔄 Ver desde Drive</button>
             <button type="button" onclick="mostrarDatos()" style="background:#fff; border:1px solid #ccc; padding: 5px 10px;">💾 Ver Local</button>
         </div>
         <div>
@@ -395,7 +399,7 @@
     // ═══════════ SINCRONIZACIÓN CON GOOGLE SHEETS ═══════════
     // Pega aquí la URL del Web App que obtengas al desplegar el Google Apps Script
     // (ver instrucciones al final del archivo).
-    const SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbweRjHT-4pLLcTFS1K7zUer-BFCXRKnS4Ymiai5cIEyt8bGkAx-Libx4aOrVhS4oq3a/exec";
+    const SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyAqFR6jIYgeh3kPkkcwzQ6r-kXm4EIOeVMUXqwaMLiupcLNaXJpjXIBMJYa8Iu6Cxe/exec";
 
     function setSyncStatus(msg, color){
         const el = document.getElementById('syncStatus');
@@ -440,8 +444,73 @@
         document.getElementById('finProg').addEventListener('input', () => calcularDesfase('finProg', 'finReal', 'desfaseFinVisual'));
         document.getElementById('finReal').addEventListener('input', () => calcularDesfase('finProg', 'finReal', 'desfaseFinVisual'));
 
+        cargarClientes();
         mostrarDatos();
     });
+
+    // ═══════════ COMBOS DE CLIENTES Y RUTAS DESDE SHEETS ═══════════
+    async function cargarClientes() {
+        const sel = document.getElementById('planta');
+        try {
+            const resp = await fetch(SHEETS_WEBAPP_URL + '?tipo=clientes');
+            const data = await resp.json();
+            if (!data.ok) throw new Error(data.error || 'Respuesta inválida');
+            sel.innerHTML = '<option value="">-- Selecciona un cliente --</option>';
+            (data.clientes || []).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.text = c;
+                sel.appendChild(opt);
+            });
+        } catch(err) {
+            console.error('Error clientes:', err);
+            sel.innerHTML = '<option value="">Error al cargar clientes</option>';
+            setSyncStatus('❌ No pude cargar los clientes: ' + err.message, '#c62828');
+        }
+    }
+
+    async function cargarRutasCliente() {
+        const cliente = document.getElementById('planta').value;
+        const sel = document.getElementById('ruta');
+        if (!cliente) {
+            sel.innerHTML = '<option value="">-- Elige un cliente primero --</option>';
+            return;
+        }
+        sel.innerHTML = '<option value="">⏳ Cargando rutas...</option>';
+        try {
+            const resp = await fetch(SHEETS_WEBAPP_URL + '?tipo=rutas&cliente=' + encodeURIComponent(cliente));
+            const data = await resp.json();
+            if (!data.ok) throw new Error(data.error || 'Respuesta inválida');
+            const rutas = data.rutas || [];
+            if (rutas.length === 0) {
+                sel.innerHTML = '<option value="">Sin rutas registradas para este cliente</option>';
+                return;
+            }
+            sel.innerHTML = '<option value="">-- Selecciona una ruta --</option>';
+            rutas.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                opt.text = r;
+                sel.appendChild(opt);
+            });
+        } catch(err) {
+            console.error('Error rutas:', err);
+            sel.innerHTML = '<option value="">Error al cargar rutas</option>';
+        }
+    }
+
+    // Establece el valor de un <select>; si la opción no existe, la agrega (útil al editar)
+    function setSelectValue(el, val) {
+        if (!val) { el.value = ''; return; }
+        const exists = Array.from(el.options).some(o => o.value === val);
+        if (!exists) {
+            const opt = document.createElement('option');
+            opt.value = val;
+            opt.text = val + ' (registro previo)';
+            el.appendChild(opt);
+        }
+        el.value = val;
+    }
 
     // Función auxiliar para evitar desajustes de zona horaria al formatear fechas YYYY-MM-DD
     function obtenerFechaLocalISO(fechaObj) {
@@ -578,7 +647,7 @@
     });
 
     // Cargar datos en el formulario para poder editarlos
-    function editarRegistro(id) {
+    async function editarRegistro(id) {
         let lista = JSON.parse(localStorage.getItem('incidencias_diarias_t2')) || [];
         const registro = lista.find(reg => reg.id == id);
 
@@ -587,8 +656,10 @@
         // Rellenar campos del formulario con los valores existentes
         document.getElementById('editandoId').value = registro.id;
         document.getElementById('fecha').value = registro.fecha;
-        document.getElementById('planta').value = registro.planta;
-        document.getElementById('ruta').value = registro.ruta;
+        setSelectValue(document.getElementById('planta'), registro.planta);
+        // Cargar rutas del cliente y luego setear la ruta
+        await cargarRutasCliente();
+        setSelectValue(document.getElementById('ruta'), registro.ruta);
         document.getElementById('unidad').value = registro.unidad;
         document.getElementById('inicioProg').value = registro.inicioProg;
         document.getElementById('inicioReal').value = registro.inicioReal;
