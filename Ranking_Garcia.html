@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ranking Sem 28</title>
 <style>
   :root{
@@ -111,7 +112,86 @@
   .rec-item .val{color:var(--muted);font-variant-numeric:tabular-nums}
   .rec-item .comment{display:block;margin-top:4px;color:var(--ink-2);font-size:12px}
   .rec-empty{color:var(--muted);font-style:italic;font-size:13px;padding:8px 0}
-  @media (max-width: 960px){.layout{grid-template-columns:1fr}.highlights{grid-template-columns:1fr}}
+  /* Mobile toggle */
+  .mobile-menu-btn{display:none;background:transparent;border:1px solid #3a4459;color:#fff;border-radius:8px;padding:6px 10px;font-size:18px;cursor:pointer;margin-left:auto}
+
+  /* Tablet */
+  @media (max-width: 1100px){
+    .layout{grid-template-columns:220px 1fr;gap:14px;padding:14px}
+    thead th, tbody td{padding:9px 8px;font-size:12px}
+    .hcard .big{font-size:36px}
+  }
+
+  /* Mobile */
+  @media (max-width: 780px){
+    .topbar{padding:10px 14px;gap:8px;flex-wrap:wrap}
+    .brand{font-size:16px}
+    .brand-sep{font-size:16px}
+    .brand-sub{font-size:13px}
+    .view-switch{margin-left:0;order:3;width:100%;justify-content:center;padding:3px}
+    .view-switch button{padding:6px 14px;font-size:12px;flex:1}
+    .top-right{display:none}
+    .mobile-menu-btn{display:inline-block}
+
+    .layout{grid-template-columns:1fr;gap:12px;padding:12px}
+    .sidebar{
+      position:fixed;top:0;left:-100%;bottom:0;width:280px;max-width:85vw;
+      background:#fff;z-index:50;padding:16px;overflow-y:auto;
+      box-shadow:2px 0 20px rgba(0,0,0,.15);transition:left .25s;
+    }
+    .sidebar.open{left:0}
+    .sidebar-backdrop{
+      position:fixed;inset:0;background:rgba(15,26,46,.4);z-index:49;
+      display:none;
+    }
+    .sidebar-backdrop.open{display:block}
+
+    .highlights{grid-template-columns:1fr;gap:10px}
+    .hcard{padding:14px 16px;min-height:auto}
+    .hcard .big{font-size:32px;padding-left:32px}
+    .hcard .cap{padding-left:32px;font-size:10px}
+    .hcard .name{padding-left:32px;font-size:14px;margin-top:6px}
+    .hcard .udn{padding-left:32px;font-size:11px}
+
+    .period{padding:10px 14px}
+    .period .value{font-size:18px}
+    .period .label{font-size:10px}
+
+    .card-header{padding:12px 14px 8px}
+    .card-title{font-size:14px}
+    .card-sub{font-size:11px}
+    .tabs{padding:4px 10px 0;overflow-x:auto}
+    .tab{padding:7px 12px;font-size:12px;white-space:nowrap;flex-shrink:0}
+
+    .table-wrap{max-height:60vh}
+    thead th{padding:8px 6px;font-size:10px;letter-spacing:.3px}
+    tbody td{padding:8px 6px;font-size:11px}
+    td.coord{white-space:normal;font-size:12px}
+    td.planta{max-width:120px;font-size:10px}
+    td.udn{font-size:10px}
+    td.pos{width:32px}
+    td.pos .medal{font-size:16px}
+    .zona-chip{font-size:9px;padding:1px 5px;margin-left:4px}
+    .tip-btn{width:20px;height:20px;font-size:10px;margin-left:4px}
+    tbody tr.op-row td.op-name{padding-left:20px}
+
+    .modal{max-height:90vh}
+    .modal-header{padding:14px 16px}
+    .modal-title{font-size:14px}
+    .modal-body{padding:14px 16px}
+    .score-hero{padding:10px 12px}
+    .score-hero .val{font-size:22px}
+    .rec-item{padding:8px 10px;font-size:12px}
+  }
+
+  @media (max-width: 480px){
+    .brand-sub{display:none}
+    thead th{font-size:9px;padding:7px 5px}
+    tbody td{font-size:10px;padding:7px 5px}
+    td.coord{font-size:11px}
+    td.planta{max-width:90px}
+    .highlights{gap:8px}
+  }
 </style>
 </head>
 <body>
@@ -124,8 +204,11 @@
     <button data-view="coord" class="active">Coordinadores</button>
     <button data-view="op">Operadores</button>
   </div>
+  <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Abrir filtros">☰</button>
   <div class="top-right" id="topRight"></div>
 </div>
+
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
 <div class="layout">
   <aside class="sidebar">
@@ -7654,6 +7737,25 @@ function bind(){
       if (state.expanded.has(key)) state.expanded.delete(key); else state.expanded.add(key);
       render();
     }
+  });
+  $("mobileMenuBtn").addEventListener("click", ()=>{
+    document.querySelector(".sidebar").classList.add("open");
+    $("sidebarBackdrop").classList.add("open");
+  });
+  $("sidebarBackdrop").addEventListener("click", ()=>{
+    document.querySelector(".sidebar").classList.remove("open");
+    $("sidebarBackdrop").classList.remove("open");
+  });
+  // Close sidebar when any filter changes on mobile
+  document.querySelectorAll(".sidebar select, .sidebar input").forEach(el=>{
+    el.addEventListener("change", ()=>{
+      if (window.innerWidth <= 780){
+        setTimeout(()=>{
+          document.querySelector(".sidebar").classList.remove("open");
+          $("sidebarBackdrop").classList.remove("open");
+        }, 150);
+      }
+    });
   });
   $("mClose").addEventListener("click", ()=>$("modal").classList.remove("open"));
   $("modal").addEventListener("click", e=>{ if (e.target.id === "modal") $("modal").classList.remove("open"); });
