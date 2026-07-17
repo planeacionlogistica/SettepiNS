@@ -7,30 +7,22 @@
   :root{
     --navy:#0f1a2e; --navy-2:#182338; --navy-3:#213047;
     --green:#7dd858; --green-dark:#4fae2e;
-    --red:#e34f4f; --red-dark:#c53030;
+    --red:#e34f4f; --red-dark:#c53030; --amber:#e0a800;
     --ink:#0f1a2e; --ink-2:#4a5468; --muted:#8a94a6;
     --border:#e5e8ee; --surface:#f5f7fa; --card:#ffffff;
     --shadow: 0 1px 2px rgba(15,26,46,.05), 0 4px 12px rgba(15,26,46,.06);
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--surface);}
-
   .topbar{background:var(--navy);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;box-shadow:0 2px 8px rgba(0,0,0,.15);position:sticky;top:0;z-index:20;}
   .brand{font-weight:800;color:var(--green);font-size:20px;letter-spacing:.5px}
   .brand-sep{color:#3a4459;font-size:20px}
   .brand-sub{font-weight:600;color:#fff;font-size:16px}
   .top-right{margin-left:auto;font-size:13px;color:#a7b0c2}
-
-  /* View switch (arriba) */
-  .view-switch{background:#182338;border-radius:999px;padding:4px;display:inline-flex;gap:2px}
-  .view-switch button{
-    background:transparent;border:none;color:#a7b0c2;padding:8px 18px;border-radius:999px;
-    font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.3px;
-    transition:all .15s;
-  }
+  .view-switch{background:#182338;border-radius:999px;padding:4px;display:inline-flex;gap:2px;margin-left:24px}
+  .view-switch button{background:transparent;border:none;color:#a7b0c2;padding:8px 18px;border-radius:999px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:all .15s;}
   .view-switch button:hover{color:#fff}
   .view-switch button.active{background:var(--green);color:#0f1a2e}
-
   .layout{display:grid;grid-template-columns:240px 1fr;gap:20px;padding:20px;max-width:1800px;margin:0 auto}
   .sidebar{display:flex;flex-direction:column;gap:14px}
   .filters-title{font-weight:700;letter-spacing:.5px;color:var(--ink-2);font-size:13px;display:flex;align-items:center;justify-content:space-between;padding:0 4px}
@@ -38,19 +30,14 @@
   .reset-btn:hover{color:var(--ink);background:#eef1f6}
   .field{display:flex;flex-direction:column;gap:6px}
   .field label{font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--ink-2)}
-  .field select,.field input[type=text]{
-    background:#eef1f6;border:1px solid transparent;border-radius:8px;padding:9px 12px;font-size:13px;color:var(--ink);outline:none;transition:.15s;
-  }
+  .field select,.field input[type=text]{background:#eef1f6;border:1px solid transparent;border-radius:8px;padding:9px 12px;font-size:13px;color:var(--ink);outline:none;transition:.15s;}
   .field select:focus,.field input[type=text]:focus{border-color:var(--green);background:#fff}
   .clear-btn{display:flex;align-items:center;justify-content:center;gap:8px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--ink);cursor:pointer;font-weight:600;margin-top:4px;}
   .clear-btn:hover{background:#eef1f6}
-
   .main{display:flex;flex-direction:column;gap:16px;min-width:0}
-
   .period{background:var(--navy);color:#fff;border-radius:10px;padding:14px 20px;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:space-between;gap:16px}
   .period .label{font-size:11px;letter-spacing:1.2px;color:#a7b0c2;font-weight:700;text-transform:uppercase;margin-bottom:4px}
   .period .value{font-size:22px;font-weight:800;color:var(--green)}
-
   .highlights{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .hcard{background:var(--card);border-radius:10px;padding:18px 22px;box-shadow:var(--shadow);border-top:4px solid var(--green);position:relative;overflow:hidden;min-height:120px;display:flex;flex-direction:column;justify-content:center;}
   .hcard.bad{border-top-color:var(--red)}
@@ -61,27 +48,29 @@
   .hcard .cap{font-size:11px;font-weight:800;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase;padding-left:34px;margin-top:6px;}
   .hcard .name{font-size:16px;font-weight:700;color:var(--ink);padding-left:34px;margin-top:8px;}
   .hcard .udn{font-size:12px;color:var(--muted);padding-left:34px;margin-top:2px;}
-
   .card{background:var(--card);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
   .card-header{padding:14px 20px 10px;display:flex;align-items:center;gap:10px}
   .card-header .icon svg{width:20px;height:20px;color:var(--ink-2)}
   .card-title{font-weight:700;font-size:15px;color:var(--ink);margin:0}
   .card-sub{color:var(--muted);font-size:12px;margin-top:2px}
-
   .tabs{display:flex;gap:4px;padding:6px 20px 0;border-bottom:1px solid var(--border)}
   .tab{padding:8px 18px;border-radius:8px 8px 0 0;background:transparent;border:1px solid transparent;border-bottom:none;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;position:relative;top:1px;}
   .tab:hover{color:var(--ink)}
   .tab.active{background:#fff;border-color:var(--border);color:var(--ink);}
   .tab .count{margin-left:6px;background:#eef1f6;color:var(--muted);padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700}
   .tab.active .count{background:var(--green);color:#0f1a2e}
-
-  .table-wrap{overflow-x:auto;max-height:70vh;overflow-y:auto}
+  .table-wrap{overflow-x:auto;max-height:75vh;overflow-y:auto}
   table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
   thead th{background:var(--navy);color:#fff;font-weight:700;text-align:left;padding:12px 10px;font-size:11px;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap;position:sticky;top:0;z-index:5;}
   thead th.num{text-align:right}
   thead th.subtotal{background:var(--navy-3);border-left:2px solid var(--green);color:#fff}
   tbody td{padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
-  tbody tr:hover{background:#f4f8ff}
+  tbody tr.coord-row{cursor:pointer}
+  tbody tr.coord-row:hover{background:#f4f8ff}
+  tbody tr.op-row{background:#fafbfd}
+  tbody tr.op-row td{color:var(--ink-2);font-size:12px;padding:8px 10px}
+  tbody tr.op-row td.op-name{padding-left:40px;font-weight:600;color:var(--ink)}
+  tbody tr.op-row td.op-total{color:var(--green-dark);font-weight:700;text-align:right}
   td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--green-dark);font-weight:700}
   td.num.score{color:var(--ink);font-weight:600}
   td.num.dash{color:var(--muted);font-weight:400}
@@ -95,11 +84,34 @@
   .no-data{padding:32px;text-align:center;color:var(--muted)}
   .zona-chip{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:800;background:#e8f5e0;color:var(--green-dark);letter-spacing:.3px;margin-left:6px;}
   .zona-chip.garcia{background:#e0e9f7;color:#2c5aa0}
-
-  @media (max-width: 960px){
-    .layout{grid-template-columns:1fr}
-    .highlights{grid-template-columns:1fr}
-  }
+  .toggle-caret{display:inline-block;width:14px;color:var(--muted);cursor:pointer;user-select:none;font-size:11px;margin-right:4px}
+  .toggle-caret.open{color:var(--green-dark)}
+  .tip-btn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#f0f5ff;border:1px solid #d5e0f0;color:#2c5aa0;cursor:pointer;font-size:12px;margin-left:8px;transition:.15s;padding:0;vertical-align:middle;}
+  .tip-btn:hover{background:#2c5aa0;color:#fff;border-color:#2c5aa0}
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,26,46,.5);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.open{display:flex}
+  .modal{background:#fff;border-radius:12px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .modal-header{padding:20px 24px;background:var(--navy);color:#fff;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between;}
+  .modal-title{font-size:16px;font-weight:800;margin:0}
+  .modal-sub{font-size:12px;color:#a7b0c2;margin-top:2px}
+  .modal-close{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;padding:0 4px;line-height:1}
+  .modal-body{padding:20px 24px}
+  .score-hero{background:#f8f9fb;border-radius:10px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .score-hero .lbl{font-size:11px;letter-spacing:1px;color:var(--muted);font-weight:700;text-transform:uppercase}
+  .score-hero .val{font-size:28px;font-weight:800;color:var(--green-dark)}
+  .rec-section{margin-bottom:18px}
+  .rec-title{font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .rec-title.good{color:var(--green-dark)}
+  .rec-title.bad{color:var(--red-dark)}
+  .rec-title.info{color:#2c5aa0}
+  .rec-item{background:#f8f9fb;border-left:3px solid var(--muted);padding:10px 14px;margin-bottom:6px;border-radius:0 8px 8px 0;font-size:13px;color:var(--ink);line-height:1.4;}
+  .rec-item.good{border-left-color:var(--green);background:#f4fbef}
+  .rec-item.bad{border-left-color:var(--red);background:#fdf3f3}
+  .rec-item .metric{font-weight:800;margin-right:6px}
+  .rec-item .val{color:var(--muted);font-variant-numeric:tabular-nums}
+  .rec-item .comment{display:block;margin-top:4px;color:var(--ink-2);font-size:12px}
+  .rec-empty{color:var(--muted);font-style:italic;font-size:13px;padding:8px 0}
+  @media (max-width: 960px){.layout{grid-template-columns:1fr}.highlights{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -108,7 +120,7 @@
   <div class="brand">RANKING</div>
   <div class="brand-sep">|</div>
   <div class="brand-sub" id="brandSub">Coordinadores</div>
-  <div class="view-switch" id="viewSwitch" style="margin-left:24px">
+  <div class="view-switch" id="viewSwitch">
     <button data-view="coord" class="active">Coordinadores</button>
     <button data-view="op">Operadores</button>
   </div>
@@ -117,62 +129,33 @@
 
 <div class="layout">
   <aside class="sidebar">
-    <div class="filters-title">
-      <span>FILTROS</span>
-      <button class="reset-btn" id="resetBtn" title="Limpiar filtros">↻</button>
+    <div class="filters-title"><span>FILTROS</span><button class="reset-btn" id="resetBtn">↻</button></div>
+    <div class="field"><label>ZONA</label>
+      <select id="fZona"><option value="">Todas</option><option value="Cienega">Cienega</option><option value="Garcia">Garcia</option></select>
     </div>
-    <div class="field">
-      <label>ZONA</label>
-      <select id="fZona">
-        <option value="">Todas</option>
-        <option value="Cienega">Cienega</option>
-        <option value="Garcia">Garcia</option>
-      </select>
-    </div>
-    <div class="field">
-      <label id="lblEntity">COORDINADOR</label>
-      <select id="fEntity"><option value="">Todos</option></select>
-    </div>
-    <div class="field">
-      <label>PLANTA</label>
-      <select id="fPlanta"><option value="">Todas</option></select>
-    </div>
-    <div class="field">
-      <label>UDN</label>
-      <select id="fUdn"><option value="">Todas</option></select>
-    </div>
-    <div class="field" id="fJefeWrap" style="display:none">
-      <label>JEFE</label>
-      <select id="fJefe"><option value="">Todos</option></select>
-    </div>
-    <div class="field">
-      <label>BUSCAR</label>
-      <input type="text" id="fSearch" placeholder="Nombre, planta, nómina">
-    </div>
+    <div class="field"><label id="lblEntity">COORDINADOR</label><select id="fEntity"><option value="">Todos</option></select></div>
+    <div class="field"><label>PLANTA</label><select id="fPlanta"><option value="">Todas</option></select></div>
+    <div class="field"><label>UDN</label><select id="fUdn"><option value="">Todas</option></select></div>
+    <div class="field" id="fJefeWrap" style="display:none"><label>JEFE</label><select id="fJefe"><option value="">Todos</option></select></div>
+    <div class="field"><label>BUSCAR</label><input type="text" id="fSearch" placeholder="Nombre, planta, nómina"></div>
     <button class="clear-btn" id="clearBtn">↻ Limpiar filtros</button>
   </aside>
 
   <div class="main">
     <div class="period">
-      <div>
-        <div class="label">Período seleccionado</div>
-        <div class="value">Semana 28</div>
-      </div>
-      <div style="text-align:right">
-        <div class="label" id="periodLbl">Vista</div>
-        <div class="value" id="periodVal" style="font-size:16px;color:#fff">Coordinadores</div>
-      </div>
+      <div><div class="label">Período seleccionado</div><div class="value">Semana 28</div></div>
+      <div style="text-align:right"><div class="label">Vista</div><div class="value" id="periodVal" style="font-size:16px;color:#fff">Coordinadores</div></div>
     </div>
 
     <div class="highlights">
-      <div class="hcard" id="bestCard">
+      <div class="hcard">
         <div class="icon"><svg viewBox="0 0 24 24" fill="#e0a800" stroke="#c07a00" stroke-width="1"><path d="M12 2l2.4 5 5.5.8-4 3.9.9 5.4L12 14.8 7.2 17l.9-5.4-4-3.9 5.5-.8z"/></svg></div>
         <div class="big" id="bestVal">—</div>
         <div class="cap" id="bestCap">Mejor coordinador</div>
         <div class="name" id="bestName">—</div>
         <div class="udn" id="bestUdn">—</div>
       </div>
-      <div class="hcard bad" id="worstCard">
+      <div class="hcard bad">
         <div class="icon"><svg viewBox="0 0 24 24" fill="#e34f4f" stroke="#c53030" stroke-width="1"><path d="M12 2L1 22h22L12 2zm0 6l7 12H5l7-12zm-1 4v4h2v-4h-2zm0 5v2h2v-2h-2z"/></svg></div>
         <div class="big" id="worstVal">—</div>
         <div class="cap" id="worstCap">Peor coordinador</div>
@@ -183,28 +166,31 @@
 
     <div class="card">
       <div class="card-header">
-        <div class="icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#8a94a6" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
-        </div>
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#8a94a6" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg></div>
         <div>
           <h2 class="card-title" id="cardTitle">Ranking por Coordinador</h2>
-          <div class="card-sub" id="cardSub">Ordenado por Subtotal (mayor a menor)</div>
+          <div class="card-sub">Click en fila para Top 3 · 💡 al lado del nombre para recomendaciones</div>
         </div>
       </div>
-
       <div class="tabs" id="zoneTabs">
         <button class="tab active" data-zone="">Todas <span class="count" id="cntAll">0</span></button>
         <button class="tab" data-zone="Cienega">Cienega <span class="count" id="cntCie">0</span></button>
         <button class="tab" data-zone="Garcia">Garcia <span class="count" id="cntGar">0</span></button>
       </div>
-
       <div class="table-wrap">
-        <table id="mainTable">
-          <thead id="thead"></thead>
-          <tbody id="tbody"></tbody>
-        </table>
+        <table><thead id="thead"></thead><tbody id="tbody"></tbody></table>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="modal-title" id="mTitle">Recomendaciones</div><div class="modal-sub" id="mSub"></div></div>
+      <button class="modal-close" id="mClose">×</button>
+    </div>
+    <div class="modal-body" id="mBody"></div>
   </div>
 </div>
 
@@ -7345,51 +7331,15 @@ const DATA = {
     }
   ]
 };
-
 const isNum = v => typeof v === "number" && !isNaN(v);
-const fmt = (v, d=2) => {
-  if (v === null || v === undefined || v === "") return null;
-  const n = Number(v);
-  return isNaN(n) ? null : n.toFixed(d);
-};
-const cellPct = v => { const f = fmt(v,2); return f===null ? `<td class="num dash">–</td>` : `<td class="num">${f}%</td>`; };
-const cellScore = v => { const f = fmt(v,2); return f===null ? `<td class="num dash">–</td>` : `<td class="num score">${f}</td>`; };
+const fmt = (v,d=2) => { if(v===null||v===undefined||v==="") return null; const n=Number(v); return isNaN(n)?null:n.toFixed(d); };
+const cellPct = v => { const f=fmt(v,2); return f===null?`<td class="num dash">–</td>`:`<td class="num">${f}%</td>`; };
+const cellScore = v => { const f=fmt(v,2); return f===null?`<td class="num dash">–</td>`:`<td class="num score">${f}</td>`; };
 const $ = id => document.getElementById(id);
+const state = { view:"coord", zona:"", entity:"", planta:"", udn:"", jefe:"", search:"", expanded:new Set() };
 
-const state = { view:"coord", zona:"", entity:"", planta:"", udn:"", jefe:"", search:"" };
-
-const COORD_COLS = [
-  {h:"#", num:true, cls:"pos"},
-  {h:"Coordinador"},
-  {h:"Planta"},
-  {h:"UDN"},
-  {h:"% NS Inicio", num:true},
-  {h:"% NS Llegada", num:true},
-  {h:"Calidad Ruta", num:true},
-  {h:"Score Seg.", num:true},
-  {h:"% Score Seg.", num:true},
-  {h:"Rend. Camión", num:true},
-  {h:"Rend. Camioneta", num:true},
-  {h:"Score Rend.", num:true},
-  {h:"Subtotal ↓", num:true, subtotal:true},
-];
-const OP_COLS = [
-  {h:"#", num:true, cls:"pos"},
-  {h:"Operador"},
-  {h:"Nómina"},
-  {h:"Planta"},
-  {h:"Coordinador"},
-  {h:"Jefe"},
-  {h:"UDN"},
-  {h:"% NS Inicio", num:true},
-  {h:"% NS Llegada", num:true},
-  {h:"Calidad Ruta", num:true},
-  {h:"Score Seg.", num:true},
-  {h:"% Score Seg.", num:true},
-  {h:"Rendimiento", num:true},
-  {h:"Score Rend.", num:true},
-  {h:"Total ↓", num:true, subtotal:true},
-];
+const COORD_COLS = [{h:"#",num:true},{h:"Coordinador"},{h:"Planta"},{h:"UDN"},{h:"% NS Inicio",num:true},{h:"% NS Llegada",num:true},{h:"Calidad Ruta",num:true},{h:"Score Seg.",num:true},{h:"% Score Seg.",num:true},{h:"Rend. Camión",num:true},{h:"Rend. Camioneta",num:true},{h:"Score Rend.",num:true},{h:"Subtotal ↓",num:true,subtotal:true}];
+const OP_COLS = [{h:"#",num:true},{h:"Operador"},{h:"Nómina"},{h:"Planta"},{h:"Coordinador"},{h:"Jefe"},{h:"UDN"},{h:"% NS Inicio",num:true},{h:"% NS Llegada",num:true},{h:"Calidad Ruta",num:true},{h:"Score Seg.",num:true},{h:"% Score Seg.",num:true},{h:"Rendimiento",num:true},{h:"Score Rend.",num:true},{h:"Total ↓",num:true,subtotal:true}];
 
 function renderHead(){
   const cols = state.view === "coord" ? COORD_COLS : OP_COLS;
@@ -7398,32 +7348,22 @@ function renderHead(){
     return `<th class="${cls}">${c.h}</th>`;
   }).join("") + "</tr>";
 }
-
-function currentDataset(){
-  return state.view === "coord" ? DATA.coords : DATA.operators;
-}
-function sortKey(row){ return state.view === "coord" ? row.subtotal : row.total; }
-
+function currentDataset(){ return state.view === "coord" ? DATA.coords : DATA.operators; }
+function sortKey(r){ return state.view === "coord" ? r.subtotal : r.total; }
 function populateSelect(id, values, placeholder){
-  const sel = $(id);
-  const cur = sel.value;
+  const sel = $(id); const cur = sel.value;
   sel.innerHTML = `<option value="">${placeholder}</option>` + values.map(v=>`<option value="${v}">${v}</option>`).join("");
   if ([...sel.options].some(o=>o.value===cur)) sel.value = cur;
 }
-
 function uniqueFromCurrent(field, filter){
   const set = new Set();
   currentDataset().forEach(r=>{
     if (filter && !filter(r)) return;
-    if (field === "planta"){
-      String(r.planta||"").split(",").map(p=>p.trim()).filter(Boolean).forEach(p=>set.add(p));
-    } else {
-      const v = r[field]; if (v) set.add(v);
-    }
+    if (field === "planta"){ String(r.planta||"").split(",").map(p=>p.trim()).filter(Boolean).forEach(p=>set.add(p)); }
+    else { const v = r[field]; if (v) set.add(v); }
   });
   return [...set].sort();
 }
-
 function applyFilters(){
   return currentDataset().filter(r=>{
     if (state.zona && r.zona !== state.zona) return false;
@@ -7446,7 +7386,6 @@ function applyFilters(){
     return true;
   });
 }
-
 function sortDesc(rows){
   return rows.slice().sort((a,b)=>{
     const sa = isNum(sortKey(a)) ? sortKey(a) : -Infinity;
@@ -7457,33 +7396,31 @@ function sortDesc(rows){
     return na.localeCompare(nb);
   });
 }
-
 function medal(pos){
   if (pos===1) return `<span class="medal">🥇</span>`;
   if (pos===2) return `<span class="medal">🥈</span>`;
   if (pos===3) return `<span class="medal">🥉</span>`;
   return `<span>${pos}</span>`;
 }
-function zonaChip(z){
-  if (!z) return "";
-  const cls = z === "Garcia" ? "garcia" : "";
-  return `<span class="zona-chip ${cls}">${z}</span>`;
+function zonaChip(z){ if(!z) return ""; return `<span class="zona-chip ${z==='Garcia'?'garcia':''}">${z}</span>`; }
+function tipBtn(kind, id){
+  const safeId = String(id).replace(/"/g,'&quot;');
+  return `<button class="tip-btn" data-tip-kind="${kind}" data-tip-id="${safeId}" title="Recomendaciones">💡</button>`;
 }
-
 function renderTable(filtered){
   const tb = $("tbody");
   const cols = state.view === "coord" ? COORD_COLS : OP_COLS;
-  if (!filtered.length){
-    tb.innerHTML = `<tr><td colspan="${cols.length}" class="no-data">Sin resultados con los filtros actuales</td></tr>`;
-    return;
-  }
+  if (!filtered.length){ tb.innerHTML = `<tr><td colspan="${cols.length}" class="no-data">Sin resultados</td></tr>`; return; }
   const rows = [];
   filtered.forEach((r,i)=>{
     const pos = i+1;
     if (state.view === "coord"){
-      rows.push(`<tr>
+      const key = "c_"+r.coordinador;
+      const isOpen = state.expanded.has(key);
+      const caret = `<span class="toggle-caret ${isOpen?'open':''}">${isOpen?'▾':'▸'}</span>`;
+      rows.push(`<tr class="coord-row" data-key="${key}">
         <td class="pos">${medal(pos)}</td>
-        <td class="coord">${r.coordinador}${zonaChip(r.zona)}</td>
+        <td class="coord">${caret}${r.coordinador}${tipBtn('coord', r.coordinador)}${zonaChip(r.zona)}</td>
         <td class="planta" title="${(r.planta||'').replace(/"/g,'&quot;')}">${r.planta||"–"}</td>
         <td class="udn">${r.udn||"–"}</td>
         ${cellPct(r.ns_inicio)}${cellPct(r.ns_llegada)}${cellPct(r.calidad_ruta)}
@@ -7492,10 +7429,27 @@ function renderTable(filtered){
         ${cellPct(r.score_rend)}
         <td class="subtotal">${isNum(r.subtotal)?r.subtotal.toFixed(2)+"%":"–"}</td>
       </tr>`);
+      if (isOpen){
+        const ops = r.top3 || [];
+        if (!ops.length){
+          rows.push(`<tr class="op-row"><td></td><td colspan="${cols.length-1}" style="color:var(--muted);font-style:italic;padding-left:40px">Sin operadores asignados</td></tr>`);
+        } else {
+          ops.forEach((o,k)=>{
+            rows.push(`<tr class="op-row">
+              <td class="pos" style="color:#8a94a6">${k+1}°</td>
+              <td class="op-name">${o.nombre} <span style="color:#8a94a6;font-weight:400">· ${o.nomina}</span>${tipBtn('op-nomina', o.nomina)}</td>
+              <td class="planta">${o.planta||"–"}</td>
+              <td class="udn">–</td>
+              <td colspan="8"></td>
+              <td class="op-total">${isNum(o.total)?Number(o.total).toFixed(2)+"%":(o.total||"–")}</td>
+            </tr>`);
+          });
+        }
+      }
     } else {
       rows.push(`<tr>
         <td class="pos">${medal(pos)}</td>
-        <td class="coord">${r.operador}${zonaChip(r.zona)}</td>
+        <td class="coord">${r.operador}${tipBtn('op-nomina', r.nomina)}${zonaChip(r.zona)}</td>
         <td class="nomina">${r.nomina||"–"}</td>
         <td class="planta" title="${(r.planta||'').replace(/"/g,'&quot;')}">${r.planta||"–"}</td>
         <td class="udn">${r.coordinador||"–"}</td>
@@ -7510,7 +7464,6 @@ function renderTable(filtered){
   });
   tb.innerHTML = rows.join("");
 }
-
 function updateHighlights(){
   const ds = currentDataset();
   const key = state.view === "coord" ? "subtotal" : "total";
@@ -7529,25 +7482,21 @@ function updateHighlights(){
   $("worstUdn").textContent = state.view==="coord" ? (worst.udn||"–") : `${worst.planta||""} · ${worst.coordinador||"—"}`;
   $("worstCap").textContent = "Peor "+label;
 }
-
 function updateZoneCounts(){
   const ds = currentDataset();
   $("cntAll").textContent = ds.length;
   $("cntCie").textContent = ds.filter(r=>r.zona==="Cienega").length;
   $("cntGar").textContent = ds.filter(r=>r.zona==="Garcia").length;
 }
-
 function refreshFilters(){
   const zoneFilter = state.zona ? (r => r.zona === state.zona) : null;
-  populateSelect("fEntity", uniqueFromCurrent(state.view==="coord"?"coordinador":"operador", zoneFilter),
-                 state.view==="coord" ? "Todos" : "Todos");
+  populateSelect("fEntity", uniqueFromCurrent(state.view==="coord"?"coordinador":"operador", zoneFilter), "Todos");
   populateSelect("fPlanta", uniqueFromCurrent("planta", zoneFilter), "Todas");
   populateSelect("fUdn", uniqueFromCurrent("udn"), "Todas");
   if (state.view === "op") populateSelect("fJefe", uniqueFromCurrent("jefe", zoneFilter), "Todos");
   $("lblEntity").textContent = state.view==="coord" ? "COORDINADOR" : "OPERADOR";
   $("fJefeWrap").style.display = state.view==="op" ? "" : "none";
 }
-
 function render(){
   renderHead();
   const filtered = sortDesc(applyFilters());
@@ -7555,18 +7504,112 @@ function render(){
   updateZoneCounts();
   renderTable(filtered);
   $("cardTitle").textContent = state.view==="coord" ? "Ranking por Coordinador" : "Ranking por Operador";
-  $("cardSub").textContent = state.view==="coord"
-    ? "Ordenado por Subtotal (mayor a menor)"
-    : "Ordenado por Total (mayor a menor)";
   $("brandSub").textContent = state.view==="coord" ? "Coordinadores" : "Operadores";
   $("periodVal").textContent = state.view==="coord" ? "Coordinadores" : "Operadores";
   $("topRight").textContent = `${currentDataset().length} ${state.view==="coord"?"coordinadores":"operadores"}`;
 }
-
 function syncTabs(){
   document.querySelectorAll("#zoneTabs .tab").forEach(t=>{
     t.classList.toggle("active", (t.dataset.zone||"") === (state.zona||""));
   });
+}
+
+/* RECOMMENDATIONS */
+const METRICS_COORD = [
+  {k:"ns_inicio", label:"% NS Inicio", type:"pct", target:98},
+  {k:"ns_llegada", label:"% NS Llegada", type:"pct", target:98},
+  {k:"calidad_ruta", label:"Calidad Ruta", type:"pct", target:95},
+  {k:"score_seg", label:"Score Seguridad", type:"score", target:93},
+  {k:"pct_score_seg", label:"% Score Seguridad", type:"pct", target:97},
+  {k:"score_rend", label:"Score Rendimiento", type:"pct", target:100},
+];
+const METRICS_OP = [
+  {k:"ns_inicio", label:"% NS Inicio", type:"pct", target:98},
+  {k:"ns_llegada", label:"% NS Llegada", type:"pct", target:98},
+  {k:"calidad_ruta", label:"Calidad Ruta", type:"pct", target:95},
+  {k:"score_seg", label:"Score Seguridad", type:"score", target:93},
+  {k:"pct_score_seg", label:"% Score Seguridad", type:"pct", target:97},
+  {k:"rendimiento", label:"Rendimiento", type:"pct", target:100},
+  {k:"score_rend", label:"Score Rendimiento", type:"pct", target:100},
+];
+const TIPS = {
+  "ns_inicio": "Reforzar puntualidad de arranque: pre-check nocturno y salida a tiempo del CEDIS.",
+  "ns_llegada": "Revisar planificación de ruta y tiempos muertos que retrasan llegadas.",
+  "calidad_ruta": "Auditar apego a la ruta planeada; revisar desvíos y paradas no autorizadas.",
+  "score_seg": "Coaching de manejo por eventos (frenado brusco, aceleración, curvas).",
+  "pct_score_seg": "Reforzar comportamientos seguros con coaching individualizado.",
+  "rendimiento": "Manejo eficiente + revisión mecánica del vehículo (llantas, aire, ralentí).",
+  "score_rend": "Alinear con meta 100: hábitos de aceleración/frenado y kilometraje efectivo.",
+};
+function badgeVal(v, m){ if (!isNum(v)) return "–"; return m.type === "pct" ? v.toFixed(2)+"%" : v.toFixed(2); }
+function analyze(row, metrics){
+  const strong = [], weak = [];
+  metrics.forEach(m=>{
+    const v = row[m.k];
+    if (!isNum(v)) return;
+    const ok = v >= m.target;
+    const gap = Math.abs(v - m.target);
+    if (ok) strong.push({m, v, gap});
+    else weak.push({m, v, gap});
+  });
+  weak.sort((a,b)=>b.gap - a.gap);
+  strong.sort((a,b)=>b.gap - a.gap);
+  return {strong, weak};
+}
+function openTip(kind, id){
+  let row = null, name = "", sub = "", headline = null;
+  if (kind === "coord"){
+    row = DATA.coords.find(c => c.coordinador === id);
+    if (!row) return;
+    name = row.coordinador;
+    sub = `${row.planta||"–"} · ${row.zona||"–"} · Subtotal ${isNum(row.subtotal)?row.subtotal.toFixed(2)+"%":"–"}`;
+    headline = row.subtotal;
+    const {strong, weak} = analyze(row, METRICS_COORD);
+    renderModal(name, sub, headline, weak, strong, "coord");
+  } else if (kind === "op-nomina"){
+    row = DATA.operators.find(o => String(o.nomina) === String(id));
+    if (!row) return;
+    name = row.operador;
+    sub = `${row.nomina||"–"} · ${row.planta||"–"} · ${row.coordinador||"—"} · Total ${isNum(row.total)?row.total.toFixed(2)+"%":"–"}`;
+    headline = row.total;
+    const {strong, weak} = analyze(row, METRICS_OP);
+    renderModal(name, sub, headline, weak, strong, "op");
+  }
+}
+function renderModal(name, sub, headline, weak, strong, kind){
+  $("mTitle").textContent = "💡 " + name;
+  $("mSub").textContent = sub;
+  const body = [];
+  body.push(`<div class="score-hero"><div><div class="lbl">Calificación</div><div style="font-size:12px;color:var(--ink-2);margin-top:2px">${kind==="coord"?"Subtotal":"Total"} del período</div></div><div class="val">${isNum(headline)?headline.toFixed(2)+"%":"–"}</div></div>`);
+  if (weak.length){
+    body.push(`<div class="rec-section"><div class="rec-title bad">▲ Áreas a mejorar</div>`);
+    weak.forEach(w=>{
+      const tip = TIPS[w.m.k] || "Establecer plan de acción.";
+      body.push(`<div class="rec-item bad"><span class="metric">${w.m.label}</span><span class="val">${badgeVal(w.v, w.m)} · meta ${w.m.type==='pct'?w.m.target+'%':w.m.target}</span><span class="comment">${tip}</span></div>`);
+    });
+    body.push(`</div>`);
+  } else {
+    body.push(`<div class="rec-section"><div class="rec-title good">✓ Áreas a mejorar</div><div class="rec-empty">Cumple todas las metas — ¡seguir así!</div></div>`);
+  }
+  if (strong.length){
+    body.push(`<div class="rec-section"><div class="rec-title good">✓ Lo que está bien</div>`);
+    strong.slice(0,6).forEach(s=>{
+      body.push(`<div class="rec-item good"><span class="metric">${s.m.label}</span><span class="val">${badgeVal(s.v, s.m)}</span></div>`);
+    });
+    body.push(`</div>`);
+  }
+  // Position in ranking
+  const ds = kind === "coord" ? DATA.coords : DATA.operators;
+  const key = kind === "coord" ? "subtotal" : "total";
+  const nameKey = kind === "coord" ? "coordinador" : "operador";
+  const sorted = ds.filter(r=>isNum(r[key])).sort((a,b)=>b[key]-a[key]);
+  const pos = sorted.findIndex(r => r[nameKey] === name) + 1;
+  if (pos > 0){
+    const total = sorted.length;
+    body.push(`<div class="rec-section"><div class="rec-title info">◆ Posición en el ranking</div><div class="rec-item"><span class="metric">Posición ${pos} de ${total}</span><span class="val">Percentil ${Math.round((1-(pos-1)/total)*100)}%</span></div></div>`);
+  }
+  $("mBody").innerHTML = body.join("");
+  $("modal").classList.add("open");
 }
 
 function bind(){
@@ -7575,9 +7618,9 @@ function bind(){
       document.querySelectorAll("#viewSwitch button").forEach(x=>x.classList.remove("active"));
       b.classList.add("active");
       state.view = b.dataset.view;
-      state.entity = ""; state.jefe = "";
+      state.entity = ""; state.jefe = ""; state.expanded.clear();
       refreshFilters();
-      $("fEntity").value=""; $("fJefe").value="";
+      $("fEntity").value=""; if ($("fJefe")) $("fJefe").value="";
       render();
     });
   });
@@ -7591,14 +7634,26 @@ function bind(){
   $("resetBtn").addEventListener("click", clearAll);
   document.querySelectorAll("#zoneTabs .tab").forEach(t=>{
     t.addEventListener("click", ()=>{
-      state.zona = t.dataset.zone;
-      $("fZona").value = state.zona;
+      state.zona = t.dataset.zone; $("fZona").value = state.zona;
       syncTabs(); refreshFilters(); render();
     });
   });
+  $("tbody").addEventListener("click", e=>{
+    const tip = e.target.closest(".tip-btn");
+    if (tip){ e.stopPropagation(); openTip(tip.dataset.tipKind, tip.dataset.tipId); return; }
+    const row = e.target.closest("tr.coord-row");
+    if (row && state.view === "coord"){
+      const key = row.dataset.key;
+      if (state.expanded.has(key)) state.expanded.delete(key); else state.expanded.add(key);
+      render();
+    }
+  });
+  $("mClose").addEventListener("click", ()=>$("modal").classList.remove("open"));
+  $("modal").addEventListener("click", e=>{ if (e.target.id === "modal") $("modal").classList.remove("open"); });
+  document.addEventListener("keydown", e=>{ if (e.key === "Escape") $("modal").classList.remove("open"); });
 }
 function clearAll(){
-  state.zona=""; state.entity=""; state.planta=""; state.udn=""; state.jefe=""; state.search="";
+  state.zona=""; state.entity=""; state.planta=""; state.udn=""; state.jefe=""; state.search=""; state.expanded.clear();
   $("fZona").value=""; $("fSearch").value="";
   refreshFilters();
   $("fEntity").value=""; $("fPlanta").value=""; $("fUdn").value=""; if ($("fJefe")) $("fJefe").value="";
