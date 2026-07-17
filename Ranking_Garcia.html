@@ -10,16 +10,14 @@
     --navy-3:#213047;
     --green:#7dd858;
     --green-dark:#4fae2e;
+    --red:#e34f4f;
+    --red-dark:#c53030;
     --ink:#0f1a2e;
     --ink-2:#4a5468;
     --muted:#8a94a6;
     --border:#e5e8ee;
     --surface:#f5f7fa;
     --card:#ffffff;
-    --row-alt:#fafbfd;
-    --gold:#e0a800;
-    --silver:#adb5bd;
-    --bronze:#c07a3a;
     --shadow: 0 1px 2px rgba(15,26,46,.05), 0 4px 12px rgba(15,26,46,.06);
   }
   *{box-sizing:border-box}
@@ -36,18 +34,13 @@
   .top-right{margin-left:auto;font-size:13px;color:#a7b0c2}
 
   /* Layout */
-  .layout{display:grid;grid-template-columns:280px 1fr;gap:20px;padding:20px;max-width:1600px;margin:0 auto}
+  .layout{display:grid;grid-template-columns:240px 1fr;gap:20px;padding:20px;max-width:1700px;margin:0 auto}
 
   /* Sidebar */
-  .sidebar{background:transparent;display:flex;flex-direction:column;gap:16px}
+  .sidebar{background:transparent;display:flex;flex-direction:column;gap:14px}
   .filters-title{font-weight:700;letter-spacing:.5px;color:var(--ink-2);font-size:13px;display:flex;align-items:center;justify-content:space-between;padding:0 4px}
   .reset-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:4px}
   .reset-btn:hover{color:var(--ink);background:#eef1f6}
-  .stat-card{background:var(--navy);color:#fff;border-radius:12px;padding:18px 16px;text-align:center;box-shadow:var(--shadow)}
-  .stat-value{font-size:38px;font-weight:800;color:var(--green);line-height:1;margin-bottom:6px}
-  .stat-label{font-size:11px;letter-spacing:1px;color:#a7b0c2;font-weight:700}
-  .stat-sub{margin-top:10px;font-size:13px;color:#c9d1e0}
-  .stat-sub .muted{color:#8a94a6;font-size:12px}
 
   .field{display:flex;flex-direction:column;gap:6px}
   .field label{font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--ink-2)}
@@ -60,22 +53,59 @@
   .clear-btn{
     display:flex;align-items:center;justify-content:center;gap:8px;
     background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;
-    font-size:13px;color:var(--ink);cursor:pointer;font-weight:600;
+    font-size:13px;color:var(--ink);cursor:pointer;font-weight:600;margin-top:4px;
   }
   .clear-btn:hover{background:#eef1f6}
 
   /* Main */
   .main{display:flex;flex-direction:column;gap:16px;min-width:0}
+
+  /* Period strip */
+  .period{
+    background:var(--navy);color:#fff;border-radius:10px;padding:14px 20px;
+    box-shadow:var(--shadow);
+  }
+  .period .label{font-size:11px;letter-spacing:1.2px;color:#a7b0c2;font-weight:700;text-transform:uppercase;margin-bottom:4px}
+  .period .value{font-size:22px;font-weight:800;color:var(--green)}
+
+  /* Highlight cards row */
+  .highlights{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .hcard{
+    background:var(--card);border-radius:10px;padding:18px 22px;box-shadow:var(--shadow);
+    border-top:4px solid var(--green);position:relative;overflow:hidden;min-height:120px;
+    display:flex;flex-direction:column;justify-content:center;
+  }
+  .hcard.bad{border-top-color:var(--red)}
+  .hcard .icon{
+    position:absolute;top:14px;left:20px;font-size:22px;
+  }
+  .hcard .icon svg{width:22px;height:22px}
+  .hcard .big{
+    font-size:44px;font-weight:800;color:var(--green);line-height:1;margin:6px 0 0 0;padding-left:34px;
+  }
+  .hcard.bad .big{color:var(--red)}
+  .hcard .cap{
+    font-size:11px;font-weight:800;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase;padding-left:34px;margin-top:6px;
+  }
+  .hcard .name{
+    font-size:16px;font-weight:700;color:var(--ink);padding-left:34px;margin-top:8px;
+  }
+  .hcard .udn{
+    font-size:12px;color:var(--muted);padding-left:34px;margin-top:2px;
+  }
+
+  /* Ranking card */
   .card{background:var(--card);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
-  .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
-  .card-header .icon{width:26px;height:26px;color:var(--muted)}
-  .card-title{font-weight:700;font-size:16px;color:var(--ink);margin:0}
+  .card-header{padding:14px 20px 10px;display:flex;align-items:center;gap:10px}
+  .card-header .icon{color:var(--ink-2);display:flex;align-items:center}
+  .card-header .icon svg{width:20px;height:20px}
+  .card-title{font-weight:700;font-size:15px;color:var(--ink);margin:0}
   .card-sub{color:var(--muted);font-size:12px;margin-top:2px}
 
   /* Zone tabs */
-  .tabs{display:flex;gap:4px;padding:12px 20px 0;background:#fff;border-bottom:1px solid var(--border)}
+  .tabs{display:flex;gap:4px;padding:6px 20px 0;border-bottom:1px solid var(--border)}
   .tab{
-    padding:10px 20px;border-radius:8px 8px 0 0;background:transparent;
+    padding:8px 18px;border-radius:8px 8px 0 0;background:transparent;
     border:1px solid transparent;border-bottom:none;
     font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;position:relative;top:1px;
   }
@@ -90,42 +120,37 @@
   thead th{
     background:var(--navy);color:#fff;font-weight:700;text-align:left;
     padding:12px 10px;font-size:11px;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap;
-    position:sticky;top:0;
   }
   thead th.num{text-align:right}
-  thead th.subtotal{background:var(--navy-3);border-left:2px solid var(--green)}
-  tbody td{padding:12px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
-  tbody tr:hover{background:#f4f8ff}
-  tbody tr.op-row{background:#fbfcfd}
+  thead th.subtotal{background:var(--navy-3);border-left:2px solid var(--green);color:#fff}
+  tbody td{padding:11px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tbody tr.coord-row:hover{background:#f4f8ff;cursor:pointer}
+  tbody tr.op-row{background:#fafbfd}
   tbody tr.op-row td{color:var(--ink-2);font-size:12px;padding:8px 10px}
-  tbody tr.op-row td.op-name{padding-left:32px}
+  tbody tr.op-row td.op-name{padding-left:40px}
   tbody tr.op-row td.op-total{color:var(--green-dark);font-weight:700}
-  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--green-dark);font-weight:700}
+  td.num.score{color:var(--ink);font-weight:600}
+  td.num.dash{color:var(--muted);font-weight:400}
   td.pos{width:44px;text-align:center;font-weight:700;color:var(--ink-2)}
-  td.pos .medal{font-size:20px}
-  td.coord{font-weight:700;color:var(--ink);letter-spacing:.3px}
-  td.planta{color:var(--ink-2);font-size:12px}
+  td.pos .medal{font-size:20px;line-height:1}
+  td.coord{font-weight:700;color:var(--ink);letter-spacing:.3px;white-space:nowrap}
+  td.planta{color:var(--ink-2);font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   td.udn{color:var(--ink-2);font-size:12px;white-space:nowrap}
-  td.subtotal{background:#fdfef7;color:var(--green-dark);font-weight:800;border-left:2px solid #eef4e5}
-  td.value-good{color:var(--green-dark);font-weight:700}
-  td.value-mid{color:#c07a00;font-weight:700}
-  td.value-empty{color:var(--muted)}
+  td.subtotal{background:#fffef0;color:var(--green-dark);font-weight:800;border-left:2px solid #f2e8b8;text-align:right}
   .no-data{padding:32px;text-align:center;color:var(--muted)}
-  .empty-op{color:var(--muted);font-style:italic;font-size:12px;padding-left:32px}
-
-  .toggle-btn{
-    background:none;border:none;color:var(--muted);cursor:pointer;padding:2px 6px;font-size:14px;
-    transition:transform .15s;
+  .empty-op{color:var(--muted);font-style:italic;font-size:12px;padding-left:40px}
+  .toggle-caret{display:inline-block;width:14px;color:var(--muted);cursor:pointer;user-select:none;font-size:11px}
+  .toggle-caret.open{color:var(--green-dark)}
+  .zona-chip{
+    display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:800;
+    background:#e8f5e0;color:var(--green-dark);letter-spacing:.3px;margin-left:6px;
   }
-  .toggle-btn.open{transform:rotate(90deg);color:var(--green-dark)}
-
-  .legend{padding:12px 20px;font-size:12px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--border);background:#fbfcfd}
-  .legend .item{display:flex;align-items:center;gap:6px}
-  .legend .dot{width:10px;height:10px;border-radius:50%;background:var(--green)}
-  .legend .dot.gray{background:#c8d0dd}
+  .zona-chip.garcia{background:#e0e9f7;color:#2c5aa0}
 
   @media (max-width: 960px){
     .layout{grid-template-columns:1fr}
+    .highlights{grid-template-columns:1fr}
   }
 </style>
 </head>
@@ -134,7 +159,7 @@
 <div class="topbar">
   <div class="brand">RANKING</div>
   <div class="brand-sep">|</div>
-  <div class="brand-sub">Coordinadores — Sem 28</div>
+  <div class="brand-sub">Coordinadores</div>
   <div class="top-right" id="topRight"></div>
 </div>
 
@@ -144,15 +169,6 @@
     <div class="filters-title">
       <span>FILTROS</span>
       <button class="reset-btn" id="resetBtn" title="Limpiar filtros">↻</button>
-    </div>
-
-    <div class="stat-card">
-      <div class="stat-value" id="statPct">—</div>
-      <div class="stat-label">SUBTOTAL PROMEDIO</div>
-      <div class="stat-sub">
-        <span id="statCount">0</span> coordinadores
-        <div class="muted" id="statOps">0 operadores en Top 3</div>
-      </div>
     </div>
 
     <div class="field">
@@ -181,7 +197,7 @@
 
     <div class="field">
       <label>BUSCAR</label>
-      <input type="text" id="fSearch" placeholder="Coordinador, planta o operador">
+      <input type="text" id="fSearch" placeholder="Coordinador, planta, operador">
     </div>
 
     <div class="checkbox-row">
@@ -194,12 +210,41 @@
 
   <!-- Main -->
   <div class="main">
+
+    <div class="period">
+      <div class="label">Período seleccionado</div>
+      <div class="value">Semana 28</div>
+    </div>
+
+    <div class="highlights">
+      <div class="hcard" id="bestCard">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="#e0a800" stroke="#c07a00" stroke-width="1"><path d="M12 2l2.4 5 5.5.8-4 3.9.9 5.4L12 14.8 7.2 17l.9-5.4-4-3.9 5.5-.8z"/></svg>
+        </div>
+        <div class="big" id="bestVal">—</div>
+        <div class="cap">Mejor coordinador</div>
+        <div class="name" id="bestName">—</div>
+        <div class="udn" id="bestUdn">—</div>
+      </div>
+      <div class="hcard bad" id="worstCard">
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="#e34f4f" stroke="#c53030" stroke-width="1"><path d="M12 2L1 22h22L12 2zm0 6l7 12H5l7-12zm-1 4v4h2v-4h-2zm0 5v2h2v-2h-2z"/></svg>
+        </div>
+        <div class="big" id="worstVal">—</div>
+        <div class="cap">Peor coordinador</div>
+        <div class="name" id="worstName">—</div>
+        <div class="udn" id="worstUdn">—</div>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-header">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
+        <div class="icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#8a94a6" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
+        </div>
         <div>
           <h2 class="card-title">Ranking por Coordinador</h2>
-          <div class="card-sub">Ordenado por Subtotal · Top 3 operadores vinculados por Viajes facturación + Inputs</div>
+          <div class="card-sub">Ordenado por Subtotal (mayor a menor) · Top 3 operadores por Viajes facturación + Inputs</div>
         </div>
       </div>
 
@@ -230,12 +275,6 @@
           </thead>
           <tbody id="tbody"></tbody>
         </table>
-      </div>
-
-      <div class="legend">
-        <div class="item"><span>🥇 🥈 🥉</span> Top 3 coordinadores</div>
-        <div class="item"><span class="dot"></span> Subtotal (ordenamiento)</div>
-        <div class="item"><span class="dot gray"></span> Operadores del Top 3 (colapsable)</div>
       </div>
     </div>
   </div>
@@ -1002,46 +1041,45 @@ const DATA = {
   ]
 };
 
-const fmt = (v, digits=2) => {
-  if (v === null || v === undefined || v === "" ) return "–";
-  if (typeof v === "number") return v.toFixed(digits);
+const isNum = v => typeof v === "number" && !isNaN(v);
+const fmt = (v, d=2) => {
+  if (v === null || v === undefined || v === "") return null;
   const n = Number(v);
-  return isNaN(n) ? String(v) : n.toFixed(digits);
+  return isNaN(n) ? null : n.toFixed(d);
 };
-const fmtPct = v => v === null || v === undefined || v === "" ? "–" : `${fmt(v,2)}%`;
-const fmtNum = v => fmt(v, 2);
-
+const cellPct = v => {
+  const f = fmt(v,2);
+  return f===null ? `<td class="num dash">–</td>` : `<td class="num">${f}%</td>`;
+};
+const cellScore = v => {
+  const f = fmt(v,2);
+  return f===null ? `<td class="num dash">–</td>` : `<td class="num score">${f}</td>`;
+};
+const cellRend = v => {
+  const f = fmt(v,2);
+  return f===null ? `<td class="num dash">–</td>` : `<td class="num score">${f}</td>`;
+};
 const $ = id => document.getElementById(id);
-const state = {
-  zona: "",
-  coord: "",
-  planta: "",
-  udn: "",
-  search: "",
-  showOps: true,
-};
+const state = { zona:"", coord:"", planta:"", udn:"", search:"", showOps:true };
 
 function populateSelect(id, values, placeholder){
   const sel = $(id);
   const cur = sel.value;
   sel.innerHTML = `<option value="">${placeholder}</option>` + values.map(v=>`<option value="${v}">${v}</option>`).join("");
-  sel.value = cur;
+  if ([...sel.options].some(o=>o.value===cur)) sel.value = cur;
 }
-
 function uniqueValues(field, filter){
   const set = new Set();
   DATA.coords.forEach(c=>{
     if (filter && !filter(c)) return;
-    if (field === "planta"){
+    if (field==="planta"){
       String(c.planta||"").split(",").map(p=>p.trim()).filter(Boolean).forEach(p=>set.add(p));
     } else {
-      const v = c[field];
-      if (v) set.add(v);
+      const v = c[field]; if (v) set.add(v);
     }
   });
   return [...set].sort();
 }
-
 function applyFilters(){
   return DATA.coords.filter(c=>{
     if (state.zona && c.zona !== state.zona) return false;
@@ -1052,56 +1090,57 @@ function applyFilters(){
       const q = state.search.toLowerCase();
       const inCoord = c.coordinador.toLowerCase().includes(q);
       const inPlanta = String(c.planta||"").toLowerCase().includes(q);
-      const inOp = (c.top3||[]).some(o => (o.nombre||"").toLowerCase().includes(q) || String(o.nomina||"").includes(q));
-      if (!(inCoord || inPlanta || inOp)) return false;
+      const inOp = (c.top3||[]).some(o=>(o.nombre||"").toLowerCase().includes(q)||String(o.nomina||"").includes(q));
+      if (!(inCoord||inPlanta||inOp)) return false;
     }
     return true;
   });
 }
-
 function sortBySubtotal(rows){
   return rows.slice().sort((a,b)=>{
-    const sa = (a.subtotal ?? -1), sb = (b.subtotal ?? -1);
+    const sa = isNum(a.subtotal) ? a.subtotal : -Infinity;
+    const sb = isNum(b.subtotal) ? b.subtotal : -Infinity;
     if (sb !== sa) return sb - sa;
     return a.coordinador.localeCompare(b.coordinador);
   });
 }
-
 function medal(pos){
-  if (pos===1) return `<span class="medal" title="1° lugar">🥇</span>`;
-  if (pos===2) return `<span class="medal" title="2° lugar">🥈</span>`;
-  if (pos===3) return `<span class="medal" title="3° lugar">🥉</span>`;
-  return pos;
+  if (pos===1) return `<span class="medal">🥇</span>`;
+  if (pos===2) return `<span class="medal">🥈</span>`;
+  if (pos===3) return `<span class="medal">🥉</span>`;
+  return `<span>${pos}</span>`;
 }
-
-function valClass(v, kind){
-  if (v === null || v === undefined || v === "") return "value-empty";
-  const n = Number(v);
-  if (kind === "pct"){
-    if (n >= 97) return "value-good";
-    if (n >= 90) return "value-mid";
-    return "";
-  }
-  return "value-good";
+function zonaChip(z){
+  if (!z) return "";
+  const cls = z === "Garcia" ? "garcia" : "";
+  return `<span class="zona-chip ${cls}">${z}</span>`;
 }
 
 function render(){
   const filtered = sortBySubtotal(applyFilters());
 
-  // Stats
-  const withSubtotal = filtered.filter(c => typeof c.subtotal === "number");
-  const avg = withSubtotal.length ? withSubtotal.reduce((s,c)=>s+c.subtotal,0)/withSubtotal.length : null;
-  $("statPct").textContent = avg === null ? "—" : `${avg.toFixed(1)}%`;
-  $("statCount").textContent = filtered.length;
-  const opCount = filtered.reduce((s,c)=>s+(c.top3?.length||0), 0);
-  $("statOps").textContent = `${opCount} operadores en Top 3`;
+  // Highlights: best/worst SIEMPRE del global (no del filtro) para reflejar el ejemplo
+  const globalWithSubtotal = DATA.coords.filter(c=>isNum(c.subtotal));
+  const globalBest = globalWithSubtotal.reduce((a,b)=> (a===null||b.subtotal>a.subtotal)?b:a, null);
+  // El "peor" incluye el TOTAL más bajo del ranking original — usamos el mínimo del subtotal aquí
+  const globalWorst = globalWithSubtotal.reduce((a,b)=> (a===null||b.subtotal<a.subtotal)?b:a, null);
 
-  // Top counters
+  if (globalBest){
+    $("bestVal").textContent = globalBest.subtotal.toFixed(2)+"%";
+    $("bestName").textContent = globalBest.coordinador;
+    $("bestUdn").textContent = globalBest.udn || "–";
+  }
+  if (globalWorst){
+    $("worstVal").textContent = globalWorst.subtotal.toFixed(2)+"%";
+    $("worstName").textContent = globalWorst.coordinador;
+    $("worstUdn").textContent = globalWorst.udn || "–";
+  }
+
+  // Tab counters
   $("cntAll").textContent = DATA.coords.length;
   $("cntCie").textContent = DATA.coords.filter(c=>c.zona==="Cienega").length;
   $("cntGar").textContent = DATA.coords.filter(c=>c.zona==="Garcia").length;
 
-  // Table
   const tb = $("tbody");
   if (!filtered.length){
     tb.innerHTML = `<tr><td colspan="13" class="no-data">Sin resultados con los filtros actuales</td></tr>`;
@@ -1111,42 +1150,39 @@ function render(){
   const html = [];
   filtered.forEach((c, i)=>{
     const pos = i+1;
+    const caret = state.showOps ? `<span class="toggle-caret" data-idx="${i}">▸</span> ` : "";
     html.push(`
-      <tr class="coord-row">
+      <tr class="coord-row" data-idx="${i}">
         <td class="pos">${medal(pos)}</td>
-        <td class="coord">
-          ${state.showOps ? `<button class="toggle-btn" data-idx="${i}" aria-label="Toggle operadores">▸</button>` : ""}
-          ${c.coordinador}
-        </td>
-        <td class="planta">${c.planta || "–"}</td>
+        <td class="coord">${caret}${c.coordinador}${zonaChip(c.zona)}</td>
+        <td class="planta" title="${(c.planta||'').replace(/"/g,'&quot;')}">${c.planta || "–"}</td>
         <td class="udn">${c.udn || "–"}</td>
-        <td class="num ${valClass(c.ns_inicio,"pct")}">${fmtPct(c.ns_inicio)}</td>
-        <td class="num ${valClass(c.ns_llegada,"pct")}">${fmtPct(c.ns_llegada)}</td>
-        <td class="num ${valClass(c.calidad_ruta,"pct")}">${fmtPct(c.calidad_ruta)}</td>
-        <td class="num ${valClass(c.score_seg,"pct")}">${fmtNum(c.score_seg)}</td>
-        <td class="num ${valClass(c.pct_score_seg,"pct")}">${fmtPct(c.pct_score_seg)}</td>
-        <td class="num ${valClass(c.rend_camion,"num")}">${fmtNum(c.rend_camion)}</td>
-        <td class="num ${valClass(c.rend_camioneta,"num")}">${fmtNum(c.rend_camioneta)}</td>
-        <td class="num ${valClass(c.score_rend,"pct")}">${fmtPct(c.score_rend)}</td>
-        <td class="num subtotal">${c.subtotal===null||c.subtotal===undefined||c.subtotal===""?"–":c.subtotal.toFixed(2)+"%"}</td>
+        ${cellPct(c.ns_inicio)}
+        ${cellPct(c.ns_llegada)}
+        ${cellPct(c.calidad_ruta)}
+        ${cellScore(c.score_seg)}
+        ${cellPct(c.pct_score_seg)}
+        ${cellRend(c.rend_camion)}
+        ${cellRend(c.rend_camioneta)}
+        ${cellPct(c.score_rend)}
+        <td class="subtotal">${isNum(c.subtotal)?c.subtotal.toFixed(2)+"%":"–"}</td>
       </tr>
     `);
     if (state.showOps){
       const ops = c.top3 || [];
       if (!ops.length){
-        html.push(`<tr class="op-row" data-parent="${i}">
-          <td></td>
-          <td colspan="12" class="empty-op">Sin operadores asignados en Viajes facturación</td>
+        html.push(`<tr class="op-row" data-parent="${i}" style="display:none">
+          <td></td><td colspan="12" class="empty-op">Sin operadores asignados en Viajes facturación</td>
         </tr>`);
       } else {
         ops.forEach((o, k)=>{
-          html.push(`<tr class="op-row" data-parent="${i}">
+          html.push(`<tr class="op-row" data-parent="${i}" style="display:none">
             <td class="pos" style="color:#8a94a6">${k+1}°</td>
             <td class="op-name">${o.nombre} <span style="color:#8a94a6;font-weight:400">· ${o.nomina}</span></td>
             <td class="planta">${o.planta||"–"}</td>
             <td class="udn">–</td>
             <td colspan="8"></td>
-            <td class="num op-total">${o.total===null||o.total===undefined||o.total===""?"–":Number(o.total).toFixed(2)+"%"}</td>
+            <td class="op-total" style="text-align:right">${isNum(o.total)?Number(o.total).toFixed(2)+"%":(o.total||"–")}</td>
           </tr>`);
         });
       }
@@ -1154,19 +1190,18 @@ function render(){
   });
   tb.innerHTML = html.join("");
 
-  // toggle handlers
-  tb.querySelectorAll(".toggle-btn").forEach(btn=>{
-    btn.addEventListener("click", e=>{
-      const idx = btn.dataset.idx;
-      const open = btn.classList.toggle("open");
-      btn.textContent = open ? "▾" : "▸";
+  // Toggle handlers via delegation on row click
+  tb.querySelectorAll(".coord-row").forEach(row=>{
+    row.addEventListener("click", ()=>{
+      const idx = row.dataset.idx;
+      const caret = row.querySelector(".toggle-caret");
+      const open = caret ? caret.classList.toggle("open") : false;
+      if (caret) caret.textContent = open ? "▾" : "▸";
       tb.querySelectorAll(`.op-row[data-parent="${idx}"]`).forEach(r=>{
         r.style.display = open ? "" : "none";
       });
     });
   });
-  // start collapsed
-  tb.querySelectorAll(".op-row").forEach(r=>r.style.display="none");
 }
 
 function refreshFilters(){
@@ -1174,44 +1209,37 @@ function refreshFilters(){
   populateSelect("fPlanta", uniqueValues("planta", c => !state.zona || c.zona === state.zona), "Todas");
   populateSelect("fUdn", uniqueValues("udn"), "Todas");
 }
-
-function bind(){
-  $("fZona").addEventListener("change", e=>{ state.zona = e.target.value; refreshFilters(); render(); syncTabs(); });
-  $("fCoord").addEventListener("change", e=>{ state.coord = e.target.value; render(); });
-  $("fPlanta").addEventListener("change", e=>{ state.planta = e.target.value; render(); });
-  $("fUdn").addEventListener("change", e=>{ state.udn = e.target.value; render(); });
-  $("fSearch").addEventListener("input", e=>{ state.search = e.target.value; render(); });
-  $("fShowOps").addEventListener("change", e=>{ state.showOps = e.target.checked; render(); });
-  $("clearBtn").addEventListener("click", clearAll);
-  $("resetBtn").addEventListener("click", clearAll);
-  document.querySelectorAll("#zoneTabs .tab").forEach(t=>{
-    t.addEventListener("click", ()=>{
-      const z = t.dataset.zone;
-      state.zona = z;
-      $("fZona").value = z;
-      syncTabs();
-      refreshFilters();
-      render();
-    });
-  });
-}
-
 function syncTabs(){
   document.querySelectorAll("#zoneTabs .tab").forEach(t=>{
     t.classList.toggle("active", (t.dataset.zone||"") === (state.zona||""));
   });
 }
-
+function bind(){
+  $("fZona").addEventListener("change", e=>{ state.zona=e.target.value; refreshFilters(); syncTabs(); render(); });
+  $("fCoord").addEventListener("change", e=>{ state.coord=e.target.value; render(); });
+  $("fPlanta").addEventListener("change", e=>{ state.planta=e.target.value; render(); });
+  $("fUdn").addEventListener("change", e=>{ state.udn=e.target.value; render(); });
+  $("fSearch").addEventListener("input", e=>{ state.search=e.target.value; render(); });
+  $("fShowOps").addEventListener("change", e=>{ state.showOps=e.target.checked; render(); });
+  $("clearBtn").addEventListener("click", clearAll);
+  $("resetBtn").addEventListener("click", clearAll);
+  document.querySelectorAll("#zoneTabs .tab").forEach(t=>{
+    t.addEventListener("click", ()=>{
+      state.zona = t.dataset.zone;
+      $("fZona").value = state.zona;
+      syncTabs(); refreshFilters(); render();
+    });
+  });
+}
 function clearAll(){
   state.zona=""; state.coord=""; state.planta=""; state.udn=""; state.search=""; state.showOps=true;
   $("fZona").value=""; $("fSearch").value=""; $("fShowOps").checked=true;
   refreshFilters();
   $("fCoord").value=""; $("fPlanta").value=""; $("fUdn").value="";
-  syncTabs();
-  render();
+  syncTabs(); render();
 }
 
-$("topRight").textContent = `Semana 28 · ${DATA.coords.length} coordinadores`;
+$("topRight").textContent = `${DATA.coords.length} coordinadores`;
 refreshFilters();
 bind();
 render();
