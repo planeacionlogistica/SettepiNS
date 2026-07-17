@@ -337,6 +337,8 @@
             <input type="date" id="filtroFecha" onchange="mostrarDatos()">
             <button type="button" onclick="establecerFechaFiltro('hoy')" style="background:#fff; border:1px solid #ccc; padding: 5px 10px;">Hoy</button>
             <button type="button" onclick="establecerFechaFiltro('ayer')" style="background:#fff; border:1px solid #ccc; padding: 5px 10px;">Ayer</button>
+            <button type="button" onclick="cargarDesdeDrive()" style="background:#00E676; color:#111; border:none; padding: 6px 14px; font-weight:bold; border-radius:4px; cursor:pointer;">🔄 Ver desde Drive</button>
+            <button type="button" onclick="mostrarDatos()" style="background:#fff; border:1px solid #ccc; padding: 5px 10px;">💾 Ver Local</button>
         </div>
         <div>
             <button class="btn-export" onclick="exportarExcelFiltrado()">📥 Exportar Día Seleccionado</button>
@@ -660,6 +662,122 @@
                     <button class="btn-action-table btn-table-edit" onclick="editarRegistro(${reg.id})">Editar</button>
                     <button class="btn-action-table btn-delete" onclick="eliminarRegistro(${reg.id})">Eliminar</button>
                 </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // ═══════════ CARGAR DESDE GOOGLE SHEETS ═══════════
+    function normalizarFecha(f) {
+        if (!f) return '';
+        if (f instanceof Date) return obtenerFechaLocalISO(f);
+        const s = String(f).trim();
+        if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+        if (s.includes('T')) {
+            const d = new Date(s);
+            if (!isNaN(d)) return obtenerFechaLocalISO(d);
+        }
+        if (s.includes('/')) {
+            const [d, m, y] = s.split('/');
+            if (d && m && y) return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+        }
+        const d = new Date(s);
+        if (!isNaN(d)) return obtenerFechaLocalISO(d);
+        return s;
+    }
+
+    function normalizarHora(h) {
+        if (!h) return '';
+        if (h instanceof Date) {
+            return String(h.getHours()).padStart(2,'0') + ':' + String(h.getMinutes()).padStart(2,'0');
+        }
+        const s = String(h).trim();
+        if (/^\d{1,2}:\d{2}$/.test(s)) return s.padStart(5,'0');
+        if (s.includes('T')) {
+            const d = new Date(s);
+            if (!isNaN(d)) {
+                return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+            }
+        }
+        return s;
+    }
+
+    async function cargarDesdeDrive() {
+        if (!SHEETS_WEBAPP_URL) {
+            alert('Falta configurar la URL del Web App de Sheets.');
+            return;
+        }
+        const fechaFiltro = document.getElementById('filtroFecha').value;
+        setSyncStatus('⏳ Cargando desde Drive...', '#1565c0');
+        try {
+            const resp = await fetch(SHEETS_WEBAPP_URL, { method: 'GET' });
+            const data = await resp.json();
+            if (!data.ok) throw new Error(data.error || 'Respuesta inválida');
+            const registros = (data.registros || []).map(r => ({
+                id: r.id,
+                fecha: normalizarFecha(r.fecha),
+                planta: r.planta || '',
+                ruta: r.ruta || '',
+                unidad: r.unidad || '',
+                inicioProg: normalizarHora(r.inicioProg),
+                inicioReal: normalizarHora(r.inicioReal),
+                desfase: r.desfase || 'A tiempo',
+                finProg: normalizarHora(r.finProg),
+                finReal: normalizarHora(r.finReal),
+                desfaseFin: r.desfaseFin || 'A tiempo',
+                tipoServicio: r.tipoServicio || '',
+                motivo: r.motivo || '',
+                comentarios: r.comentarios || '',
+                zona: r.zona || '',
+                monitorista: r.monitorista || ''
+            }));
+            renderTablaDrive(registros, fechaFiltro);
+            const total = registros.filter(r => r.fecha === fechaFiltro).length;
+            setSyncStatus(`✅ ${total} registro(s) de Drive para ${fechaFiltro}`, '#2e7d32');
+        } catch (err) {
+            console.error(err);
+            setSyncStatus('❌ Error al cargar de Drive: ' + err.message, '#c62828');
+            alert('No se pudieron cargar los datos desde Drive.\n\n' + err.message +
+                '\n\nRevisa que el Web App esté desplegado como "Cualquier usuario".');
+        }
+    }
+
+    function renderTablaDrive(registros, fechaFiltro) {
+        const tbody = document.getElementById('tbodyIncidencias');
+        tbody.innerHTML = '';
+        const listaFiltrada = registros.filter(reg => reg.fecha === fechaFiltro);
+        const [y, m, d] = fechaFiltro.split('-');
+        document.getElementById('tituloTabla').innerText = `📡 Desde Drive · ${d}/${m}/${y}`;
+
+        if (listaFiltrada.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="16" style="color: #888; padding: 20px;">No hay incidencias en Drive para esta fecha.</td></tr>`;
+            return;
+        }
+
+        listaFiltrada.forEach(reg => {
+            const tr = document.createElement('tr');
+            const [year, month, day] = String(reg.fecha).split('-');
+            const fechaVista = `${day}/${month}/${year}`;
+            const badgeInicio = reg.desfase === "A tiempo" ? "badge-ontime" : "badge-desfase";
+            const badgeFin = reg.desfaseFin === "A tiempo" ? "badge-ontime" : "badge-desfase";
+
+            tr.innerHTML = `
+                <td><b>${fechaVista}</b></td>
+                <td>${reg.planta}</td>
+                <td>${reg.ruta}</td>
+                <td>${reg.unidad}</td>
+                <td>${reg.inicioProg}</td>
+                <td>${reg.inicioReal}</td>
+                <td><span class="${badgeInicio}">${reg.desfase}</span></td>
+                <td>${reg.finProg}</td>
+                <td>${reg.finReal}</td>
+                <td><span class="${badgeFin}">${reg.desfaseFin}</span></td>
+                <td>${reg.tipoServicio}</td>
+                <td>${reg.motivo}</td>
+                <td>${reg.comentarios}</td>
+                <td>${reg.zona}</td>
+                <td>${reg.monitorista}</td>
+                <td style="color:#1565c0; font-size:11px; font-weight:bold;">☁️ Drive</td>
             `;
             tbody.appendChild(tr);
         });
