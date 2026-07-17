@@ -136,6 +136,7 @@
     <div class="field"><label id="lblEntity">COORDINADOR</label><select id="fEntity"><option value="">Todos</option></select></div>
     <div class="field"><label>PLANTA</label><select id="fPlanta"><option value="">Todas</option></select></div>
     <div class="field"><label>UDN</label><select id="fUdn"><option value="">Todas</option></select></div>
+    <div class="field" id="fCoordWrap" style="display:none"><label>COORDINADOR</label><select id="fCoord"><option value="">Todos</option></select></div>
     <div class="field" id="fJefeWrap" style="display:none"><label>JEFE</label><select id="fJefe"><option value="">Todos</option></select></div>
     <div class="field"><label>BUSCAR</label><input type="text" id="fSearch" placeholder="Nombre, planta, nómina"></div>
     <button class="clear-btn" id="clearBtn">↻ Limpiar filtros</button>
@@ -7336,7 +7337,7 @@ const fmt = (v,d=2) => { if(v===null||v===undefined||v==="") return null; const 
 const cellPct = v => { const f=fmt(v,2); return f===null?`<td class="num dash">–</td>`:`<td class="num">${f}%</td>`; };
 const cellScore = v => { const f=fmt(v,2); return f===null?`<td class="num dash">–</td>`:`<td class="num score">${f}</td>`; };
 const $ = id => document.getElementById(id);
-const state = { view:"coord", zona:"", entity:"", planta:"", udn:"", jefe:"", search:"", expanded:new Set() };
+const state = { view:"coord", zona:"", entity:"", planta:"", udn:"", jefe:"", coordFilter:"", search:"", expanded:new Set() };
 
 const COORD_COLS = [{h:"#",num:true},{h:"Coordinador"},{h:"Planta"},{h:"UDN"},{h:"% NS Inicio",num:true},{h:"% NS Llegada",num:true},{h:"Calidad Ruta",num:true},{h:"Score Seg.",num:true},{h:"% Score Seg.",num:true},{h:"Rend. Camión",num:true},{h:"Rend. Camioneta",num:true},{h:"Score Rend.",num:true},{h:"Subtotal ↓",num:true,subtotal:true}];
 const OP_COLS = [{h:"#",num:true},{h:"Operador"},{h:"Nómina"},{h:"Planta"},{h:"Coordinador"},{h:"Jefe"},{h:"UDN"},{h:"% NS Inicio",num:true},{h:"% NS Llegada",num:true},{h:"Calidad Ruta",num:true},{h:"Score Seg.",num:true},{h:"% Score Seg.",num:true},{h:"Rendimiento",num:true},{h:"Score Rend.",num:true},{h:"Total ↓",num:true,subtotal:true}];
@@ -7374,6 +7375,7 @@ function applyFilters(){
     if (state.planta && !String(r.planta||"").split(",").map(x=>x.trim()).includes(state.planta)) return false;
     if (state.udn && r.udn !== state.udn) return false;
     if (state.view === "op" && state.jefe && r.jefe !== state.jefe) return false;
+    if (state.view === "op" && state.coordFilter && r.coordinador !== state.coordFilter) return false;
     if (state.search){
       const q = state.search.toLowerCase();
       const name = (state.view === "coord" ? r.coordinador : r.operador) || "";
@@ -7493,9 +7495,13 @@ function refreshFilters(){
   populateSelect("fEntity", uniqueFromCurrent(state.view==="coord"?"coordinador":"operador", zoneFilter), "Todos");
   populateSelect("fPlanta", uniqueFromCurrent("planta", zoneFilter), "Todas");
   populateSelect("fUdn", uniqueFromCurrent("udn"), "Todas");
-  if (state.view === "op") populateSelect("fJefe", uniqueFromCurrent("jefe", zoneFilter), "Todos");
+  if (state.view === "op") {
+    populateSelect("fJefe", uniqueFromCurrent("jefe", zoneFilter), "Todos");
+    populateSelect("fCoord", uniqueFromCurrent("coordinador", zoneFilter), "Todos");
+  }
   $("lblEntity").textContent = state.view==="coord" ? "COORDINADOR" : "OPERADOR";
   $("fJefeWrap").style.display = state.view==="op" ? "" : "none";
+  $("fCoordWrap").style.display = state.view==="op" ? "" : "none";
 }
 function render(){
   renderHead();
@@ -7618,9 +7624,9 @@ function bind(){
       document.querySelectorAll("#viewSwitch button").forEach(x=>x.classList.remove("active"));
       b.classList.add("active");
       state.view = b.dataset.view;
-      state.entity = ""; state.jefe = ""; state.expanded.clear();
+      state.entity = ""; state.jefe = ""; state.coordFilter = ""; state.expanded.clear();
       refreshFilters();
-      $("fEntity").value=""; if ($("fJefe")) $("fJefe").value="";
+      $("fEntity").value=""; if ($("fJefe")) $("fJefe").value=""; if ($("fCoord")) $("fCoord").value="";
       render();
     });
   });
@@ -7629,6 +7635,7 @@ function bind(){
   $("fPlanta").addEventListener("change", e=>{ state.planta=e.target.value; render(); });
   $("fUdn").addEventListener("change", e=>{ state.udn=e.target.value; render(); });
   $("fJefe").addEventListener("change", e=>{ state.jefe=e.target.value; render(); });
+  $("fCoord").addEventListener("change", e=>{ state.coordFilter=e.target.value; render(); });
   $("fSearch").addEventListener("input", e=>{ state.search=e.target.value; render(); });
   $("clearBtn").addEventListener("click", clearAll);
   $("resetBtn").addEventListener("click", clearAll);
@@ -7653,10 +7660,10 @@ function bind(){
   document.addEventListener("keydown", e=>{ if (e.key === "Escape") $("modal").classList.remove("open"); });
 }
 function clearAll(){
-  state.zona=""; state.entity=""; state.planta=""; state.udn=""; state.jefe=""; state.search=""; state.expanded.clear();
+  state.zona=""; state.entity=""; state.planta=""; state.udn=""; state.jefe=""; state.coordFilter=""; state.search=""; state.expanded.clear();
   $("fZona").value=""; $("fSearch").value="";
   refreshFilters();
-  $("fEntity").value=""; $("fPlanta").value=""; $("fUdn").value=""; if ($("fJefe")) $("fJefe").value="";
+  $("fEntity").value=""; $("fPlanta").value=""; $("fUdn").value=""; if ($("fJefe")) $("fJefe").value=""; if ($("fCoord")) $("fCoord").value="";
   syncTabs(); render();
 }
 
