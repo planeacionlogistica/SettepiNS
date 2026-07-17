@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ranking Coordinadores — Sem 28</title>
+<style>
+  :root{
+    --navy:#0f1a2e;
+    --navy-2:#182338;
+    --navy-3:#213047;
+    --green:#7dd858;
+    --green-dark:#4fae2e;
+    --ink:#0f1a2e;
+    --ink-2:#4a5468;
+    --muted:#8a94a6;
+    --border:#e5e8ee;
+    --surface:#f5f7fa;
+    --card:#ffffff;
+    --row-alt:#fafbfd;
+    --gold:#e0a800;
+    --silver:#adb5bd;
+    --bronze:#c07a3a;
+    --shadow: 0 1px 2px rgba(15,26,46,.05), 0 4px 12px rgba(15,26,46,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--surface);}
+  /* Top bar */
+  .topbar{
+    background:var(--navy);color:#fff;padding:14px 24px;
+    display:flex;align-items:center;gap:16px;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);position:sticky;top:0;z-index:20;
+  }
+  .brand{font-weight:800;color:var(--green);font-size:20px;letter-spacing:.5px}
+  .brand-sep{color:#3a4459;font-size:20px}
+  .brand-sub{font-weight:600;color:#fff;font-size:16px}
+  .top-right{margin-left:auto;font-size:13px;color:#a7b0c2}
+
+  /* Layout */
+  .layout{display:grid;grid-template-columns:280px 1fr;gap:20px;padding:20px;max-width:1600px;margin:0 auto}
+
+  /* Sidebar */
+  .sidebar{background:transparent;display:flex;flex-direction:column;gap:16px}
+  .filters-title{font-weight:700;letter-spacing:.5px;color:var(--ink-2);font-size:13px;display:flex;align-items:center;justify-content:space-between;padding:0 4px}
+  .reset-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 6px;border-radius:4px}
+  .reset-btn:hover{color:var(--ink);background:#eef1f6}
+  .stat-card{background:var(--navy);color:#fff;border-radius:12px;padding:18px 16px;text-align:center;box-shadow:var(--shadow)}
+  .stat-value{font-size:38px;font-weight:800;color:var(--green);line-height:1;margin-bottom:6px}
+  .stat-label{font-size:11px;letter-spacing:1px;color:#a7b0c2;font-weight:700}
+  .stat-sub{margin-top:10px;font-size:13px;color:#c9d1e0}
+  .stat-sub .muted{color:#8a94a6;font-size:12px}
+
+  .field{display:flex;flex-direction:column;gap:6px}
+  .field label{font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--ink-2)}
+  .field select,.field input[type=text]{
+    background:#eef1f6;border:1px solid transparent;border-radius:8px;padding:9px 12px;font-size:13px;color:var(--ink);
+    outline:none;transition:border-color .15s, background .15s;
+  }
+  .field select:focus,.field input[type=text]:focus{border-color:var(--green);background:#fff}
+  .checkbox-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);padding:6px 4px}
+  .clear-btn{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;
+    font-size:13px;color:var(--ink);cursor:pointer;font-weight:600;
+  }
+  .clear-btn:hover{background:#eef1f6}
+
+  /* Main */
+  .main{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .card{background:var(--card);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+  .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+  .card-header .icon{width:26px;height:26px;color:var(--muted)}
+  .card-title{font-weight:700;font-size:16px;color:var(--ink);margin:0}
+  .card-sub{color:var(--muted);font-size:12px;margin-top:2px}
+
+  /* Zone tabs */
+  .tabs{display:flex;gap:4px;padding:12px 20px 0;background:#fff;border-bottom:1px solid var(--border)}
+  .tab{
+    padding:10px 20px;border-radius:8px 8px 0 0;background:transparent;
+    border:1px solid transparent;border-bottom:none;
+    font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;position:relative;top:1px;
+  }
+  .tab:hover{color:var(--ink)}
+  .tab.active{background:#fff;border-color:var(--border);color:var(--ink);}
+  .tab .count{margin-left:6px;background:#eef1f6;color:var(--muted);padding:1px 8px;border-radius:10px;font-size:11px;font-weight:700}
+  .tab.active .count{background:var(--green);color:#0f1a2e}
+
+  /* Table */
+  .table-wrap{overflow-x:auto}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  thead th{
+    background:var(--navy);color:#fff;font-weight:700;text-align:left;
+    padding:12px 10px;font-size:11px;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap;
+    position:sticky;top:0;
+  }
+  thead th.num{text-align:right}
+  thead th.subtotal{background:var(--navy-3);border-left:2px solid var(--green)}
+  tbody td{padding:12px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tbody tr:hover{background:#f4f8ff}
+  tbody tr.op-row{background:#fbfcfd}
+  tbody tr.op-row td{color:var(--ink-2);font-size:12px;padding:8px 10px}
+  tbody tr.op-row td.op-name{padding-left:32px}
+  tbody tr.op-row td.op-total{color:var(--green-dark);font-weight:700}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  td.pos{width:44px;text-align:center;font-weight:700;color:var(--ink-2)}
+  td.pos .medal{font-size:20px}
+  td.coord{font-weight:700;color:var(--ink);letter-spacing:.3px}
+  td.planta{color:var(--ink-2);font-size:12px}
+  td.udn{color:var(--ink-2);font-size:12px;white-space:nowrap}
+  td.subtotal{background:#fdfef7;color:var(--green-dark);font-weight:800;border-left:2px solid #eef4e5}
+  td.value-good{color:var(--green-dark);font-weight:700}
+  td.value-mid{color:#c07a00;font-weight:700}
+  td.value-empty{color:var(--muted)}
+  .no-data{padding:32px;text-align:center;color:var(--muted)}
+  .empty-op{color:var(--muted);font-style:italic;font-size:12px;padding-left:32px}
+
+  .toggle-btn{
+    background:none;border:none;color:var(--muted);cursor:pointer;padding:2px 6px;font-size:14px;
+    transition:transform .15s;
+  }
+  .toggle-btn.open{transform:rotate(90deg);color:var(--green-dark)}
+
+  .legend{padding:12px 20px;font-size:12px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--border);background:#fbfcfd}
+  .legend .item{display:flex;align-items:center;gap:6px}
+  .legend .dot{width:10px;height:10px;border-radius:50%;background:var(--green)}
+  .legend .dot.gray{background:#c8d0dd}
+
+  @media (max-width: 960px){
+    .layout{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">RANKING</div>
+  <div class="brand-sep">|</div>
+  <div class="brand-sub">Coordinadores — Sem 28</div>
+  <div class="top-right" id="topRight"></div>
+</div>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="filters-title">
+      <span>FILTROS</span>
+      <button class="reset-btn" id="resetBtn" title="Limpiar filtros">↻</button>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value" id="statPct">—</div>
+      <div class="stat-label">SUBTOTAL PROMEDIO</div>
+      <div class="stat-sub">
+        <span id="statCount">0</span> coordinadores
+        <div class="muted" id="statOps">0 operadores en Top 3</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>ZONA</label>
+      <select id="fZona">
+        <option value="">Todas</option>
+        <option value="Cienega">Cienega</option>
+        <option value="Garcia">Garcia</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>COORDINADOR</label>
+      <select id="fCoord"><option value="">Todos</option></select>
+    </div>
+
+    <div class="field">
+      <label>PLANTA</label>
+      <select id="fPlanta"><option value="">Todas</option></select>
+    </div>
+
+    <div class="field">
+      <label>UDN</label>
+      <select id="fUdn"><option value="">Todas</option></select>
+    </div>
+
+    <div class="field">
+      <label>BUSCAR</label>
+      <input type="text" id="fSearch" placeholder="Coordinador, planta o operador">
+    </div>
+
+    <div class="checkbox-row">
+      <input type="checkbox" id="fShowOps" checked>
+      <label for="fShowOps" style="cursor:pointer">Mostrar Top 3 operadores</label>
+    </div>
+
+    <button class="clear-btn" id="clearBtn">↻ Limpiar filtros</button>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="card">
+      <div class="card-header">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
+        <div>
+          <h2 class="card-title">Ranking por Coordinador</h2>
+          <div class="card-sub">Ordenado por Subtotal · Top 3 operadores vinculados por Viajes facturación + Inputs</div>
+        </div>
+      </div>
+
+      <div class="tabs" id="zoneTabs">
+        <button class="tab active" data-zone="">Todas <span class="count" id="cntAll">0</span></button>
+        <button class="tab" data-zone="Cienega">Cienega <span class="count" id="cntCie">0</span></button>
+        <button class="tab" data-zone="Garcia">Garcia <span class="count" id="cntGar">0</span></button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="num">#</th>
+              <th>Coordinador</th>
+              <th>Planta</th>
+              <th>UDN</th>
+              <th class="num">% NS Inicio</th>
+              <th class="num">% NS Llegada</th>
+              <th class="num">Calidad Ruta</th>
+              <th class="num">Score Seg.</th>
+              <th class="num">% Score Seg.</th>
+              <th class="num">Rend. Camión</th>
+              <th class="num">Rend. Camioneta</th>
+              <th class="num">Score Rend.</th>
+              <th class="num subtotal">Subtotal ↓</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="legend">
+        <div class="item"><span>🥇 🥈 🥉</span> Top 3 coordinadores</div>
+        <div class="item"><span class="dot"></span> Subtotal (ordenamiento)</div>
+        <div class="item"><span class="dot gray"></span> Operadores del Top 3 (colapsable)</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  "coords": [
+    {
+      "zona": "Cienega",
+      "coordinador": "NICOLAS ROCHA",
+      "planta": "NAV-NAVISTAR",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 99.27,
+      "ns_llegada": 98.54,
+      "calidad_ruta": 99.05,
+      "score_seg": 94.24,
+      "pct_score_seg": 99.16,
+      "rend_camion": 4.14,
+      "rend_camioneta": "",
+      "score_rend": 100,
+      "subtotal": 99.2,
+      "top3": [
+        {
+          "nombre": "PACHECO LOPEZ JOSE ISABEL",
+          "nomina": "19205916",
+          "planta": "NAV-NAVISTAR",
+          "total": 100
+        },
+        {
+          "nombre": "SILVA GUTIERREZ ALWIN LIZAN",
+          "nomina": "19201459",
+          "planta": "NAV-NAVISTAR",
+          "total": 100
+        },
+        {
+          "nombre": "MOYEDA VILLASEÑOR AMERICO R",
+          "nomina": "19203806",
+          "planta": "NAV-NAVISTAR",
+          "total": 100
+        }
+      ]
+    },
+    {
+      "zona": "Cienega",
+      "coordinador": "ANDRES CARREON",
+      "planta": "RYC-RYDER CIENEGA, YAN-YANFENG",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 100,
+      "ns_llegada": 100,
+      "calidad_ruta": 97.29,
+      "score_seg": 92.25,
+      "pct_score_seg": 96.95,
+      "rend_camion": 4.17,
+      "rend_camioneta": "",
+      "score_rend": 100,
+      "subtotal": 98.85,
+      "top3": [
+        {
+          "nombre": "ARELLANO DOMINGUEZ FERNANDO",
+          "nomina": "19309690",
+          "planta": "RYC-RYDER CIENEGA",
+          "total": 97.94
+        }
+      ]
+    },
+    {
+      "zona": "Garcia",
+      "coordinador": "DIEGO SANCHEZ",
+      "planta": "NEM-NEMAK",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 99.19,
+      "ns_llegada": 98.79,
+      "calidad_ruta": "",
+      "score_seg": 92.29,
+      "pct_score_seg": 96.99,
+      "rend_camion": 4.02,
+      "rend_camioneta": 9.18,
+      "score_rend": 100,
+      "subtotal": 98.74,
+      "top3": []
+    },
+    {
+      "zona": "Garcia",
+      "coordinador": "HERNAN RUBIO",
+      "planta": "ALC-ALCALI, REH-REHAU",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 99.55,
+      "ns_llegada": 99.1,
+      "calidad_ruta": 95.94,
+      "score_seg": 92.11,
+      "pct_score_seg": 96.79,
+      "rend_camion": 4.39,
+      "rend_camioneta": 8.83,
+      "score_rend": 100,
+      "subtotal": 98.28,
+      "top3": [
+        {
+          "nombre": "SANCHEZ ECHIVESTE OVIDIO",
+          "nomina": "19310461",
+          "planta": "REH-REHAU",
+          "total": 99.9
+        },
+        {
+          "nombre": "NAVARRO MARTINEZ JOSE DE JE",
+          "nomina": "19311259",
+          "planta": "ALC-ALCALI",
+          "total": 99.88
+        },
+        {
+          "nombre": "HERNANDEZ HERNANDEZ ESTEBAN",
+          "nomina": "19201707",
+          "planta": "REH-REHAU",
+          "total": 99.8
+        }
+      ]
+    },
+    {
+      "zona": "Garcia",
+      "coordinador": "IXCATL OLAZARAN",
+      "planta": "EMC-EMPAQUES CARVAJAL, GAL-GRUPO ALEN",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 98.74,
+      "ns_llegada": 98.11,
+      "calidad_ruta": "",
+      "score_seg": 91.49,
+      "pct_score_seg": 96.1,
+      "rend_camion": 4.01,
+      "rend_camioneta": 8.81,
+      "score_rend": 100,
+      "subtotal": 98.24,
+      "top3": [
+        {
+          "nombre": "FLORES OSTOS JOSE ARTURO",
+          "nomina": "19208258",
+          "planta": "EMC-EMPAQUES CARVAJAL",
+          "total": 100
+        },
+        {
+          "nombre": "RIVERO POLO ANGEL IVAN",
+          "nomina": "19309768",
+          "planta": "EMC-EMPAQUES CARVAJAL",
+          "total": 100
+        },
+        {
+          "nombre": "HERNANDEZ GONZALEZ MIGUEL",
+          "nomina": "19201336",
+          "planta": "GAL-GRUPO ALEN",
+          "total": 100
+        }
+      ]
+    },
+    {
+      "zona": "Cienega",
+      "coordinador": "ALBERTO ORTA",
+      "planta": "NAV-NAVISTAR",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 96.83,
+      "ns_llegada": 96.3,
+      "calidad_ruta": 98.36,
+      "score_seg": 93.45,
+      "pct_score_seg": 98.28,
+      "rend_camion": 4.1,
+      "rend_camioneta": "",
+      "score_rend": 100,
+      "subtotal": 97.95,
+      "top3": [
+        {
+          "nombre": "JIMENEZ GONZALEZ JOSE ANGEL",
+          "nomina": "19208781",
+          "planta": "NAV-NAVISTAR",
+          "total": 100
+        },
+        {
+          "nombre": "TIBURCIO CALIENTE HUMBERTO ADRIAN",
+          "nomina": "19311768",
+          "planta": "NAV-NAVISTAR",
+          "total": 100
+        },
+        {
+          "nombre": "ZAMARRIPA LOPEZ JOSE ALFREDO",
+          "nomina": "19311744",
+          "planta": "NAV-NAVISTAR",
+          "total": 100
+        }
+      ]
+    },
+    {
+      "zona": "Garcia",
+      "coordinador": "FRANSISCO JAVIER",
+      "planta": "REG-MARATHON",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 98.21,
+      "ns_llegada": 97.77,
+      "calidad_ruta": "",
+      "score_seg": 91.13,
+      "pct_score_seg": 95.7,
+      "rend_camion": 4.64,
+      "rend_camioneta": "",
+      "score_rend": 100,
+      "subtotal": 97.92,
+      "top3": [
+        {
+          "nombre": "HERNANDEZ LEYVA EZEQUIEL",
+          "nomina": "19311788",
+          "planta": "REG-MARATHON",
+          "total": 100
+        },
+        {
+          "nombre": "PATRACA LORENZO OLIVER",
+          "nomina": "19207864",
+          "planta": "REG-MARATHON",
+          "total": 99.7
+        },
+        {
+          "nombre": "MORALES PEREZ GABRIEL",
+          "nomina": "19207721",
+          "planta": "REG-MARATHON",
+          "total": 99.6
+        }
+      ]
+    },
+    {
+      "zona": "Cienega",
+      "coordinador": "OSCAR LUCIO",
+      "planta": "BWY-BRAZEWAY",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 100,
+      "ns_llegada": 100,
+      "calidad_ruta": 95.18,
+      "score_seg": 92.31,
+      "pct_score_seg": 97.01,
+      "rend_camion": 4.14,
+      "rend_camioneta": 7.89,
+      "score_rend": 96.69,
+      "subtotal": 97.78,
+      "top3": [
+        {
+          "nombre": "RAMIREZ AVILA FERNANDO",
+          "nomina": "19202242",
+          "planta": "BWY-BRAZEWAY",
+          "total": 100
+        },
+        {
+          "nombre": "FERNANDEZ HERNANDEZ JAIR",
+          "nomina": "19310146",
+          "planta": "BWY-BRAZEWAY",
+          "total": 99.45
+        },
+        {
+          "nombre": "VILLARREAL ALVARADO FAUSTIN",
+          "nomina": "19205076",
+          "planta": "YAN-YANFENG",
+          "total": 97.66
+        }
+      ]
+    },
+    {
+      "zona": "Garcia",
+      "coordinador": "EDGAR DE LA CRUZ",
+      "planta": "ACU-ACUMENT, BRU-BRUNNEN, MOL-MOLISABA, VIT-VITRO",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 100,
+      "ns_llegada": 99.5,
+      "calidad_ruta": 94.37,
+      "score_seg": 90.38,
+      "pct_score_seg": 94.87,
+      "rend_camion": 4,
+      "rend_camioneta": "",
+      "score_rend": 100,
+      "subtotal": 97.75,
+      "top3": [
+        {
+          "nombre": "CORONADO MONSIVAIS JUAN PEDRO",
+          "nomina": "19202115",
+          "planta": "VIT-VITRO",
+          "total": 98.72
+        },
+        {
+          "nombre": "CARRIZALES SALAS ALAN ELIUD",
+          "nomina": "19311057",
+          "planta": "VIT-VITRO",
+          "total": 98.46
+        },
+        {
+          "nombre": "PINEDA DE SANTIAGO ANGEL",
+          "nomina": "19201542",
+          "planta": "VIT-VITRO",
+          "total": 98.39
+        }
+      ]
+    },
+    {
+      "zona": "Cienega",
+      "coordinador": "ROBERTO MTZ",
+      "planta": "CON-CONMET",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 97.41,
+      "ns_llegada": 95.26,
+      "calidad_ruta": "",
+      "score_seg": 93.02,
+      "pct_score_seg": 97.8,
+      "rend_camion": 4.31,
+      "rend_camioneta": 8.72,
+      "score_rend": 100,
+      "subtotal": 97.62,
+      "top3": [
+        {
+          "nombre": "HERNANDEZ HERNANDEZ ALEJANDRO",
+          "nomina": "19311743",
+          "planta": "CON-CONMET",
+          "total": 100
+        },
+        {
+          "nombre": "GANDARA GARCIA LUIS FERNAND",
+          "nomina": "19207995",
+          "planta": "CON-CONMET",
+          "total": 100
+        },
+        {
+          "nombre": "GARCIA DOÑEZ ARMANDO",
+          "nomina": "19206300",
+          "planta": "CON-CONMET",
+          "total": 100
+        }
+      ]
+    },
+    {
+      "zona": "Cienega",
+      "coordinador": "ISAEL RODRIGUEZ",
+      "planta": "NAV-NAVISTAR",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 97.56,
+      "ns_llegada": 97.56,
+      "calidad_ruta": 98.42,
+      "score_seg": 93.66,
+      "pct_score_seg": 98.52,
+      "rend_camion": 3.95,
+      "rend_camioneta": "",
+      "score_rend": 94.46,
+      "subtotal": 97.3,
+      "top3": [
+        {
+          "nombre": "RIVERA HERNANDEZ LUIS MARCELO",
+          "nomina": "19201297",
+          "planta": "NAV-NAVISTAR",
+          "total": 99.92
+        },
+        {
+          "nombre": "HERRERA GONZALEZ ISRAEL",
+          "nomina": "19309161",
+          "planta": "NAV-NAVISTAR",
+          "total": 99.72
+        },
+        {
+          "nombre": "MORALES LEDEZMA ROBERTO ALF",
+          "nomina": "19310766",
+          "planta": "NAV-NAVISTAR",
+          "total": 98.8
+        }
+      ]
+    },
+    {
+      "zona": "Garcia",
+      "coordinador": "IRVING GONZALEZ",
+      "planta": "AMD-AMD, EYA-ENERYA, GON-GONHER",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 99.04,
+      "ns_llegada": 98.85,
+      "calidad_ruta": 91.31,
+      "score_seg": 91.84,
+      "pct_score_seg": 96.49,
+      "rend_camion": 4.32,
+      "rend_camioneta": "",
+      "score_rend": 100,
+      "subtotal": 97.14,
+      "top3": [
+        {
+          "nombre": "HERNANDEZ CALVILLO JOSE INDALE",
+          "nomina": "19201396",
+          "planta": "GON-GONHER",
+          "total": 100
+        },
+        {
+          "nombre": "BERMUDEZ GOMEZ TONATIUH",
+          "nomina": "19310888",
+          "planta": "AMD-AMD",
+          "total": 100
+        },
+        {
+          "nombre": "C. PEREZ GARCIA JOSE LUIS",
+          "nomina": "19207094",
+          "planta": "GON-GONHER",
+          "total": 99.76
+        }
+      ]
+    },
+    {
+      "zona": "Garcia",
+      "coordinador": "ANGEL ORTIZ",
+      "planta": "GIN-GINO, TSO-TIENDAS SORIANA",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 97.63,
+      "ns_llegada": 96.7,
+      "calidad_ruta": 94.09,
+      "score_seg": 92.43,
+      "pct_score_seg": 97.15,
+      "rend_camion": 4.01,
+      "rend_camioneta": "",
+      "score_rend": 100,
+      "subtotal": 97.12,
+      "top3": [
+        {
+          "nombre": "GOMEZ ALCALA CARLOS ALBERTO",
+          "nomina": "19311519",
+          "planta": "GAL-GRUPO ALEN",
+          "total": 100
+        },
+        {
+          "nombre": "NAVARRO RAMIREZ MIGUEL",
+          "nomina": "19201676",
+          "planta": "ALC-ALCALI",
+          "total": 100
+        },
+        {
+          "nombre": "GAYTAN MACIAS ACIEL",
+          "nomina": "19309209",
+          "planta": "GIN-GINO",
+          "total": 100
+        }
+      ]
+    },
+    {
+      "zona": "Cienega",
+      "coordinador": "EFREN PEREZ CRUZ",
+      "planta": "CON-CONMET",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 98.01,
+      "ns_llegada": 94.02,
+      "calidad_ruta": "",
+      "score_seg": 92.74,
+      "pct_score_seg": 97.49,
+      "rend_camion": 4.32,
+      "rend_camioneta": 7.38,
+      "score_rend": 98.11,
+      "subtotal": 96.91,
+      "top3": [
+        {
+          "nombre": "BOLAÑOS ORTEGA FIDEL",
+          "nomina": "19311821",
+          "planta": "CON-CONMET",
+          "total": 100
+        },
+        {
+          "nombre": "HERRERA OLVERA VICTOR JOAQUIN",
+          "nomina": "19207077",
+          "planta": "CON-CONMET",
+          "total": 100
+        },
+        {
+          "nombre": "HERNANDEZ CASTILLO JOSE LUIS",
+          "nomina": "19201393",
+          "planta": "CON-CONMET",
+          "total": 100
+        }
+      ]
+    },
+    {
+      "zona": "Garcia",
+      "coordinador": "DANIEL CASTILLO",
+      "planta": "GRA-ARTIGRAF, LBL-LUBRAL, SID-GRUPO SID GARCIA, VTE-VERTEX MTY",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 100,
+      "ns_llegada": 97.4,
+      "calidad_ruta": 91.21,
+      "score_seg": 90.07,
+      "pct_score_seg": 94.53,
+      "rend_camion": 4.28,
+      "rend_camioneta": "",
+      "score_rend": 100,
+      "subtotal": 96.63,
+      "top3": [
+        {
+          "nombre": "PORTILLA HERNANDEZ JOSE LUIS",
+          "nomina": "19311891",
+          "planta": "LBL-LUBRAL",
+          "total": 100
+        },
+        {
+          "nombre": "DELGADO SANCHEZ JUAN",
+          "nomina": "19311892",
+          "planta": "LBL-LUBRAL",
+          "total": 100
+        },
+        {
+          "nombre": "CEPEDA AYALA MIGUEL ANGEL",
+          "nomina": "19311742",
+          "planta": "LBL-LUBRAL",
+          "total": 98.55
+        }
+      ]
+    },
+    {
+      "zona": "Garcia",
+      "coordinador": "NICOLAS CORONADO",
+      "planta": "NEM-NEMAK",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 98.64,
+      "ns_llegada": 97.96,
+      "calidad_ruta": 95.37,
+      "score_seg": 93.75,
+      "pct_score_seg": 98.61,
+      "rend_camion": 3.92,
+      "rend_camioneta": "",
+      "score_rend": 91.87,
+      "subtotal": 96.49,
+      "top3": [
+        {
+          "nombre": "INFANTE DAVILA PAULINO",
+          "nomina": "19311698",
+          "planta": "NEM-NEMAK",
+          "total": 100
+        },
+        {
+          "nombre": "AGUIRRE NANDAYAPA JOSE UZIE",
+          "nomina": "19310748",
+          "planta": "NEM-NEMAK",
+          "total": 100
+        },
+        {
+          "nombre": "MENDEZ LEON LUIS FERNANDO",
+          "nomina": "19311595",
+          "planta": "NEM-NEMAK",
+          "total": 100
+        }
+      ]
+    },
+    {
+      "zona": "Cienega",
+      "coordinador": "FERNANDO ESPINOZA",
+      "planta": "DND-DONALDSON",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 95.97,
+      "ns_llegada": 90.32,
+      "calidad_ruta": 93.77,
+      "score_seg": 93.7,
+      "pct_score_seg": 98.56,
+      "rend_camion": 4.13,
+      "rend_camioneta": "",
+      "score_rend": 100,
+      "subtotal": 95.72,
+      "top3": [
+        {
+          "nombre": "FIGUEROA PEREYRA ERICK DE J",
+          "nomina": "19204190",
+          "planta": "DND-DONALDSON",
+          "total": 99.39
+        },
+        {
+          "nombre": "VELAZQUEZ PAREDES CARLOS",
+          "nomina": "19310908",
+          "planta": "BWY-BRAZEWAY",
+          "total": 97.89
+        },
+        {
+          "nombre": "BARRIOS VAZQUEZ BERNABE LEO",
+          "nomina": "19311017",
+          "planta": "DND-DONALDSON",
+          "total": 97.77
+        }
+      ]
+    },
+    {
+      "zona": "Garcia",
+      "coordinador": "CELESTE LOPEZ",
+      "planta": "NEM-NEMAK",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 100,
+      "ns_llegada": 100,
+      "calidad_ruta": "",
+      "score_seg": 92.23,
+      "pct_score_seg": 96.92,
+      "rend_camion": 3.85,
+      "rend_camioneta": "",
+      "score_rend": 84.75,
+      "subtotal": 95.42,
+      "top3": [
+        {
+          "nombre": "CORONADO SALDANA ROGELIO",
+          "nomina": "19201339",
+          "planta": "NEM-NEMAK",
+          "total": 100
+        },
+        {
+          "nombre": "DOMINGUEZ SERRANO ANACLETO",
+          "nomina": "19309214",
+          "planta": "NEM-NEMAK",
+          "total": 100
+        },
+        {
+          "nombre": "PEREZ RAMIREZ GUARNER ALEXI",
+          "nomina": "19208851",
+          "planta": "NEM-NEMAK",
+          "total": 100
+        }
+      ]
+    },
+    {
+      "zona": "Cienega",
+      "coordinador": "IVAN IBARRA",
+      "planta": "NAV-NAVISTAR",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 99,
+      "ns_llegada": 98,
+      "calidad_ruta": "",
+      "score_seg": 93.85,
+      "pct_score_seg": 98.73,
+      "rend_camion": 3.83,
+      "rend_camioneta": 8.2,
+      "score_rend": 82.76,
+      "subtotal": 94.62,
+      "top3": []
+    },
+    {
+      "zona": "Garcia",
+      "coordinador": "MANUEL AVALOS",
+      "planta": "HAR-HARIMASA, RYD-RYDER GARCIA, VIT-VITRO",
+      "udn": "Settepi Garcia",
+      "ns_inicio": 98.75,
+      "ns_llegada": 98.33,
+      "calidad_ruta": 89.36,
+      "score_seg": 92.68,
+      "pct_score_seg": 97.42,
+      "rend_camion": 3.81,
+      "rend_camioneta": 7.41,
+      "score_rend": 80.21,
+      "subtotal": 92.81,
+      "top3": [
+        {
+          "nombre": "SEGUNDO GONZALEZ ENRIQUE",
+          "nomina": "19205556",
+          "planta": "GIN-GINO",
+          "total": 99.76
+        },
+        {
+          "nombre": "GARCIA PEREZ LUIS FERNANDO",
+          "nomina": "19311065",
+          "planta": "VIT-VITRO",
+          "total": 99.62
+        },
+        {
+          "nombre": "LARA MENDEZ MIGUEL",
+          "nomina": "19310952",
+          "planta": "GIN-GINO",
+          "total": 99.6
+        }
+      ]
+    },
+    {
+      "zona": "Garcia",
+      "coordinador": "EVER MARTINEZ",
+      "planta": "NEM-NEMAK",
+      "udn": "Settepi Garcia",
+      "ns_inicio": null,
+      "ns_llegada": null,
+      "calidad_ruta": null,
+      "score_seg": null,
+      "pct_score_seg": null,
+      "rend_camion": null,
+      "rend_camioneta": null,
+      "score_rend": null,
+      "subtotal": null,
+      "top3": [
+        {
+          "nombre": "REYNA ALEMAN JUAN ANGEL",
+          "nomina": "19208604",
+          "planta": "NEM-NEMAK",
+          "total": 100
+        },
+        {
+          "nombre": "MEDINA MONTAÑO JESUS",
+          "nomina": "19310783",
+          "planta": "NEM-NEMAK",
+          "total": 100
+        },
+        {
+          "nombre": "FRAGOSO ARENAS FERNANDO",
+          "nomina": "19311791",
+          "planta": "NEM-NEMAK",
+          "total": 100
+        }
+      ]
+    },
+    {
+      "zona": "Cienega",
+      "coordinador": "HUGO CASTILLO",
+      "planta": "YAN-YANFENG",
+      "udn": "Settepi Garcia",
+      "ns_inicio": null,
+      "ns_llegada": null,
+      "calidad_ruta": null,
+      "score_seg": null,
+      "pct_score_seg": null,
+      "rend_camion": null,
+      "rend_camioneta": null,
+      "score_rend": null,
+      "subtotal": null,
+      "top3": [
+        {
+          "nombre": "SALAS GONZALEZ LUIS DAVID",
+          "nomina": "19309695",
+          "planta": "YAN-YANFENG",
+          "total": 99.86
+        },
+        {
+          "nombre": "MUÑIZ MOLINA NANCY",
+          "nomina": "19204148",
+          "planta": "YAN-YANFENG",
+          "total": 99.64
+        },
+        {
+          "nombre": "TOLEDO HERNANDEZ JOSE ANGEL",
+          "nomina": "19208005",
+          "planta": "YAN-YANFENG",
+          "total": 99.46
+        }
+      ]
+    },
+    {
+      "zona": "Cienega",
+      "coordinador": "JESUS GOVEA",
+      "planta": "NAV-NAVISTAR",
+      "udn": "Settepi Garcia",
+      "ns_inicio": null,
+      "ns_llegada": null,
+      "calidad_ruta": null,
+      "score_seg": null,
+      "pct_score_seg": null,
+      "rend_camion": null,
+      "rend_camioneta": null,
+      "score_rend": null,
+      "subtotal": null,
+      "top3": [
+        {
+          "nombre": "GARCIA RAMIREZ BLANCA MIREY",
+          "nomina": "19309171",
+          "planta": "NAV-NAVISTAR",
+          "total": 100
+        },
+        {
+          "nombre": "MARTINEZ VALDERRABANO RUBEN",
+          "nomina": "19309663",
+          "planta": "NAV-NAVISTAR",
+          "total": 100
+        },
+        {
+          "nombre": "PAREDONES GARCIA MAYELA SAR",
+          "nomina": "19207428",
+          "planta": "NAV-NAVISTAR",
+          "total": 99.51
+        }
+      ]
+    }
+  ]
+};
+
+const fmt = (v, digits=2) => {
+  if (v === null || v === undefined || v === "" ) return "–";
+  if (typeof v === "number") return v.toFixed(digits);
+  const n = Number(v);
+  return isNaN(n) ? String(v) : n.toFixed(digits);
+};
+const fmtPct = v => v === null || v === undefined || v === "" ? "–" : `${fmt(v,2)}%`;
+const fmtNum = v => fmt(v, 2);
+
+const $ = id => document.getElementById(id);
+const state = {
+  zona: "",
+  coord: "",
+  planta: "",
+  udn: "",
+  search: "",
+  showOps: true,
+};
+
+function populateSelect(id, values, placeholder){
+  const sel = $(id);
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">${placeholder}</option>` + values.map(v=>`<option value="${v}">${v}</option>`).join("");
+  sel.value = cur;
+}
+
+function uniqueValues(field, filter){
+  const set = new Set();
+  DATA.coords.forEach(c=>{
+    if (filter && !filter(c)) return;
+    if (field === "planta"){
+      String(c.planta||"").split(",").map(p=>p.trim()).filter(Boolean).forEach(p=>set.add(p));
+    } else {
+      const v = c[field];
+      if (v) set.add(v);
+    }
+  });
+  return [...set].sort();
+}
+
+function applyFilters(){
+  return DATA.coords.filter(c=>{
+    if (state.zona && c.zona !== state.zona) return false;
+    if (state.coord && c.coordinador !== state.coord) return false;
+    if (state.planta && !String(c.planta||"").split(",").map(x=>x.trim()).includes(state.planta)) return false;
+    if (state.udn && c.udn !== state.udn) return false;
+    if (state.search){
+      const q = state.search.toLowerCase();
+      const inCoord = c.coordinador.toLowerCase().includes(q);
+      const inPlanta = String(c.planta||"").toLowerCase().includes(q);
+      const inOp = (c.top3||[]).some(o => (o.nombre||"").toLowerCase().includes(q) || String(o.nomina||"").includes(q));
+      if (!(inCoord || inPlanta || inOp)) return false;
+    }
+    return true;
+  });
+}
+
+function sortBySubtotal(rows){
+  return rows.slice().sort((a,b)=>{
+    const sa = (a.subtotal ?? -1), sb = (b.subtotal ?? -1);
+    if (sb !== sa) return sb - sa;
+    return a.coordinador.localeCompare(b.coordinador);
+  });
+}
+
+function medal(pos){
+  if (pos===1) return `<span class="medal" title="1° lugar">🥇</span>`;
+  if (pos===2) return `<span class="medal" title="2° lugar">🥈</span>`;
+  if (pos===3) return `<span class="medal" title="3° lugar">🥉</span>`;
+  return pos;
+}
+
+function valClass(v, kind){
+  if (v === null || v === undefined || v === "") return "value-empty";
+  const n = Number(v);
+  if (kind === "pct"){
+    if (n >= 97) return "value-good";
+    if (n >= 90) return "value-mid";
+    return "";
+  }
+  return "value-good";
+}
+
+function render(){
+  const filtered = sortBySubtotal(applyFilters());
+
+  // Stats
+  const withSubtotal = filtered.filter(c => typeof c.subtotal === "number");
+  const avg = withSubtotal.length ? withSubtotal.reduce((s,c)=>s+c.subtotal,0)/withSubtotal.length : null;
+  $("statPct").textContent = avg === null ? "—" : `${avg.toFixed(1)}%`;
+  $("statCount").textContent = filtered.length;
+  const opCount = filtered.reduce((s,c)=>s+(c.top3?.length||0), 0);
+  $("statOps").textContent = `${opCount} operadores en Top 3`;
+
+  // Top counters
+  $("cntAll").textContent = DATA.coords.length;
+  $("cntCie").textContent = DATA.coords.filter(c=>c.zona==="Cienega").length;
+  $("cntGar").textContent = DATA.coords.filter(c=>c.zona==="Garcia").length;
+
+  // Table
+  const tb = $("tbody");
+  if (!filtered.length){
+    tb.innerHTML = `<tr><td colspan="13" class="no-data">Sin resultados con los filtros actuales</td></tr>`;
+    return;
+  }
+
+  const html = [];
+  filtered.forEach((c, i)=>{
+    const pos = i+1;
+    html.push(`
+      <tr class="coord-row">
+        <td class="pos">${medal(pos)}</td>
+        <td class="coord">
+          ${state.showOps ? `<button class="toggle-btn" data-idx="${i}" aria-label="Toggle operadores">▸</button>` : ""}
+          ${c.coordinador}
+        </td>
+        <td class="planta">${c.planta || "–"}</td>
+        <td class="udn">${c.udn || "–"}</td>
+        <td class="num ${valClass(c.ns_inicio,"pct")}">${fmtPct(c.ns_inicio)}</td>
+        <td class="num ${valClass(c.ns_llegada,"pct")}">${fmtPct(c.ns_llegada)}</td>
+        <td class="num ${valClass(c.calidad_ruta,"pct")}">${fmtPct(c.calidad_ruta)}</td>
+        <td class="num ${valClass(c.score_seg,"pct")}">${fmtNum(c.score_seg)}</td>
+        <td class="num ${valClass(c.pct_score_seg,"pct")}">${fmtPct(c.pct_score_seg)}</td>
+        <td class="num ${valClass(c.rend_camion,"num")}">${fmtNum(c.rend_camion)}</td>
+        <td class="num ${valClass(c.rend_camioneta,"num")}">${fmtNum(c.rend_camioneta)}</td>
+        <td class="num ${valClass(c.score_rend,"pct")}">${fmtPct(c.score_rend)}</td>
+        <td class="num subtotal">${c.subtotal===null||c.subtotal===undefined||c.subtotal===""?"–":c.subtotal.toFixed(2)+"%"}</td>
+      </tr>
+    `);
+    if (state.showOps){
+      const ops = c.top3 || [];
+      if (!ops.length){
+        html.push(`<tr class="op-row" data-parent="${i}">
+          <td></td>
+          <td colspan="12" class="empty-op">Sin operadores asignados en Viajes facturación</td>
+        </tr>`);
+      } else {
+        ops.forEach((o, k)=>{
+          html.push(`<tr class="op-row" data-parent="${i}">
+            <td class="pos" style="color:#8a94a6">${k+1}°</td>
+            <td class="op-name">${o.nombre} <span style="color:#8a94a6;font-weight:400">· ${o.nomina}</span></td>
+            <td class="planta">${o.planta||"–"}</td>
+            <td class="udn">–</td>
+            <td colspan="8"></td>
+            <td class="num op-total">${o.total===null||o.total===undefined||o.total===""?"–":Number(o.total).toFixed(2)+"%"}</td>
+          </tr>`);
+        });
+      }
+    }
+  });
+  tb.innerHTML = html.join("");
+
+  // toggle handlers
+  tb.querySelectorAll(".toggle-btn").forEach(btn=>{
+    btn.addEventListener("click", e=>{
+      const idx = btn.dataset.idx;
+      const open = btn.classList.toggle("open");
+      btn.textContent = open ? "▾" : "▸";
+      tb.querySelectorAll(`.op-row[data-parent="${idx}"]`).forEach(r=>{
+        r.style.display = open ? "" : "none";
+      });
+    });
+  });
+  // start collapsed
+  tb.querySelectorAll(".op-row").forEach(r=>r.style.display="none");
+}
+
+function refreshFilters(){
+  populateSelect("fCoord", uniqueValues("coordinador", c => !state.zona || c.zona === state.zona), "Todos");
+  populateSelect("fPlanta", uniqueValues("planta", c => !state.zona || c.zona === state.zona), "Todas");
+  populateSelect("fUdn", uniqueValues("udn"), "Todas");
+}
+
+function bind(){
+  $("fZona").addEventListener("change", e=>{ state.zona = e.target.value; refreshFilters(); render(); syncTabs(); });
+  $("fCoord").addEventListener("change", e=>{ state.coord = e.target.value; render(); });
+  $("fPlanta").addEventListener("change", e=>{ state.planta = e.target.value; render(); });
+  $("fUdn").addEventListener("change", e=>{ state.udn = e.target.value; render(); });
+  $("fSearch").addEventListener("input", e=>{ state.search = e.target.value; render(); });
+  $("fShowOps").addEventListener("change", e=>{ state.showOps = e.target.checked; render(); });
+  $("clearBtn").addEventListener("click", clearAll);
+  $("resetBtn").addEventListener("click", clearAll);
+  document.querySelectorAll("#zoneTabs .tab").forEach(t=>{
+    t.addEventListener("click", ()=>{
+      const z = t.dataset.zone;
+      state.zona = z;
+      $("fZona").value = z;
+      syncTabs();
+      refreshFilters();
+      render();
+    });
+  });
+}
+
+function syncTabs(){
+  document.querySelectorAll("#zoneTabs .tab").forEach(t=>{
+    t.classList.toggle("active", (t.dataset.zone||"") === (state.zona||""));
+  });
+}
+
+function clearAll(){
+  state.zona=""; state.coord=""; state.planta=""; state.udn=""; state.search=""; state.showOps=true;
+  $("fZona").value=""; $("fSearch").value=""; $("fShowOps").checked=true;
+  refreshFilters();
+  $("fCoord").value=""; $("fPlanta").value=""; $("fUdn").value="";
+  syncTabs();
+  render();
+}
+
+$("topRight").textContent = `Semana 28 · ${DATA.coords.length} coordinadores`;
+refreshFilters();
+bind();
+render();
+</script>
+</body>
+</html>
