@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ranking Garcia</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='%230f1a2e'/><text x='50%25' y='54%25' text-anchor='middle' dominant-baseline='middle' font-family='Segoe UI,Arial,sans-serif' font-size='34' font-weight='800' fill='%237dd858'>R</text></svg>">
 <style>
   :root{
@@ -53,6 +54,15 @@
   .card-header .icon svg{width:20px;height:20px;color:var(--ink-2)}
   .card-title{font-weight:700;font-size:15px;color:var(--ink);margin:0}
   .card-sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .card-header .header-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .excel-btn{display:inline-flex;align-items:center;gap:6px;background:#1f7a3a;color:#fff;border:1px solid #1a6631;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;transition:.15s;letter-spacing:.2px;box-shadow:0 1px 2px rgba(0,0,0,.08);}
+  .excel-btn:hover{background:#186731;border-color:#12522a}
+  .excel-btn:active{transform:translateY(1px)}
+  .excel-btn svg{width:16px;height:16px}
+  @media (max-width:640px){
+    .excel-btn{padding:7px 10px;font-size:12px}
+    .excel-btn .lbl{display:none}
+  }
   .tabs{display:flex;gap:4px;padding:6px 20px 0;border-bottom:1px solid var(--border)}
   .tab{padding:8px 18px;border-radius:8px 8px 0 0;background:transparent;border:1px solid transparent;border-bottom:none;font-size:13px;font-weight:600;color:var(--ink-2);cursor:pointer;position:relative;top:1px;}
   .tab:hover{color:var(--ink)}
@@ -300,6 +310,12 @@
         <div>
           <h2 class="card-title" id="cardTitle">Ranking por Coordinador</h2>
           <div class="card-sub">Click en fila para ver Top 3 de operadores · click en el ícono de info para recomendaciones</div>
+        </div>
+        <div class="header-actions">
+          <button class="excel-btn" id="excelBtn" title="Descargar tabla actual en Excel">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span class="lbl">Exportar Excel</span>
+          </button>
         </div>
       </div>
       <div class="tabs" id="zoneTabs">
@@ -8176,6 +8192,54 @@ function openTop3Modal(coordName){
   $("modal").classList.add("open");
 }
 
+function exportExcel(){
+  if (typeof XLSX === "undefined"){
+    alert("La librería de Excel no cargó. Verifica tu conexión a internet e intenta de nuevo.");
+    return;
+  }
+  const filtered = sortDesc(applyFilters());
+  if (!filtered.length){ alert("No hay datos para exportar con los filtros actuales."); return; }
+  const isCoord = state.view === "coord";
+  const header = isCoord
+    ? ["#","Coordinador","Zona","Planta","UDN","% NS Inicio","% NS Llegada","Calidad Ruta","Score Seg.","% Score Seg.","Rend. Camión","Rend. Camioneta","Score Rend.","Subtotal","Semana"]
+    : ["#","Operador","Nómina","Zona","Planta","Coordinador","Jefe","UDN","% NS Inicio","% NS Llegada","Calidad Ruta","Score Seg.","% Score Seg.","Rendimiento","Score Rend.","Total","Semana"];
+  const num = v => isNum(v) ? Number(v) : null;
+  const rows = filtered.map((r,i)=>{
+    if (isCoord){
+      return [i+1, r.coordinador||"", r.zona||"", r.planta||"", r.udn||"",
+        num(r.ns_inicio), num(r.ns_llegada), num(r.calidad_ruta),
+        num(r.score_seg), num(r.pct_score_seg),
+        num(r.rend_camion), num(r.rend_camioneta), num(r.score_rend),
+        num(r.subtotal), r.semana||""];
+    }
+    return [i+1, r.operador||"", r.nomina||"", r.zona||"", r.planta||"", r.coordinador||"", r.jefe||"", r.udn||"",
+      num(r.ns_inicio), num(r.ns_llegada), num(r.calidad_ruta),
+      num(r.score_seg), num(r.pct_score_seg),
+      num(r.rendimiento), num(r.score_rend),
+      num(r.total), r.semana||""];
+  });
+  const aoa = [header, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  // Anchos de columna aproximados
+  const widths = isCoord
+    ? [5,32,10,32,10,12,12,12,12,14,14,16,12,12,10]
+    : [5,30,10,10,32,26,20,10,12,12,12,12,14,14,12,10,10];
+  ws["!cols"] = widths.map(w=>({wch:w}));
+  ws["!freeze"] = { xSplit:0, ySplit:1 };
+  ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:rows.length, c:header.length-1} }) };
+  const wb = XLSX.utils.book_new();
+  const sheetName = isCoord ? "Coordinadores" : "Operadores";
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  // Nombre de archivo con filtros y fecha
+  const parts = ["Ranking_Garcia", isCoord ? "Coord" : "Op"];
+  if (state.zona) parts.push(state.zona);
+  if (state.semana) parts.push("S"+state.semana);
+  const d = new Date();
+  const stamp = d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
+  parts.push(stamp);
+  XLSX.writeFile(wb, parts.join("_")+".xlsx");
+}
+
 function bind(){
   document.querySelectorAll("#viewSwitch button").forEach(b=>{
     b.addEventListener("click", ()=>{
@@ -8197,6 +8261,7 @@ function bind(){
   $("fSearch").addEventListener("input", e=>{ state.search=e.target.value; render(); });
   $("clearBtn").addEventListener("click", clearAll);
   $("resetBtn").addEventListener("click", clearAll);
+  $("excelBtn").addEventListener("click", exportExcel);
   document.querySelectorAll("#zoneTabs .tab").forEach(t=>{
     t.addEventListener("click", ()=>{
       state.zona = t.dataset.zone; $("fZona").value = state.zona;
@@ -8241,6 +8306,56 @@ function clearAll(){
   $("fEntity").value=""; $("fPlanta").value=""; $("fSemana").value=""; if ($("fJefe")) $("fJefe").value=""; if ($("fCoord")) $("fCoord").value="";
   syncTabs(); render();
 }
+
+/* ===== NORMALIZACIÓN DE NOMBRES =====
+   - Coordinadores / jefes: ya están en orden "Nombre Apellido"; solo title case.
+   - Operadores: vienen como "APELLIDO APELLIDO NOMBRE(S)"; se reordenan a
+     "Nombre(s) Apellido Apellido" y se aplica title case.
+   - Se conserva el prefijo "C." cuando aparece (indica coordinador listado como operador).
+*/
+function titleCaseName(s){
+  if (s === null || s === undefined) return s;
+  const str = String(s).trim();
+  if (!str) return str;
+  return str.toLowerCase().replace(/(^|[\s\-\.\/'])(\p{L})/gu, (m, sep, ch) => sep + ch.toUpperCase());
+}
+function reorderOperatorName(raw){
+  if (raw === null || raw === undefined) return raw;
+  let s = String(raw).trim();
+  if (!s) return s;
+  // Detectar prefijo "C." o "C"
+  let prefix = "";
+  const pm = s.match(/^(C\.?)(?:\s+)(.+)$/i);
+  if (pm){ prefix = "C."; s = pm[2].trim(); }
+  const toks = s.split(/\s+/).filter(Boolean);
+  let ordered;
+  if (toks.length >= 3){
+    const apellidos = toks.slice(0, 2);
+    const nombres = toks.slice(2);
+    ordered = nombres.concat(apellidos).join(" ");
+  } else {
+    ordered = toks.join(" ");
+  }
+  const titled = titleCaseName(ordered);
+  return prefix ? (prefix + " " + titled) : titled;
+}
+(function normalizeAllNames(){
+  if (Array.isArray(DATA.coords)){
+    DATA.coords.forEach(c => {
+      if (c.coordinador) c.coordinador = titleCaseName(c.coordinador);
+      if (Array.isArray(c.top3)){
+        c.top3.forEach(t => { if (t.nombre) t.nombre = reorderOperatorName(t.nombre); });
+      }
+    });
+  }
+  if (Array.isArray(DATA.operators)){
+    DATA.operators.forEach(o => {
+      if (o.operador) o.operador = reorderOperatorName(o.operador);
+      if (o.coordinador) o.coordinador = titleCaseName(o.coordinador);
+      if (o.jefe) o.jefe = titleCaseName(o.jefe);
+    });
+  }
+})();
 
 refreshFilters();
 bind();
