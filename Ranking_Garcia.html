@@ -94,19 +94,26 @@
   .tip-btn:hover{background:#2c5aa0;color:#fff;border-color:#2c5aa0}
   .tip-btn svg{width:13px;height:13px;display:block}
   .icon-btn-svg{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;vertical-align:middle;}
-  .modal{max-width:720px !important}
-  .top3-list{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
-  .top3-card{background:#f8f9fb;border-radius:10px;padding:12px 14px;border:1px solid var(--border);}
-  .top3-head{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-  .top3-name{flex:1;min-width:0}
-  .top3-nm{font-weight:800;font-size:14px;color:var(--ink);line-height:1.2}
-  .top3-sub{font-size:11px;color:var(--muted);margin-top:3px}
-  .top3-total{font-weight:800;color:var(--green-dark);font-size:20px;font-variant-numeric:tabular-nums;white-space:nowrap;}
-  .top3-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-  .metric-tile{background:#fff;border:1px solid var(--border);border-radius:6px;padding:8px 6px;text-align:center;min-width:0;}
-  .mt-lbl{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .mt-val{font-size:13px;font-weight:800;color:var(--ink);margin-top:4px;font-variant-numeric:tabular-nums;line-height:1;}
-  .mt-val.dash{color:var(--muted);font-weight:500}
+  .modal{max-width:1100px !important}
+  .top3-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--border);border-radius:8px;}
+  .top3-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;min-width:900px;}
+  .top3-table thead th{background:var(--navy);color:#fff;padding:10px 8px;text-align:left;font-size:10px;letter-spacing:.5px;text-transform:uppercase;font-weight:700;white-space:nowrap;}
+  .top3-table thead th.num{text-align:right}
+  .top3-table thead th.total-col{background:var(--navy-3);border-left:2px solid var(--green);}
+  .top3-table tbody td{padding:11px 8px;border-bottom:1px solid var(--border);vertical-align:middle;background:#fff;}
+  .top3-table tbody tr:last-child td{border-bottom:none}
+  .top3-table tbody td.rank-cell{text-align:center;width:44px;padding:8px}
+  .top3-table tbody td.op-nm{font-weight:700;color:var(--ink);white-space:nowrap;}
+  .top3-table tbody td.op-nm .op-nom{display:block;font-weight:500;color:var(--muted);font-size:10px;margin-top:2px;font-variant-numeric:tabular-nums;}
+  .top3-table tbody td.planta-cell{color:var(--ink-2);font-size:11px;white-space:nowrap;}
+  .top3-table tbody td.num{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600;}
+  .top3-table tbody td.num.dash{color:var(--muted);font-weight:400}
+  .top3-table tbody td.total-cell{text-align:right;font-weight:800;color:var(--green-dark);font-variant-numeric:tabular-nums;background:#fffef0 !important;border-left:2px solid #f2e8b8;}
+  @media (max-width:780px){
+    .top3-table{min-width:760px;font-size:11px}
+    .top3-table thead th{padding:8px 6px;font-size:9px}
+    .top3-table tbody td{padding:9px 6px}
+  }
   .modal-overlay{position:fixed;inset:0;background:rgba(15,26,46,.5);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;}
   .modal-overlay.open{display:flex}
   .modal{background:#fff;border-radius:12px;max-width:640px;width:100%;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);}
@@ -7580,10 +7587,16 @@ function refreshFilters(){
   const zoneFilter = state.zona ? (r => r.zona === state.zona) : null;
   populateSelect("fEntity", uniqueFromCurrent(state.view==="coord"?"coordinador":"operador", zoneFilter), "Todos");
   populateSelect("fPlanta", uniqueFromCurrent("planta", zoneFilter), "Todas");
-  // Semanas: ordenadas numéricamente descendentes
-  const semanas = [...new Set(currentDataset().map(r=>r.semana).filter(v=>v!==undefined&&v!==null&&v!==""))].sort((a,b)=>Number(b)-Number(a));
+  // Semanas: mezclamos las que existen en los datos + un rango de 1 al máximo detectado (para navegación futura)
+  const semanasData = new Set(currentDataset().map(r=>Number(r.semana)).filter(v=>!isNaN(v)));
+  const maxSem = semanasData.size ? Math.max(...semanasData) : 52;
+  const allSem = [];
+  for (let i = maxSem; i >= 1; i--) allSem.push(i);
   const selSem = $("fSemana"); const curSem = selSem.value;
-  selSem.innerHTML = `<option value="">Todas</option>` + semanas.map(v=>`<option value="${v}">Semana ${v}</option>`).join("");
+  selSem.innerHTML = `<option value="">Todas</option>` + allSem.map(v=>{
+    const has = semanasData.has(v);
+    return `<option value="${v}"${has?'':' disabled style="color:#bbb"'}>Semana ${v}${has?'':' (sin datos)'}</option>`;
+  }).join("");
   if ([...selSem.options].some(o=>o.value===curSem)) selSem.value = curSem;
   if (state.view === "op") {
     populateSelect("fJefe", uniqueFromCurrent("jefe", zoneFilter), "Todos");
@@ -7709,23 +7722,10 @@ function renderModal(name, sub, headline, weak, strong, kind){
   $("modal").classList.add("open");
 }
 
-function renderOpMetrics(op){
-  const metrics = [
-    {k:'ns_inicio', l:'NS Inicio', t:'pct'},
-    {k:'ns_llegada', l:'NS Llegada', t:'pct'},
-    {k:'calidad_ruta', l:'Calidad Ruta', t:'pct'},
-    {k:'score_seg', l:'Score Seg.', t:'num'},
-    {k:'% Score', l:'% Score Seg.', t:'pct', k2:'pct_score_seg'},
-    {k:'rendimiento', l:'Rendimiento', t:'pct'},
-    {k:'score_rend', l:'Score Rend.', t:'pct'},
-  ];
-  return `<div class="top3-metrics">` + metrics.map(m=>{
-    const key = m.k2 || m.k;
-    const v = op[key];
-    const has = isNum(v);
-    const val = has ? (m.t==='pct'?v.toFixed(2)+'%':v.toFixed(2)) : '–';
-    return `<div class="metric-tile"><div class="mt-lbl">${m.l}</div><div class="mt-val${has?'':' dash'}">${val}</div></div>`;
-  }).join('') + `</div>`;
+function fmtCell(v, type){
+  if (!isNum(v)) return `<td class="num dash">–</td>`;
+  const val = type==='pct' ? v.toFixed(2)+'%' : v.toFixed(2);
+  return `<td class="num">${val}</td>`;
 }
 
 function openTop3Modal(coordName){
@@ -7738,25 +7738,40 @@ function openTop3Modal(coordName){
   if (!top3.length){
     body.push(`<div class="rec-empty">Sin operadores en el Top 3.</div>`);
   } else {
-    body.push(`<div class="top3-list">`);
+    body.push(`<div class="top3-table-wrap"><table class="top3-table">
+      <thead><tr>
+        <th>#</th>
+        <th>Operador</th>
+        <th>Planta</th>
+        <th class="num">% NS Inicio</th>
+        <th class="num">% NS Llegada</th>
+        <th class="num">Calidad Ruta</th>
+        <th class="num">Score Seg.</th>
+        <th class="num">% Score Seg.</th>
+        <th class="num">Rendimiento</th>
+        <th class="num">Score Rend.</th>
+        <th class="num total-col">Total</th>
+      </tr></thead><tbody>`);
     top3.forEach((t, i) => {
       const rank = i + 1;
-      const op = DATA.operators.find(o => String(o.nomina) === String(t.nomina));
+      const op = DATA.operators.find(o => String(o.nomina) === String(t.nomina)) || {};
       const badgeCls = rank===1?'gold':rank===2?'silver':'bronze';
       const total = isNum(t.total) ? Number(t.total).toFixed(2)+'%' : (t.total||'–');
-      body.push(`<div class="top3-card">
-        <div class="top3-head">
-          <span class="rank-badge ${badgeCls}">${rank}</span>
-          <div class="top3-name">
-            <div class="top3-nm">${t.nombre}</div>
-            <div class="top3-sub">Nómina ${t.nomina} · ${t.planta||"–"}</div>
-          </div>
-          <div class="top3-total">${total}</div>
-        </div>
-        ${op ? renderOpMetrics(op) : `<div class="rec-empty" style="padding:6px 0">Detalle de indicadores no disponible.</div>`}
-      </div>`);
+      body.push(`<tr>
+        <td class="rank-cell"><span class="rank-badge ${badgeCls}">${rank}</span></td>
+        <td class="op-nm">${t.nombre}<span class="op-nom">Nómina ${t.nomina}</span></td>
+        <td class="planta-cell">${t.planta||op.planta||"–"}</td>
+        ${fmtCell(op.ns_inicio,'pct')}
+        ${fmtCell(op.ns_llegada,'pct')}
+        ${fmtCell(op.calidad_ruta,'pct')}
+        ${fmtCell(op.score_seg,'num')}
+        ${fmtCell(op.pct_score_seg,'pct')}
+        ${fmtCell(op.rendimiento,'pct')}
+        ${fmtCell(op.score_rend,'pct')}
+        <td class="total-cell">${total}</td>
+      </tr>`);
     });
-    body.push(`</div>`);
+    body.push(`</tbody></table></div>`);
   }
   $("mBody").innerHTML = body.join("");
   $("modal").classList.add("open");
