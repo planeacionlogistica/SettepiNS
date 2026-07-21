@@ -7899,6 +7899,10 @@ function sortDesc(rows){
     const sa = isNum(sortKey(a)) ? sortKey(a) : -Infinity;
     const sb = isNum(sortKey(b)) ? sortKey(b) : -Infinity;
     if (sb !== sa) return sb - sa;
+    // Desempate: score de seguridad (mayor a menor)
+    const seg_a = isNum(a.score_seg) ? a.score_seg : -Infinity;
+    const seg_b = isNum(b.score_seg) ? b.score_seg : -Infinity;
+    if (seg_b !== seg_a) return seg_b - seg_a;
     const na = (state.view==="coord"?a.coordinador:a.operador) || "";
     const nb = (state.view==="coord"?b.coordinador:b.operador) || "";
     return na.localeCompare(nb);
