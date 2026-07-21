@@ -8204,29 +8204,55 @@ function exportExcel(){
     ? ["#","Coordinador","Zona","Planta","UDN","% NS Inicio","% NS Llegada","Calidad Ruta","Score Seg.","% Score Seg.","Rend. Camión","Rend. Camioneta","Score Rend.","Subtotal","Semana"]
     : ["#","Operador","Nómina","Zona","Planta","Coordinador","Jefe","UDN","% NS Inicio","% NS Llegada","Calidad Ruta","Score Seg.","% Score Seg.","Rendimiento","Score Rend.","Total","Semana"];
   const num = v => isNum(v) ? Number(v) : null;
-  const rows = filtered.map((r,i)=>{
-    if (isCoord){
-      return [i+1, r.coordinador||"", r.zona||"", r.planta||"", r.udn||"",
+  const aoa = [header];
+  let dataRowCount = 0;
+  if (isCoord){
+    filtered.forEach((r,i)=>{
+      aoa.push([i+1, r.coordinador||"", r.zona||"", r.planta||"", r.udn||"",
         num(r.ns_inicio), num(r.ns_llegada), num(r.calidad_ruta),
         num(r.score_seg), num(r.pct_score_seg),
         num(r.rend_camion), num(r.rend_camioneta), num(r.score_rend),
-        num(r.subtotal), r.semana||""];
-    }
-    return [i+1, r.operador||"", r.nomina||"", r.zona||"", r.planta||"", r.coordinador||"", r.jefe||"", r.udn||"",
-      num(r.ns_inicio), num(r.ns_llegada), num(r.calidad_ruta),
-      num(r.score_seg), num(r.pct_score_seg),
-      num(r.rendimiento), num(r.score_rend),
-      num(r.total), r.semana||""];
-  });
-  const aoa = [header, ...rows];
+        num(r.subtotal), r.semana||""]);
+      dataRowCount++;
+      // Top 3 operadores del coordinador (anidados)
+      const top3 = Array.isArray(r.top3) ? r.top3 : [];
+      top3.forEach((t, ti) => {
+        const op = DATA.operators.find(o => String(o.nomina) === String(t.nomina)) || {};
+        const label = "   → Top " + (ti+1) + ": " + (t.nombre || "") + (t.nomina ? "  (Nómina " + t.nomina + ")" : "");
+        aoa.push([
+          "",                                      // #
+          label,                                   // Coordinador (nombre del operador anidado)
+          op.zona || r.zona || "",                 // Zona
+          t.planta || op.planta || "",             // Planta
+          "",                                      // UDN
+          num(op.ns_inicio), num(op.ns_llegada), num(op.calidad_ruta),
+          num(op.score_seg), num(op.pct_score_seg),
+          null, null,                              // Rend. Camión / Camioneta (no aplica a operador)
+          num(op.score_rend),
+          num(t.total != null ? t.total : op.total),
+          op.semana || r.semana || ""
+        ]);
+        dataRowCount++;
+      });
+    });
+  } else {
+    filtered.forEach((r,i)=>{
+      aoa.push([i+1, r.operador||"", r.nomina||"", r.zona||"", r.planta||"", r.coordinador||"", r.jefe||"", r.udn||"",
+        num(r.ns_inicio), num(r.ns_llegada), num(r.calidad_ruta),
+        num(r.score_seg), num(r.pct_score_seg),
+        num(r.rendimiento), num(r.score_rend),
+        num(r.total), r.semana||""]);
+      dataRowCount++;
+    });
+  }
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   // Anchos de columna aproximados
   const widths = isCoord
-    ? [5,32,10,32,10,12,12,12,12,14,14,16,12,12,10]
+    ? [5,52,10,32,10,12,12,12,12,14,14,16,12,12,10]
     : [5,30,10,10,32,26,20,10,12,12,12,12,14,14,12,10,10];
   ws["!cols"] = widths.map(w=>({wch:w}));
   ws["!freeze"] = { xSplit:0, ySplit:1 };
-  ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:rows.length, c:header.length-1} }) };
+  ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:dataRowCount, c:header.length-1} }) };
   const wb = XLSX.utils.book_new();
   const sheetName = isCoord ? "Coordinadores" : "Operadores";
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
