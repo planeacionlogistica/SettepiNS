@@ -319,9 +319,9 @@
         </div>
       </div>
       <div class="tabs" id="zoneTabs">
-        <button class="tab active" data-zone="">Todas <span class="count" id="cntAll">0</span></button>
-        <button class="tab" data-zone="Cienega">Cienega <span class="count" id="cntCie">0</span></button>
-        <button class="tab" data-zone="Garcia">Garcia <span class="count" id="cntGar">0</span></button>
+        <button class="tab active" data-zone="">Todas</button>
+        <button class="tab" data-zone="Cienega">Cienega</button>
+        <button class="tab" data-zone="Garcia">Garcia</button>
       </div>
       <div class="table-wrap">
         <table><thead id="thead"></thead><tbody id="tbody"></tbody></table>
@@ -746,7 +746,7 @@ DATA.operators.push(..._SEM29_OPS);
 
 const state = { view:"coord", zona:"", entity:"", planta:"", semana:"", jefe:"", coordFilter:"", search:"" };
 
-const COORD_COLS = [{h:"#",num:true},{h:"Coordinador"},{h:"Planta"},{h:"UDN"},{h:"% NS Inicio",num:true},{h:"% NS Llegada",num:true},{h:"Calidad Ruta",num:true},{h:"Score Seg.",num:true},{h:"% Score Seg.",num:true},{h:"Rend. Camión",num:true},{h:"Rend. Camioneta",num:true},{h:"Score Rend.",num:true},{h:"Subtotal ↓",num:true,subtotal:true},{h:"KMV",num:true},{h:"HD",num:true},{h:"Total",num:true}];
+const COORD_COLS = [{h:"#",num:true},{h:"Coordinador"},{h:"Planta"},{h:"UDN"},{h:"% NS Inicio",num:true},{h:"% NS Llegada",num:true},{h:"Calidad Ruta",num:true},{h:"Score Seg.",num:true},{h:"% Score Seg.",num:true},{h:"Rend. Camión",num:true},{h:"Rend. Camioneta",num:true},{h:"Score Rend.",num:true},{h:"Subtotal ↓",num:true,subtotal:true}];
 const OP_COLS = [{h:"#",num:true},{h:"Operador"},{h:"Nómina"},{h:"Planta"},{h:"Coordinador"},{h:"Jefe"},{h:"UDN"},{h:"% NS Inicio",num:true},{h:"% NS Llegada",num:true},{h:"Calidad Ruta",num:true},{h:"Score Seg.",num:true},{h:"% Score Seg.",num:true},{h:"Rendimiento",num:true},{h:"Score Rend.",num:true},{h:"Total ↓",num:true,subtotal:true}];
 
 function renderHead(){
@@ -838,8 +838,6 @@ function renderTable(filtered){
         ${cellScore(r.rend_camion)}${cellScore(r.rend_camioneta)}
         ${cellPct(r.score_rend)}
         <td class="subtotal">${isNum(r.subtotal)?r.subtotal.toFixed(2)+"%":"–"}</td>
-        ${cellPct(r.kmv)}${cellPct(r.hd)}
-        <td class="num">${isNum(r.total)?r.total.toFixed(2)+"%":"–"}</td>
       </tr>`);
     } else {
       rows.push(`<tr>
@@ -886,10 +884,7 @@ function updateHighlights(){
   $("worstCap").textContent = "Peor "+label;
 }
 function updateZoneCounts(){
-  const ds = currentDataset();
-  $("cntAll").textContent = ds.length;
-  $("cntCie").textContent = ds.filter(r=>r.zona==="Cienega").length;
-  $("cntGar").textContent = ds.filter(r=>r.zona==="Garcia").length;
+  // Contadores de zona removidos (a petición del usuario)
 }
 function refreshFilters(){
   const zoneFilter = state.zona ? (r => r.zona === state.zona) : null;
@@ -1088,7 +1083,7 @@ function exportExcel(){
   if (!filtered.length){ alert("No hay datos para exportar con los filtros actuales."); return; }
   const isCoord = state.view === "coord";
   const header = isCoord
-    ? ["#","Coordinador","Zona","Planta","UDN","% NS Inicio","% NS Llegada","Calidad Ruta","Score Seg.","% Score Seg.","Rend. Camión","Rend. Camioneta","Score Rend.","Subtotal","KMV","HD","Total","Semana"]
+    ? ["#","Coordinador","Zona","Planta","UDN","% NS Inicio","% NS Llegada","Calidad Ruta","Score Seg.","% Score Seg.","Rend. Camión","Rend. Camioneta","Score Rend.","Subtotal","Semana"]
     : ["#","Operador","Nómina","Zona","Planta","Coordinador","Jefe","UDN","% NS Inicio","% NS Llegada","Calidad Ruta","Score Seg.","% Score Seg.","Rendimiento","Score Rend.","Total","Semana"];
   const num = v => isNum(v) ? Number(v) : null;
   const aoa = [header];
@@ -1099,7 +1094,7 @@ function exportExcel(){
         num(r.ns_inicio), num(r.ns_llegada), num(r.calidad_ruta),
         num(r.score_seg), num(r.pct_score_seg),
         num(r.rend_camion), num(r.rend_camioneta), num(r.score_rend),
-        num(r.subtotal), num(r.kmv), num(r.hd), num(r.total), r.semana||""]);
+        num(r.subtotal), r.semana||""]);
       dataRowCount++;
       // Top 3 operadores del coordinador (anidados)
       const top3 = Array.isArray(r.top3) ? r.top3 : [];
@@ -1116,7 +1111,6 @@ function exportExcel(){
           num(op.score_seg), num(op.pct_score_seg),
           null, null,                              // Rend. Camión / Camioneta (no aplica)
           num(op.score_rend),
-          null, null, null,                        // Subtotal / KMV / HD (no aplica)
           num(t.total != null ? t.total : op.total),
           op.semana || r.semana || ""
         ]);
@@ -1136,7 +1130,7 @@ function exportExcel(){
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   // Anchos de columna aproximados
   const widths = isCoord
-    ? [5,52,10,32,10,12,12,12,12,14,14,16,12,12,10,10,10,10]
+    ? [5,52,10,32,10,12,12,12,12,14,14,16,12,12,10]
     : [5,30,10,10,32,26,20,10,12,12,12,12,14,14,12,10,10];
   ws["!cols"] = widths.map(w=>({wch:w}));
   ws["!freeze"] = { xSplit:0, ySplit:1 };
@@ -1269,6 +1263,18 @@ function reorderOperatorName(raw){
       if (o.jefe) o.jefe = titleCaseName(o.jefe);
     });
   }
+})();
+
+/* Dedupe defensivo: si por cualquier razón la misma (coord, semana) aparece
+   más de una vez, colapsamos a una sola fila (nos quedamos con la primera). */
+(function dedupeCoordsBySemana(){
+  if (!Array.isArray(DATA.coords)) return;
+  const seen = new Set();
+  DATA.coords = DATA.coords.filter(c => {
+    const k = (c.coordinador||"").trim().toLowerCase() + "|" + String(c.semana||"");
+    if (seen.has(k)) return false;
+    seen.add(k); return true;
+  });
 })();
 
 /* Semana por defecto = la más reciente disponible en los datos */
