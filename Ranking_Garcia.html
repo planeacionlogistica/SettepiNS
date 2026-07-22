@@ -1268,6 +1268,87 @@ function reorderOperatorName(raw){
   }
 })();
 
+/* ===== DE-DUPLICACIÓN DE COORDINADORES =====
+   Si un coordinador aparece más de una vez (p.ej. una fila por semana),
+   se fusiona en una sola fila con el PROMEDIO de sus métricas numéricas,
+   se toma la semana más reciente y se concatenan las plantas únicas. */
+(function dedupCoordinators(){
+  if (!Array.isArray(DATA.coords)) return;
+  const numFields = ["ns_inicio","ns_llegada","calidad_ruta","score_seg","pct_score_seg",
+                     "rend_camion","rend_camioneta","score_rend","subtotal","kmv","hd","total"];
+  const groups = new Map();
+  DATA.coords.forEach(c => {
+    const key = (c.coordinador || "").trim().toLowerCase();
+    if (!key) return;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(c);
+  });
+  const merged = [];
+  groups.forEach((rows, key) => {
+    if (rows.length === 1){ merged.push(rows[0]); return; }
+    const base = { ...rows[0] };
+    // Plantas: concatenar únicas
+    const plantasSet = new Set();
+    rows.forEach(r => String(r.planta||"").split(",").map(p=>p.trim()).filter(Boolean).forEach(p=>plantasSet.add(p)));
+    base.planta = [...plantasSet].join(", ");
+    // Zona / UDN: tomar la primera no vacía
+    base.zona = rows.find(r => r.zona)?.zona || base.zona || "";
+    base.udn  = rows.find(r => r.udn)?.udn  || base.udn  || "";
+    // Semana más reciente
+    const sems = rows.map(r => Number(r.semana)).filter(v => !isNaN(v));
+    if (sems.length) base.semana = Math.max(...sems);
+    // Promediar campos numéricos (ignorando null/vacío)
+    numFields.forEach(f => {
+      const vals = rows.map(r => r[f]).filter(v => typeof v === "number" && !isNaN(v));
+      base[f] = vals.length ? (vals.reduce((a,b)=>a+b,0) / vals.length) : null;
+    });
+    // Top3: fusionar y quedarnos con los 3 mejores por total, desempate por score_seg
+    const seen = new Map();
+    rows.forEach(r => (r.top3||[]).forEach(t => {
+      const k = String(t.nomina || t.nombre);
+      const prev = seen.get(k);
+      if (!prev || (Number(t.total)||-1) > (Number(prev.total)||-1)) seen.set(k, t);
+    }));
+    const t3 = [...seen.values()].filter(t => typeof t.total === "number")
+      .sort((a,b) => (b.total - a.total) || ((Number(b.score_seg)||-1) - (Number(a.score_seg)||-1)));
+    base.top3 = t3.slice(0, 3);
+    merged.push(base);
+  });
+  DATA.coords = merged;
+})();
+
+/* ===== DE-DUPLICACIÓN DE OPERADORES =====
+   Si un operador (misma nómina) tiene varias filas, promediar métricas y quedarse con una. */
+(function dedupOperators(){
+  if (!Array.isArray(DATA.operators)) return;
+  const numFields = ["ns_inicio","ns_llegada","calidad_ruta","score_seg","pct_score_seg",
+                     "rendimiento","score_rend","total","kmv","hd"];
+  const groups = new Map();
+  DATA.operators.forEach(o => {
+    const key = String(o.nomina || o.operador || "").trim();
+    if (!key) return;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(o);
+  });
+  const merged = [];
+  groups.forEach((rows, key) => {
+    if (rows.length === 1){ merged.push(rows[0]); return; }
+    const base = { ...rows[0] };
+    base.zona = rows.find(r => r.zona)?.zona || base.zona || "";
+    base.planta = rows.find(r => r.planta)?.planta || base.planta || "";
+    base.coordinador = rows.find(r => r.coordinador)?.coordinador || base.coordinador || "";
+    base.jefe = rows.find(r => r.jefe)?.jefe || base.jefe || "";
+    const sems = rows.map(r => Number(r.semana)).filter(v => !isNaN(v));
+    if (sems.length) base.semana = Math.max(...sems);
+    numFields.forEach(f => {
+      const vals = rows.map(r => r[f]).filter(v => typeof v === "number" && !isNaN(v));
+      base[f] = vals.length ? (vals.reduce((a,b)=>a+b,0) / vals.length) : null;
+    });
+    merged.push(base);
+  });
+  DATA.operators = merged;
+})();
+
 refreshFilters();
 bind();
 render();
