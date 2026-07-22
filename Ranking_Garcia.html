@@ -747,7 +747,7 @@ DATA.operators.push(..._SEM29_OPS);
 const state = { view:"coord", zona:"", entity:"", planta:"", semana:"", jefe:"", coordFilter:"", search:"" };
 
 const COORD_COLS = [{h:"#",num:true},{h:"Coordinador"},{h:"Planta"},{h:"UDN"},{h:"% NS Inicio",num:true},{h:"% NS Llegada",num:true},{h:"Calidad Ruta",num:true},{h:"Score Seg.",num:true},{h:"% Score Seg.",num:true},{h:"Rend. Camión",num:true},{h:"Rend. Camioneta",num:true},{h:"Score Rend.",num:true},{h:"Subtotal ↓",num:true,subtotal:true}];
-const OP_COLS = [{h:"#",num:true},{h:"Operador"},{h:"Nómina"},{h:"Planta"},{h:"Coordinador"},{h:"Jefe"},{h:"UDN"},{h:"% NS Inicio",num:true},{h:"% NS Llegada",num:true},{h:"Calidad Ruta",num:true},{h:"Score Seg.",num:true},{h:"% Score Seg.",num:true},{h:"Rendimiento",num:true},{h:"Score Rend.",num:true},{h:"Total ↓",num:true,subtotal:true}];
+const OP_COLS = [{h:"#",num:true},{h:"Operador"},{h:"Nómina"},{h:"Planta"},{h:"% NS Inicio",num:true},{h:"% NS Llegada",num:true},{h:"Calidad Ruta",num:true},{h:"Score Seg.",num:true},{h:"% Score Seg.",num:true},{h:"Rendimiento",num:true},{h:"Score Rend.",num:true},{h:"Total ↓",num:true,subtotal:true}];
 
 function renderHead(){
   const cols = state.view === "coord" ? COORD_COLS : OP_COLS;
@@ -845,9 +845,6 @@ function renderTable(filtered){
         <td class="coord">${r.operador}${tipBtn('op-nomina', r.nomina)}${zonaChip(r.zona)}</td>
         <td class="nomina">${r.nomina||"–"}</td>
         <td class="planta" title="${(r.planta||'').replace(/"/g,'&quot;')}">${r.planta||"–"}</td>
-        <td class="udn">${r.coordinador||"–"}</td>
-        <td class="udn">${r.jefe||"–"}</td>
-        <td class="udn">${r.udn||"–"}</td>
         ${cellPct(r.ns_inicio)}${cellPct(r.ns_llegada)}${cellPct(r.calidad_ruta)}
         ${cellScore(r.score_seg)}${cellPct(r.pct_score_seg)}
         ${cellPct(r.rendimiento)}${cellPct(r.score_rend)}
@@ -900,8 +897,9 @@ function refreshFilters(){
     populateSelect("fCoord", uniqueFromCurrent("coordinador", zoneFilter), "Todos");
   }
   $("lblEntity").textContent = state.view==="coord" ? "COORDINADOR" : "OPERADOR";
-  $("fJefeWrap").style.display = state.view==="op" ? "" : "none";
-  $("fCoordWrap").style.display = state.view==="op" ? "" : "none";
+  // Filtros Jefe/Coordinador ocultos en vista de operadores (a petición del usuario)
+  $("fJefeWrap").style.display = "none";
+  $("fCoordWrap").style.display = "none";
 }
 function render(){
   renderHead();
@@ -1084,7 +1082,7 @@ function exportExcel(){
   const isCoord = state.view === "coord";
   const header = isCoord
     ? ["#","Coordinador","Zona","Planta","UDN","% NS Inicio","% NS Llegada","Calidad Ruta","Score Seg.","% Score Seg.","Rend. Camión","Rend. Camioneta","Score Rend.","Subtotal","Semana"]
-    : ["#","Operador","Nómina","Zona","Planta","Coordinador","Jefe","UDN","% NS Inicio","% NS Llegada","Calidad Ruta","Score Seg.","% Score Seg.","Rendimiento","Score Rend.","Total","Semana"];
+    : ["#","Operador","Nómina","Zona","Planta","% NS Inicio","% NS Llegada","Calidad Ruta","Score Seg.","% Score Seg.","Rendimiento","Score Rend.","Total","Semana"];
   const num = v => isNum(v) ? Number(v) : null;
   const aoa = [header];
   let dataRowCount = 0;
@@ -1119,7 +1117,7 @@ function exportExcel(){
     });
   } else {
     filtered.forEach((r,i)=>{
-      aoa.push([i+1, r.operador||"", r.nomina||"", r.zona||"", r.planta||"", r.coordinador||"", r.jefe||"", r.udn||"",
+      aoa.push([i+1, r.operador||"", r.nomina||"", r.zona||"", r.planta||"",
         num(r.ns_inicio), num(r.ns_llegada), num(r.calidad_ruta),
         num(r.score_seg), num(r.pct_score_seg),
         num(r.rendimiento), num(r.score_rend),
@@ -1131,7 +1129,7 @@ function exportExcel(){
   // Anchos de columna aproximados
   const widths = isCoord
     ? [5,52,10,32,10,12,12,12,12,14,14,16,12,12,10]
-    : [5,30,10,10,32,26,20,10,12,12,12,12,14,14,12,10,10];
+    : [5,30,10,10,32,12,12,12,12,14,14,12,10,10];
   ws["!cols"] = widths.map(w=>({wch:w}));
   ws["!freeze"] = { xSplit:0, ySplit:1 };
   ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:dataRowCount, c:header.length-1} }) };
@@ -1275,6 +1273,22 @@ function reorderOperatorName(raw){
     if (seen.has(k)) return false;
     seen.add(k); return true;
   });
+})();
+
+/* Dedup DEFENSIVO de operadores: si por lo que sea llegan filas repetidas
+   por nómina (una por semana), nos quedamos con la de la SEMANA MÁS RECIENTE. */
+(function dedupeOperatorsByNomina(){
+  if (!Array.isArray(DATA.operators)) return;
+  const bestByNom = new Map();
+  DATA.operators.forEach(o => {
+    const nom = String(o.nomina || "").trim();
+    if (!nom) return;
+    const prev = bestByNom.get(nom);
+    const sem = Number(o.semana) || 0;
+    const prevSem = prev ? (Number(prev.semana) || 0) : -1;
+    if (!prev || sem > prevSem) bestByNom.set(nom, o);
+  });
+  DATA.operators = [...bestByNom.values()];
 })();
 
 /* Semana por defecto = la más reciente disponible en los datos */
