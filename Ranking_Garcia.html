@@ -348,6 +348,13 @@
 
 <script>
 
+// --- Helpers auxiliares (usados por el resto de la app) ---
+const isNum = v => typeof v === "number" && !isNaN(v);
+const fmt = (v,d=2) => { if(v===null||v===undefined||v==="") return null; const n=Number(v); return isNaN(n)?null:n.toFixed(d); };
+const cellPct = v => { const f=fmt(v,2); return f===null?`<td class="num dash">–</td>`:`<td class="num">${f}%</td>`; };
+const cellScore = v => { const f=fmt(v,2); return f===null?`<td class="num dash">–</td>`:`<td class="num score">${f}</td>`; };
+const $ = id => document.getElementById(id);
+
 // === MODO VIVO: lee del Google Sheet en cada carga ===
 const DATA = { coords: [], operators: [] };
 
