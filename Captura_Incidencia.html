@@ -265,15 +265,13 @@
                 </div>
                 <div class="form-group">
                     <label>Planta / Cliente</label>
-                    <select id="planta" required onchange="cargarRutasCliente()">
-                        <option value="">Cargando clientes...</option>
-                    </select>
+                    <input type="text" id="planta" list="clientesList" required autocomplete="off" placeholder="Cargando clientes...">
+                    <datalist id="clientesList"></datalist>
                 </div>
                 <div class="form-group">
                     <label>Ruta</label>
-                    <select id="ruta" required>
-                        <option value="">-- Elige un cliente primero --</option>
-                    </select>
+                    <input type="text" id="ruta" list="rutasList" required autocomplete="off" placeholder="-- Elige un cliente primero --">
+                    <datalist id="rutasList"></datalist>
                 </div>
                 <div class="form-group">
                     <label>N° Unidad</label>
@@ -396,9 +394,13 @@
     });
 
     // ═══════════ SINCRONIZACIÓN CON GOOGLE SHEETS ═══════════
-    // Pega aquí la URL del Web App que obtengas al desplegar el Google Apps Script
-    // (ver instrucciones al final del archivo).
+    // Web App EXISTENTE que guarda / lee las INCIDENCIAS. NO se cambia.
     const SHEETS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbyAqFR6jIYgeh3kPkkcwzQ6r-kXm4EIOeVMUXqwaMLiupcLNaXJpjXIBMJYa8Iu6Cxe/exec";
+
+    // Web App NUEVO (solo lectura) que sirve el catálogo de Clientes y Rutas
+    // desde la hoja "NS" del spreadsheet de rutas anuales.
+    // Pega aquí la URL que obtengas al desplegar el script "Catalogo_Clientes_Rutas.gs".
+    const CATALOGO_WEBAPP_URL = "PEGA_AQUI_LA_URL_DEL_WEB_APP_DE_CATALOGO";
 
     function setSyncStatus(msg, color){
         const el = document.getElementById('syncStatus');
@@ -443,72 +445,77 @@
         document.getElementById('finProg').addEventListener('input', () => calcularDesfase('finProg', 'finReal', 'desfaseFinVisual'));
         document.getElementById('finReal').addEventListener('input', () => calcularDesfase('finProg', 'finReal', 'desfaseFinVisual'));
 
+        // Cuando el cliente cambia (por selección del datalist o al terminar de escribir),
+        // recargar las rutas correspondientes. 'change' dispara al seleccionar del datalist
+        // o al perder foco con un valor distinto.
+        document.getElementById('planta').addEventListener('change', cargarRutasCliente);
+
         cargarClientes();
         mostrarDatos();
     });
 
     // ═══════════ COMBOS DE CLIENTES Y RUTAS DESDE SHEETS ═══════════
+    // Los combos ahora son inputs con <datalist>: el usuario puede escribir libremente,
+    // ver sugerencias filtradas automáticamente por el navegador y aceptar valores que
+    // no estén en la lista (útil para clientes/rutas nuevos que aún no están en NS).
     async function cargarClientes() {
-        const sel = document.getElementById('planta');
+        const input = document.getElementById('planta');
+        const dl = document.getElementById('clientesList');
         try {
-            const resp = await fetch(SHEETS_WEBAPP_URL + '?tipo=clientes');
+            const resp = await fetch(CATALOGO_WEBAPP_URL + '?tipo=clientes');
             const data = await resp.json();
             if (!data.ok) throw new Error(data.error || 'Respuesta inválida');
-            sel.innerHTML = '<option value="">-- Selecciona un cliente --</option>';
-            (data.clientes || []).forEach(c => {
+            // Deduplicar (por si el catálogo trae repetidos) y ordenar alfabéticamente
+            const clientes = [...new Set((data.clientes || [])
+                .map(c => String(c).trim())
+                .filter(c => c))].sort((a, b) => a.localeCompare(b, 'es'));
+            dl.innerHTML = '';
+            clientes.forEach(c => {
                 const opt = document.createElement('option');
                 opt.value = c;
-                opt.text = c;
-                sel.appendChild(opt);
+                dl.appendChild(opt);
             });
+            input.placeholder = `Escribe o selecciona (${clientes.length} clientes)`;
+            setSyncStatus(`✅ ${clientes.length} clientes cargados`, '#2e7d32');
         } catch(err) {
             console.error('Error clientes:', err);
-            sel.innerHTML = '<option value="">Error al cargar clientes</option>';
+            input.placeholder = 'Escribe el cliente (falló la carga)';
             setSyncStatus('❌ No pude cargar los clientes: ' + err.message, '#c62828');
         }
     }
 
     async function cargarRutasCliente() {
-        const cliente = document.getElementById('planta').value;
-        const sel = document.getElementById('ruta');
+        const cliente = document.getElementById('planta').value.trim();
+        const input = document.getElementById('ruta');
+        const dl = document.getElementById('rutasList');
+        dl.innerHTML = '';
         if (!cliente) {
-            sel.innerHTML = '<option value="">-- Elige un cliente primero --</option>';
+            input.placeholder = '-- Elige un cliente primero --';
             return;
         }
-        sel.innerHTML = '<option value="">⏳ Cargando rutas...</option>';
+        input.placeholder = '⏳ Cargando rutas...';
         try {
-            const resp = await fetch(SHEETS_WEBAPP_URL + '?tipo=rutas&cliente=' + encodeURIComponent(cliente));
+            const resp = await fetch(CATALOGO_WEBAPP_URL + '?tipo=rutas&cliente=' + encodeURIComponent(cliente));
             const data = await resp.json();
             if (!data.ok) throw new Error(data.error || 'Respuesta inválida');
-            const rutas = data.rutas || [];
-            if (rutas.length === 0) {
-                sel.innerHTML = '<option value="">Sin rutas registradas para este cliente</option>';
-                return;
-            }
-            sel.innerHTML = '<option value="">-- Selecciona una ruta --</option>';
+            // Deduplicar y ordenar rutas
+            const rutas = [...new Set((data.rutas || [])
+                .map(r => String(r).trim())
+                .filter(r => r))].sort((a, b) => a.localeCompare(b, 'es'));
             rutas.forEach(r => {
                 const opt = document.createElement('option');
                 opt.value = r;
-                opt.text = r;
-                sel.appendChild(opt);
+                dl.appendChild(opt);
             });
+            if (rutas.length === 0) {
+                input.placeholder = 'Sin rutas registradas - escribe una nueva';
+            } else {
+                input.placeholder = `Escribe o selecciona (${rutas.length} rutas)`;
+            }
         } catch(err) {
             console.error('Error rutas:', err);
-            sel.innerHTML = '<option value="">Error al cargar rutas</option>';
+            input.placeholder = 'Error al cargar - puedes escribir la ruta';
         }
-    }
-
-    // Establece el valor de un <select>; si la opción no existe, la agrega (útil al editar)
-    function setSelectValue(el, val) {
-        if (!val) { el.value = ''; return; }
-        const exists = Array.from(el.options).some(o => o.value === val);
-        if (!exists) {
-            const opt = document.createElement('option');
-            opt.value = val;
-            opt.text = val + ' (registro previo)';
-            el.appendChild(opt);
-        }
-        el.value = val;
     }
 
     // Función auxiliar para evitar desajustes de zona horaria al formatear fechas YYYY-MM-DD
@@ -655,10 +662,11 @@
         // Rellenar campos del formulario con los valores existentes
         document.getElementById('editandoId').value = registro.id;
         document.getElementById('fecha').value = registro.fecha;
-        setSelectValue(document.getElementById('planta'), registro.planta);
-        // Cargar rutas del cliente y luego setear la ruta
+        document.getElementById('planta').value = registro.planta || '';
+        // Cargar rutas del cliente y luego setear la ruta (aunque no esté en el catálogo
+        // el input acepta el valor libremente porque es un <input>, no un <select>)
         await cargarRutasCliente();
-        setSelectValue(document.getElementById('ruta'), registro.ruta);
+        document.getElementById('ruta').value = registro.ruta || '';
         document.getElementById('unidad').value = registro.unidad;
         document.getElementById('inicioProg').value = registro.inicioProg;
         document.getElementById('inicioReal').value = registro.inicioReal;
