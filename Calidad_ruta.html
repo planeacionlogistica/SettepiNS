@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRAXIÓN — Calidad MAE</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: #f4f6fa;
+    color: #1e293b;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+
+  /* ---------- Header ---------- */
+  header {
+    background: #0d1421;
+    color: #ffffff;
+    padding: 14px 24px;
+    display: flex; align-items: center; gap: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    position: sticky; top: 0; z-index: 1000;
+  }
+  header .logo {
+    font-weight: 800; font-size: 22px;
+    color: #22c55e; letter-spacing: 1px;
+  }
+  header .divider {
+    width: 1px; height: 24px; background: #334155;
+  }
+  header .title { font-weight: 500; font-size: 15px; color: #cbd5e1; }
+  header .spacer { flex: 1; }
+  header .status-badge {
+    font-size: 12px; color: #94a3b8; margin-right: 12px;
+    max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  header .refresh-btn {
+    background: transparent; color: #22c55e; border: 1px solid #22c55e;
+    padding: 6px 12px; border-radius: 8px; font-weight: 600;
+    font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    transition: background .15s, color .15s;
+  }
+  header .refresh-btn:hover { background: #22c55e; color: #0d1421; }
+  header .semana-select-wrap {
+    display: flex; align-items: center; gap: 8px;
+    background: #1e293b; border-radius: 8px;
+    padding: 4px 10px; border: 1px solid #334155;
+  }
+  header .semana-select-wrap label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase; color: #94a3b8;
+  }
+  header select#semanaFilter {
+    background: transparent; color: white; border: none; outline: none;
+    font-size: 13px; font-weight: 600; padding: 4px 4px;
+    cursor: pointer;
+  }
+  header select#semanaFilter option { color: #0d1421; }
+
+  /* ---------- Layout ---------- */
+  main { padding: 20px 24px; max-width: 1600px; margin: 0 auto; }
+
+  /* ---------- Breadcrumbs ---------- */
+  .breadcrumb {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 16px; font-size: 14px;
+    color: #64748b;
+  }
+  .breadcrumb .crumb {
+    cursor: pointer; color: #0d1421; font-weight: 600;
+  }
+  .breadcrumb .crumb:hover { color: #22c55e; }
+  .breadcrumb .crumb.current { color: #64748b; cursor: default; font-weight: 500; }
+  .breadcrumb .sep { color: #cbd5e1; }
+
+  /* ---------- KPI Row ---------- */
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .kpi {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 2px solid transparent;
+    position: relative; overflow: hidden;
+  }
+  .kpi .k-value { font-size: 28px; font-weight: 800; line-height: 1.1; }
+  .kpi .k-label {
+    font-size: 11px; color: #64748b; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-top: 6px; font-weight: 600;
+  }
+  .kpi.k-neutral { border-color: #0d1421; }
+  .kpi.k-neutral .k-value { color: #0d1421; }
+  .kpi.k-green { border-color: #22c55e; }
+  .kpi.k-green .k-value { color: #22c55e; }
+  .kpi.k-amber { border-color: #f59e0b; }
+  .kpi.k-amber .k-value { color: #f59e0b; }
+  .kpi.k-red { border-color: #ef4444; }
+  .kpi.k-red .k-value { color: #ef4444; }
+
+  /* ---------- Section / search ---------- */
+  .section-title {
+    font-size: 16px; font-weight: 700; color: #0d1421;
+    margin: 8px 0 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-title .count-badge {
+    background: #e2e8f0; color: #475569; font-size: 12px;
+    padding: 2px 8px; border-radius: 999px; font-weight: 600;
+  }
+  .search-row { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+  .search-row input {
+    flex: 1; max-width: 320px;
+    padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1;
+    font-size: 13px; background: white;
+  }
+  .search-row input:focus { outline: none; border-color: #22c55e; }
+  .legend {
+    display: flex; gap: 12px; font-size: 12px; color: #475569; align-items: center;
+  }
+  .legend .swatch {
+    display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  /* ---------- Plant TABLE (new main view) ---------- */
+  .plants-table-wrap {
+    background: white; border-radius: 12px; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  table.plants-table {
+    width: 100%; border-collapse: collapse; font-size: 13px;
+  }
+  table.plants-table thead th {
+    background: #0d1421; color: #ffffff;
+    text-transform: uppercase; font-size: 11px; letter-spacing: 0.6px;
+    padding: 14px 14px; text-align: left; font-weight: 600;
+    position: sticky; top: 0; z-index: 5;
+    border-bottom: 2px solid #22c55e00;
+  }
+  table.plants-table thead th.num { text-align: center; }
+  table.plants-table thead th.right { text-align: right; }
+  table.plants-table thead th.sortable {
+    cursor: pointer; user-select: none;
+  }
+  table.plants-table thead th.sortable:hover { color: #22c55e; }
+  table.plants-table thead th.sortable .sort-ind { opacity: 0.5; font-size: 10px; margin-left: 4px; }
+  table.plants-table thead th.sortable.active .sort-ind { opacity: 1; color: #22c55e; }
+  table.plants-table tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background .1s;
+    cursor: pointer;
+  }
+  table.plants-table tbody tr:hover { background: #f8fafc; }
+  table.plants-table tbody td {
+    padding: 12px 14px; vertical-align: middle;
+  }
+  table.plants-table tbody td.num { text-align: center; }
+  table.plants-table tbody td.right { text-align: right; font-weight: 700; }
+  table.plants-table .rank-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%;
+    color: white; font-weight: 800; font-size: 12px;
+  }
+  table.plants-table .rank-badge.rk-red { background: #ef4444; }
+  table.plants-table .rank-badge.rk-amber { background: #f59e0b; }
+  table.plants-table .rank-badge.rk-neutral {
+    background: #e2e8f0; color: #64748b;
+  }
+  table.plants-table .plant-name {
+    font-weight: 700; color: #0d1421;
+    text-decoration: underline; text-decoration-color: #cbd5e1;
+    text-underline-offset: 3px;
+  }
+  table.plants-table tr:hover .plant-name {
+    color: #22c55e; text-decoration-color: #22c55e;
+  }
+  table.plants-table .plant-name .arrow {
+    font-size: 10px; color: #94a3b8; margin-left: 4px;
+  }
+  table.plants-table td.txt-green { color: #22c55e; }
+  table.plants-table td.txt-amber { color: #f59e0b; }
+  table.plants-table td.txt-red { color: #ef4444; }
+  table.plants-table td.txt-gray { color: #94a3b8; }
+  .table-footer {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px; background: #f8fafc; font-size: 12px; color: #64748b;
+  }
+
+  /* ---------- Route cards (unchanged) ---------- */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: white; border-radius: 12px; padding: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    cursor: pointer; transition: transform .15s, box-shadow .15s;
+    border-left: 4px solid #cbd5e1;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.10); }
+  .card.g-green { border-left-color: #22c55e; }
+  .card.g-amber { border-left-color: #f59e0b; }
+  .card.g-red { border-left-color: #ef4444; }
+  .card.g-gray { border-left-color: #94a3b8; }
+  .card .c-title {
+    font-weight: 700; font-size: 15px; color: #0d1421;
+    display: flex; justify-content: space-between; gap: 8px; align-items: flex-start;
+  }
+  .card .c-code {
+    font-size: 11px; color: #64748b; font-weight: 500;
+    font-family: ui-monospace, "SF Mono", Monaco, monospace;
+  }
+  .card .c-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .card .stat { background: #f1f5f9; padding: 8px 10px; border-radius: 8px; }
+  .card .stat .s-label { font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 600; }
+  .card .stat .s-value { font-size: 18px; font-weight: 800; }
+  .stat.s-green .s-value { color: #22c55e; }
+  .stat.s-amber .s-value { color: #f59e0b; }
+  .stat.s-red .s-value { color: #ef4444; }
+  .stat.s-gray .s-value { color: #94a3b8; }
+  .card .c-meta {
+    font-size: 12px; color: #64748b;
+    display: flex; justify-content: space-between;
+  }
+  .card .c-meta strong { color: #1e293b; font-weight: 700; }
+
+  /* ---------- Map View ---------- */
+  .map-layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 16px;
+    height: calc(100vh - 240px);
+    min-height: 500px;
+  }
+  #map {
+    border-radius: 12px; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    background: #e2e8f0;
+  }
+  .stops-panel {
+    background: white; border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .stops-panel .sp-header {
+    padding: 12px 16px; border-bottom: 1px solid #e2e8f0;
+    font-weight: 700; color: #0d1421;
+  }
+  .stops-panel .sp-list { overflow-y: auto; flex: 1; }
+  .stop-item {
+    padding: 10px 16px; border-bottom: 1px solid #f1f5f9;
+    cursor: pointer; display: flex; gap: 10px; align-items: center;
+    transition: background .1s;
+  }
+  .stop-item:hover { background: #f8fafc; }
+  .stop-item.active { background: #ecfdf5; }
+  .stop-item .stop-num {
+    width: 30px; height: 30px; border-radius: 50%;
+    color: white; font-weight: 700; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .stop-item .stop-body { flex: 1; min-width: 0; }
+  .stop-item .stop-name {
+    font-size: 13px; color: #0d1421; font-weight: 600;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .stop-item .stop-meta {
+    font-size: 11px; color: #64748b; display: flex; gap: 10px; margin-top: 2px;
+  }
+  .stop-item .stop-scores { display: flex; gap: 6px; flex-shrink: 0; }
+  .stop-item .stop-score {
+    font-size: 11px; font-weight: 700;
+    padding: 2px 6px; border-radius: 4px; color: white;
+  }
+  .badge-green { background: #22c55e; }
+  .badge-amber { background: #f59e0b; }
+  .badge-red { background: #ef4444; }
+  .badge-gray { background: #94a3b8; }
+
+  .leaflet-div-icon-custom { background: transparent; border: none; }
+  .marker-pin {
+    width: 28px; height: 28px; border-radius: 50% 50% 50% 0;
+    background: #22c55e; transform: rotate(-45deg);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    border: 2px solid white;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .marker-pin span {
+    transform: rotate(45deg);
+    color: white; font-weight: 700; font-size: 11px;
+  }
+
+  .empty {
+    text-align: center; padding: 60px 20px;
+    color: #64748b; background: white; border-radius: 12px;
+  }
+  .empty h3 { color: #0d1421; margin-bottom: 8px; }
+
+  /* ---------- Loading overlay ---------- */
+  .loading-overlay {
+    position: fixed; inset: 0; background: rgba(13, 20, 33, 0.85);
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    z-index: 5000; color: white; gap: 12px;
+  }
+  .spinner {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 4px solid #334155; border-top-color: #22c55e;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 14px; }
+  .loading-error {
+    color: #fca5a5; font-size: 13px; margin-top: 8px; max-width: 500px; text-align: center;
+    background: rgba(239, 68, 68, 0.15); padding: 12px 16px; border-radius: 8px;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+  }
+  .loading-error a { color: #fca5a5; text-decoration: underline; }
+
+  .hidden { display: none !important; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: #f1f5f9; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+  @media (max-width: 900px) {
+    .map-layout { grid-template-columns: 1fr; height: auto; }
+    #map { height: 400px; }
+    .stops-panel { height: 400px; }
+    table.plants-table thead th, table.plants-table tbody td { padding: 8px 8px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">TRAXIÓN</div>
+  <div class="divider"></div>
+  <div class="title">Calidad MAE — Rutas y Paradas</div>
+  <div class="spacer"></div>
+  <div class="semana-select-wrap">
+    <label for="semanaFilter">Semana</label>
+    <select id="semanaFilter"><option value="__ALL__">Todas</option></select>
+  </div>
+  <div class="status-badge" id="statusBadge">Cargando…</div>
+  <button class="refresh-btn" id="refreshBtn" title="Recargar datos del Sheet">↻ Actualizar</button>
+</header>
+
+<main>
+  <nav class="breadcrumb" id="breadcrumb"></nav>
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="search-row">
+    <input id="searchInput" type="search" placeholder="Buscar...">
+    <div class="legend">
+      <span><span class="swatch" style="background:#22c55e"></span>≥98%</span>
+      <span><span class="swatch" style="background:#f59e0b"></span>90–97.99%</span>
+      <span><span class="swatch" style="background:#ef4444"></span>&lt;90%</span>
+      <span><span class="swatch" style="background:#94a3b8"></span>N/A</span>
+    </div>
+  </div>
+
+  <div id="viewContainer"></div>
+</main>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Cargando datos desde Google Sheets…</div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+/* ===================== CONFIG ===================== */
+const SHEET_ID = "1SoFnV2HwXaGOfh6MR9Z3Sryqa4BvifH-KL-PnxgPsLs";
+const SHEET_GID = "0";
+// We load via gviz JSON with a JSONP callback (script-tag). This sidesteps
+// CORS entirely — needed because the Cowork artifact iframe runs with a
+// sandbox that blocks cross-origin fetch to Google's CSV endpoint.
+
+/* ===================== STATE ===================== */
+let RECORDS_ALL = []; // full parsed dataset (all E rows, all weeks)
+let RECORDS = [];     // filtered by selected week
+const STATE = {
+  view: 'plants',
+  planta: null,
+  ruta: null,
+  search: '',
+  semana: '__ALL__',
+  plantsSort: {key: 'cal_pd', dir: 'asc'},
+};
+let mapInstance = null;
+let mapMarkers = [];
+let mapRouteLayer = null;
+let mapFetchToken = 0;
+
+/* ===================== HELPERS ===================== */
+function colorClassForScore(v) {
+  if (v == null || isNaN(v)) return 'gray';
+  if (v >= 98) return 'green';
+  if (v >= 90) return 'amber';
+  return 'red';
+}
+function badgeClassForScore(v) { return 'badge-' + colorClassForScore(v); }
+function fmtScore(v) {
+  if (v == null || isNaN(v)) return 'N/A';
+  return v.toFixed(1) + '%';
+}
+function avg(arr) {
+  const clean = arr.filter(x => x != null && !isNaN(x));
+  if (clean.length === 0) return null;
+  return clean.reduce((a,b)=>a+b,0) / clean.length;
+}
+function parseNumOrNull(v) {
+  if (v == null) return null;
+  const s = String(v).trim();
+  if (s === '' || s.toUpperCase() === 'N/A') return null;
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+}
+function hexForScore(v) {
+  if (v == null || isNaN(v)) return '#94a3b8';
+  if (v >= 98) return '#22c55e';
+  if (v >= 90) return '#f59e0b';
+  return '#ef4444';
+}
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
+/* ===================== CSV parser ===================== */
+function parseCSV(text) {
+  let i = 0, field = '', row = [], inQ = false;
+  const rowsRaw = [];
+  while (i < text.length) {
+    const ch = text[i];
+    if (inQ) {
+      if (ch === '"') {
+        if (text[i+1] === '"') { field += '"'; i += 2; continue; }
+        inQ = false; i++; continue;
+      }
+      field += ch; i++;
+    } else {
+      if (ch === '"') { inQ = true; i++; continue; }
+      if (ch === ',') { row.push(field); field=''; i++; continue; }
+      if (ch === '\r') { i++; continue; }
+      if (ch === '\n') { row.push(field); rowsRaw.push(row); row=[]; field=''; i++; continue; }
+      field += ch; i++;
+    }
+  }
+  if (field.length || row.length) { row.push(field); rowsRaw.push(row); }
+  if (rowsRaw.length === 0) return [];
+  const headers = rowsRaw[0].map(h => h.trim());
+  const out = [];
+  for (let r = 1; r < rowsRaw.length; r++) {
+    const rr = rowsRaw[r];
+    if (rr.length === 1 && rr[0] === '') continue;
+    const obj = {};
+    for (let c = 0; c < headers.length; c++) obj[headers[c]] = rr[c] == null ? '' : rr[c];
+    out.push(obj);
+  }
+  return out;
+}
+
+/**
+ * The gviz CSV endpoint always returns UTF-8, but a header called "Semana"
+ * may live under one of several capitalizations/accentuations. Find the key
+ * in `row` whose normalized name matches any of `candidates`.
+ */
+function pickField(row, candidates) {
+  const keys = Object.keys(row);
+  const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'');
+  for (const cand of candidates) {
+    const nc = norm(cand);
+    for (const k of keys) if (norm(k) === nc) return k;
+  }
+  return null;
+}
+
+/* ===================== DATA LOAD (JSONP via script tag) ===================== */
+/**
+ * Convert a gviz JSON response into an array of plain-object rows keyed by
+ * column label — matches what the CSV parser used to produce, so downstream
+ * code (pickField, filtering, aggregations) needs no changes.
+ */
+function gvizToRows(response) {
+  if (!response || !response.table) throw new Error('Respuesta gviz vacía');
+  const cols = response.table.cols.map(c => (c.label || c.id || '').trim());
+  return response.table.rows.map(r => {
+    const obj = {};
+    for (let i = 0; i < cols.length; i++) {
+      const cell = r.c ? r.c[i] : null;
+      // Prefer .v (raw value) for numbers; use .f only when it's a plain-text
+      // header we want to preserve verbatim.
+      if (cell == null) { obj[cols[i]] = ''; continue; }
+      if (cell.v == null) { obj[cols[i]] = cell.f || ''; continue; }
+      obj[cols[i]] = String(cell.v);
+    }
+    return obj;
+  });
+}
+
+function processRows(rows) {
+  if (rows.length === 0) throw new Error('El Sheet no devolvió filas');
+
+  const sample = rows[0];
+  const kPlanta   = pickField(sample, ['Planta']);
+  const kTipSer   = pickField(sample, ['Tip. Ser.', 'Tip Ser', 'TipSer', 'Tipo Servicio', 'TipoServicio', 'Tip']);
+  const kDescRuta = pickField(sample, ['Desc Ruta','DescRuta','Descripcion Ruta','Descripción Ruta']);
+  const kIdRuta   = pickField(sample, ['ID Ruta','IDRuta','Id Ruta','IdRuta']);
+  const kSec      = pickField(sample, ['Sec','Secuencia']);
+  const kPos      = pickField(sample, ['Pos.','Pos','Posicion','Posición']);
+  const kParada   = pickField(sample, ['Parada']);
+  const kLat      = pickField(sample, ['Lat','Latitud','Latitude']);
+  const kLng      = pickField(sample, ['Lng','Long','Longitud','Longitude']);
+  const kH1       = pickField(sample, ['H1','Hora']);
+  const kCalRt    = pickField(sample, ['Cal Rt','CalRt','Calif Ruta','Cal Ruta']);
+  const kCalPd    = pickField(sample, ['Cal Pd','CalPd','Calif Parada','Cal Parada']);
+  const kSemana   = pickField(sample, ['Semana','Sem','Week']);
+
+  if (!kPlanta || !kTipSer) throw new Error('El Sheet no contiene las columnas requeridas (Planta / Tip. Ser.)');
+
+  const filtered = rows.filter(r => (r[kTipSer]||'').trim().toUpperCase() === 'E');
+  RECORDS_ALL = filtered.map(r => ({
+    planta: (r[kPlanta] || '').trim(),
+    desc_ruta: (r[kDescRuta] || '').trim(),
+    id_ruta: (r[kIdRuta] || '').trim(),
+    sec: (r[kSec] || '').trim(),
+    pos: (r[kPos] || '').trim(),
+    parada: (r[kParada] || '').trim(),
+    lat: parseNumOrNull(r[kLat]),
+    lng: parseNumOrNull(r[kLng]),
+    h1: (r[kH1] || '').trim(),
+    cal_rt: parseNumOrNull(r[kCalRt]),
+    cal_pd: parseNumOrNull(r[kCalPd]),
+    semana: kSemana ? (r[kSemana] || '').trim() : '',
+  }));
+
+  // Populate Semana dropdown
+  const semanas = [...new Set(RECORDS_ALL.map(r => r.semana).filter(s => s !== ''))];
+  semanas.sort((a,b) => {
+    const na = parseFloat(a), nb = parseFloat(b);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return a.localeCompare(b);
+  });
+  const sel = document.getElementById('semanaFilter');
+  const prev = STATE.semana;
+  sel.innerHTML = '<option value="__ALL__">Todas</option>' +
+    semanas.map(s => `<option value="${escapeAttr(s)}">${escapeHtml(s)}</option>`).join('');
+  if (prev !== '__ALL__' && semanas.includes(prev)) {
+    sel.value = prev;
+  } else {
+    sel.value = '__ALL__';
+    STATE.semana = '__ALL__';
+  }
+
+  document.getElementById('statusBadge').textContent =
+    RECORDS_ALL.length.toLocaleString('es-MX') + ' paradas E · ' +
+    (semanas.length ? semanas.length + ' semanas' : 'sin col. Semana');
+
+  applySemanaFilter();
+  render();
+}
+
+function loadSheet() {
+  const overlay = document.getElementById('loadingOverlay');
+  const txt = document.getElementById('loadingText');
+  overlay.classList.remove('hidden');
+  txt.textContent = 'Cargando datos desde Google Sheets…';
+  document.querySelector('.loading-error')?.remove();
+
+  const cb = 'gvizCB_' + Math.random().toString(36).slice(2).replace(/[^a-z0-9]/g,'');
+  const url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+              '/gviz/tq?tqx=out:json;responseHandler:' + cb + '&gid=' + SHEET_GID +
+              '&_=' + Date.now();
+
+  let timeoutId = null;
+  const cleanup = () => {
+    try { delete window[cb]; } catch(e) { window[cb] = undefined; }
+    const s = document.getElementById('gvizScriptTag');
+    if (s) s.remove();
+    if (timeoutId) clearTimeout(timeoutId);
+  };
+
+  const showError = (msg) => {
+    txt.textContent = 'No se pudo cargar el Sheet.';
+    document.querySelector('.loading-error')?.remove();
+    const errBox = document.createElement('div');
+    errBox.className = 'loading-error';
+    errBox.innerHTML =
+      'Error: ' + escapeHtml(msg) +
+      '<br><br>Verifica que el Sheet siga siendo público (Cualquier persona con el enlace).' +
+      '<br><a href="https://docs.google.com/spreadsheets/d/' + SHEET_ID + '" target="_blank">Abrir el Sheet</a>' +
+      '<br><br><button onclick="loadSheet()" style="margin-top:8px;padding:6px 14px;background:#22c55e;color:#0d1421;border:none;border-radius:6px;font-weight:700;cursor:pointer;">Reintentar</button>';
+    overlay.appendChild(errBox);
+    document.getElementById('statusBadge').textContent = 'Error al cargar';
+  };
+
+  window[cb] = function(response) {
+    cleanup();
+    try {
+      const rows = gvizToRows(response);
+      processRows(rows);
+      overlay.classList.add('hidden');
+    } catch(err) {
+      showError(err.message || String(err));
+    }
+  };
+
+  const script = document.createElement('script');
+  script.id = 'gvizScriptTag';
+  script.src = url;
+  script.onerror = () => {
+    cleanup();
+    showError('El navegador no pudo cargar la respuesta del Sheet. Revisa que sea público con acceso "Cualquier persona con el enlace".');
+  };
+  timeoutId = setTimeout(() => {
+    cleanup();
+    showError('Timeout esperando la respuesta del Sheet (30 s).');
+  }, 30000);
+  document.body.appendChild(script);
+}
+
+function applySemanaFilter() {
+  if (STATE.semana === '__ALL__' || !STATE.semana) {
+    RECORDS = RECORDS_ALL.slice();
+  } else {
+    RECORDS = RECORDS_ALL.filter(r => r.semana === STATE.semana);
+  }
+}
+
+/* ===================== AGGREGATIONS ===================== */
+function plantSummary() {
+  const map = new Map();
+  for (const r of RECORDS) {
+    if (!map.has(r.planta)) map.set(r.planta, {planta: r.planta, records: [], rutas: new Set()});
+    const p = map.get(r.planta);
+    p.records.push(r);
+    p.rutas.add(r.id_ruta);
+  }
+  return [...map.values()].map(p => ({
+    planta: p.planta,
+    rutas: p.rutas.size,
+    paradas: p.records.length,
+    cal_rt: avg(p.records.map(r => r.cal_rt)),
+    cal_pd: avg(p.records.map(r => r.cal_pd)),
+  }));
+}
+
+function routeSummary(planta) {
+  const map = new Map();
+  for (const r of RECORDS) {
+    if (r.planta !== planta) continue;
+    if (!map.has(r.id_ruta)) map.set(r.id_ruta, {id_ruta: r.id_ruta, desc_ruta: r.desc_ruta, records: []});
+    map.get(r.id_ruta).records.push(r);
+  }
+  return [...map.values()].map(x => ({
+    id_ruta: x.id_ruta,
+    desc_ruta: x.desc_ruta,
+    paradas: x.records.length,
+    cal_rt: avg(x.records.map(r => r.cal_rt)),
+    cal_pd: avg(x.records.map(r => r.cal_pd)),
+  })).sort((a,b) => a.desc_ruta.localeCompare(b.desc_ruta));
+}
+
+function stopsForRoute(planta, id_ruta) {
+  return RECORDS
+    .filter(r => r.planta === planta && r.id_ruta === id_ruta)
+    .sort((a,b) => (parseInt(a.sec)||0) - (parseInt(b.sec)||0));
+}
+
+/* ===================== RENDER: BREADCRUMB ===================== */
+function renderBreadcrumb() {
+  const el = document.getElementById('breadcrumb');
+  const parts = [];
+  parts.push(`<span class="crumb" data-nav="plants">Plantas</span>`);
+  if (STATE.view !== 'plants') {
+    parts.push(`<span class="sep">›</span>`);
+    parts.push(`<span class="crumb" data-nav="routes">${escapeHtml(STATE.planta)}</span>`);
+  }
+  if (STATE.view === 'stops') {
+    const routeName = RECORDS.find(r => r.planta===STATE.planta && r.id_ruta===STATE.ruta)?.desc_ruta || STATE.ruta;
+    parts.push(`<span class="sep">›</span>`);
+    parts.push(`<span class="crumb current">${escapeHtml(routeName)}</span>`);
+  }
+  el.innerHTML = parts.join('');
+  el.querySelectorAll('.crumb[data-nav]').forEach(c => {
+    c.addEventListener('click', () => {
+      if (c.dataset.nav === 'plants') { STATE.view='plants'; STATE.planta=null; STATE.ruta=null; }
+      if (c.dataset.nav === 'routes') { STATE.view='routes'; STATE.ruta=null; }
+      STATE.search = '';
+      document.getElementById('searchInput').value = '';
+      render();
+    });
+  });
+}
+
+/* ===================== RENDER: KPI ===================== */
+function renderKPIs() {
+  const el = document.getElementById('kpiRow');
+  let cards = [];
+  if (STATE.view === 'plants') {
+    const plants = plantSummary();
+    const totalRoutes = plants.reduce((s,p)=>s+p.rutas,0);
+    const totalStops  = plants.reduce((s,p)=>s+p.paradas,0);
+    const avgRt = avg(RECORDS.map(r=>r.cal_rt));
+    const avgPd = avg(RECORDS.map(r=>r.cal_pd));
+    cards = [
+      {label:'Plantas', value: plants.length, cls:'k-neutral'},
+      {label:'Rutas totales', value: totalRoutes, cls:'k-neutral'},
+      {label:'Paradas totales', value: totalStops.toLocaleString('es-MX'), cls:'k-neutral'},
+      {label:'Calidad Ruta promedio', value: fmtScore(avgRt), cls: 'k-'+colorClassForScore(avgRt)},
+      {label:'Calidad Parada promedio', value: fmtScore(avgPd), cls: 'k-'+colorClassForScore(avgPd)},
+    ];
+  } else if (STATE.view === 'routes') {
+    const routes = routeSummary(STATE.planta);
+    const totalStops = routes.reduce((s,r)=>s+r.paradas,0);
+    const recs = RECORDS.filter(r => r.planta === STATE.planta);
+    const avgRt = avg(recs.map(r=>r.cal_rt));
+    const avgPd = avg(recs.map(r=>r.cal_pd));
+    cards = [
+      {label:'Rutas', value: routes.length, cls:'k-neutral'},
+      {label:'Paradas', value: totalStops.toLocaleString('es-MX'), cls:'k-neutral'},
+      {label:'Calidad Ruta promedio', value: fmtScore(avgRt), cls: 'k-'+colorClassForScore(avgRt)},
+      {label:'Calidad Parada promedio', value: fmtScore(avgPd), cls: 'k-'+colorClassForScore(avgPd)},
+    ];
+  } else if (STATE.view === 'stops') {
+    const stops = stopsForRoute(STATE.planta, STATE.ruta);
+    const avgRt = avg(stops.map(r=>r.cal_rt));
+    const avgPd = avg(stops.map(r=>r.cal_pd));
+    const cumpl = stops.filter(s => s.cal_pd != null && s.cal_pd >= 98).length;
+    const pctCumpl = stops.length ? (cumpl / stops.length) * 100 : null;
+    cards = [
+      {label:'Paradas', value: stops.length, cls:'k-neutral'},
+      {label:'Calidad Ruta', value: fmtScore(avgRt), cls: 'k-'+colorClassForScore(avgRt)},
+      {label:'Calidad Parada promedio', value: fmtScore(avgPd), cls: 'k-'+colorClassForScore(avgPd)},
+      {label:'Paradas ≥98%', value: pctCumpl==null ? '—' : cumpl + ' / ' + stops.length, cls:'k-'+colorClassForScore(pctCumpl)},
+    ];
+  }
+  el.innerHTML = cards.map(c =>
+    `<div class="kpi ${c.cls}"><div class="k-value">${c.value}</div><div class="k-label">${c.label}</div></div>`
+  ).join('');
+}
+
+/* ===================== RENDER: PLANTS (table) ===================== */
+function renderPlants() {
+  const container = document.getElementById('viewContainer');
+  let plants = plantSummary().filter(p =>
+    !STATE.search || p.planta.toLowerCase().includes(STATE.search.toLowerCase())
+  );
+
+  // Sort
+  const {key, dir} = STATE.plantsSort;
+  const s = dir === 'asc' ? 1 : -1;
+  plants.sort((a, b) => {
+    let av = a[key], bv = b[key];
+    if (typeof av === 'string' || typeof bv === 'string') {
+      return s * String(av||'').localeCompare(String(bv||''));
+    }
+    // Nulls at bottom in ascending, top in descending
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    return s * (av - bv);
+  });
+
+  if (plants.length === 0) {
+    container.innerHTML = '<div class="empty"><h3>Sin resultados</h3><p>Ajusta la búsqueda o la semana seleccionada.</p></div>';
+    return;
+  }
+
+  const rows = plants.map((p, idx) => {
+    const rank = idx + 1;
+    let rankCls = 'rk-neutral';
+    if (p.cal_pd != null) {
+      if (rank <= 3 && p.cal_pd < 90) rankCls = 'rk-red';
+      else if (rank <= 6 && p.cal_pd < 98) rankCls = 'rk-amber';
+    }
+    return `
+      <tr data-planta="${escapeAttr(p.planta)}">
+        <td class="num"><span class="rank-badge ${rankCls}">${rank}</span></td>
+        <td><span class="plant-name">${escapeHtml(p.planta)}<span class="arrow">▸</span></span></td>
+        <td class="num">${p.rutas}</td>
+        <td class="num">${p.paradas.toLocaleString('es-MX')}</td>
+        <td class="right txt-${colorClassForScore(p.cal_rt)}">${fmtScore(p.cal_rt)}</td>
+        <td class="right txt-${colorClassForScore(p.cal_pd)}">${fmtScore(p.cal_pd)}</td>
+      </tr>
+    `;
+  }).join('');
+
+  const th = (key, label, opts={}) => {
+    const active = STATE.plantsSort.key === key;
+    const indicator = active ? (STATE.plantsSort.dir === 'asc' ? '▲' : '▼') : '↕';
+    const classes = ['sortable'];
+    if (opts.num) classes.push('num');
+    if (opts.right) classes.push('right');
+    if (active) classes.push('active');
+    return `<th class="${classes.join(' ')}" data-key="${key}">${label}<span class="sort-ind">${indicator}</span></th>`;
+  };
+
+  container.innerHTML = `
+    <div class="section-title">Resumen por Planta <span class="count-badge">${plants.length}</span></div>
+    <div class="plants-table-wrap">
+      <table class="plants-table">
+        <thead>
+          <tr>
+            <th class="num">#</th>
+            ${th('planta', 'PLANTA / GRUPO')}
+            ${th('rutas', 'RUTAS', {num:true})}
+            ${th('paradas', 'PARADAS', {num:true})}
+            ${th('cal_rt', 'CAL RUTA', {right:true})}
+            ${th('cal_pd', 'CAL PARADA', {right:true})}
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="table-footer">
+        <span>Ordenado por ${labelForSortKey(STATE.plantsSort.key)} (${STATE.plantsSort.dir === 'asc' ? 'ascendente' : 'descendente'})</span>
+        <span>${plants.length} plantas</span>
+      </div>
+    </div>
+  `;
+
+  container.querySelectorAll('tbody tr').forEach(tr => {
+    tr.addEventListener('click', () => {
+      STATE.planta = tr.dataset.planta;
+      STATE.view = 'routes';
+      STATE.search = '';
+      document.getElementById('searchInput').value = '';
+      render();
+    });
+  });
+  container.querySelectorAll('thead th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const k = th.dataset.key;
+      if (STATE.plantsSort.key === k) {
+        STATE.plantsSort.dir = STATE.plantsSort.dir === 'asc' ? 'desc' : 'asc';
+      } else {
+        STATE.plantsSort.key = k;
+        STATE.plantsSort.dir = (k === 'planta' ? 'asc' : 'asc');
+      }
+      renderPlants();
+    });
+  });
+}
+function labelForSortKey(k) {
+  return {planta:'planta', rutas:'rutas', paradas:'paradas', cal_rt:'Cal Ruta', cal_pd:'Cal Parada'}[k] || k;
+}
+
+/* ===================== RENDER: ROUTES ===================== */
+function renderRoutes() {
+  const container = document.getElementById('viewContainer');
+  const routes = routeSummary(STATE.planta).filter(r =>
+    !STATE.search ||
+    r.desc_ruta.toLowerCase().includes(STATE.search.toLowerCase()) ||
+    r.id_ruta.toLowerCase().includes(STATE.search.toLowerCase())
+  );
+  if (routes.length === 0) {
+    container.innerHTML = '<div class="empty"><h3>Sin resultados</h3></div>';
+    return;
+  }
+  const cards = routes.map(r => `
+    <div class="card g-${colorClassForScore(r.cal_pd)}" data-ruta="${escapeAttr(r.id_ruta)}">
+      <div class="c-title"><span>${escapeHtml(r.desc_ruta)}</span></div>
+      <div class="c-code">${escapeHtml(r.id_ruta)}</div>
+      <div class="c-stats">
+        <div class="stat s-${colorClassForScore(r.cal_rt)}">
+          <div class="s-label">Cal Ruta</div>
+          <div class="s-value">${fmtScore(r.cal_rt)}</div>
+        </div>
+        <div class="stat s-${colorClassForScore(r.cal_pd)}">
+          <div class="s-label">Cal Parada</div>
+          <div class="s-value">${fmtScore(r.cal_pd)}</div>
+        </div>
+      </div>
+      <div class="c-meta">
+        <span><strong>${r.paradas}</strong> paradas</span>
+        <span>Ver mapa →</span>
+      </div>
+    </div>
+  `).join('');
+  container.innerHTML = `
+    <div class="section-title">Rutas de ${escapeHtml(STATE.planta)} <span class="count-badge">${routes.length}</span></div>
+    <div class="cards-grid">${cards}</div>
+  `;
+  container.querySelectorAll('.card').forEach(c => {
+    c.addEventListener('click', () => {
+      STATE.ruta = c.dataset.ruta;
+      STATE.view = 'stops';
+      STATE.search = '';
+      document.getElementById('searchInput').value = '';
+      render();
+    });
+  });
+}
+
+/* ===================== RENDER: STOPS (MAP) ===================== */
+function renderStops() {
+  const container = document.getElementById('viewContainer');
+  const stops = stopsForRoute(STATE.planta, STATE.ruta);
+  const routeName = stops[0]?.desc_ruta || STATE.ruta;
+
+  container.innerHTML = `
+    <div class="section-title">${escapeHtml(routeName)} · Paradas <span class="count-badge">${stops.length}</span></div>
+    <div class="map-layout">
+      <div id="map"></div>
+      <div class="stops-panel">
+        <div class="sp-header">Paradas de la ruta</div>
+        <div class="sp-list" id="stopsList"></div>
+      </div>
+    </div>
+  `;
+
+  const list = document.getElementById('stopsList');
+  const filtered = stops.filter(s =>
+    !STATE.search || (s.parada||'').toLowerCase().includes(STATE.search.toLowerCase())
+  );
+  list.innerHTML = filtered.map((s, idx) => `
+    <div class="stop-item" data-idx="${stops.indexOf(s)}">
+      <div class="stop-num" style="background:${hexForScore(s.cal_pd)}">${s.sec || (idx+1)}</div>
+      <div class="stop-body">
+        <div class="stop-name">${escapeHtml(s.parada || '—')}</div>
+        <div class="stop-meta">
+          <span>${escapeHtml(s.pos || '')}</span>
+          ${s.h1 ? '<span>' + escapeHtml(s.h1) + '</span>' : ''}
+        </div>
+      </div>
+      <div class="stop-scores">
+        <span class="stop-score ${badgeClassForScore(s.cal_rt)}" title="Cal Ruta">R ${fmtScore(s.cal_rt)}</span>
+        <span class="stop-score ${badgeClassForScore(s.cal_pd)}" title="Cal Parada">P ${fmtScore(s.cal_pd)}</span>
+      </div>
+    </div>
+  `).join('');
+
+  setTimeout(() => initMap(stops, list), 20);
+}
+
+function initMap(stops, list) {
+  if (mapInstance) { mapInstance.remove(); mapInstance = null; }
+  mapMarkers = []; mapRouteLayer = null; mapFetchToken++;
+
+  const validStops = stops.filter(s => s.lat != null && s.lng != null && !isNaN(s.lat) && !isNaN(s.lng));
+  if (validStops.length === 0) {
+    document.getElementById('map').innerHTML =
+      '<div class="empty" style="height:100%;display:flex;flex-direction:column;justify-content:center;"><h3>Sin coordenadas</h3><p>Las paradas no tienen ubicación registrada.</p></div>';
+    return;
+  }
+  const center = [
+    validStops.reduce((s,x)=>s+x.lat,0)/validStops.length,
+    validStops.reduce((s,x)=>s+x.lng,0)/validStops.length
+  ];
+  mapInstance = L.map('map', {zoomControl: true}).setView(center, 12);
+
+  // Google Maps tiles (roadmap style). Uses mt0-mt3 subdomains.
+  L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+    maxZoom: 20,
+    subdomains: ['mt0','mt1','mt2','mt3'],
+    attribution: '&copy; Google Maps'
+  }).addTo(mapInstance);
+
+  const bounds = [];
+  const latlngs = [];
+  validStops.forEach((s, idx) => {
+    const color = hexForScore(s.cal_pd);
+    const icon = L.divIcon({
+      className: 'leaflet-div-icon-custom',
+      html: `<div class="marker-pin" style="background:${color}"><span>${s.sec || (idx+1)}</span></div>`,
+      iconSize: [28,28],
+      iconAnchor: [14, 28],
+    });
+    const marker = L.marker([s.lat, s.lng], {icon}).addTo(mapInstance);
+    marker.bindPopup(`
+      <div style="font-family: inherit;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${escapeHtml(s.parada || '—')}</div>
+        <div style="font-size:11px;color:#64748b;">Sec ${s.sec} · ${escapeHtml(s.pos||'')}</div>
+        ${s.h1 ? '<div style="font-size:11px;color:#64748b;">Hora: ' + escapeHtml(s.h1) + '</div>' : ''}
+        <div style="margin-top:6px;display:flex;gap:6px;">
+          <span style="background:${hexForScore(s.cal_rt)};color:white;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:700;">Ruta ${fmtScore(s.cal_rt)}</span>
+          <span style="background:${hexForScore(s.cal_pd)};color:white;padding:2px 6px;border-radius:4px;font-size:11px;font-weight:700;">Parada ${fmtScore(s.cal_pd)}</span>
+        </div>
+      </div>
+    `);
+    mapMarkers.push({marker, record: s});
+    bounds.push([s.lat, s.lng]);
+    latlngs.push([s.lat, s.lng]);
+  });
+
+  if (latlngs.length > 1) {
+    mapRouteLayer = L.polyline(latlngs, {color: '#0d1421', weight: 2, opacity: 0.35, dashArray: '5,7'}).addTo(mapInstance);
+  }
+  if (bounds.length > 1) mapInstance.fitBounds(bounds, {padding: [40,40]});
+
+  fetchAndDrawRoadRoute(latlngs);
+
+  list.querySelectorAll('.stop-item').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.idx);
+      const s = stops[idx];
+      if (s.lat != null && s.lng != null) {
+        mapInstance.setView([s.lat, s.lng], 15);
+        const found = mapMarkers.find(m => m.record === s);
+        if (found) found.marker.openPopup();
+      }
+      list.querySelectorAll('.stop-item').forEach(x => x.classList.remove('active'));
+      el.classList.add('active');
+    });
+  });
+}
+
+/**
+ * Fetch driving route between waypoints from OSRM public demo and redraw as
+ * dashed polyline that follows real streets. Silent fallback on error.
+ */
+async function fetchAndDrawRoadRoute(latlngs) {
+  if (!latlngs || latlngs.length < 2) return;
+  const token = ++mapFetchToken;
+  const mapAtStart = mapInstance;
+
+  const CHUNK = 100;
+  const segments = [];
+  for (let i = 0; i < latlngs.length - 1; i += (CHUNK - 1)) {
+    segments.push(latlngs.slice(i, i + CHUNK));
+  }
+  const stitched = [];
+  try {
+    for (const seg of segments) {
+      const coordsStr = seg.map(p => p[1].toFixed(6) + ',' + p[0].toFixed(6)).join(';');
+      const url = 'https://router.project-osrm.org/route/v1/driving/' + coordsStr +
+                  '?overview=full&geometries=geojson';
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error('OSRM ' + resp.status);
+      const json = await resp.json();
+      if (token !== mapFetchToken || mapInstance !== mapAtStart) return;
+      if (!json.routes || !json.routes[0]) throw new Error('no route');
+      const coords = json.routes[0].geometry.coordinates;
+      for (const [lng, lat] of coords) {
+        if (stitched.length && stitched[stitched.length-1][0]===lat && stitched[stitched.length-1][1]===lng) continue;
+        stitched.push([lat, lng]);
+      }
+    }
+    if (token !== mapFetchToken || mapInstance !== mapAtStart) return;
+    if (mapRouteLayer) { mapInstance.removeLayer(mapRouteLayer); mapRouteLayer = null; }
+    mapRouteLayer = L.polyline(stitched, {
+      color: '#0d1421', weight: 3, opacity: 0.7, dashArray: '6,8', lineJoin: 'round'
+    }).addTo(mapInstance);
+  } catch (err) {
+    console.warn('Road route unavailable, keeping straight-line fallback:', err);
+  }
+}
+
+/* ===================== ORCHESTRATOR ===================== */
+function render() {
+  renderBreadcrumb();
+  renderKPIs();
+  if (STATE.view === 'plants') renderPlants();
+  else if (STATE.view === 'routes') renderRoutes();
+  else if (STATE.view === 'stops') renderStops();
+  updateSearchPlaceholder();
+}
+function updateSearchPlaceholder() {
+  const inp = document.getElementById('searchInput');
+  if (STATE.view === 'plants') inp.placeholder = 'Buscar planta...';
+  else if (STATE.view === 'routes') inp.placeholder = 'Buscar ruta (nombre o ID)...';
+  else inp.placeholder = 'Buscar parada...';
+}
+
+/* ===================== EVENTS ===================== */
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  STATE.search = e.target.value;
+  if (STATE.view === 'plants') renderPlants();
+  else if (STATE.view === 'routes') renderRoutes();
+  else if (STATE.view === 'stops') renderStops();
+});
+document.getElementById('semanaFilter').addEventListener('change', (e) => {
+  STATE.semana = e.target.value;
+  STATE.view = 'plants'; STATE.planta = null; STATE.ruta = null;
+  STATE.search = '';
+  document.getElementById('searchInput').value = '';
+  applySemanaFilter();
+  render();
+});
+document.getElementById('refreshBtn').addEventListener('click', () => loadSheet());
+
+/* ===================== INIT ===================== */
+loadSheet();
+</script>
+</body>
+</html>
