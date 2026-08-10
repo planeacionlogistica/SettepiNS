@@ -151,6 +151,64 @@
     margin-right: 6px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+  /* Modal advertencia Adblue */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-content {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    animation: modalIn 0.2s ease-out;
+    border-top: 6px solid #dc2626;
+  }
+  @keyframes modalIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .modal-icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+  .modal-title {
+    font-size: 20px;
+    color: #dc2626;
+    margin-bottom: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .modal-message {
+    font-size: 15px;
+    color: #374151;
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+  .modal-btn {
+    padding: 12px 24px;
+    background: #dc2626;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+  }
+  .modal-btn:active { transform: scale(0.98); }
   /* Responsive */
   @media (max-width: 480px) {
     .container { margin: 12px auto; padding: 0 10px; }
@@ -206,12 +264,34 @@
       </div>
 
       <div class="field">
+        <label for="nivelAdblue">Nivel de Adblue</label>
+        <select id="nivelAdblue" name="nivelAdblue" required>
+          <option value="">Selecciona una opción</option>
+          <option value="Vacio">Vacío</option>
+          <option value="1/4">1/4</option>
+          <option value="1/2">1/2</option>
+          <option value="3/4">3/4</option>
+          <option value="Lleno">Lleno</option>
+        </select>
+      </div>
+
+      <div class="field">
         <label for="comentarios">Comentarios adicionales</label>
         <textarea id="comentarios" name="comentarios" placeholder="Opcional"></textarea>
       </div>
 
       <button type="submit" id="btnEnviar" disabled>Enviar revisión</button>
     </form>
+  </div>
+</div>
+
+<!-- Modal advertencia Adblue nivel bajo -->
+<div id="modalAdblue" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-content">
+    <div class="modal-icon">⚠️</div>
+    <h2 class="modal-title" id="modalTitle">Advertencia</h2>
+    <p class="modal-message">Nivel medio para bajo. Puede causar daños muy severos a la unidad. Acudir de inmediato a taller para rellenar.</p>
+    <button type="button" class="modal-btn" id="modalClose">Entendido</button>
   </div>
 </div>
 
@@ -284,6 +364,33 @@
     }
   });
 
+  // ====== MODAL ADVERTENCIA ADBLUE (1/2 o menos) ======
+  const selAdblue = document.getElementById('nivelAdblue');
+  const modalAdblue = document.getElementById('modalAdblue');
+  const modalClose = document.getElementById('modalClose');
+  const nivelesAdblueBajos = ['Vacio', '1/4', '1/2'];
+
+  function abrirModalAdblue() {
+    modalAdblue.classList.add('show');
+    setTimeout(() => modalClose.focus(), 100);
+  }
+  function cerrarModalAdblue() {
+    modalAdblue.classList.remove('show');
+  }
+
+  selAdblue.addEventListener('change', () => {
+    if (nivelesAdblueBajos.includes(selAdblue.value)) {
+      abrirModalAdblue();
+    }
+  });
+  modalClose.addEventListener('click', cerrarModalAdblue);
+  modalAdblue.addEventListener('click', (e) => {
+    if (e.target === modalAdblue) cerrarModalAdblue();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modalAdblue.classList.contains('show')) cerrarModalAdblue();
+  });
+
   // ====== ENVIAR ======
   const form = document.getElementById('formRevision');
   const msg = document.getElementById('msg');
@@ -306,6 +413,7 @@
       nivelAceite: selAceite.value,
       faltanteAceite: selAceite.value === 'Bajo' ? faltante.value : '',
       nivelAnticongelante: document.getElementById('nivelAnticongelante').value,
+      nivelAdblue: selAdblue.value,
       comentarios: document.getElementById('comentarios').value.trim()
     };
 
