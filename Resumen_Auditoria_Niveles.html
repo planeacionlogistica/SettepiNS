@@ -58,6 +58,10 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
 .btn-xlsx{width:100%;background:#166534;color:#fff;border:none;border-radius:7px;padding:.5rem;font-size:.74rem;font-family:"Inter",sans-serif;font-weight:700;cursor:pointer;margin-top:.1rem;display:flex;align-items:center;justify-content:center;gap:.35rem;transition:background .15s;}
 .btn-xlsx:hover{background:#15803d;}
 .btn-xlsx:disabled{background:#94a3b8;cursor:not-allowed;}
+.btn-week{width:100%;background:#84cc16;color:#1a2236;border:none;border-radius:6px;padding:.35rem;font-size:.68rem;font-family:"Inter",sans-serif;font-weight:700;cursor:pointer;margin-top:.2rem;display:flex;align-items:center;justify-content:center;gap:.3rem;transition:background .15s,transform .1s;letter-spacing:.02em;}
+.btn-week:hover{background:#a3e635;}
+.btn-week:active{transform:translateY(1px);}
+.btn-week.active{background:#3B6D11;color:#fff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.25);}
 
 /* ── Main ── */
 .main{flex:1;padding:1.1rem 1.2rem;display:flex;flex-direction:column;gap:1.1rem;min-width:0;}
@@ -235,6 +239,7 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
         <span class="sc-arrow">▼</span>
         <div class="sc-dropdown" id="sc-sem-dd"></div>
       </div>
+      <button class="btn-week" id="btnWeekNow" onclick="setCurrentWeek()" title="Filtrar por la semana en curso">📅 Semana actual</button>
     </div>
 
     <div class="fg">
@@ -471,6 +476,7 @@ nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48p
               <th>Sem</th>
               <th>Fecha</th>
               <th>Aceite</th>
+              <th>AdBlue</th>
               <th>Anticong.</th>
               <th class="r">Litros faltantes</th>
               <th>Comentario</th>
@@ -554,6 +560,13 @@ function scSelect(e,k){
   const inp=document.getElementById('sc-'+k+'-input');
   inp.value=val; inp.setAttribute('data-lbl',val);
   document.getElementById('sc-'+k).classList.remove('open');
+  if(k==='sem'){
+    const b=document.getElementById('btnWeekNow');
+    if(b){
+      const cw=String(currentWeekNum());
+      b.classList.toggle('active',val===cw);
+    }
+  }
   cascadeFilters(); draw();
 }
 function scKey(e,k){
@@ -577,7 +590,27 @@ document.addEventListener('click',e=>{
 });
 function resetFilters(){
   SC_KEYS.forEach(k=>{SC_SEL[k]='';const inp=document.getElementById('sc-'+k+'-input');if(inp){inp.value='';inp.setAttribute('data-lbl','');}});
+  const b=document.getElementById('btnWeekNow');if(b)b.classList.remove('active');
   cascadeFilters(); draw();
+}
+
+// ─────────────────────────────────────────────
+//  SEMANA ACTUAL (calendar-week of today)
+// ─────────────────────────────────────────────
+function currentWeekNum(){
+  const d=new Date();
+  const jan1=new Date(d.getFullYear(),0,1);
+  return Math.ceil(((d-jan1)/864e5+jan1.getDay()+1)/7);
+}
+function setCurrentWeek(){
+  const wk=String(currentWeekNum());
+  SC_SEL.sem=wk;
+  const inp=document.getElementById('sc-sem-input');
+  if(inp){inp.value=wk;inp.setAttribute('data-lbl',wk);}
+  document.querySelectorAll('.sc-wrap.open').forEach(el=>el.classList.remove('open'));
+  const b=document.getElementById('btnWeekNow');if(b)b.classList.add('active');
+  cascadeFilters();
+  draw();
 }
 function uniqSorted(arr){
   return[...new Set(arr.filter(v=>v&&String(v).trim()))].sort((a,b)=>{
@@ -627,6 +660,7 @@ function detectAudCols(headers){
     ger     : find('gerente','gte','gerencia'),
     jef     : find('jefe','jfe','supervisor','coordinador'),
     aceite  : find('nivel de aceite','aceite'),
+    adblue  : find('nivel de adblue','adblue','ad blue','ad-blue','urea'),
     litros  : find('litros faltantes','litros'),
     anticong: find('anticongelante','anticong'),
     coment  : find('comentario','coment','obs','observ'),
@@ -754,6 +788,7 @@ async function loadAll(){
     const fecha=String(v(C.fecha)).trim();
     const aceite=String(v(C.aceite)).trim();
     const anticong=String(v(C.anticong)).trim();
+    const adblue=String(v(C.adblue)).trim();
     const coment=String(v(C.coment)).trim();
     const cliente=String(v(C.cliente)).trim();
 
@@ -764,7 +799,7 @@ async function loadAll(){
       if(m)litros=parseFloat(m[0])||0;
     }
 
-    return{_sem:sem,_unid:unid,_ger:ger,_jef:jef,_planta:planta,_estatus:estatus,_fecha:fecha,_aceite:aceite,_anticong:anticong,_coment:coment,_cliente:cliente,_litros:litros,_inFleet:!!fm};
+    return{_sem:sem,_unid:unid,_ger:ger,_jef:jef,_planta:planta,_estatus:estatus,_fecha:fecha,_aceite:aceite,_anticong:anticong,_adblue:adblue,_coment:coment,_cliente:cliente,_litros:litros,_inFleet:!!fm};
   }).filter(r=>r._sem&&r._unid);
 
   cascadeFilters();
@@ -1200,7 +1235,7 @@ function openModal({title,sub,flotaTotal,recs}){
         <thead>
           <tr>
             <th>Unidad</th><th>Planta</th><th>Cliente</th><th>Sem</th><th>Fecha</th>
-            <th>Aceite</th><th>Anticong.</th>
+            <th>Aceite</th><th>AdBlue</th><th>Anticong.</th>
             <th class="r">Litros falt.</th><th>Comentario</th>
           </tr>
         </thead>
@@ -1213,6 +1248,7 @@ function openModal({title,sub,flotaTotal,recs}){
               <td>${esc(r._sem)}</td>
               <td style="color:var(--muted);font-size:.7rem">${esc(r._fecha||'–')}</td>
               <td>${nivelPill(r._aceite)}</td>
+              <td>${nivelPill(r._adblue)}</td>
               <td>${nivelPill(r._anticong)}</td>
               <td class="r" style="color:${r._litros>0?'#7a1c1c':'var(--muted)'};font-weight:${r._litros>0?'700':'400'}">${r._litros>0?r._litros.toLocaleString('es-MX',{maximumFractionDigits:2})+' L':'–'}</td>
               <td style="color:var(--muted);font-size:.7rem;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r._coment||'')}">${esc(r._coment||'–')}</td>
@@ -1245,7 +1281,7 @@ function drawLitrosTable(rows,scopeLabel){
   cnt.textContent=`${unidLit} unidad${unidLit===1?'':'es'} · ${totLit.toLocaleString('es-MX',{maximumFractionDigits:1})} L`;
 
   if(!lit.length){
-    tbody.innerHTML=`<tr><td colspan="11" style="text-align:center;padding:1.2rem;color:var(--muted);font-style:italic">Sin unidades con litros faltantes en el filtro actual ✓</td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="12" style="text-align:center;padding:1.2rem;color:var(--muted);font-style:italic">Sin unidades con litros faltantes en el filtro actual ✓</td></tr>`;
     return;
   }
 
@@ -1259,13 +1295,14 @@ function drawLitrosTable(rows,scopeLabel){
       <td>${esc(r._sem)}</td>
       <td style="color:var(--muted);font-size:.68rem">${esc(r._fecha||'–')}</td>
       <td>${nivelPill(r._aceite)}</td>
+      <td>${nivelPill(r._adblue)}</td>
       <td>${nivelPill(r._anticong)}</td>
       <td class="r">${r._litros.toLocaleString('es-MX',{maximumFractionDigits:2})} L</td>
       <td class="coment" title="${esc(r._coment||'')}">${esc(r._coment||'–')}</td>
     </tr>
   `).join('')+`
     <tr class="lit-total-row">
-      <td colspan="9" style="text-align:right">TOTAL LITROS FALTANTES</td>
+      <td colspan="10" style="text-align:right">TOTAL LITROS FALTANTES</td>
       <td class="r" style="color:#7a1c1c">${totLit.toLocaleString('es-MX',{maximumFractionDigits:1})} L</td>
       <td></td>
     </tr>`;
@@ -1400,20 +1437,20 @@ function exportAllXlsx(){
 
   // ── LITROS FALTANTES ──
   const litRows=rows.filter(r=>r._litros>0).sort((a,b)=>b._litros-a._litros);
-  const litOut=[['Unidad','Planta','Cliente','Jefe','Gerente','Semana','Fecha','Aceite','Anticongelante','Litros faltantes','Comentario']];
-  litRows.forEach(r=>litOut.push([r._unid,r._planta,r._cliente,r._jef,r._ger,r._sem,r._fecha,r._aceite,r._anticong,+r._litros.toFixed(2),r._coment]));
+  const litOut=[['Unidad','Planta','Cliente','Jefe','Gerente','Semana','Fecha','Aceite','AdBlue','Anticongelante','Litros faltantes','Comentario']];
+  litRows.forEach(r=>litOut.push([r._unid,r._planta,r._cliente,r._jef,r._ger,r._sem,r._fecha,r._aceite,r._adblue,r._anticong,+r._litros.toFixed(2),r._coment]));
   litOut.push([]);
-  litOut.push(['TOTAL','','','','','','','','',+litRows.reduce((s,r)=>s+r._litros,0).toFixed(2),'']);
+  litOut.push(['TOTAL','','','','','','','','','',+litRows.reduce((s,r)=>s+r._litros,0).toFixed(2),'']);
   const wsL=XLSX.utils.aoa_to_sheet(litOut);
-  wsL['!cols']=[{wch:10},{wch:26},{wch:22},{wch:22},{wch:22},{wch:8},{wch:14},{wch:10},{wch:14},{wch:16},{wch:40}];
+  wsL['!cols']=[{wch:10},{wch:26},{wch:22},{wch:22},{wch:22},{wch:8},{wch:14},{wch:10},{wch:10},{wch:14},{wch:16},{wch:40}];
   XLSX.utils.book_append_sheet(wb,wsL,'Litros faltantes');
 
   // ── DETALLE (todas las filas filtradas) ──
-  const det=[['Unidad','Planta','Semana','Fecha','Cliente','Jefe','Gerente','Estatus','Aceite','Anticongelante','Litros faltantes','Comentario','En roster']];
+  const det=[['Unidad','Planta','Semana','Fecha','Cliente','Jefe','Gerente','Estatus','Aceite','AdBlue','Anticongelante','Litros faltantes','Comentario','En roster']];
   rows.sort((a,b)=>(parseInt(b._sem)-parseInt(a._sem))||String(a._unid).localeCompare(b._unid))
-      .forEach(r=>det.push([r._unid,r._planta,r._sem,r._fecha,r._cliente,r._jef,r._ger,r._estatus,r._aceite,r._anticong,+r._litros.toFixed(2),r._coment,r._inFleet?'Sí':'No']));
+      .forEach(r=>det.push([r._unid,r._planta,r._sem,r._fecha,r._cliente,r._jef,r._ger,r._estatus,r._aceite,r._adblue,r._anticong,+r._litros.toFixed(2),r._coment,r._inFleet?'Sí':'No']));
   const wsD=XLSX.utils.aoa_to_sheet(det);
-  wsD['!cols']=[{wch:10},{wch:26},{wch:8},{wch:14},{wch:22},{wch:22},{wch:22},{wch:16},{wch:10},{wch:14},{wch:16},{wch:40},{wch:10}];
+  wsD['!cols']=[{wch:10},{wch:26},{wch:8},{wch:14},{wch:22},{wch:22},{wch:22},{wch:16},{wch:10},{wch:10},{wch:14},{wch:16},{wch:40},{wch:10}];
   XLSX.utils.book_append_sheet(wb,wsD,'Detalle auditoría');
 
   // ── FLOTA (roster completo del scope) ──
