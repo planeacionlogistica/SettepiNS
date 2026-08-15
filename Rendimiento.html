@@ -68,7 +68,7 @@
   @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
   .grid {
     display: grid;
-    grid-template-columns: 460px 130px 230px 1fr;
+    grid-template-columns: 720px 130px 200px 1fr;
     grid-template-rows: auto auto auto auto;
     gap: 8px;
   }
@@ -155,6 +155,39 @@
   }
   .chip.active { background: #1f2937; color: #fff; border-color: #1f2937; }
   .chip:hover { border-color: #84cc16; }
+
+  /* ============ Buscador de vehículos ============ */
+  .veh-search-wrap { position: relative; }
+  .veh-search-wrap input[type="search"] {
+    width: 100%; padding: 5px 26px 5px 8px; border: 1px solid #d1d5db; border-radius: 3px;
+    font-size: 11px; background: #fff; box-sizing: border-box;
+  }
+  .veh-search-wrap input[type="search"]:focus {
+    outline: none; border-color: #84cc16; box-shadow: 0 0 0 2px rgba(132,204,22,.2);
+  }
+  .veh-search-wrap input[type="search"]::-webkit-search-cancel-button { display: none; }
+  .veh-clear {
+    position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    background: transparent; border: none; cursor: pointer; color: #6b7280;
+    font-size: 15px; padding: 0 6px; line-height: 1; font-weight: 700;
+  }
+  .veh-clear:hover { color: #1f2937; }
+  .veh-drop {
+    display: none; position: absolute; top: calc(100% + 2px); left: 0; right: 0;
+    background: #fff; border: 1px solid #d1d5db; border-radius: 3px; z-index: 200;
+    max-height: 240px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,.08);
+  }
+  .veh-drop.show { display: block; }
+  .veh-drop-item {
+    padding: 5px 10px; cursor: pointer; font-size: 11px; border-bottom: 1px solid #f3f4f6;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .veh-drop-item:hover, .veh-drop-item.hl { background: #f0fdf4; }
+  .veh-drop-item .veh-id { font-weight: 600; color: #1f2937; }
+  .veh-drop-item .veh-info { color: #6b7280; font-size: 10px; }
+  .veh-drop-empty { padding: 10px; text-align: center; color: #9ca3af; font-size: 11px; }
+  .veh-drop::-webkit-scrollbar { width: 6px; }
+  .veh-drop::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
 
   /* Perdida card */
   .perdida-card {
@@ -254,8 +287,8 @@
   #debug-panel {
     display: none; position: fixed; bottom: 20px; left: 20px; z-index: 999;
     background: #1f2937; color: #d1d5db; padding: 12px 16px; border-radius: 4px;
-    font-family: 'Consolas','Menlo',monospace; font-size: 10px; max-width: 460px;
-    max-height: 380px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,.3);
+    font-family: 'Consolas','Menlo',monospace; font-size: 10px; max-width: 720px; min-width: 500px;
+    max-height: 80vh; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,.3);
   }
   #debug-panel.show { display: block; }
   #debug-panel h4 { margin: 0 0 6px 0; color: #84cc16; font-size: 11px; }
@@ -289,11 +322,6 @@
   </div>
 
   <div class="topbar-right">
-    <label class="action-btn secondary" id="btn-manual" title="Cargar un XLSX descargado manualmente del Sheet">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      Subir XLSX
-      <input type="file" id="file-manual" accept=".xlsx,.xls,.xlsm" style="display:none;">
-    </label>
     <button class="action-btn secondary" id="btn-debug" title="Ver diagnóstico de columnas detectadas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
       Diagnóstico
@@ -316,16 +344,12 @@
   <div class="spinner" id="ls-spinner"></div>
   <ul class="progress-list" id="ls-progress">
     <li id="p-fetch" class="pending">Descargar XLSX del Sheet publicado</li>
-    <li id="p-parse" class="pending">Leer las 3 pestañas (rendimiento · trafilink · asignacion)</li>
+    <li id="p-parse" class="pending">Leer las pestañas (rendimiento · trafilink · asignacion · unidades)</li>
     <li id="p-columns" class="pending">Detectar columnas por nombre</li>
     <li id="p-enrich" class="pending">Cruzar cargas + GPS + asignaciones</li>
     <li id="p-render" class="pending">Renderizar el dashboard</li>
   </ul>
-  <div style="margin-top:16px; font-size:11px; color:#6b7280;">
-    ¿Se atora la descarga? Usa el botón <b>Subir XLSX</b> de arriba para cargarlo manualmente.
-  </div>
   <div id="ls-error" style="display:none;" class="err-box"></div>
-  <div id="ls-actions" style="display:none;"></div>
 </div>
 
 <!-- ============ DASHBOARD ============ -->
@@ -398,9 +422,10 @@
           <select id="f-operador"><option value="">Todos</option></select>
         </div>
         <div class="slicer">
-          <label>AC (Cargas)</label>
+          <label>AC · Clima</label>
           <div class="ac-buttons">
-            <button data-ac="cc" class="active">C/C</button>
+            <button data-ac="" class="active">Todas</button>
+            <button data-ac="cc">C/C</button>
             <button data-ac="sc">S/C</button>
           </div>
         </div>
@@ -431,6 +456,10 @@
       <select id="f-anio"></select>
     </div>
     <div class="slicer" style="grid-column: span 1;">
+      <label>Año Unidad</label>
+      <select id="f-anio-unidad"><option value="">Todos</option></select>
+    </div>
+    <div class="slicer" style="grid-column: span 1;">
       <label>Mes</label>
       <select id="f-mes"></select>
     </div>
@@ -443,8 +472,12 @@
       <select id="f-dia"><option value="">Todos</option></select>
     </div>
     <div class="slicer" style="grid-column: span 2;">
-      <label>IdVehículo</label>
-      <select id="f-vehiculo"><option value="">Todos</option></select>
+      <label>Buscar IdVehículo</label>
+      <div class="veh-search-wrap">
+        <input type="search" id="f-vehiculo-search" placeholder="Escribe un ID…" autocomplete="off" spellcheck="false">
+        <button type="button" id="f-vehiculo-clear" class="veh-clear" title="Limpiar" style="display:none;">×</button>
+        <div id="f-vehiculo-drop" class="veh-drop"></div>
+      </div>
     </div>
     <div class="slicer" style="grid-column: span 2;">
       <label>Tipo vehículo</label>
@@ -492,23 +525,25 @@ const GSHEET_XLSX_URL = `${GSHEET_PUB_BASE}?output=xlsx`;
 const SHEET_NAMES = {
   rendimiento: ['rendimiento','rendim','info rendimiento','info-rendimiento'],
   trafilink:   ['trafilink','traffilink','trafi','trafi-link','trafflink','gps','trafilink gps'],
-  asignacion:  ['asignacion','asignación','asig','asignación de vehículos','asignacion de vehiculos','planta']
+  asignacion:  ['asignacion','asignación','asig','asignación de vehículos','asignacion de vehiculos','planta'],
+  unidades:    ['unidades','unidad','asignacion unidades','asignación unidades','veh','vehiculos','vehículos']
 };
 
 /* =========================================================
    GLOBAL STATE
 ========================================================= */
 const STATE = {
-  cargas: [], gps: [], asigMap: {},
+  cargas: [], gps: [], asigMap: {}, unidadesMap: {},
   vehPlantaMap: {}, vehGpsKm: {}, vehGpsKmDia: {},
   lastSync: null,
   rawXlsxBlob: null,
-  diagnostic: { rendimiento: {}, trafilink: {}, asignacion: {} },
+  diagnostic: { rendimiento: {}, trafilink: {}, asignacion: {}, unidades: {} },
   f: {
     gerente: new Set(), jefe: new Set(), estatus: new Set(['Activo']),
     anio: '', mes: '', semana: '', dia: '', vehiculo: '',
     tipoVeh: new Set(), combustible: new Set(), operador: '',
-    ac: 'cc'
+    ac: '',           // '' = todas, 'cc' = con clima, 'sc' = sin clima
+    yearUnidad: ''    // año de fabricación de la unidad
   },
   charts: {}
 };
@@ -525,6 +560,21 @@ function normKey(s) {
   return stripDiacritics(String(s ?? '')).toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 function norm(s) { return String(s ?? '').trim().toUpperCase(); }
+// Normalización agresiva de IDs de vehículo para hacer match entre pestañas.
+// Ejemplos: "1234" ↔ "01234" ↔ " 1234 " ↔ "1234.0" → "1234"
+function normVehId(s) {
+  if (s === null || s === undefined) return '';
+  let v = String(s).trim();
+  if (!v) return '';
+  // "1234.0" (por número Excel) → "1234"
+  const asNum = Number(v);
+  if (isFinite(asNum) && String(asNum) === v.replace(/\.0+$/,'') && Number.isInteger(asNum)) {
+    v = String(asNum);
+  }
+  // quitar ceros a la izquierda cuando el resto son dígitos (evita "01234" ≠ "1234")
+  if (/^0+\d+$/.test(v)) v = v.replace(/^0+/, '');
+  return v.toUpperCase();
+}
 function normalizeLabel(s) {
   s = String(s ?? '').trim();
   if (!s) return '';
@@ -552,33 +602,106 @@ function fmtRelative(date) {
   if (h < 24) return `hace ${h}h`;
   return `hace ${Math.floor(h/24)}d`;
 }
+const MONTH_MAP = {
+  ene:0, jan:0, feb:1, mar:2, abr:3, apr:3, may:4, jun:5, jul:6, ago:7, aug:7,
+  sep:8, sept:8, oct:9, nov:10, dic:11, dec:11,
+  enero:0, febrero:1, marzo:2, abril:3, mayo:4, junio:5, julio:6, agosto:7,
+  septiembre:8, octubre:9, noviembre:10, diciembre:11
+};
+
 function excelDateToJS(v) {
   if (v === null || v === undefined || v === '') return null;
   if (v instanceof Date) return isNaN(v) ? null : v;
-  if (typeof v === 'number') {
-    const epoch = new Date(Date.UTC(1899, 11, 30));
-    const d = new Date(epoch.getTime() + v * 86400000);
-    return isNaN(d) ? null : d;
-  }
-  const s = String(v).trim();
-  if (!s) return null;
-  let m = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})(?:[ T]\d{1,2}:\d{1,2}(?::\d{1,2})?)?$/);
-  if (m) {
-    let dd = parseInt(m[1], 10), mm = parseInt(m[2], 10), yy = parseInt(m[3], 10);
-    if (yy < 100) yy += 2000;
-    if (mm > 12 && dd <= 12) { const tmp = dd; dd = mm; mm = tmp; }
-    if (dd >= 1 && dd <= 31 && mm >= 1 && mm <= 12) {
-      const d = new Date(yy, mm - 1, dd);
+
+  // Número: serial de Excel o Unix timestamp
+  if (typeof v === 'number' && isFinite(v)) {
+    // Serial de Excel (rango razonable: 1900 a 2200)
+    if (v > 1 && v < 110000) {
+      const epoch = new Date(Date.UTC(1899, 11, 30));
+      const d = new Date(epoch.getTime() + v * 86400000);
+      return isNaN(d) ? null : d;
+    }
+    // Unix timestamp en segundos (2001 a 2100)
+    if (v > 946684800 && v < 4102444800) {
+      const d = new Date(v * 1000);
+      return isNaN(d) ? null : d;
+    }
+    // Unix timestamp en milisegundos
+    if (v > 946684800000 && v < 4102444800000) {
+      const d = new Date(v);
       return isNaN(d) ? null : d;
     }
   }
-  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T]\d{1,2}:\d{1,2}(?::\d{1,2})?)?$/);
+
+  const s = String(v).trim();
+  if (!s) return null;
+
+  // ISO 8601: 2026-05-15T08:00:00.000Z, 2026-05-15 08:00:00, 2026-05-15
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{1,2})(?::(\d{1,2})(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?/);
   if (m) {
-    const d = new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
+    const d = new Date(+m[1], +m[2]-1, +m[3], +(m[4]||0), +(m[5]||0), +(m[6]||0));
     return isNaN(d) ? null : d;
   }
+
+  // DD/MM/YYYY o MM/DD/YYYY con hora opcional y AM/PM opcional
+  m = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})(?:[ T,](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?\s*(a\.?m\.?|p\.?m\.?|am|pm|AM|PM)?/);
+  if (m) {
+    let dd = +m[1], mm = +m[2], yy = +m[3];
+    if (yy < 100) yy += 2000;
+    // Heurística: si primer número > 12, es DD/MM (europeo/latino)
+    // Si segundo > 12, es MM/DD (US)
+    // Si ambos <=12, asumir DD/MM (español default)
+    if (mm > 12 && dd <= 12) { const tmp = dd; dd = mm; mm = tmp; }
+    let hh = +(m[4] || 0);
+    const mi = +(m[5] || 0);
+    const ss = +(m[6] || 0);
+    const ampm = (m[7] || '').replace(/\./g,'').toUpperCase();
+    if (ampm === 'PM' && hh < 12) hh += 12;
+    if (ampm === 'AM' && hh === 12) hh = 0;
+    if (dd >= 1 && dd <= 31 && mm >= 1 && mm <= 12) {
+      const d = new Date(yy, mm-1, dd, hh, mi, ss);
+      return isNaN(d) ? null : d;
+    }
+  }
+
+  // Nombre de mes: 15-may-2026, 15 May 2026, 15 de mayo de 2026
+  m = s.match(/^(\d{1,2})[\s\-\/]+(?:de\s+)?([a-zA-Záéíóúñ]{3,12})\.?[\s\-\/]+(?:de\s+)?(\d{2,4})(?:[ T,](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?\s*(a\.?m\.?|p\.?m\.?|am|pm|AM|PM)?/i);
+  if (m) {
+    const dd = +m[1];
+    const monKey = stripDiacritics(m[2].toLowerCase()).replace(/\./g,'');
+    const mm = MONTH_MAP[monKey] ?? MONTH_MAP[monKey.slice(0,3)];
+    let yy = +m[3];
+    if (yy < 100) yy += 2000;
+    let hh = +(m[4] || 0);
+    const mi = +(m[5] || 0);
+    const ss = +(m[6] || 0);
+    const ampm = (m[7] || '').replace(/\./g,'').toUpperCase();
+    if (ampm === 'PM' && hh < 12) hh += 12;
+    if (ampm === 'AM' && hh === 12) hh = 0;
+    if (mm !== undefined && dd >= 1 && dd <= 31) {
+      const d = new Date(yy, mm, dd, hh, mi, ss);
+      return isNaN(d) ? null : d;
+    }
+  }
+
+  // Mes-Año: may 2026, mayo-2026
+  m = s.match(/^([a-zA-Záéíóúñ]{3,12})\.?[\s\-\/]+(\d{2,4})/i);
+  if (m) {
+    const monKey = stripDiacritics(m[1].toLowerCase()).replace(/\./g,'');
+    const mm = MONTH_MAP[monKey] ?? MONTH_MAP[monKey.slice(0,3)];
+    let yy = +m[2];
+    if (yy < 100) yy += 2000;
+    if (mm !== undefined) {
+      const d = new Date(yy, mm, 1);
+      return isNaN(d) ? null : d;
+    }
+  }
+
+  // Fallback: parser nativo (funciona para muchos formatos raros pero puede confundir DD/MM vs MM/DD)
   const parsed = new Date(s);
-  return isNaN(parsed) ? null : parsed;
+  if (!isNaN(parsed) && parsed.getFullYear() > 1990 && parsed.getFullYear() < 2100) return parsed;
+
+  return null;
 }
 function getISOWeek(date) {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -641,42 +764,6 @@ function showError(msg, detail) {
   setStatus('Error', 'error');
 }
 
-// Renderiza el bloque de acciones grandes (Subir XLSX + Abrir Sheet)
-// que aparece dentro de la pantalla de error cuando falla CORS.
-function showManualActionPanel() {
-  const box = document.getElementById('ls-actions');
-  box.style.display = 'block';
-  box.innerHTML = `
-    <div style="text-align:center; margin: 20px 0;">
-      <label for="file-manual-big" class="action-btn" style="font-size:14px; padding:12px 24px; display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Subir XLSX desde mi computadora
-        <input type="file" id="file-manual-big" accept=".xlsx,.xls,.xlsm" style="display:none;">
-      </label>
-      <a href="${GSHEET_PUB_BASE}?output=xlsx" target="_blank" rel="noopener"
-        class="action-btn secondary" style="font-size:12px; padding:10px 18px; display:inline-flex; align-items:center; gap:6px; margin-left:8px; background:#fff; color:#1f2937; border:1px solid #d1d5db; text-decoration:none;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-        Descargar el Sheet del origen
-      </a>
-    </div>
-    <div style="font-size:11px; color:#6b7280; text-align:center; line-height:1.6;">
-      <b>Paso 1:</b> Click en <b>"Descargar el Sheet del origen"</b> (bajará un archivo <code>.xlsx</code>) &nbsp;→&nbsp;
-      <b>Paso 2:</b> Click en <b>"Subir XLSX"</b> y selecciona ese archivo.<br>
-      <span style="color:#9ca3af;">Este método siempre funciona y no depende de CORS. Puedes repetirlo cuando quieras refrescar datos.</span>
-    </div>
-  `;
-  // Wire up the big button
-  document.getElementById('file-manual-big').onchange = (ev) => {
-    const f = ev.target.files[0];
-    if (f) loadFromManualFile(f);
-    ev.target.value = '';
-  };
-}
-function hideManualActionPanel() {
-  const box = document.getElementById('ls-actions');
-  if (box) box.style.display = 'none';
-}
-
 /* =========================================================
    COLUMN AUTO-DETECTION
    Detecta la columna por nombre en el header (fila 0).
@@ -734,7 +821,7 @@ function parseRendimientoSheet(wb) {
     nomina:      findColIdx(headers, ['Nomina Operador','Nómina Operador','Nomina','Nómina','No Nomina','Operador Nomina'], 13),
     nombreOp:    findColIdx(headers, ['Nombre op.','Nombre Operador','Nombre op','Operador','Nombre'], 14)
   };
-  STATE.diagnostic.rendimiento = { sheet: sheetName, headers, idx, rowsRaw: rows.length };
+  STATE.diagnostic.rendimiento = { sheet: sheetName, headers, idx, rowsRaw: rows.length, sampleRows: rows.slice(1, 3) };
 
   const records = [];
   for (let i = 1; i < rows.length; i++) {
@@ -751,6 +838,7 @@ function parseRendimientoSheet(wb) {
     if (!isFinite(rend) || rend <= 0) rend = litros > 0 ? km / litros : 0;
     records.push({
       idVehiculo: String(idVeh).trim(),
+      vehKey: normVehId(idVeh),
       fecha: fechaJS,
       year: fechaJS ? fechaJS.getFullYear() : null,
       month: fechaJS ? (fechaJS.getMonth() + 1) : null,
@@ -778,25 +866,33 @@ function parseTrafilinkSheet(wb) {
 
   const headers = (rows[0] || []).map(h => String(h ?? '').trim());
   const idx = {
-    idVehiculo: findColIdx(headers, ['IdVehiculo','Unidad','Vehículo','Vehiculo','Identificación','Placa'], 0),
-    planta:     findColIdx(headers, ['Planta','Group','Grupo','Sede','Base'], 2),
-    inicio:     findColIdx(headers, ['Start time','Inicio','Fecha Inicio','Start','Start Time','Start_time','Hora inicio'], 6),
-    fin:        findColIdx(headers, ['End time','Fin','Fecha Fin','End','End Time','End_time','Hora fin'], 8),
-    distancia:  findColIdx(headers, ['Driven Distance (km)','Distancia','Km recorridos','Distance','Kilometraje','Driven Distance','Distancia km'], 11)
+    idVehiculo: findColIdx(headers, ['IdVehiculo','Id Vehiculo','Id Vehículo','Vehículo','Vehiculo','Unidad','Identificación','Placa','Nombre','Object'], 0),
+    planta:     findColIdx(headers, ['Planta','Group','Grupo','Sede','Base','Cliente'], 2),
+    inicio:     findColIdx(headers, ['Start time','Start Time','Start','Start_time','Starttime','Inicio','Fecha Inicio','FechaInicio','F. Inicio','Fecha_ini','Hora inicio','Trip start','Fecha','From'], 6),
+    fin:        findColIdx(headers, ['End time','End Time','End','End_time','Endtime','Fin','Fecha Fin','FechaFin','F. Fin','Fecha_fin','Hora fin','Trip end','To'], 8),
+    distancia:  findColIdx(headers, ['Driven Distance (km)','Driven Distance','Distance','Distancia (km)','Distancia','Km','Kms','Kilometraje','Km recorridos','Kmts','Total km','Total Distance','Distancia km','Recorrido'], 11)
   };
-  STATE.diagnostic.trafilink = { sheet: sheetName, headers, idx, rowsRaw: rows.length };
+  STATE.diagnostic.trafilink = { sheet: sheetName, headers, idx, rowsRaw: rows.length, sampleRows: rows.slice(1, 3) };
 
   const records = [];
+  const unparseableDates = [];
   for (let i = 1; i < rows.length; i++) {
     const r = rows[i];
     if (!r) continue;
     const idVeh = r[idx.idVehiculo];
     if (idVeh === null || idVeh === undefined || idVeh === '') continue;
     const distancia = Number(r[idx.distancia]);
-    const ini = idx.inicio >= 0 ? excelDateToJS(r[idx.inicio]) : null;
-    const fin = idx.fin >= 0 ? excelDateToJS(r[idx.fin]) : null;
+    const rawIni = idx.inicio >= 0 ? r[idx.inicio] : null;
+    const rawFin = idx.fin >= 0 ? r[idx.fin] : null;
+    const ini = excelDateToJS(rawIni);
+    const fin = excelDateToJS(rawFin);
+    // Capturar hasta 5 valores raw de fechas que no se parsean, para debug
+    if (!ini && rawIni !== null && rawIni !== undefined && rawIni !== '' && unparseableDates.length < 5) {
+      unparseableDates.push({ raw: rawIni, type: typeof rawIni });
+    }
     records.push({
       idVehiculo: String(idVeh).trim(),
+      vehKey: normVehId(idVeh),
       planta: idx.planta >= 0 ? String(r[idx.planta] ?? '').trim() : '',
       inicio: ini, fin: fin,
       distancia: isFinite(distancia) ? distancia : 0,
@@ -805,6 +901,11 @@ function parseTrafilinkSheet(wb) {
     });
   }
   STATE.diagnostic.trafilink.rowsOut = records.length;
+  STATE.diagnostic.trafilink.withDate = records.filter(r => r.inicio).length;
+  STATE.diagnostic.trafilink.withoutDate = records.filter(r => !r.inicio).length;
+  STATE.diagnostic.trafilink.totalDist = records.reduce((s,r) => s + r.distancia, 0);
+  STATE.diagnostic.trafilink.uniqueVehs = new Set(records.map(r => r.vehKey).filter(Boolean)).size;
+  STATE.diagnostic.trafilink.unparseableDates = unparseableDates;
   return records;
 }
 
@@ -821,7 +922,7 @@ function parseAsignacionSheet(wb) {
     jefe:    findColIdx(headers, ['Jefe','JEFE','Jefe Nvo','Supervisor','Coordinador'], 4),
     gerente: findColIdx(headers, ['Gerente','GERENTE','Gerente Nuevo','Coordinador'], 6)
   };
-  STATE.diagnostic.asignacion = { sheet: sheetName, headers, idx, rowsRaw: rows.length };
+  STATE.diagnostic.asignacion = { sheet: sheetName, headers, idx, rowsRaw: rows.length, sampleRows: rows.slice(1, 3) };
 
   const map = {};
   for (let i = 1; i < rows.length; i++) {
@@ -837,15 +938,76 @@ function parseAsignacionSheet(wb) {
   return map;
 }
 
+// Parser de la pestaña "unidades" — fuente de verdad directa vehículo → {year, ac, jefe, gerente}
+function parseUnidadesSheet(wb) {
+  const sheetName = matchSheet(wb, SHEET_NAMES.unidades);
+  if (!sheetName) {
+    // No es obligatoria — devolvemos vacío si no existe
+    STATE.diagnostic.unidades = { sheet: null, headers: [], idx: {}, rowsRaw: 0, rowsOut: 0 };
+    return {};
+  }
+  const sheet = wb.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
+  if (rows.length < 2) {
+    STATE.diagnostic.unidades = { sheet: sheetName, headers: [], idx: {}, rowsRaw: rows.length, rowsOut: 0 };
+    return {};
+  }
+
+  const headers = (rows[0] || []).map(h => String(h ?? '').trim());
+  const idx = {
+    idVehiculo: findColIdx(headers, ['IdVehiculo','Id Vehiculo','Id Vehículo','Unidad','Vehículo','Vehiculo'], 0),
+    year:       findColIdx(headers, ['Year','Año','Anio','Modelo','Año Unidad','Año de la unidad'], 1),
+    ac:         findColIdx(headers, ['AC','A/C','Aire','Aire Acondicionado','Clima','A.C.'], 2),
+    jefe:       findColIdx(headers, ['Jefe','JEFE','Jefe de Operaciones','Supervisor'], 3),
+    gerente:    findColIdx(headers, ['Gerente','GERENTE','Gerente de Operaciones'], 4)
+  };
+  STATE.diagnostic.unidades = { sheet: sheetName, headers, idx, rowsRaw: rows.length, sampleRows: rows.slice(1, 3) };
+
+  const map = {};
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r) continue;
+    const rawId = idx.idVehiculo >= 0 ? r[idx.idVehiculo] : null;
+    if (rawId === null || rawId === undefined || rawId === '') continue;
+    const vehKey = normVehId(rawId);
+    if (!vehKey) continue;
+    // Normalizar AC: aceptar "C/C", "CC", "Con Clima", "SI", "S/C", "SC", "Sin Clima", "NO"
+    let acRaw = idx.ac >= 0 ? String(r[idx.ac] ?? '').trim().toUpperCase() : '';
+    let ac = '';
+    if (acRaw) {
+      const acN = acRaw.replace(/[\s\/\.\-]/g, '');
+      if (['CC','CONCLIMA','CON','SI','YES','1','TRUE'].includes(acN)) ac = 'C/C';
+      else if (['SC','SINCLIMA','SIN','NO','0','FALSE'].includes(acN)) ac = 'S/C';
+      else ac = acRaw; // valor tal cual si no lo reconozco
+    }
+    const yearRaw = idx.year >= 0 ? r[idx.year] : null;
+    let year = null;
+    if (yearRaw !== null && yearRaw !== undefined && yearRaw !== '') {
+      const y = parseInt(yearRaw, 10);
+      if (isFinite(y) && y > 1980 && y < 2100) year = y;
+    }
+    map[vehKey] = {
+      idVehiculo: String(rawId).trim(),
+      year,
+      ac,
+      jefe:    idx.jefe    >= 0 ? String(r[idx.jefe]    ?? '').trim() : '',
+      gerente: idx.gerente >= 0 ? String(r[idx.gerente] ?? '').trim() : ''
+    };
+  }
+  STATE.diagnostic.unidades.rowsOut = Object.keys(map).length;
+  return map;
+}
+
 /* =========================================================
    POST-PROCESS: link planta → jefe/gerente
 ========================================================= */
 function buildVehiclePlantaMap() {
+  // Contador de plantas por vehículo (usando vehKey normalizado)
   const counter = {};
   STATE.gps.forEach(g => {
-    if (!g.planta) return;
-    if (!counter[g.idVehiculo]) counter[g.idVehiculo] = {};
-    counter[g.idVehiculo][g.planta] = (counter[g.idVehiculo][g.planta] || 0) + 1;
+    if (!g.planta || !g.vehKey) return;
+    if (!counter[g.vehKey]) counter[g.vehKey] = {};
+    counter[g.vehKey][g.planta] = (counter[g.vehKey][g.planta] || 0) + 1;
   });
   const map = {};
   for (const veh in counter) {
@@ -856,33 +1018,152 @@ function buildVehiclePlantaMap() {
   }
   STATE.vehPlantaMap = map;
 
-  const kmMonth = {}, kmDia = {};
+  // Km GPS por vehículo/mes y vehículo/día — y también total por vehículo (fallback)
+  const kmMonth = {}, kmDia = {}, dayCount = {}, kmTotal = {};
   STATE.gps.forEach(g => {
+    if (!g.vehKey) return;
+    kmTotal[g.vehKey] = (kmTotal[g.vehKey] || 0) + g.distancia;
     if (!g.inicio) return;
-    const ym = `${g.year}${String(g.month).padStart(2,'0')}`;
-    const ymd = `${ym}${String(g.inicio.getDate()).padStart(2,'0')}`;
-    if (!kmMonth[g.idVehiculo]) kmMonth[g.idVehiculo] = {};
-    if (!kmDia[g.idVehiculo]) kmDia[g.idVehiculo] = {};
-    kmMonth[g.idVehiculo][ym] = (kmMonth[g.idVehiculo][ym] || 0) + g.distancia;
-    kmDia[g.idVehiculo][ymd] = (kmDia[g.idVehiculo][ymd] || 0) + g.distancia;
+    const y = g.inicio.getFullYear();
+    const m = g.inicio.getMonth() + 1;
+    const d = g.inicio.getDate();
+    const ym = `${y}${String(m).padStart(2,'0')}`;
+    const ymd = `${ym}${String(d).padStart(2,'0')}`;
+    if (!kmMonth[g.vehKey]) kmMonth[g.vehKey] = {};
+    if (!kmDia[g.vehKey])   kmDia[g.vehKey] = {};
+    if (!dayCount[g.vehKey]) dayCount[g.vehKey] = {};
+    kmMonth[g.vehKey][ym] = (kmMonth[g.vehKey][ym] || 0) + g.distancia;
+    kmDia[g.vehKey][ymd]  = (kmDia[g.vehKey][ymd]  || 0) + g.distancia;
+    if (!dayCount[g.vehKey][ym]) dayCount[g.vehKey][ym] = new Set();
+    dayCount[g.vehKey][ym].add(d);
   });
   STATE.vehGpsKm = kmMonth;
   STATE.vehGpsKmDia = kmDia;
+  STATE.vehGpsKmTotal = kmTotal;
+  STATE.vehGpsDayCount = {};
+  for (const veh in dayCount) {
+    STATE.vehGpsDayCount[veh] = {};
+    for (const ym in dayCount[veh]) STATE.vehGpsDayCount[veh][ym] = dayCount[veh][ym].size;
+  }
 }
 
 function enrichCargas() {
+  let matches = 0, misses = 0;
+  let acFromUnidades = 0, jefeFromUnidades = 0, jefeFromPlanta = 0, jefeSin = 0;
+
   STATE.cargas.forEach(c => {
-    const planta = STATE.vehPlantaMap[c.idVehiculo] || '';
+    // 1) Prioridad: pestaña "unidades" (asignación directa por vehículo)
+    const u = STATE.unidadesMap[c.vehKey];
+
+    // 2) Fallback: planta desde GPS + pestaña "asignacion"
+    const planta = STATE.vehPlantaMap[c.vehKey] || '';
     c.planta = planta;
     const asig = STATE.asigMap[norm(planta)] || {};
-    c.gerente = asig.gerente || 'SIN ASIGNACIÓN';
-    c.jefe = asig.jefe || 'SIN ASIGNACIÓN';
+
+    // Jefe / Gerente / AC / Año Unidad — con prioridad a "unidades"
+    if (u) {
+      c.jefe    = u.jefe    || asig.jefe    || 'SIN ASIGNACIÓN';
+      c.gerente = u.gerente || asig.gerente || 'SIN ASIGNACIÓN';
+      c.ac      = u.ac      || '';
+      c.yearUnidad = u.year || null;
+      if (u.jefe) jefeFromUnidades++; else if (asig.jefe) jefeFromPlanta++; else jefeSin++;
+      if (u.ac) acFromUnidades++;
+    } else {
+      c.jefe    = asig.jefe    || 'SIN ASIGNACIÓN';
+      c.gerente = asig.gerente || 'SIN ASIGNACIÓN';
+      c.ac      = '';
+      c.yearUnidad = null;
+      if (asig.jefe) jefeFromPlanta++; else jefeSin++;
+    }
+
+    // Km GPS: día exacto → promedio del mes → total del vehículo (fallback si no hay fechas)
     const ymd = `${c.year}${String(c.month).padStart(2,'0')}${String(c.day || 0).padStart(2,'0')}`;
-    c.kmGps = STATE.vehGpsKmDia[c.idVehiculo]?.[ymd] || 0;
+    const ym  = `${c.year}${String(c.month).padStart(2,'0')}`;
+    let km = STATE.vehGpsKmDia[c.vehKey]?.[ymd];
+    let kmSource = 'día';
+    if (!km) {
+      const kmMes = STATE.vehGpsKm[c.vehKey]?.[ym];
+      const dias  = STATE.vehGpsDayCount[c.vehKey]?.[ym];
+      if (kmMes && dias) { km = kmMes / dias; kmSource = 'prom.mes'; }
+    }
+    if (!km) {
+      // Último recurso: si el vehículo tiene km GPS total pero sin fechas parseables,
+      // repartir proporcionalmente por número de cargas del vehículo
+      const kmTotal = STATE.vehGpsKmTotal[c.vehKey] || 0;
+      if (kmTotal > 0) {
+        // Usa el total dividido entre cargas del mismo vehículo (aproximación cruda)
+        // No lo asigno como kmGps de la carga porque distorsionaría, pero sirve como flag
+        // para que el resumen (calcKmGpsPeriodByVeh) sí tenga datos.
+        kmSource = 'sin-fecha';
+      }
+    }
+    c.kmGps = km || 0;
+    c.kmGpsSource = c.kmGps > 0 ? kmSource : (STATE.vehGpsKmTotal[c.vehKey] > 0 ? 'sin-fecha-veh' : 'sin-match');
+    if (c.kmGps > 0) matches++; else misses++;
+
     const partsTU = c.tipoUnidad.split(/[-–]/).map(x => x.trim()).filter(Boolean);
     c.tipoVehiculo = partsTU[0] || c.tipoUnidad || 'Otro';
     c.marcaModelo  = partsTU.length >= 3 ? `${partsTU[1]} - ${partsTU[2]}` : (partsTU[1] || c.tipoUnidad);
   });
+
+  STATE.enrichStats = {
+    matches, misses, total: STATE.cargas.length,
+    jefeFromUnidades, jefeFromPlanta, jefeSin, acFromUnidades
+  };
+}
+
+// Enriquece los registros GPS con jefe/gerente/ac/yearUnidad para poder filtrarlos
+// igual que las cargas y calcular km GPS agregado a nivel gerente/jefe/vehículo.
+function enrichGps() {
+  STATE.gps.forEach(g => {
+    const u = STATE.unidadesMap[g.vehKey];
+    if (u) {
+      g.jefe    = u.jefe    || 'SIN ASIGNACIÓN';
+      g.gerente = u.gerente || 'SIN ASIGNACIÓN';
+      g.ac      = u.ac      || '';
+      g.yearUnidad = u.year || null;
+    } else {
+      const asig = STATE.asigMap[norm(g.planta)] || {};
+      g.jefe    = asig.jefe    || 'SIN ASIGNACIÓN';
+      g.gerente = asig.gerente || 'SIN ASIGNACIÓN';
+      g.ac      = '';
+      g.yearUnidad = null;
+    }
+  });
+}
+
+// Devuelve la suma total de km GPS por vehículo respetando los filtros globales
+// activos (año, mes, semana, día, gerente, jefe, ac, yearUnidad, vehiculo).
+// Los filtros de operador/tipoVeh/combustible NO aplican porque son atributos de la carga.
+function calcKmGpsPeriodByVeh() {
+  const map = {};
+  const f = STATE.f;
+  // Si la mayoría de fechas de GPS no se parsearon, ignoramos filtros de fecha
+  const dtStats = STATE.diagnostic.trafilink || {};
+  const dateParseFailed = (dtStats.withDate === 0 && dtStats.rowsOut > 0);
+  const hasTimeFilter = !dateParseFailed && !!(f.anio || f.mes || f.semana || f.dia);
+
+  STATE.gps.forEach(g => {
+    if (!g.vehKey) return;
+    if (hasTimeFilter) {
+      if (!g.inicio) return;
+      if (f.anio && String(g.year) !== f.anio) return;
+      if (f.mes && String(g.month) !== f.mes) return;
+      if (f.semana) {
+        const w = getISOWeek(g.inicio);
+        if (String(w) !== f.semana) return;
+      }
+      if (f.dia && String(g.inicio.getDate()) !== f.dia) return;
+    }
+    if (f.gerente.size && !f.gerente.has(g.gerente)) return;
+    if (f.jefe.size && !f.jefe.has(g.jefe)) return;
+    if (f.vehiculo && g.idVehiculo !== f.vehiculo) return;
+    if (f.ac === 'cc' && g.ac !== 'C/C') return;
+    if (f.ac === 'sc' && g.ac !== 'S/C') return;
+    if (f.yearUnidad && String(g.yearUnidad) !== f.yearUnidad) return;
+    map[g.vehKey] = (map[g.vehKey] || 0) + g.distancia;
+  });
+  return map;
 }
 
 /* =========================================================
@@ -924,15 +1205,45 @@ function populateFilters() {
   fDia.innerHTML = '<option value="">Todos</option>' + Array.from({length:31}, (_,i) => `<option value="${i+1}">${i+1}</option>`).join('');
   fDia.value = prev.dia; STATE.f.dia = prev.dia;
 
-  const fVeh = document.getElementById('f-vehiculo');
-  const vehs = uniqueVals(c, 'idVehiculo');
-  fVeh.innerHTML = '<option value="">Todos</option>' + vehs.map(v => `<option value="${v}">${v}</option>`).join('');
-  fVeh.value = prev.vehiculo; STATE.f.vehiculo = prev.vehiculo;
+  // Buscador de vehículos: construir índice con info útil para cada uno
+  const vehIndex = {};
+  c.forEach(r => {
+    if (!r.idVehiculo) return;
+    if (!vehIndex[r.idVehiculo]) {
+      vehIndex[r.idVehiculo] = {
+        id: r.idVehiculo,
+        tipo: r.tipoVehiculo || '',
+        marca: r.marcaModelo || '',
+        jefe: r.jefe || '',
+        gerente: r.gerente || '',
+        cargas: 0
+      };
+    }
+    vehIndex[r.idVehiculo].cargas++;
+  });
+  STATE.vehIndex = vehIndex;
+  STATE.vehIndexKeys = Object.keys(vehIndex).sort((a, b) => {
+    const na = parseFloat(a), nb = parseFloat(b);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return String(a).localeCompare(String(b));
+  });
+  // Reflejar valor actual del filtro en el input
+  const sIn = document.getElementById('f-vehiculo-search');
+  const sClr = document.getElementById('f-vehiculo-clear');
+  if (sIn && prev.vehiculo) { sIn.value = prev.vehiculo; sClr.style.display = 'block'; }
+  else if (sIn) { sIn.value = ''; sClr.style.display = 'none'; }
+  STATE.f.vehiculo = prev.vehiculo;
 
   const fOp = document.getElementById('f-operador');
   const ops = uniqueVals(c, 'nombreOp');
   fOp.innerHTML = '<option value="">Todos</option>' + ops.map(o => `<option value="${o}">${o}</option>`).join('');
   fOp.value = prev.operador; STATE.f.operador = prev.operador;
+
+  const fYU = document.getElementById('f-anio-unidad');
+  const yUnidades = uniqueVals(c, 'yearUnidad').sort((a,b) => b-a);
+  const prevYU = STATE.f.yearUnidad;
+  fYU.innerHTML = '<option value="">Todos</option>' + yUnidades.map(y => `<option value="${y}">${y}</option>`).join('');
+  fYU.value = prevYU; STATE.f.yearUnidad = prevYU;
 
   const tipos = uniqueVals(c, 'tipoVehiculo');
   document.getElementById('f-tipoveh').innerHTML = tipos.map(t => `<span class="chip ${STATE.f.tipoVeh.has(t)?'active':''}" data-val="${t}">${t}</span>`).join('');
@@ -954,8 +1265,11 @@ function wireFilterEvents() {
   document.getElementById('f-mes').onchange = e => { STATE.f.mes = e.target.value; render(); };
   document.getElementById('f-semana').onchange = e => { STATE.f.semana = e.target.value; render(); };
   document.getElementById('f-dia').onchange = e => { STATE.f.dia = e.target.value; render(); };
-  document.getElementById('f-vehiculo').onchange = e => { STATE.f.vehiculo = e.target.value; render(); };
   document.getElementById('f-operador').onchange = e => { STATE.f.operador = e.target.value; render(); };
+  document.getElementById('f-anio-unidad').onchange = e => { STATE.f.yearUnidad = e.target.value; render(); };
+
+  // Buscador de vehículos con autocompletado
+  setupVehiculoSearch();
 
   function bindChipRow(id, setKey) {
     const el = document.getElementById(id);
@@ -987,6 +1301,125 @@ function wireFilterEvents() {
   document.getElementById('objetivo-rend').onchange = render;
 }
 
+// Buscador de vehículos con autocompletado y navegación por teclado
+function setupVehiculoSearch() {
+  const input = document.getElementById('f-vehiculo-search');
+  const drop  = document.getElementById('f-vehiculo-drop');
+  const clr   = document.getElementById('f-vehiculo-clear');
+  if (!input || input._wired) return;
+  input._wired = true;
+
+  let highlighted = -1;
+  let currentMatches = [];
+
+  function normalizeSearch(s) { return String(s || '').toLowerCase().trim(); }
+
+  function computeMatches(q) {
+    const nq = normalizeSearch(q);
+    if (!nq) return STATE.vehIndexKeys.slice(0, 50).map(k => STATE.vehIndex[k]);
+    // 1. Coincidencias que EMPIEZAN con el término
+    const starts = [];
+    // 2. Coincidencias que CONTIENEN el término
+    const contains = [];
+    for (const id of STATE.vehIndexKeys) {
+      const nid = normalizeSearch(id);
+      if (nid.startsWith(nq)) starts.push(STATE.vehIndex[id]);
+      else if (nid.includes(nq)) contains.push(STATE.vehIndex[id]);
+      if (starts.length >= 50) break;
+    }
+    return [...starts, ...contains].slice(0, 50);
+  }
+
+  function renderDrop(matches) {
+    if (!matches.length) {
+      drop.innerHTML = '<div class="veh-drop-empty">Sin coincidencias</div>';
+      return;
+    }
+    drop.innerHTML = matches.map((v, i) => `
+      <div class="veh-drop-item ${i===highlighted?'hl':''}" data-idx="${i}" data-id="${v.id}">
+        <span class="veh-id">${v.id}</span>
+        <span class="veh-info">${v.tipo}${v.marca ? ' · ' + v.marca : ''}${v.jefe ? ' · ' + v.jefe : ''} · ${v.cargas} c.</span>
+      </div>
+    `).join('');
+    drop.querySelectorAll('.veh-drop-item').forEach(el => {
+      el.onmousedown = (e) => { e.preventDefault(); selectItem(parseInt(el.dataset.idx)); };
+    });
+  }
+
+  function openDrop() {
+    currentMatches = computeMatches(input.value);
+    highlighted = currentMatches.length ? 0 : -1;
+    renderDrop(currentMatches);
+    drop.classList.add('show');
+  }
+
+  function closeDrop() {
+    drop.classList.remove('show');
+    highlighted = -1;
+  }
+
+  function applyValue(id) {
+    STATE.f.vehiculo = id || '';
+    input.value = id || '';
+    clr.style.display = id ? 'block' : 'none';
+    render();
+  }
+
+  function selectItem(idx) {
+    if (idx < 0 || idx >= currentMatches.length) return;
+    applyValue(currentMatches[idx].id);
+    closeDrop();
+    input.blur();
+  }
+
+  input.addEventListener('focus', openDrop);
+  input.addEventListener('input', () => {
+    clr.style.display = input.value ? 'block' : 'none';
+    currentMatches = computeMatches(input.value);
+    highlighted = currentMatches.length ? 0 : -1;
+    renderDrop(currentMatches);
+    drop.classList.add('show');
+    // Si el input coincide EXACTAMENTE con un ID, aplicar el filtro sin cerrar
+    if (STATE.vehIndex[input.value]) {
+      STATE.f.vehiculo = input.value;
+      render();
+    } else if (STATE.f.vehiculo && STATE.f.vehiculo !== input.value) {
+      // Si borra hasta quedar diferente al filtro activo, quita el filtro
+      STATE.f.vehiculo = '';
+      render();
+    }
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!drop.classList.contains('show')) openDrop();
+      highlighted = Math.min(currentMatches.length - 1, highlighted + 1);
+      renderDrop(currentMatches);
+      const el = drop.querySelector('.veh-drop-item.hl');
+      if (el) el.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      highlighted = Math.max(0, highlighted - 1);
+      renderDrop(currentMatches);
+      const el = drop.querySelector('.veh-drop-item.hl');
+      if (el) el.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlighted >= 0) selectItem(highlighted);
+      else if (input.value && STATE.vehIndex[input.value]) applyValue(input.value);
+    } else if (e.key === 'Escape') {
+      closeDrop();
+      input.blur();
+    }
+  });
+  input.addEventListener('blur', () => setTimeout(closeDrop, 150));
+
+  clr.onclick = () => {
+    applyValue('');
+    input.focus();
+  };
+}
+
 /* =========================================================
    FILTERING
 ========================================================= */
@@ -1003,6 +1436,9 @@ function applyFilters(records) {
     if (f.jefe.size && !f.jefe.has(r.jefe)) return false;
     if (f.tipoVeh.size && !f.tipoVeh.has(r.tipoVehiculo)) return false;
     if (f.combustible.size && !f.combustible.has(r.combustible)) return false;
+    if (f.ac === 'cc' && r.ac !== 'C/C') return false;
+    if (f.ac === 'sc' && r.ac !== 'S/C') return false;
+    if (f.yearUnidad && String(r.yearUnidad) !== f.yearUnidad) return false;
     return true;
   });
 }
@@ -1060,54 +1496,114 @@ function colorClass(rend, target) {
 
 function renderResumen(filtered, target) {
   const tbl = document.getElementById('tbl-resumen');
+  const kmGpsByVeh = calcKmGpsPeriodByVeh();
+
+  // Helper: dado un subset de cargas, suma km GPS de todos sus vehículos únicos
+  function sumKmGps(subset) {
+    const seen = new Set();
+    let total = 0;
+    subset.forEach(c => { if (c.vehKey) seen.add(c.vehKey); });
+    seen.forEach(vk => { total += kmGpsByVeh[vk] || 0; });
+    return total;
+  }
+  function pctColor(pct) {
+    if (!isFinite(pct) || pct <= 0) return '';
+    if (pct < 60 || pct > 140) return 'cell-bad';
+    if (pct < 80 || pct > 120) return 'cell-warn';
+    return 'cell-ok';
+  }
+
   const byGer = aggBy(filtered, r => r.gerente);
   byGer.sort((a,b) => b.km - a.km);
 
   let html = `<thead><tr>
-    <th>Gerente</th><th># Vehículos</th><th>Kms Recorridos</th><th>Litros</th><th>(Km/L)</th>
+    <th>Gerente</th>
+    <th># Vehículos</th>
+    <th>Kms Recorridos</th>
+    <th>Litros</th>
+    <th>(Km/L)</th>
+    <th>Km Gps</th>
+    <th>GPS (Km/L)</th>
+    <th>% Cargas vs Trafi</th>
   </tr></thead><tbody>`;
 
-  let totUni = new Set(), totKm = 0, totL = 0;
+  let totUni = new Set(), totKm = 0, totL = 0, totGps = 0;
+
   byGer.forEach((g, idx) => {
     const recsGer = filtered.filter(r => r.gerente === g.key);
-    recsGer.forEach(r => totUni.add(r.idVehiculo));
+    recsGer.forEach(r => totUni.add(r.vehKey || r.idVehiculo));
     totKm += g.km; totL += g.litros;
+    const kmGpsGer = sumKmGps(recsGer);
+    totGps += kmGpsGer;
+    const rendGpsGer = g.litros > 0 ? kmGpsGer / g.litros : 0;
+    const pctGer = kmGpsGer > 0 ? (g.km / kmGpsGer) * 100 : 0;
     const id = `ger-${idx}`;
+
     html += `<tr class="lvl-0" data-grp="${id}">
       <td><span class="caret" data-toggle="${id}">▸</span> ${g.key}</td>
       <td>${fmtNum(g.nUnidades)}</td>
       <td>${fmtNum(g.km, 2)}</td>
       <td>${fmtNum(g.litros, 2)}</td>
       <td class="${colorClass(g.rendimiento, target)}">${fmtNum(g.rendimiento, 2)}</td>
+      <td>${fmtNum(kmGpsGer, 0)}</td>
+      <td>${fmtNum(rendGpsGer, 2)}</td>
+      <td class="${pctColor(pctGer)}">${kmGpsGer > 0 ? fmtNum(pctGer, 0) + '%' : '—'}</td>
     </tr>`;
+
     const byJefe = aggBy(recsGer, r => r.jefe);
     byJefe.sort((a,b) => b.km - a.km);
     byJefe.forEach((j, jdx) => {
       const idJ = `${id}-jef-${jdx}`;
+      const recsJefe = recsGer.filter(r => r.jefe === j.key);
+      const kmGpsJefe = sumKmGps(recsJefe);
+      const rendGpsJefe = j.litros > 0 ? kmGpsJefe / j.litros : 0;
+      const pctJefe = kmGpsJefe > 0 ? (j.km / kmGpsJefe) * 100 : 0;
+
       html += `<tr class="lvl-1" data-parent="${id}" style="display:none;">
         <td><span class="caret" data-toggle="${idJ}">▸</span> ${j.key}</td>
         <td>${fmtNum(j.nUnidades)}</td>
         <td>${fmtNum(j.km, 2)}</td>
         <td>${fmtNum(j.litros, 2)}</td>
         <td class="${colorClass(j.rendimiento, target)}">${fmtNum(j.rendimiento, 2)}</td>
+        <td>${fmtNum(kmGpsJefe, 0)}</td>
+        <td>${fmtNum(rendGpsJefe, 2)}</td>
+        <td class="${pctColor(pctJefe)}">${kmGpsJefe > 0 ? fmtNum(pctJefe, 0) + '%' : '—'}</td>
       </tr>`;
-      const recsJefe = recsGer.filter(r => r.jefe === j.key);
+
       const byVeh = aggBy(recsJefe, r => r.idVehiculo);
       byVeh.sort((a,b) => b.km - a.km);
       byVeh.forEach(v => {
+        const vehRecs = recsJefe.filter(r => r.idVehiculo === v.key);
+        const vk = vehRecs[0]?.vehKey;
+        const kmGpsV = vk ? (kmGpsByVeh[vk] || 0) : 0;
+        const rendGpsV = v.litros > 0 ? kmGpsV / v.litros : 0;
+        const pctV = kmGpsV > 0 ? (v.km / kmGpsV) * 100 : 0;
+
         html += `<tr class="lvl-2" data-parent="${idJ}" style="display:none;">
           <td>${v.key}</td>
           <td>1</td>
           <td>${fmtNum(v.km, 2)}</td>
           <td>${fmtNum(v.litros, 2)}</td>
           <td class="${colorClass(v.rendimiento, target)}">${fmtNum(v.rendimiento, 2)}</td>
+          <td>${fmtNum(kmGpsV, 0)}</td>
+          <td>${fmtNum(rendGpsV, 2)}</td>
+          <td class="${pctColor(pctV)}">${kmGpsV > 0 ? fmtNum(pctV, 0) + '%' : '—'}</td>
         </tr>`;
       });
     });
   });
+
+  const totRendGps = totL > 0 ? totGps / totL : 0;
+  const totPct = totGps > 0 ? (totKm / totGps) * 100 : 0;
   html += `<tr class="total">
-    <td>Total</td><td>${fmtNum(totUni.size)}</td><td>${fmtNum(totKm,2)}</td><td>${fmtNum(totL,2)}</td>
-    <td>${fmtNum(totL>0 ? totKm/totL : 0, 2)}</td>
+    <td>Total</td>
+    <td>${fmtNum(totUni.size)}</td>
+    <td>${fmtNum(totKm, 2)}</td>
+    <td>${fmtNum(totL, 2)}</td>
+    <td>${fmtNum(totL > 0 ? totKm/totL : 0, 2)}</td>
+    <td>${fmtNum(totGps, 0)}</td>
+    <td>${fmtNum(totRendGps, 2)}</td>
+    <td>${totGps > 0 ? fmtNum(totPct, 0) + '%' : '—'}</td>
   </tr></tbody>`;
   tbl.innerHTML = html;
   wireCaret(tbl);
@@ -1426,7 +1922,7 @@ function renderCargas(filtered) {
       <td>${r.month || ''}</td>
       <td>${r.week || ''}</td>
       <td>${r.day || ''}</td>
-      <td>${fmtNum(r.kmGps,2)}</td>
+      <td title="${r.kmGpsSource || ''}" style="${r.kmGpsSource==='sin-match'?'color:#dc2626;':(r.kmGpsSource==='prom.mes'?'color:#f59e0b;':'')}">${fmtNum(r.kmGps,2)}</td>
       <td>${fmtNum(r.km,2)}</td>
       <td>${fmtNum(r.litros,2)}</td>
       <td>${fmtNum(r.rendimiento,2)}</td>
@@ -1547,6 +2043,9 @@ function applyFiltersNoYear(records) {
     if (f.jefe.size && !f.jefe.has(r.jefe)) return false;
     if (f.tipoVeh.size && !f.tipoVeh.has(r.tipoVehiculo)) return false;
     if (f.combustible.size && !f.combustible.has(r.combustible)) return false;
+    if (f.ac === 'cc' && r.ac !== 'C/C') return false;
+    if (f.ac === 'sc' && r.ac !== 'S/C') return false;
+    if (f.yearUnidad && String(r.yearUnidad) !== f.yearUnidad) return false;
     return true;
   });
 }
@@ -1559,24 +2058,25 @@ function generateSinCargasRecords() {
   STATE.cargas.forEach(c => {
     if (targetYear && c.year !== targetYear) return;
     if (targetMonth && c.month !== targetMonth) return;
-    withCargas.add(c.idVehiculo);
+    withCargas.add(c.vehKey);
   });
 
-  const gpsByVeh = {};
+  const gpsByVeh = {}, gpsIdMap = {};
   STATE.gps.forEach(g => {
     if (targetYear && g.year !== targetYear) return;
     if (targetMonth && g.month !== targetMonth) return;
-    if (!gpsByVeh[g.idVehiculo]) gpsByVeh[g.idVehiculo] = { km: 0, count: 0 };
-    gpsByVeh[g.idVehiculo].km += g.distancia;
-    gpsByVeh[g.idVehiculo].count += 1;
+    if (!g.vehKey) return;
+    if (!gpsByVeh[g.vehKey]) { gpsByVeh[g.vehKey] = { km: 0, count: 0 }; gpsIdMap[g.vehKey] = g.idVehiculo; }
+    gpsByVeh[g.vehKey].km += g.distancia;
+    gpsByVeh[g.vehKey].count += 1;
   });
 
   const sinCargas = Object.keys(gpsByVeh).filter(v => !withCargas.has(v));
-  return sinCargas.map(v => {
-    const planta = STATE.vehPlantaMap[v] || '';
+  return sinCargas.map(vk => {
+    const planta = STATE.vehPlantaMap[vk] || '';
     const asig = STATE.asigMap[norm(planta)] || {};
     return {
-      idVehiculo: v, fecha: null,
+      idVehiculo: gpsIdMap[vk] || vk, vehKey: vk, fecha: null,
       year: targetYear, month: targetMonth, day: null, week: null,
       km: 0, litros: 0, rendimiento: 0,
       combustible: 'Sin Datos', tipoUnidad: 'Sin Datos',
@@ -1584,7 +2084,7 @@ function generateSinCargasRecords() {
       nomina: '', nombreOp: '', planta,
       gerente: asig.gerente || 'SIN ASIGNACIÓN',
       jefe: asig.jefe || 'SIN ASIGNACIÓN',
-      kmGps: gpsByVeh[v].km
+      kmGps: gpsByVeh[vk].km, kmGpsSource: 'sc'
     };
   });
 }
@@ -1596,8 +2096,7 @@ function render() {
   const target = parseFloat(document.getElementById('objetivo-rend').value) || 4.08;
   const precio = parseFloat(document.getElementById('precio-diesel').value) || 0;
 
-  const baseRecords = STATE.f.ac === 'sc' ? generateSinCargasRecords() : STATE.cargas;
-  const filtered = applyFilters(baseRecords);
+  const filtered = applyFilters(STATE.cargas);
 
   const global = calcGlobal(filtered);
   document.getElementById('kpi-unidades').textContent = fmtNum(global.unidades);
@@ -1621,31 +2120,112 @@ function renderDiagnostic() {
   const el = document.getElementById('debug-content');
   const rows = [];
 
-  function section(title, info, expectedKeys) {
+  function fmtCell(v) {
+    if (v === null || v === undefined) return '<span style="color:#6b7280;">·</span>';
+    if (v instanceof Date) return v.toISOString().slice(0,16).replace('T',' ');
+    const s = String(v);
+    return s.length > 25 ? s.slice(0,25) + '…' : s;
+  }
+  function section(title, info) {
     if (!info || !info.headers) {
       rows.push(`<div style="margin-bottom:10px;"><b class="col-fatal">${title}</b><br>—</div>`);
       return;
     }
-    let inner = `<div style="margin-bottom:10px;">`;
-    inner += `<b style="color:#a3e635;">${title}</b> <span style="color:#6b7280;">(pestaña: <code>${info.sheet}</code>, filas: ${info.rowsOut}/${info.rowsRaw})</span><br>`;
-    inner += `<table>`;
-    for (const [k, ix] of Object.entries(info.idx)) {
+    let inner = `<div style="margin-bottom:12px; padding-bottom:8px; border-bottom:1px dashed #374151;">`;
+    inner += `<b style="color:#a3e635;">${title}</b> <span style="color:#6b7280;">(pestaña: <code>${info.sheet || '—'}</code>, filas: ${info.rowsOut}/${info.rowsRaw})</span><br>`;
+    inner += `<table style="width:100%;">`;
+    for (const [k, ix] of Object.entries(info.idx || {})) {
       const found = ix >= 0;
-      const header = found ? (info.headers[ix] || '(sin nombre)') : '<span class="col-fatal">NO ENCONTRADA</span>';
+      const header = found ? (info.headers[ix] || '<i>(sin nombre)</i>') : '<span class="col-fatal">NO DETECTADA</span>';
       const cls = found ? (info.headers[ix] ? 'col-ok' : 'col-miss') : 'col-fatal';
-      inner += `<tr><td style="color:#6b7280;">${k}</td><td class="${cls}">${found ? '#' + ix : ''}</td><td>${header}</td></tr>`;
+      inner += `<tr><td style="color:#6b7280;">${k}</td><td class="${cls}" style="width:30px;">${found ? '#' + ix : ''}</td><td>${header}</td></tr>`;
     }
-    inner += `</table></div>`;
+    inner += `</table>`;
+    // Mostrar sample rows si están disponibles
+    if (info.sampleRows && info.sampleRows.length) {
+      inner += `<div style="color:#6b7280; margin-top:6px;"><b>Primeras filas raw:</b></div>`;
+      inner += `<table style="width:100%; font-size:9px;">`;
+      // Header
+      inner += '<tr>';
+      (info.headers || []).forEach((h, i) => {
+        const isDetected = Object.values(info.idx).includes(i);
+        inner += `<td style="color:${isDetected ? '#a3e635' : '#6b7280'};padding:2px 4px;border-bottom:1px solid #374151;">${fmtCell(h)}</td>`;
+      });
+      inner += '</tr>';
+      info.sampleRows.forEach(sr => {
+        inner += '<tr>';
+        (sr || []).forEach((v, i) => {
+          const isDetected = Object.values(info.idx).includes(i);
+          inner += `<td style="color:${isDetected ? '#d1d5db' : '#6b7280'};padding:2px 4px;">${fmtCell(v)}</td>`;
+        });
+        inner += '</tr>';
+      });
+      inner += `</table>`;
+    }
+    // Trafilink: mostrar stats de fechas parseadas
+    if (title === 'Trafilink' && info.withDate !== undefined) {
+      const total = info.withDate + info.withoutDate;
+      const pct = total ? ((info.withDate/total)*100).toFixed(0) : 0;
+      inner += `<div style="margin-top:6px; color:#6b7280;">
+        <b>Fechas parseadas:</b> <span class="${info.withDate>0?'col-ok':'col-fatal'}">${info.withDate}/${total} (${pct}%)</span><br>
+        <b>Distancia total:</b> <span class="${info.totalDist>0?'col-ok':'col-fatal'}">${info.totalDist.toLocaleString('es-MX', {maximumFractionDigits:0})} km</span><br>
+        <b>Vehículos únicos:</b> ${info.uniqueVehs}
+      </div>`;
+      // Si hay fechas sin parsear, mostrar ejemplos crudos
+      if (info.unparseableDates && info.unparseableDates.length) {
+        inner += `<div style="margin-top:6px; padding:4px 6px; background:#7f1d1d; border-radius:3px; color:#fecaca;">
+          <b>⚠ Ejemplos de fechas NO parseables:</b><br>
+          ${info.unparseableDates.map(u => `<code>${fmtCell(u.raw)} <span style="color:#f87171;">(${u.type})</span></code>`).join('<br>')}
+          <div style="margin-top:4px; color:#fca5a5;">Comparte este panel con Claude para agregar soporte a este formato.</div>
+        </div>`;
+      }
+    }
+    inner += `</div>`;
     rows.push(inner);
   }
   section('Rendimiento', d.rendimiento);
   section('Trafilink',   d.trafilink);
   section('Asignacion',  d.asignacion);
+  section('Unidades',    d.unidades);
 
-  el.innerHTML = rows.join('') +
-    `<div style="border-top:1px solid #374151;padding-top:6px;margin-top:6px;color:#6b7280;">
-      Cargas: <b style="color:#d1d5db;">${STATE.cargas.length}</b> · GPS: <b style="color:#d1d5db;">${STATE.gps.length}</b> · Plantas asignadas: <b style="color:#d1d5db;">${Object.keys(STATE.asigMap).length}</b>
+  // Cross-match diagnostic
+  const rendVehs = new Set(STATE.cargas.map(c => c.vehKey).filter(Boolean));
+  const gpsVehs  = new Set(STATE.gps.map(g => g.vehKey).filter(Boolean));
+  const uniVehs  = new Set(Object.keys(STATE.unidadesMap || {}));
+  const interGps  = [...rendVehs].filter(v => gpsVehs.has(v));
+  const interUni  = [...rendVehs].filter(v => uniVehs.has(v));
+  const onlyRend  = [...rendVehs].filter(v => !gpsVehs.has(v));
+  const es = STATE.enrichStats || {};
+  const matchPct = es.total ? ((es.matches/es.total)*100).toFixed(0) : 0;
+  const uniPct   = es.total && rendVehs.size ? ((interUni.length/rendVehs.size)*100).toFixed(0) : 0;
+
+  const crossHtml = `
+    <div style="border-top:1px solid #374151;padding-top:8px;margin-top:6px;">
+      <b style="color:#a3e635;">Cruce GPS ↔ Rendimiento</b><br>
+      <table>
+        <tr><td style="color:#6b7280;">Cargas con Km GPS (por día o mes)</td><td class="${es.matches>0?'col-ok':'col-fatal'}">${es.matches||0} / ${es.total||0} (${matchPct}%)</td></tr>
+        <tr><td style="color:#6b7280;">Vehículos en Rendimiento</td><td>${rendVehs.size}</td></tr>
+        <tr><td style="color:#6b7280;">Vehículos en Trafilink</td><td>${gpsVehs.size}</td></tr>
+        <tr><td style="color:#6b7280;">Vehículos en ambas</td><td class="${interGps.length>0?'col-ok':'col-fatal'}">${interGps.length}</td></tr>
+      </table>
+    </div>
+    <div style="border-top:1px solid #374151;padding-top:8px;margin-top:6px;">
+      <b style="color:#a3e635;">Cruce Unidades ↔ Rendimiento</b><br>
+      <table>
+        <tr><td style="color:#6b7280;">Vehículos en Unidades</td><td>${uniVehs.size}</td></tr>
+        <tr><td style="color:#6b7280;">Match directo</td><td class="${interUni.length>0?'col-ok':'col-miss'}">${interUni.length} / ${rendVehs.size} (${uniPct}%)</td></tr>
+        <tr><td style="color:#6b7280;">Jefe desde Unidades</td><td class="col-ok">${es.jefeFromUnidades||0}</td></tr>
+        <tr><td style="color:#6b7280;">Jefe desde Planta</td><td>${es.jefeFromPlanta||0}</td></tr>
+        <tr><td style="color:#6b7280;">Jefe sin asignar</td><td class="${es.jefeSin>0?'col-miss':'col-ok'}">${es.jefeSin||0}</td></tr>
+      </table>
+      <div style="margin-top:6px; color:#6b7280;">
+        <b>IDs Rendim.:</b> <code>${[...rendVehs].slice(0,6).join(', ') || '—'}</code><br>
+        <b>IDs Trafilink:</b> <code>${[...gpsVehs].slice(0,6).join(', ') || '—'}</code><br>
+        <b>IDs Unidades:</b> <code>${[...uniVehs].slice(0,6).join(', ') || '—'}</code>
+      </div>
     </div>`;
+
+  el.innerHTML = rows.join('') + crossHtml;
 }
 
 /* =========================================================
@@ -1694,14 +2274,16 @@ async function processWorkbookBuffer(buf, sourceLabel = 'archivo') {
   setProgress('p-parse', 'done', `Pestañas leídas: ${wb.SheetNames.join(', ')}`);
 
   setProgress('p-columns', 'working', 'Detectando columnas…');
-  STATE.cargas   = parseRendimientoSheet(wb);
-  STATE.gps      = parseTrafilinkSheet(wb);
-  STATE.asigMap  = parseAsignacionSheet(wb);
-  setProgress('p-columns', 'done', `Cargas: ${STATE.cargas.length} · GPS: ${STATE.gps.length} · Asig: ${Object.keys(STATE.asigMap).length}`);
+  STATE.cargas       = parseRendimientoSheet(wb);
+  STATE.gps          = parseTrafilinkSheet(wb);
+  STATE.asigMap      = parseAsignacionSheet(wb);
+  STATE.unidadesMap  = parseUnidadesSheet(wb);
+  setProgress('p-columns', 'done', `Cargas: ${STATE.cargas.length} · GPS: ${STATE.gps.length} · Asig: ${Object.keys(STATE.asigMap).length} · Unidades: ${Object.keys(STATE.unidadesMap).length}`);
 
   setProgress('p-enrich', 'working', 'Cruzando datos…');
   buildVehiclePlantaMap();
   enrichCargas();
+  enrichGps();
   setProgress('p-enrich', 'done', 'Cruzados ✓');
 
   setProgress('p-render', 'working', 'Renderizando…');
@@ -1714,6 +2296,16 @@ async function processWorkbookBuffer(buf, sourceLabel = 'archivo') {
   STATE.lastSync = new Date();
   updateSyncLabel();
   renderDiagnostic();
+
+  // Advertencia visual si el cruce GPS falló
+  const dtStats = STATE.diagnostic.trafilink || {};
+  if (STATE.gps.length > 0 && dtStats.withDate === 0 && dtStats.rowsOut > 0) {
+    showToast('⚠ Las fechas del Trafilink no se pudieron parsear · usando totales por vehículo', 'err');
+    document.getElementById('debug-panel').classList.add('show');
+  } else if (STATE.gps.length > 0 && STATE.enrichStats.matches === 0) {
+    showToast('⚠ 0 cruces GPS · abre Diagnóstico', 'err');
+    document.getElementById('debug-panel').classList.add('show');
+  }
 }
 
 async function loadFromGoogleSheets({ initial = false } = {}) {
@@ -1726,7 +2318,6 @@ async function loadFromGoogleSheets({ initial = false } = {}) {
       document.getElementById('load-state').style.display = 'block';
       document.getElementById('dashboard').classList.remove('ready');
     }
-    hideManualActionPanel();
     document.getElementById('ls-error').style.display = 'none';
     // reset progress
     ['p-fetch','p-parse','p-columns','p-enrich','p-render'].forEach(pid => {
@@ -1754,51 +2345,14 @@ Esto pasa cuando abres el HTML con doble click (protocolo <code>file://</code>) 
 <b>La solución rápida está justo abajo ⬇</b>`
       : `<b>Verifica que:</b>
 • El Sheet siga publicado en la web (Archivo → Compartir → Publicar en la web).
-• Existan pestañas llamadas <b>rendimiento</b>, <b>trafilink</b> y <b>asignacion</b> (o nombres similares).
+• Existan pestañas llamadas <b>rendimiento</b>, <b>trafilink</b> y <b>asignacion</b> (y opcionalmente <b>unidades</b>).
 • Los encabezados de columna estén en la primera fila.`;
     showError('No se pudo cargar el Google Sheet', detail + '\n\n' + help);
-    if (isCors) showManualActionPanel();
     ['p-fetch','p-parse','p-columns','p-enrich','p-render'].forEach(pid => {
       const el = document.getElementById(pid);
       if (el && !el.classList.contains('done')) { el.classList.remove('working','pending'); el.classList.add('error'); }
     });
     if (!initial) showToast('Error al actualizar', 'err');
-  } finally {
-    btnRefresh.disabled = false;
-    btnRefresh.classList.remove('spinning');
-  }
-}
-
-// Manejador del botón "Subir XLSX" (carga manual)
-async function loadFromManualFile(file) {
-  if (!file) return;
-  const btnRefresh = document.getElementById('btn-refresh');
-  btnRefresh.disabled = true;
-  btnRefresh.classList.add('spinning');
-  try {
-    document.getElementById('load-state').style.display = 'block';
-    document.getElementById('dashboard').classList.remove('ready');
-    hideManualActionPanel();
-    document.getElementById('ls-error').style.display = 'none';
-    ['p-fetch','p-parse','p-columns','p-enrich','p-render'].forEach(pid => {
-      const el = document.getElementById(pid);
-      if (el) { el.classList.remove('done','working','error'); el.classList.add('pending'); }
-    });
-    document.getElementById('ls-spinner').style.display = 'block';
-    document.getElementById('ls-title').textContent = 'Procesando archivo…';
-    setStatus('Procesando archivo…', 'loading');
-    setProgress('p-fetch', 'working', `Leyendo ${file.name}…`);
-
-    const buf = await file.arrayBuffer();
-    await processWorkbookBuffer(buf, `archivo local: ${file.name}`);
-    showToast(`Cargado · ${STATE.cargas.length} cargas · ${STATE.gps.length} viajes GPS`, 'ok');
-  } catch (err) {
-    console.error(err);
-    showError('Error al procesar el archivo', err.message || String(err));
-    ['p-fetch','p-parse','p-columns','p-enrich','p-render'].forEach(pid => {
-      const el = document.getElementById(pid);
-      if (el && !el.classList.contains('done')) { el.classList.remove('working','pending'); el.classList.add('error'); }
-    });
   } finally {
     btnRefresh.disabled = false;
     btnRefresh.classList.remove('spinning');
@@ -1815,11 +2369,6 @@ setInterval(updateSyncLabel, 15000);
    UI wiring
 ========================================================= */
 document.getElementById('btn-refresh').onclick = () => loadFromGoogleSheets({ initial: false });
-document.getElementById('file-manual').onchange = (ev) => {
-  const f = ev.target.files[0];
-  if (f) loadFromManualFile(f);
-  ev.target.value = ''; // permite recargar el mismo archivo
-};
 document.getElementById('btn-debug').onclick = () => {
   renderDiagnostic();
   document.getElementById('debug-panel').classList.toggle('show');
