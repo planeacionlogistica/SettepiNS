@@ -1,0 +1,1849 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1400">
+<title>Dashboard Rendimiento — Settepi García (Google Sheets)</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #f3f4f6; font-family: 'Segoe UI', 'Inter', system-ui, sans-serif; color: #1f2937; font-size: 12px; }
+
+  /* ============ TOP BAR ============ */
+  .topbar {
+    background: linear-gradient(90deg, #1f2937 0%, #111827 100%);
+    color: #fff; padding: 10px 18px; display: flex; align-items: center; gap: 16px;
+    border-bottom: 3px solid #84cc16;
+  }
+  .topbar .brand { font-weight: 700; font-size: 14px; letter-spacing: .5px; }
+  .topbar .brand span { color: #84cc16; }
+  .topbar .nav-dd { position: relative; }
+  .topbar .nav-dd > button {
+    background: rgba(255,255,255,.08); color: #fff; border: 1px solid rgba(255,255,255,.15);
+    padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px;
+  }
+  .topbar .nav-dd > button:hover { background: rgba(132,204,22,.2); }
+  .topbar .nav-dd > ul {
+    display: none; position: absolute; top: 100%; left: 0; background: #1f2937;
+    border: 1px solid #374151; border-radius: 4px; list-style: none; margin: 4px 0 0; padding: 4px 0;
+    min-width: 180px; z-index: 100;
+  }
+  .topbar .nav-dd:hover > ul { display: block; }
+  .topbar .nav-dd > ul li a {
+    color: #d1d5db; text-decoration: none; padding: 6px 12px; display: block; font-size: 11px;
+  }
+  .topbar .nav-dd > ul li a:hover { background: #374151; color: #84cc16; }
+
+  .topbar-right { display: flex; gap: 8px; margin-left: auto; align-items: center; }
+  .action-btn {
+    background: #84cc16; color: #1f2937; border: none; padding: 6px 12px; font-weight: 600;
+    border-radius: 4px; cursor: pointer; font-size: 11px; display: inline-flex; align-items: center; gap: 6px;
+    transition: background .15s, transform .1s;
+  }
+  .action-btn:hover:not(:disabled) { background: #a3e635; }
+  .action-btn:active:not(:disabled) { transform: scale(0.97); }
+  .action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .action-btn.secondary { background: rgba(255,255,255,.08); color: #fff; border: 1px solid rgba(255,255,255,.15); }
+  .action-btn.secondary:hover:not(:disabled) { background: rgba(132,204,22,.2); }
+  .action-btn svg { width: 13px; height: 13px; }
+  .action-btn.spinning svg { animation: spin 1s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  #status {
+    color: #d1d5db; font-size: 11px; display: flex; align-items: center; gap: 6px;
+    padding: 4px 8px; border-radius: 3px; background: rgba(255,255,255,.05);
+  }
+  #status .status-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #84cc16;
+    box-shadow: 0 0 6px #84cc16;
+  }
+  #status.loading .status-dot { background: #f59e0b; box-shadow: 0 0 6px #f59e0b; animation: pulse 1.2s ease-in-out infinite; }
+  #status.error .status-dot { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+
+  /* ============ MAIN GRID ============ */
+  #dashboard { display: none; padding: 10px; }
+  #dashboard.ready { display: block; animation: fadeIn .3s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .grid {
+    display: grid;
+    grid-template-columns: 460px 130px 230px 1fr;
+    grid-template-rows: auto auto auto auto;
+    gap: 8px;
+  }
+  .panel {
+    background: #fff; border: 1px solid #d1d5db; border-radius: 3px;
+    padding: 6px 8px; overflow: hidden; position: relative;
+  }
+  .panel-title {
+    color: #c0392b; font-weight: 700; font-size: 11.5px; letter-spacing: .3px;
+    margin: 0 0 4px 0; text-transform: uppercase;
+  }
+
+  /* Tables */
+  table.pbi { width: 100%; border-collapse: collapse; font-size: 10.5px; }
+  table.pbi thead th {
+    background: #fff; color: #1f2937; font-weight: 600; padding: 4px 6px;
+    text-align: right; border-bottom: 1px solid #1f2937; white-space: nowrap;
+    position: sticky; top: 0; z-index: 2;
+  }
+  table.pbi thead th:first-child { text-align: left; }
+  table.pbi tbody td { padding: 3px 6px; border-bottom: 1px solid #f3f4f6; text-align: right; white-space: nowrap; }
+  table.pbi tbody td:first-child { text-align: left; }
+  table.pbi tbody tr.lvl-0 { font-weight: 600; }
+  table.pbi tbody tr.lvl-1 td:first-child { padding-left: 18px; font-weight: 500; }
+  table.pbi tbody tr.lvl-2 td:first-child { padding-left: 32px; font-weight: 400; }
+  table.pbi tbody tr.lvl-3 td:first-child { padding-left: 46px; font-weight: 400; color: #6b7280; }
+  table.pbi tbody tr.total { font-weight: 700; border-top: 1px solid #1f2937; background: #f9fafb; position: sticky; bottom: 0; }
+  table.pbi tbody tr:hover { background: #f0fdf4; cursor: default; }
+  .caret {
+    display: inline-block; width: 10px; cursor: pointer; user-select: none; color: #6b7280;
+  }
+  .caret:hover { color: #84cc16; }
+
+  .scroll-area { max-height: 260px; overflow-y: auto; }
+  .scroll-area::-webkit-scrollbar { width: 6px; height: 6px; }
+  .scroll-area::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+  .scroll-area::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+  /* color highlight cells */
+  .cell-bad { background: #ef4444 !important; color: #fff; font-weight: 600; }
+  .cell-warn { background: #f59e0b !important; color: #fff; font-weight: 600; }
+  .cell-ok { background: #84cc16 !important; color: #1f2937; font-weight: 600; }
+
+  /* ============ Specific panels ============ */
+  .logo-panel {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+  }
+  .logo-panel .logo-text {
+    font-weight: 900; font-size: 20px; color: #1f2937; letter-spacing: 1px;
+  }
+  .logo-panel .logo-text .green { color: #84cc16; }
+  .logo-panel .unidades-card {
+    background: #fff; border: 1px solid #d1d5db; padding: 8px 14px; margin-top: 6px;
+    text-align: center;
+  }
+  .logo-panel .unidades-card .num { font-size: 26px; font-weight: 700; color: #1f2937; line-height: 1; }
+  .logo-panel .unidades-card .lbl { font-size: 10px; color: #6b7280; margin-top: 2px; }
+
+  .gauge-panel { text-align: center; }
+  .gauge-panel svg { width: 100%; max-width: 220px; height: auto; }
+  .gauge-panel .gauge-actual { font-size: 28px; font-weight: 700; fill: #1f2937; }
+
+  .charts-stack { display: flex; flex-direction: column; gap: 6px; }
+  .charts-stack .chart-box { background: #fff; height: 130px; position: relative; }
+  .chart-title { font-size: 10px; color: #1f2937; font-weight: 600; padding: 0 4px; }
+
+  /* Slicers */
+  .slicers {
+    background: #fff; border: 1px solid #d1d5db; padding: 8px; margin-top: 8px;
+    display: grid; grid-template-columns: repeat(12, 1fr); gap: 8px;
+  }
+  .slicer { display: flex; flex-direction: column; min-width: 0; }
+  .slicer label { font-size: 10px; color: #6b7280; margin-bottom: 3px; font-weight: 600; }
+  .slicer select, .slicer .multi-toggle {
+    width: 100%; padding: 4px 6px; border: 1px solid #d1d5db; border-radius: 3px;
+    font-size: 10.5px; background: #fff; cursor: pointer;
+  }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 4px; max-height: 60px; overflow-y: auto; }
+  .chip {
+    background: #fff; border: 1px solid #d1d5db; padding: 3px 8px; border-radius: 2px;
+    font-size: 10px; cursor: pointer; white-space: nowrap; user-select: none;
+    transition: background .12s, border-color .12s;
+  }
+  .chip.active { background: #1f2937; color: #fff; border-color: #1f2937; }
+  .chip:hover { border-color: #84cc16; }
+
+  /* Perdida card */
+  .perdida-card {
+    background: #fff; border: 1px solid #d1d5db; padding: 10px; text-align: center;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .perdida-card .label { font-size: 12px; color: #1f2937; font-weight: 600; }
+  .perdida-card .value { font-size: 22px; color: #10b981; font-weight: 700; margin-top: 4px; }
+
+  /* AC slicer (buttons) */
+  .ac-buttons { display: flex; gap: 4px; }
+  .ac-buttons button {
+    flex: 1; padding: 6px 8px; border: 1px solid #d1d5db; background: #fff;
+    cursor: pointer; font-size: 11px; border-radius: 2px;
+  }
+  .ac-buttons button.active { background: #1f2937; color: #fff; border-color: #1f2937; }
+
+  /* Loading / Empty state */
+  .load-state {
+    padding: 60px 20px; text-align: center; color: #6b7280;
+    background: #fff; border: 1px dashed #d1d5db; border-radius: 6px; margin: 20px auto; max-width: 560px;
+  }
+  .load-state h2 { color: #1f2937; margin: 0 0 8px 0; font-size: 18px; }
+  .load-state .spinner {
+    width: 44px; height: 44px; border-radius: 50%; margin: 20px auto;
+    border: 4px solid #e5e7eb; border-top-color: #84cc16;
+    animation: spin 0.9s linear infinite;
+  }
+  .load-state .progress-list {
+    display: inline-block; text-align: left; margin-top: 10px;
+    font-family: 'Consolas','Menlo',monospace; font-size: 11px;
+  }
+  .load-state .progress-list li {
+    padding: 4px 0; color: #6b7280;
+  }
+  .load-state .progress-list li.done { color: #059669; }
+  .load-state .progress-list li.done::before { content: '✓ '; color: #84cc16; font-weight: bold; }
+  .load-state .progress-list li.working { color: #f59e0b; }
+  .load-state .progress-list li.working::before { content: '● '; color: #f59e0b; animation: pulse 1s infinite; }
+  .load-state .progress-list li.pending::before { content: '○ '; color: #d1d5db; }
+  .load-state .progress-list li.error { color: #dc2626; }
+  .load-state .progress-list li.error::before { content: '✗ '; color: #dc2626; font-weight: bold; }
+  .load-state .err-box {
+    margin-top: 16px; padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca;
+    border-radius: 4px; color: #991b1b; font-size: 11px; text-align: left;
+    font-family: 'Consolas','Menlo',monospace;
+  }
+
+  /* Toast */
+  #toast {
+    position: fixed; bottom: 20px; right: 20px; z-index: 999;
+    padding: 10px 16px; background: #1f2937; color: #fff; font-size: 12px;
+    border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,.2);
+    opacity: 0; transform: translateY(20px); pointer-events: none;
+    transition: opacity .25s, transform .25s;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+  #toast.err { background: #dc2626; }
+  #toast.ok { background: #059669; }
+
+  /* responsive guard */
+  @media (max-width: 1300px) {
+    .grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ============ CARGAS DIARIAS (matriz) ============ */
+  .cargas-diarias-wrap { margin-top: 10px; }
+  .matrix-scroll { overflow-x: auto; max-height: 540px; overflow-y: auto; border: 1px solid #e5e7eb; }
+  table.pbi-matrix { border-collapse: separate; border-spacing: 0; font-size: 10px; }
+  table.pbi-matrix thead th {
+    background: #f3f4f6; color: #1f2937; font-weight: 600;
+    padding: 4px 5px; text-align: center; border-bottom: 1px solid #9ca3af;
+    position: sticky; top: 0; z-index: 2; min-width: 40px;
+  }
+  table.pbi-matrix thead th:first-child {
+    text-align: left; min-width: 90px; left: 0; z-index: 3; background: #f3f4f6;
+  }
+  table.pbi-matrix tbody td {
+    padding: 3px 4px; text-align: center; border-bottom: 1px solid #f3f4f6;
+    min-width: 40px; max-width: 50px; font-size: 10px;
+  }
+  table.pbi-matrix tbody td:first-child {
+    text-align: left; font-weight: 600; position: sticky; left: 0;
+    background: #fff; z-index: 1; padding-left: 8px;
+  }
+  table.pbi-matrix tbody tr:nth-child(even) td:first-child { background: #f9fafb; }
+  table.pbi-matrix tbody tr:nth-child(even) td { background: #f9fafb; }
+  table.pbi-matrix tbody tr.total td {
+    background: #fff !important; font-weight: 700; border-top: 2px solid #1f2937;
+    position: sticky; bottom: 0;
+  }
+  table.pbi-matrix tbody td.cell-bad,
+  table.pbi-matrix tbody td.cell-warn,
+  table.pbi-matrix tbody td.cell-ok { font-size: 10px; padding: 3px 4px; }
+
+  /* Debug panel */
+  #debug-panel {
+    display: none; position: fixed; bottom: 20px; left: 20px; z-index: 999;
+    background: #1f2937; color: #d1d5db; padding: 12px 16px; border-radius: 4px;
+    font-family: 'Consolas','Menlo',monospace; font-size: 10px; max-width: 460px;
+    max-height: 380px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  }
+  #debug-panel.show { display: block; }
+  #debug-panel h4 { margin: 0 0 6px 0; color: #84cc16; font-size: 11px; }
+  #debug-panel .col-ok { color: #a3e635; }
+  #debug-panel .col-miss { color: #f59e0b; }
+  #debug-panel .col-fatal { color: #ef4444; }
+  #debug-panel table { border-collapse: collapse; width: 100%; }
+  #debug-panel td { padding: 2px 4px; vertical-align: top; }
+  #debug-panel .close-x {
+    position: absolute; top: 6px; right: 8px; cursor: pointer; color: #6b7280;
+    font-size: 14px; user-select: none;
+  }
+  #debug-panel .close-x:hover { color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<div class="topbar">
+  <div class="brand">SETTE<span>PI</span> · Dashboard Rendimiento</div>
+
+  <div class="nav-dd">
+    <button>Logística ▾</button>
+    <ul>
+      <li><a href="Dashboard_NS.html">NS García</a></li>
+      <li><a href="Dashboard_Flota.html">Flota</a></li>
+      <li><a href="Dashboard_Ralenti.html">Ralentí</a></li>
+      <li><a href="Analisis_KM_Vacio.html">KM Vacío</a></li>
+      <li><a href="Dashboard_Rendimiento.html">Rendimiento</a></li>
+    </ul>
+  </div>
+
+  <div class="topbar-right">
+    <label class="action-btn secondary" id="btn-manual" title="Cargar un XLSX descargado manualmente del Sheet">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Subir XLSX
+      <input type="file" id="file-manual" accept=".xlsx,.xls,.xlsm" style="display:none;">
+    </label>
+    <button class="action-btn secondary" id="btn-debug" title="Ver diagnóstico de columnas detectadas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+      Diagnóstico
+    </button>
+    <button class="action-btn secondary" id="btn-download" title="Descargar el XLSX crudo del Google Sheet">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      XLSX
+    </button>
+    <button class="action-btn" id="btn-refresh" title="Recargar datos desde Google Sheets (Ctrl+R)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Recargar
+    </button>
+    <span id="status"><span class="status-dot"></span><span id="status-text">Iniciando…</span></span>
+  </div>
+</div>
+
+<!-- ============ LOADING / ERROR STATE ============ -->
+<div id="load-state" class="load-state">
+  <h2 id="ls-title">Conectando con Google Sheets…</h2>
+  <div class="spinner" id="ls-spinner"></div>
+  <ul class="progress-list" id="ls-progress">
+    <li id="p-fetch" class="pending">Descargar XLSX del Sheet publicado</li>
+    <li id="p-parse" class="pending">Leer las 3 pestañas (rendimiento · trafilink · asignacion)</li>
+    <li id="p-columns" class="pending">Detectar columnas por nombre</li>
+    <li id="p-enrich" class="pending">Cruzar cargas + GPS + asignaciones</li>
+    <li id="p-render" class="pending">Renderizar el dashboard</li>
+  </ul>
+  <div style="margin-top:16px; font-size:11px; color:#6b7280;">
+    ¿Se atora la descarga? Usa el botón <b>Subir XLSX</b> de arriba para cargarlo manualmente.
+  </div>
+  <div id="ls-error" style="display:none;" class="err-box"></div>
+  <div id="ls-actions" style="display:none;"></div>
+</div>
+
+<!-- ============ DASHBOARD ============ -->
+<div id="dashboard">
+
+  <div class="grid">
+
+    <!-- ROW 1 -->
+    <div class="panel" style="grid-column: 1; grid-row: 1;">
+      <div class="panel-title">Resumen general de rendimiento</div>
+      <div class="scroll-area"><table class="pbi" id="tbl-resumen"></table></div>
+    </div>
+
+    <div class="panel logo-panel" style="grid-column: 2; grid-row: 1;">
+      <div class="logo-text">sette<span class="green">pi</span></div>
+      <div class="unidades-card">
+        <div class="num" id="kpi-unidades">—</div>
+        <div class="lbl">Unidades</div>
+      </div>
+    </div>
+
+    <div class="panel gauge-panel" style="grid-column: 3; grid-row: 1;">
+      <div id="gauge-container"></div>
+    </div>
+
+    <div style="grid-column: 4; grid-row: 1;" class="charts-stack">
+      <div class="panel" style="padding: 4px 6px;">
+        <div class="chart-title">Rendimiento 2024, Rendimiento 2025 y Rendimiento 2026 por Mes</div>
+        <div class="chart-box"><canvas id="chart-mes"></canvas></div>
+      </div>
+      <div class="panel" style="padding: 4px 6px;">
+        <div class="chart-title">Rendimiento 2024, Rendimiento 2025 y Rendimiento 2026 por Semana</div>
+        <div class="chart-box"><canvas id="chart-sem"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ROW 2 -->
+    <div class="panel" style="grid-column: 1 / span 2; grid-row: 2;">
+      <div class="panel-title">Terapia intensiva</div>
+      <div class="scroll-area" style="max-height: 220px;"><table class="pbi" id="tbl-terapia"></table></div>
+    </div>
+
+    <div class="panel" style="grid-column: 3 / span 2; grid-row: 2;">
+      <div class="panel-title">Detalle por tipo vehículo</div>
+      <div class="scroll-area" style="max-height: 220px;"><table class="pbi" id="tbl-detalle"></table></div>
+    </div>
+
+    <!-- ROW 3 -->
+    <div class="panel" style="grid-column: 1 / span 2; grid-row: 3;">
+      <div class="panel-title">Cargas</div>
+      <div class="scroll-area" style="max-height: 200px;"><table class="pbi" id="tbl-cargas"></table></div>
+    </div>
+
+    <div style="grid-column: 3; grid-row: 3;" class="panel perdida-card">
+      <div class="label">Pérdida ($)</div>
+      <div class="value" id="kpi-perdida">$0.00</div>
+      <div style="margin-top: 8px; font-size: 10px; color: #6b7280;">
+        Precio diésel: $<input id="precio-diesel" type="number" value="25.50" step="0.10" style="width: 55px; padding: 2px 4px; font-size: 10px; text-align: right;">
+      </div>
+      <div style="margin-top: 4px; font-size: 10px; color: #6b7280;">
+        Objetivo Km/L: <input id="objetivo-rend" type="number" value="4.08" step="0.01" style="width: 55px; padding: 2px 4px; font-size: 10px; text-align: right;">
+      </div>
+    </div>
+
+    <div class="panel" style="grid-column: 4; grid-row: 3;">
+      <div class="panel-title">Filtros rápidos</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px;">
+        <div class="slicer">
+          <label>Nombre op.</label>
+          <select id="f-operador"><option value="">Todos</option></select>
+        </div>
+        <div class="slicer">
+          <label>AC (Cargas)</label>
+          <div class="ac-buttons">
+            <button data-ac="cc" class="active">C/C</button>
+            <button data-ac="sc">S/C</button>
+          </div>
+        </div>
+      </div>
+      <div class="slicer" style="margin-top: 6px;">
+        <label>Gerente</label>
+        <div class="chip-row" id="f-gerente"></div>
+      </div>
+      <div class="slicer" style="margin-top: 6px;">
+        <label>Jefe</label>
+        <div class="chip-row" id="f-jefe"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM SLICERS -->
+  <div class="slicers">
+    <div class="slicer" style="grid-column: span 1;">
+      <label>Gpo. estatus</label>
+      <div class="chip-row" id="f-estatus">
+        <span class="chip active" data-val="Activo">Activo</span>
+        <span class="chip" data-val="Inactivo">Inactivo</span>
+      </div>
+    </div>
+    <div class="slicer" style="grid-column: span 1;">
+      <label>Año</label>
+      <select id="f-anio"></select>
+    </div>
+    <div class="slicer" style="grid-column: span 1;">
+      <label>Mes</label>
+      <select id="f-mes"></select>
+    </div>
+    <div class="slicer" style="grid-column: span 1;">
+      <label>Semana</label>
+      <select id="f-semana"><option value="">Todas</option></select>
+    </div>
+    <div class="slicer" style="grid-column: span 1;">
+      <label>Día</label>
+      <select id="f-dia"><option value="">Todos</option></select>
+    </div>
+    <div class="slicer" style="grid-column: span 2;">
+      <label>IdVehículo</label>
+      <select id="f-vehiculo"><option value="">Todos</option></select>
+    </div>
+    <div class="slicer" style="grid-column: span 2;">
+      <label>Tipo vehículo</label>
+      <div class="chip-row" id="f-tipoveh"></div>
+    </div>
+    <div class="slicer" style="grid-column: span 3;">
+      <label>Tipo de Combustible</label>
+      <div class="chip-row" id="f-combustible"></div>
+    </div>
+  </div>
+
+  <!-- ============ CARGAS DIARIAS ============ -->
+  <div class="panel cargas-diarias-wrap">
+    <div class="panel-title" style="display: flex; align-items: center; gap: 12px;">
+      Cargas diarias
+      <span style="color: #6b7280; font-weight: 400; font-size: 10px; text-transform: none;">
+        — Matriz unidad × día del mes seleccionado · usa los filtros de arriba
+      </span>
+    </div>
+    <div class="matrix-scroll">
+      <table class="pbi-matrix" id="tbl-cargas-diarias"></table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Debug panel -->
+<div id="debug-panel">
+  <span class="close-x" onclick="document.getElementById('debug-panel').classList.remove('show')">✕</span>
+  <h4>DIAGNÓSTICO DE COLUMNAS</h4>
+  <div id="debug-content">Cargando…</div>
+</div>
+
+<script>
+/* =========================================================
+   CONFIG
+========================================================= */
+const GSHEET_PUB_BASE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTP_6TFUv97y9tY0OlEcn9FCKcG38M5Qc0m-G2uPPN3sw1ItT8bdV8a_gCLIIMXDeOiLFzgxKxIVV4D/pub';
+const GSHEET_XLSX_URL = `${GSHEET_PUB_BASE}?output=xlsx`;
+
+// Nombres esperados de pestañas (normalizados, sin acentos)
+const SHEET_NAMES = {
+  rendimiento: ['rendimiento','rendim','info rendimiento','info-rendimiento'],
+  trafilink:   ['trafilink','traffilink','trafi','trafi-link','trafflink','gps','trafilink gps'],
+  asignacion:  ['asignacion','asignación','asig','asignación de vehículos','asignacion de vehiculos','planta']
+};
+
+/* =========================================================
+   GLOBAL STATE
+========================================================= */
+const STATE = {
+  cargas: [], gps: [], asigMap: {},
+  vehPlantaMap: {}, vehGpsKm: {}, vehGpsKmDia: {},
+  lastSync: null,
+  rawXlsxBlob: null,
+  diagnostic: { rendimiento: {}, trafilink: {}, asignacion: {} },
+  f: {
+    gerente: new Set(), jefe: new Set(), estatus: new Set(['Activo']),
+    anio: '', mes: '', semana: '', dia: '', vehiculo: '',
+    tipoVeh: new Set(), combustible: new Set(), operador: '',
+    ac: 'cc'
+  },
+  charts: {}
+};
+
+const PBI_COLORS = { azul2024: '#3b82f6', rojo2025: '#dc2626', naranja2026: '#f59e0b' };
+
+/* =========================================================
+   UTILITIES
+========================================================= */
+function stripDiacritics(s) {
+  return String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+function normKey(s) {
+  return stripDiacritics(String(s ?? '')).toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+function norm(s) { return String(s ?? '').trim().toUpperCase(); }
+function normalizeLabel(s) {
+  s = String(s ?? '').trim();
+  if (!s) return '';
+  return s.toLowerCase().split(/(\s+|-)/).map(part => {
+    if (/^\s+$/.test(part) || part === '-') return part;
+    return part.charAt(0).toUpperCase() + part.slice(1);
+  }).join('');
+}
+function fmtNum(n, d=0) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return Number(n).toLocaleString('es-MX', { minimumFractionDigits: d, maximumFractionDigits: d });
+}
+function fmtMoney(n) {
+  if (n === null || n === undefined || isNaN(n)) return '$0.00';
+  return '$' + Number(n).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function fmtRelative(date) {
+  if (!date) return '—';
+  const s = Math.floor((Date.now() - date) / 1000);
+  if (s < 5) return 'ahora';
+  if (s < 60) return `hace ${s}s`;
+  const m = Math.floor(s/60);
+  if (m < 60) return `hace ${m}m`;
+  const h = Math.floor(m/60);
+  if (h < 24) return `hace ${h}h`;
+  return `hace ${Math.floor(h/24)}d`;
+}
+function excelDateToJS(v) {
+  if (v === null || v === undefined || v === '') return null;
+  if (v instanceof Date) return isNaN(v) ? null : v;
+  if (typeof v === 'number') {
+    const epoch = new Date(Date.UTC(1899, 11, 30));
+    const d = new Date(epoch.getTime() + v * 86400000);
+    return isNaN(d) ? null : d;
+  }
+  const s = String(v).trim();
+  if (!s) return null;
+  let m = s.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})(?:[ T]\d{1,2}:\d{1,2}(?::\d{1,2})?)?$/);
+  if (m) {
+    let dd = parseInt(m[1], 10), mm = parseInt(m[2], 10), yy = parseInt(m[3], 10);
+    if (yy < 100) yy += 2000;
+    if (mm > 12 && dd <= 12) { const tmp = dd; dd = mm; mm = tmp; }
+    if (dd >= 1 && dd <= 31 && mm >= 1 && mm <= 12) {
+      const d = new Date(yy, mm - 1, dd);
+      return isNaN(d) ? null : d;
+    }
+  }
+  m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T]\d{1,2}:\d{1,2}(?::\d{1,2})?)?$/);
+  if (m) {
+    const d = new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
+    return isNaN(d) ? null : d;
+  }
+  const parsed = new Date(s);
+  return isNaN(parsed) ? null : parsed;
+}
+function getISOWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+function percentile(arr, p) {
+  if (!arr.length) return 0;
+  const sorted = [...arr].sort((a,b) => a-b);
+  const idx = (p/100) * (sorted.length - 1);
+  const lo = Math.floor(idx), hi = Math.ceil(idx);
+  if (lo === hi) return sorted[lo];
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+}
+function classifyKMS(km) {
+  if (km < 3000) return '< 3000';
+  if (km < 6000) return '3000 a 6000';
+  if (km < 9000) return '6000 a 9000';
+  if (km < 12000) return '9000 a 12000';
+  return '> 12000';
+}
+function setStatus(msg, kind='ok') {
+  const el = document.getElementById('status');
+  const t = document.getElementById('status-text');
+  t.textContent = msg;
+  el.classList.remove('loading','error');
+  if (kind === 'loading') el.classList.add('loading');
+  if (kind === 'error') el.classList.add('error');
+}
+function setProgress(id, state, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('pending','working','done','error');
+  el.classList.add(state);
+  if (msg) el.textContent = msg;
+}
+function showToast(msg, kind='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = ''; t.classList.add('show', kind);
+  clearTimeout(t._to);
+  t._to = setTimeout(() => t.classList.remove('show'), 2600);
+}
+function showError(msg, detail) {
+  const box = document.getElementById('ls-error');
+  box.style.display = 'block';
+  function esc(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function fmt(s) {
+    return esc(s)
+      .replace(/&lt;b&gt;/g,'<b>').replace(/&lt;\/b&gt;/g,'</b>')
+      .replace(/&lt;code&gt;/g,'<code>').replace(/&lt;\/code&gt;/g,'</code>')
+      .replace(/\n/g, '<br>');
+  }
+  box.innerHTML = `<b>${esc(msg)}</b>${detail ? '<br><br>' + fmt(detail) : ''}`;
+  document.getElementById('ls-spinner').style.display = 'none';
+  document.getElementById('ls-title').textContent = 'Error al cargar';
+  setStatus('Error', 'error');
+}
+
+// Renderiza el bloque de acciones grandes (Subir XLSX + Abrir Sheet)
+// que aparece dentro de la pantalla de error cuando falla CORS.
+function showManualActionPanel() {
+  const box = document.getElementById('ls-actions');
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div style="text-align:center; margin: 20px 0;">
+      <label for="file-manual-big" class="action-btn" style="font-size:14px; padding:12px 24px; display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Subir XLSX desde mi computadora
+        <input type="file" id="file-manual-big" accept=".xlsx,.xls,.xlsm" style="display:none;">
+      </label>
+      <a href="${GSHEET_PUB_BASE}?output=xlsx" target="_blank" rel="noopener"
+        class="action-btn secondary" style="font-size:12px; padding:10px 18px; display:inline-flex; align-items:center; gap:6px; margin-left:8px; background:#fff; color:#1f2937; border:1px solid #d1d5db; text-decoration:none;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Descargar el Sheet del origen
+      </a>
+    </div>
+    <div style="font-size:11px; color:#6b7280; text-align:center; line-height:1.6;">
+      <b>Paso 1:</b> Click en <b>"Descargar el Sheet del origen"</b> (bajará un archivo <code>.xlsx</code>) &nbsp;→&nbsp;
+      <b>Paso 2:</b> Click en <b>"Subir XLSX"</b> y selecciona ese archivo.<br>
+      <span style="color:#9ca3af;">Este método siempre funciona y no depende de CORS. Puedes repetirlo cuando quieras refrescar datos.</span>
+    </div>
+  `;
+  // Wire up the big button
+  document.getElementById('file-manual-big').onchange = (ev) => {
+    const f = ev.target.files[0];
+    if (f) loadFromManualFile(f);
+    ev.target.value = '';
+  };
+}
+function hideManualActionPanel() {
+  const box = document.getElementById('ls-actions');
+  if (box) box.style.display = 'none';
+}
+
+/* =========================================================
+   COLUMN AUTO-DETECTION
+   Detecta la columna por nombre en el header (fila 0).
+   Devuelve el ÍNDICE (número) o -1 si no encuentra.
+========================================================= */
+function findColIdx(headers, candidates, fallback = -1) {
+  const nHeaders = headers.map(h => normKey(h));
+  for (const cand of candidates) {
+    const nc = normKey(cand);
+    // exact match
+    let i = nHeaders.indexOf(nc);
+    if (i >= 0) return i;
+    // startsWith match
+    i = nHeaders.findIndex(h => h.startsWith(nc));
+    if (i >= 0) return i;
+    // contains match
+    i = nHeaders.findIndex(h => h.includes(nc));
+    if (i >= 0) return i;
+  }
+  return fallback;
+}
+
+function matchSheet(wb, aliases) {
+  for (const sname of wb.SheetNames) {
+    const n = normKey(sname);
+    for (const a of aliases) {
+      const na = normKey(a);
+      if (n === na || n.startsWith(na) || n.includes(na)) return sname;
+    }
+  }
+  return null;
+}
+
+/* =========================================================
+   PARSING
+========================================================= */
+function parseRendimientoSheet(wb) {
+  const sheetName = matchSheet(wb, SHEET_NAMES.rendimiento);
+  if (!sheetName) throw new Error("No encontré una pestaña 'rendimiento' en el Sheet. Pestañas disponibles: " + wb.SheetNames.join(', '));
+  const sheet = wb.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
+  if (rows.length < 2) throw new Error(`La pestaña '${sheetName}' está vacía.`);
+
+  const headers = (rows[0] || []).map(h => String(h ?? '').trim());
+
+  // Auto-detección de columnas por nombre (con fallbacks por posición del HTML original)
+  const idx = {
+    idVehiculo:  findColIdx(headers, ['IdVehiculo','ID Vehiculo','Id Vehículo','Unidad','Vehículo','Vehiculo','ID Unidad'], 0),
+    fecha:       findColIdx(headers, ['Fecha','Date','Fecha Carga','Fecha de carga','F. carga'], 2),
+    km:          findColIdx(headers, ['Kilómetros Recorridos','Kilometros Recorridos','KM','Kms','Kilometros','Kmts','Kms Recorridos'], 5),
+    litros:      findColIdx(headers, ['Litros','L','Ltrs','Litros Cargados','Litros carga'], 6),
+    rendimiento: findColIdx(headers, ['Rendimiento (Km/L)','Rendimiento Km/L','Km/L','Rend','Rendimiento'], 7),
+    combustible: findColIdx(headers, ['Tipo de Combustible','Combustible','Tipo Combustible','Fuel'], 9),
+    tipoUnidad:  findColIdx(headers, ['Tipo Unidad','Tipo Vehiculo','Tipo Vehículo','Unidad Tipo','Modelo','Tipo'], 12),
+    nomina:      findColIdx(headers, ['Nomina Operador','Nómina Operador','Nomina','Nómina','No Nomina','Operador Nomina'], 13),
+    nombreOp:    findColIdx(headers, ['Nombre op.','Nombre Operador','Nombre op','Operador','Nombre'], 14)
+  };
+  STATE.diagnostic.rendimiento = { sheet: sheetName, headers, idx, rowsRaw: rows.length };
+
+  const records = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r) continue;
+    const idVeh = r[idx.idVehiculo];
+    if (idVeh === null || idVeh === undefined || idVeh === '') continue;
+    const km = Number(r[idx.km]);
+    const litros = Number(r[idx.litros]);
+    if (!isFinite(km) && !isFinite(litros)) continue;
+    const fechaJS = idx.fecha >= 0 ? excelDateToJS(r[idx.fecha]) : null;
+    // rendimiento: usa columna si existe, sino calcula
+    let rend = idx.rendimiento >= 0 ? Number(r[idx.rendimiento]) : NaN;
+    if (!isFinite(rend) || rend <= 0) rend = litros > 0 ? km / litros : 0;
+    records.push({
+      idVehiculo: String(idVeh).trim(),
+      fecha: fechaJS,
+      year: fechaJS ? fechaJS.getFullYear() : null,
+      month: fechaJS ? (fechaJS.getMonth() + 1) : null,
+      day: fechaJS ? fechaJS.getDate() : null,
+      week: fechaJS ? getISOWeek(fechaJS) : null,
+      km: isFinite(km) ? km : 0,
+      litros: isFinite(litros) ? litros : 0,
+      rendimiento: rend,
+      combustible: idx.combustible >= 0 ? normalizeLabel(r[idx.combustible]) : '',
+      tipoUnidad:  idx.tipoUnidad  >= 0 ? normalizeLabel(r[idx.tipoUnidad])  : '',
+      nomina:      idx.nomina      >= 0 ? String(r[idx.nomina] ?? '').trim() : '',
+      nombreOp:    idx.nombreOp    >= 0 ? String(r[idx.nombreOp] ?? '').trim() : ''
+    });
+  }
+  STATE.diagnostic.rendimiento.rowsOut = records.length;
+  return records;
+}
+
+function parseTrafilinkSheet(wb) {
+  const sheetName = matchSheet(wb, SHEET_NAMES.trafilink);
+  if (!sheetName) throw new Error("No encontré una pestaña 'trafilink' en el Sheet.");
+  const sheet = wb.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
+  if (rows.length < 2) return [];
+
+  const headers = (rows[0] || []).map(h => String(h ?? '').trim());
+  const idx = {
+    idVehiculo: findColIdx(headers, ['IdVehiculo','Unidad','Vehículo','Vehiculo','Identificación','Placa'], 0),
+    planta:     findColIdx(headers, ['Planta','Group','Grupo','Sede','Base'], 2),
+    inicio:     findColIdx(headers, ['Start time','Inicio','Fecha Inicio','Start','Start Time','Start_time','Hora inicio'], 6),
+    fin:        findColIdx(headers, ['End time','Fin','Fecha Fin','End','End Time','End_time','Hora fin'], 8),
+    distancia:  findColIdx(headers, ['Driven Distance (km)','Distancia','Km recorridos','Distance','Kilometraje','Driven Distance','Distancia km'], 11)
+  };
+  STATE.diagnostic.trafilink = { sheet: sheetName, headers, idx, rowsRaw: rows.length };
+
+  const records = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r) continue;
+    const idVeh = r[idx.idVehiculo];
+    if (idVeh === null || idVeh === undefined || idVeh === '') continue;
+    const distancia = Number(r[idx.distancia]);
+    const ini = idx.inicio >= 0 ? excelDateToJS(r[idx.inicio]) : null;
+    const fin = idx.fin >= 0 ? excelDateToJS(r[idx.fin]) : null;
+    records.push({
+      idVehiculo: String(idVeh).trim(),
+      planta: idx.planta >= 0 ? String(r[idx.planta] ?? '').trim() : '',
+      inicio: ini, fin: fin,
+      distancia: isFinite(distancia) ? distancia : 0,
+      year: ini ? ini.getFullYear() : null,
+      month: ini ? (ini.getMonth() + 1) : null
+    });
+  }
+  STATE.diagnostic.trafilink.rowsOut = records.length;
+  return records;
+}
+
+function parseAsignacionSheet(wb) {
+  const sheetName = matchSheet(wb, SHEET_NAMES.asignacion);
+  if (!sheetName) throw new Error("No encontré una pestaña 'asignacion' en el Sheet.");
+  const sheet = wb.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true, defval: null });
+  if (rows.length < 2) return {};
+
+  const headers = (rows[0] || []).map(h => String(h ?? '').trim());
+  const idx = {
+    planta:  findColIdx(headers, ['Planta','Sede','Base','Grupo','Group'], 1),
+    jefe:    findColIdx(headers, ['Jefe','JEFE','Jefe Nvo','Supervisor','Coordinador'], 4),
+    gerente: findColIdx(headers, ['Gerente','GERENTE','Gerente Nuevo','Coordinador'], 6)
+  };
+  STATE.diagnostic.asignacion = { sheet: sheetName, headers, idx, rowsRaw: rows.length };
+
+  const map = {};
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r) continue;
+    const planta = idx.planta  >= 0 ? String(r[idx.planta]  ?? '').trim() : '';
+    const jefe   = idx.jefe    >= 0 ? String(r[idx.jefe]    ?? '').trim() : '';
+    const gerente= idx.gerente >= 0 ? String(r[idx.gerente] ?? '').trim() : '';
+    if (!planta) continue;
+    map[norm(planta)] = { planta, jefe, gerente };
+  }
+  STATE.diagnostic.asignacion.rowsOut = Object.keys(map).length;
+  return map;
+}
+
+/* =========================================================
+   POST-PROCESS: link planta → jefe/gerente
+========================================================= */
+function buildVehiclePlantaMap() {
+  const counter = {};
+  STATE.gps.forEach(g => {
+    if (!g.planta) return;
+    if (!counter[g.idVehiculo]) counter[g.idVehiculo] = {};
+    counter[g.idVehiculo][g.planta] = (counter[g.idVehiculo][g.planta] || 0) + 1;
+  });
+  const map = {};
+  for (const veh in counter) {
+    const ps = counter[veh];
+    let best = null, bestCount = -1;
+    for (const p in ps) if (ps[p] > bestCount) { best = p; bestCount = ps[p]; }
+    map[veh] = best;
+  }
+  STATE.vehPlantaMap = map;
+
+  const kmMonth = {}, kmDia = {};
+  STATE.gps.forEach(g => {
+    if (!g.inicio) return;
+    const ym = `${g.year}${String(g.month).padStart(2,'0')}`;
+    const ymd = `${ym}${String(g.inicio.getDate()).padStart(2,'0')}`;
+    if (!kmMonth[g.idVehiculo]) kmMonth[g.idVehiculo] = {};
+    if (!kmDia[g.idVehiculo]) kmDia[g.idVehiculo] = {};
+    kmMonth[g.idVehiculo][ym] = (kmMonth[g.idVehiculo][ym] || 0) + g.distancia;
+    kmDia[g.idVehiculo][ymd] = (kmDia[g.idVehiculo][ymd] || 0) + g.distancia;
+  });
+  STATE.vehGpsKm = kmMonth;
+  STATE.vehGpsKmDia = kmDia;
+}
+
+function enrichCargas() {
+  STATE.cargas.forEach(c => {
+    const planta = STATE.vehPlantaMap[c.idVehiculo] || '';
+    c.planta = planta;
+    const asig = STATE.asigMap[norm(planta)] || {};
+    c.gerente = asig.gerente || 'SIN ASIGNACIÓN';
+    c.jefe = asig.jefe || 'SIN ASIGNACIÓN';
+    const ymd = `${c.year}${String(c.month).padStart(2,'0')}${String(c.day || 0).padStart(2,'0')}`;
+    c.kmGps = STATE.vehGpsKmDia[c.idVehiculo]?.[ymd] || 0;
+    const partsTU = c.tipoUnidad.split(/[-–]/).map(x => x.trim()).filter(Boolean);
+    c.tipoVehiculo = partsTU[0] || c.tipoUnidad || 'Otro';
+    c.marcaModelo  = partsTU.length >= 3 ? `${partsTU[1]} - ${partsTU[2]}` : (partsTU[1] || c.tipoUnidad);
+  });
+}
+
+/* =========================================================
+   FILTERS
+========================================================= */
+function uniqueVals(arr, key) {
+  return [...new Set(arr.map(x => x[key]).filter(v => v !== null && v !== undefined && v !== ''))].sort();
+}
+function populateFilters() {
+  const c = STATE.cargas;
+
+  // preserve current picks where possible
+  const prev = { anio: STATE.f.anio, mes: STATE.f.mes, semana: STATE.f.semana, dia: STATE.f.dia, vehiculo: STATE.f.vehiculo, operador: STATE.f.operador };
+
+  const anios = uniqueVals(c, 'year');
+  const fAnio = document.getElementById('f-anio');
+  fAnio.innerHTML = '<option value="">Todos</option>' + anios.map(a => `<option value="${a}">${a}</option>`).join('');
+  if (anios.length) {
+    STATE.f.anio = anios.map(String).includes(prev.anio) ? prev.anio : String(Math.max(...anios));
+    fAnio.value = STATE.f.anio;
+  }
+
+  const fMes = document.getElementById('f-mes');
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  fMes.innerHTML = '<option value="">Todos</option>' + meses.map((m,i) => `<option value="${i+1}">${i+1} — ${m}</option>`).join('');
+  const cInYear = c.filter(x => String(x.year) === STATE.f.anio);
+  if (cInYear.length) {
+    const lastM = Math.max(...cInYear.map(x => x.month));
+    STATE.f.mes = prev.mes && cInYear.some(x => x.month === parseInt(prev.mes)) ? prev.mes : String(lastM);
+    fMes.value = STATE.f.mes;
+  }
+
+  const fSem = document.getElementById('f-semana');
+  const sems = uniqueVals(c, 'week');
+  fSem.innerHTML = '<option value="">Todas</option>' + sems.map(s => `<option value="${s}">Sem ${s}</option>`).join('');
+  fSem.value = prev.semana; STATE.f.semana = prev.semana;
+
+  const fDia = document.getElementById('f-dia');
+  fDia.innerHTML = '<option value="">Todos</option>' + Array.from({length:31}, (_,i) => `<option value="${i+1}">${i+1}</option>`).join('');
+  fDia.value = prev.dia; STATE.f.dia = prev.dia;
+
+  const fVeh = document.getElementById('f-vehiculo');
+  const vehs = uniqueVals(c, 'idVehiculo');
+  fVeh.innerHTML = '<option value="">Todos</option>' + vehs.map(v => `<option value="${v}">${v}</option>`).join('');
+  fVeh.value = prev.vehiculo; STATE.f.vehiculo = prev.vehiculo;
+
+  const fOp = document.getElementById('f-operador');
+  const ops = uniqueVals(c, 'nombreOp');
+  fOp.innerHTML = '<option value="">Todos</option>' + ops.map(o => `<option value="${o}">${o}</option>`).join('');
+  fOp.value = prev.operador; STATE.f.operador = prev.operador;
+
+  const tipos = uniqueVals(c, 'tipoVehiculo');
+  document.getElementById('f-tipoveh').innerHTML = tipos.map(t => `<span class="chip ${STATE.f.tipoVeh.has(t)?'active':''}" data-val="${t}">${t}</span>`).join('');
+
+  const combs = uniqueVals(c, 'combustible');
+  document.getElementById('f-combustible').innerHTML = combs.map(t => `<span class="chip ${STATE.f.combustible.has(t)?'active':''}" data-val="${t}">${t}</span>`).join('');
+
+  const gers = uniqueVals(c, 'gerente');
+  document.getElementById('f-gerente').innerHTML = gers.map(t => `<span class="chip ${STATE.f.gerente.has(t)?'active':''}" data-val="${t}">${t}</span>`).join('');
+
+  const jefes = uniqueVals(c, 'jefe');
+  document.getElementById('f-jefe').innerHTML = jefes.map(t => `<span class="chip ${STATE.f.jefe.has(t)?'active':''}" data-val="${t}">${t}</span>`).join('');
+
+  wireFilterEvents();
+}
+
+function wireFilterEvents() {
+  document.getElementById('f-anio').onchange = e => { STATE.f.anio = e.target.value; render(); };
+  document.getElementById('f-mes').onchange = e => { STATE.f.mes = e.target.value; render(); };
+  document.getElementById('f-semana').onchange = e => { STATE.f.semana = e.target.value; render(); };
+  document.getElementById('f-dia').onchange = e => { STATE.f.dia = e.target.value; render(); };
+  document.getElementById('f-vehiculo').onchange = e => { STATE.f.vehiculo = e.target.value; render(); };
+  document.getElementById('f-operador').onchange = e => { STATE.f.operador = e.target.value; render(); };
+
+  function bindChipRow(id, setKey) {
+    const el = document.getElementById(id);
+    el.onclick = ev => {
+      if (!ev.target.classList.contains('chip')) return;
+      const val = ev.target.dataset.val;
+      const set = STATE.f[setKey];
+      if (set.has(val)) set.delete(val); else set.add(val);
+      ev.target.classList.toggle('active');
+      render();
+    };
+  }
+  bindChipRow('f-gerente', 'gerente');
+  bindChipRow('f-jefe', 'jefe');
+  bindChipRow('f-estatus', 'estatus');
+  bindChipRow('f-tipoveh', 'tipoVeh');
+  bindChipRow('f-combustible', 'combustible');
+
+  document.querySelectorAll('.ac-buttons button').forEach(b => {
+    b.onclick = () => {
+      document.querySelectorAll('.ac-buttons button').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+      STATE.f.ac = b.dataset.ac;
+      render();
+    };
+  });
+
+  document.getElementById('precio-diesel').onchange = render;
+  document.getElementById('objetivo-rend').onchange = render;
+}
+
+/* =========================================================
+   FILTERING
+========================================================= */
+function applyFilters(records) {
+  const f = STATE.f;
+  return records.filter(r => {
+    if (f.anio && String(r.year) !== f.anio) return false;
+    if (f.mes && String(r.month) !== f.mes) return false;
+    if (f.semana && String(r.week) !== f.semana) return false;
+    if (f.dia && String(r.day) !== f.dia) return false;
+    if (f.vehiculo && r.idVehiculo !== f.vehiculo) return false;
+    if (f.operador && r.nombreOp !== f.operador) return false;
+    if (f.gerente.size && !f.gerente.has(r.gerente)) return false;
+    if (f.jefe.size && !f.jefe.has(r.jefe)) return false;
+    if (f.tipoVeh.size && !f.tipoVeh.has(r.tipoVehiculo)) return false;
+    if (f.combustible.size && !f.combustible.has(r.combustible)) return false;
+    return true;
+  });
+}
+
+/* =========================================================
+   AGGREGATIONS
+========================================================= */
+function aggBy(records, keyFn) {
+  const groups = {};
+  records.forEach(r => {
+    const k = keyFn(r);
+    if (!groups[k]) groups[k] = { key: k, unidades: new Set(), cargas: 0, km: 0, litros: 0, rendArr: [] };
+    groups[k].unidades.add(r.idVehiculo);
+    groups[k].cargas += 1;
+    groups[k].km += r.km;
+    groups[k].litros += r.litros;
+    if (r.rendimiento > 0) groups[k].rendArr.push(r.rendimiento);
+  });
+  return Object.values(groups).map(g => ({
+    key: g.key,
+    nUnidades: g.unidades.size,
+    nCargas: g.cargas,
+    km: g.km, litros: g.litros,
+    rendimiento: g.litros > 0 ? g.km / g.litros : 0,
+    p25: percentile(g.rendArr, 25)
+  }));
+}
+function calcGlobal(records) {
+  const km = records.reduce((s,r) => s + r.km, 0);
+  const litros = records.reduce((s,r) => s + r.litros, 0);
+  const unidades = new Set(records.map(r => r.idVehiculo)).size;
+  return { km, litros, rendimiento: litros > 0 ? km/litros : 0, unidades };
+}
+function calcPerdida(records, target, precio) {
+  let perdidaLitros = 0;
+  records.forEach(r => {
+    if (r.km <= 0 || r.litros <= 0) return;
+    const rend = r.rendimiento || (r.km / r.litros);
+    if (rend >= target) return;
+    const litrosIdeal = r.km / target;
+    perdidaLitros += (r.litros - litrosIdeal);
+  });
+  return perdidaLitros * precio;
+}
+
+/* =========================================================
+   RENDERING
+========================================================= */
+function colorClass(rend, target) {
+  if (rend <= 0) return '';
+  if (rend < target * 0.95) return 'cell-bad';
+  if (rend < target) return 'cell-warn';
+  return 'cell-ok';
+}
+
+function renderResumen(filtered, target) {
+  const tbl = document.getElementById('tbl-resumen');
+  const byGer = aggBy(filtered, r => r.gerente);
+  byGer.sort((a,b) => b.km - a.km);
+
+  let html = `<thead><tr>
+    <th>Gerente</th><th># Vehículos</th><th>Kms Recorridos</th><th>Litros</th><th>(Km/L)</th>
+  </tr></thead><tbody>`;
+
+  let totUni = new Set(), totKm = 0, totL = 0;
+  byGer.forEach((g, idx) => {
+    const recsGer = filtered.filter(r => r.gerente === g.key);
+    recsGer.forEach(r => totUni.add(r.idVehiculo));
+    totKm += g.km; totL += g.litros;
+    const id = `ger-${idx}`;
+    html += `<tr class="lvl-0" data-grp="${id}">
+      <td><span class="caret" data-toggle="${id}">▸</span> ${g.key}</td>
+      <td>${fmtNum(g.nUnidades)}</td>
+      <td>${fmtNum(g.km, 2)}</td>
+      <td>${fmtNum(g.litros, 2)}</td>
+      <td class="${colorClass(g.rendimiento, target)}">${fmtNum(g.rendimiento, 2)}</td>
+    </tr>`;
+    const byJefe = aggBy(recsGer, r => r.jefe);
+    byJefe.sort((a,b) => b.km - a.km);
+    byJefe.forEach((j, jdx) => {
+      const idJ = `${id}-jef-${jdx}`;
+      html += `<tr class="lvl-1" data-parent="${id}" style="display:none;">
+        <td><span class="caret" data-toggle="${idJ}">▸</span> ${j.key}</td>
+        <td>${fmtNum(j.nUnidades)}</td>
+        <td>${fmtNum(j.km, 2)}</td>
+        <td>${fmtNum(j.litros, 2)}</td>
+        <td class="${colorClass(j.rendimiento, target)}">${fmtNum(j.rendimiento, 2)}</td>
+      </tr>`;
+      const recsJefe = recsGer.filter(r => r.jefe === j.key);
+      const byVeh = aggBy(recsJefe, r => r.idVehiculo);
+      byVeh.sort((a,b) => b.km - a.km);
+      byVeh.forEach(v => {
+        html += `<tr class="lvl-2" data-parent="${idJ}" style="display:none;">
+          <td>${v.key}</td>
+          <td>1</td>
+          <td>${fmtNum(v.km, 2)}</td>
+          <td>${fmtNum(v.litros, 2)}</td>
+          <td class="${colorClass(v.rendimiento, target)}">${fmtNum(v.rendimiento, 2)}</td>
+        </tr>`;
+      });
+    });
+  });
+  html += `<tr class="total">
+    <td>Total</td><td>${fmtNum(totUni.size)}</td><td>${fmtNum(totKm,2)}</td><td>${fmtNum(totL,2)}</td>
+    <td>${fmtNum(totL>0 ? totKm/totL : 0, 2)}</td>
+  </tr></tbody>`;
+  tbl.innerHTML = html;
+  wireCaret(tbl);
+}
+
+function wireCaret(tbl) {
+  tbl.querySelectorAll('.caret').forEach(c => {
+    c.onclick = () => {
+      const id = c.dataset.toggle;
+      const rows = tbl.querySelectorAll(`[data-parent="${id}"]`);
+      const open = c.textContent === '▾';
+      c.textContent = open ? '▸' : '▾';
+      rows.forEach(r => {
+        if (open) {
+          r.style.display = 'none';
+          r.querySelectorAll('.caret').forEach(cc => { if (cc.textContent==='▾') cc.click(); });
+        } else {
+          r.style.display = '';
+        }
+      });
+    };
+  });
+}
+
+function renderTerapia(filtered, target) {
+  const tbl = document.getElementById('tbl-terapia');
+
+  const vehAgg = {};
+  filtered.forEach(r => {
+    if (!vehAgg[r.idVehiculo]) vehAgg[r.idVehiculo] = {
+      idVehiculo: r.idVehiculo, km: 0, litros: 0, cargas: 0, rendArr: [],
+      tipoVehiculo: r.tipoVehiculo, marca: r.marcaModelo,
+      firstRend: null, firstFecha: null
+    };
+    const v = vehAgg[r.idVehiculo];
+    v.km += r.km; v.litros += r.litros; v.cargas += 1;
+    if (r.rendimiento > 0) v.rendArr.push(r.rendimiento);
+    if (!v.firstFecha || (r.fecha && r.fecha < v.firstFecha)) { v.firstFecha = r.fecha; v.firstRend = r.rendimiento; }
+  });
+
+  let vehList = Object.values(vehAgg).map(v => ({
+    ...v,
+    rendimiento: v.litros > 0 ? v.km / v.litros : 0,
+    clasif: classifyKMS(v.km)
+  }));
+
+  vehList = vehList.filter(v => v.litros > 0 && v.km > 0 && v.rendimiento < target);
+
+  const tree = {};
+  vehList.forEach(v => {
+    if (!tree[v.clasif]) tree[v.clasif] = {};
+    if (!tree[v.clasif][v.tipoVehiculo]) tree[v.clasif][v.tipoVehiculo] = {};
+    if (!tree[v.clasif][v.tipoVehiculo][v.marca]) tree[v.clasif][v.tipoVehiculo][v.marca] = [];
+    tree[v.clasif][v.tipoVehiculo][v.marca].push(v);
+  });
+
+  function aggArr(arr) {
+    const km = arr.reduce((s,x)=>s+x.km,0);
+    const litros = arr.reduce((s,x)=>s+x.litros,0);
+    const cargas = arr.reduce((s,x)=>s+x.cargas,0);
+    const rendArr = arr.flatMap(x => x.rendArr);
+    const firstArr = arr.map(x=>x.firstRend).filter(x=>x>0);
+    return {
+      unidades: arr.length, cargas, km, litros,
+      rendimiento: litros > 0 ? km/litros : 0,
+      p1Carga: firstArr.length ? firstArr.reduce((a,b)=>a+b,0)/firstArr.length : 0,
+      p25: percentile(rendArr, 25)
+    };
+  }
+  const precio = parseFloat(document.getElementById('precio-diesel').value) || 0;
+  function perdidaArr(arr) {
+    let p = 0;
+    arr.forEach(v => {
+      if (v.km <= 0 || v.litros <= 0) return;
+      const rend = v.rendimiento;
+      if (rend >= target) return;
+      const litrosIdeal = v.km / target;
+      p += (v.litros - litrosIdeal) * precio;
+    });
+    return p;
+  }
+
+  const clasifOrder = ['< 3000','3000 a 6000','6000 a 9000','9000 a 12000','> 12000'];
+  let html = `<thead><tr>
+    <th>Clasificación KMS</th><th>Unidades</th><th># Cargas</th><th>(Km/L)</th><th>1er Carga Mes</th><th>Percentil 25%</th><th>$$ Pérdida</th>
+  </tr></thead><tbody>`;
+
+  let totU = 0, totC = 0, totKm = 0, totL = 0, totP = 0;
+  let idx = 0;
+  clasifOrder.forEach(clasif => {
+    if (!tree[clasif]) return;
+    const allInClasif = Object.values(tree[clasif]).flatMap(t => Object.values(t).flat());
+    const m = aggArr(allInClasif);
+    const perd = perdidaArr(allInClasif);
+    totU += m.unidades; totC += m.cargas; totKm += m.km; totL += m.litros; totP += perd;
+    const id = `clasif-${idx++}`;
+    html += `<tr class="lvl-0" data-grp="${id}">
+      <td><span class="caret" data-toggle="${id}">▸</span> ${clasif}</td>
+      <td>${fmtNum(m.unidades)}</td><td>${fmtNum(m.cargas)}</td>
+      <td class="${colorClass(m.rendimiento, target)}">${fmtNum(m.rendimiento,2)}</td>
+      <td>${fmtNum(m.p1Carga,2)}</td>
+      <td>${fmtNum(m.p25,2)}</td>
+      <td>${fmtMoney(perd)}</td>
+    </tr>`;
+
+    Object.entries(tree[clasif]).forEach(([tipo, marcas], i2) => {
+      const allInTipo = Object.values(marcas).flat();
+      const m2 = aggArr(allInTipo);
+      const id2 = `${id}-tipo-${i2}`;
+      html += `<tr class="lvl-1" data-parent="${id}" style="display:none;">
+        <td><span class="caret" data-toggle="${id2}">▸</span> ${tipo}</td>
+        <td>${fmtNum(m2.unidades)}</td><td>${fmtNum(m2.cargas)}</td>
+        <td class="${colorClass(m2.rendimiento, target)}">${fmtNum(m2.rendimiento,2)}</td>
+        <td>${fmtNum(m2.p1Carga,2)}</td>
+        <td>${fmtNum(m2.p25,2)}</td>
+        <td>${fmtMoney(perdidaArr(allInTipo))}</td>
+      </tr>`;
+
+      Object.entries(marcas).forEach(([marca, vehs], i3) => {
+        const m3 = aggArr(vehs);
+        const id3 = `${id2}-marca-${i3}`;
+        html += `<tr class="lvl-2" data-parent="${id2}" style="display:none;">
+          <td><span class="caret" data-toggle="${id3}">▸</span> ${marca}</td>
+          <td>${fmtNum(m3.unidades)}</td><td>${fmtNum(m3.cargas)}</td>
+          <td class="${colorClass(m3.rendimiento, target)}">${fmtNum(m3.rendimiento,2)}</td>
+          <td>${fmtNum(m3.p1Carga,2)}</td>
+          <td>${fmtNum(m3.p25,2)}</td>
+          <td>${fmtMoney(perdidaArr(vehs))}</td>
+        </tr>`;
+
+        vehs.sort((a,b) => a.rendimiento - b.rendimiento);
+        vehs.forEach(v => {
+          html += `<tr class="lvl-3" data-parent="${id3}" style="display:none;">
+            <td>${v.idVehiculo}</td>
+            <td>1</td><td>${fmtNum(v.cargas)}</td>
+            <td class="${colorClass(v.rendimiento, target)}">${fmtNum(v.rendimiento,2)}</td>
+            <td>${fmtNum(v.firstRend||0,2)}</td>
+            <td>${fmtNum(percentile(v.rendArr,25),2)}</td>
+            <td>${fmtMoney(perdidaArr([v]))}</td>
+          </tr>`;
+        });
+      });
+    });
+  });
+  html += `<tr class="total">
+    <td>Total bajo ${target.toFixed(2)} Km/L</td>
+    <td>${fmtNum(totU)}</td><td>${fmtNum(totC)}</td>
+    <td>${fmtNum(totL>0 ? totKm/totL : 0,2)}</td>
+    <td></td><td></td>
+    <td>${fmtMoney(totP)}</td>
+  </tr></tbody>`;
+  tbl.innerHTML = html;
+  wireCaret(tbl);
+}
+
+function renderDetalle(filtered, target) {
+  const tbl = document.getElementById('tbl-detalle');
+
+  const tree = {};
+  filtered.forEach(r => {
+    if (!tree[r.tipoVehiculo]) tree[r.tipoVehiculo] = {};
+    if (!tree[r.tipoVehiculo][r.marcaModelo]) tree[r.tipoVehiculo][r.marcaModelo] = {};
+    if (!tree[r.tipoVehiculo][r.marcaModelo][r.idVehiculo]) tree[r.tipoVehiculo][r.marcaModelo][r.idVehiculo] = { km:0, litros:0, cargas:0, rendArr:[] };
+    const x = tree[r.tipoVehiculo][r.marcaModelo][r.idVehiculo];
+    x.km += r.km; x.litros += r.litros; x.cargas += 1;
+    if (r.rendimiento > 0) x.rendArr.push(r.rendimiento);
+  });
+
+  function tipoMetrics(t) {
+    let unidades = new Set(), km=0, litros=0;
+    Object.values(t).forEach(m => Object.entries(m).forEach(([veh,x]) => {
+      unidades.add(veh); km += x.km; litros += x.litros;
+    }));
+    return { unidades: unidades.size, km, litros, rendimiento: litros>0 ? km/litros : 0 };
+  }
+  function marcaMetrics(m) {
+    let unidades = new Set(), km=0, litros=0;
+    Object.entries(m).forEach(([veh,x]) => { unidades.add(veh); km += x.km; litros += x.litros; });
+    return { unidades: unidades.size, km, litros, rendimiento: litros>0 ? km/litros : 0 };
+  }
+
+  let html = `<thead><tr>
+    <th>Tipo vehículo</th><th>Unidades</th><th>Kms Cargas</th><th>Suma de Litros</th><th>Rendimiento (Km/L)</th><th>Rendimiento</th>
+  </tr></thead><tbody>`;
+
+  let totU = new Set(), totK=0, totL=0;
+  Object.entries(tree).sort().forEach(([tipo, marcas], i1) => {
+    const m = tipoMetrics(marcas);
+    const id1 = `det-${i1}`;
+    Object.entries(marcas).forEach(([_,vehs]) => Object.keys(vehs).forEach(v => totU.add(v)));
+    totK += m.km; totL += m.litros;
+    html += `<tr class="lvl-0" data-grp="${id1}">
+      <td><span class="caret" data-toggle="${id1}">▸</span> ${tipo}</td>
+      <td>${fmtNum(m.unidades)}</td>
+      <td>${fmtNum(m.km,2)}</td>
+      <td>${fmtNum(m.litros,2)}</td>
+      <td class="${colorClass(m.rendimiento, target)}">${fmtNum(m.rendimiento,2)}</td>
+      <td>${renderMiniBar(m.rendimiento, target)}</td>
+    </tr>`;
+
+    Object.entries(marcas).forEach(([marca, vehs], i2) => {
+      const mm = marcaMetrics(vehs);
+      const id2 = `${id1}-m-${i2}`;
+      html += `<tr class="lvl-1" data-parent="${id1}" style="display:none;">
+        <td><span class="caret" data-toggle="${id2}">▸</span> ${marca}</td>
+        <td>${fmtNum(mm.unidades)}</td>
+        <td>${fmtNum(mm.km,2)}</td>
+        <td>${fmtNum(mm.litros,2)}</td>
+        <td class="${colorClass(mm.rendimiento, target)}">${fmtNum(mm.rendimiento,2)}</td>
+        <td>${renderMiniBar(mm.rendimiento, target)}</td>
+      </tr>`;
+
+      Object.entries(vehs).forEach(([veh, x]) => {
+        const rend = x.litros>0 ? x.km/x.litros : 0;
+        html += `<tr class="lvl-2" data-parent="${id2}" style="display:none;">
+          <td>${veh}</td>
+          <td>1</td>
+          <td>${fmtNum(x.km,2)}</td>
+          <td>${fmtNum(x.litros,2)}</td>
+          <td class="${colorClass(rend, target)}">${fmtNum(rend,2)}</td>
+          <td>${renderMiniBar(rend, target)}</td>
+        </tr>`;
+      });
+    });
+  });
+
+  html += `<tr class="total">
+    <td>Total</td><td>${fmtNum(totU.size)}</td><td>${fmtNum(totK,2)}</td><td>${fmtNum(totL,2)}</td>
+    <td>${fmtNum(totL>0 ? totK/totL : 0,2)}</td><td></td>
+  </tr></tbody>`;
+  tbl.innerHTML = html;
+  wireCaret(tbl);
+}
+
+function renderCargasDiarias(filtered, target) {
+  const tbl = document.getElementById('tbl-cargas-diarias');
+  let maxDay = 31;
+  if (STATE.f.anio && STATE.f.mes) {
+    maxDay = new Date(parseInt(STATE.f.anio), parseInt(STATE.f.mes), 0).getDate();
+  }
+
+  const matrix = {};
+  filtered.forEach(r => {
+    if (!r.day || r.day < 1 || r.day > 31) return;
+    if (!matrix[r.idVehiculo]) matrix[r.idVehiculo] = {};
+    if (!matrix[r.idVehiculo][r.day]) matrix[r.idVehiculo][r.day] = { km: 0, litros: 0 };
+    matrix[r.idVehiculo][r.day].km += r.km;
+    matrix[r.idVehiculo][r.day].litros += r.litros;
+  });
+
+  const vehicles = Object.keys(matrix).sort((a, b) => {
+    const na = parseFloat(a), nb = parseFloat(b);
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return String(a).localeCompare(String(b));
+  });
+
+  let html = '<thead><tr><th>IdVehículo</th>';
+  for (let d = 1; d <= maxDay; d++) html += `<th>${d}</th>`;
+  html += '</tr></thead><tbody>';
+
+  vehicles.forEach(v => {
+    html += `<tr><td>${v}</td>`;
+    for (let d = 1; d <= maxDay; d++) {
+      const cell = matrix[v][d];
+      if (cell && cell.litros > 0) {
+        const rend = cell.km / cell.litros;
+        const cls = colorClass(rend, target);
+        html += `<td class="${cls}" title="Km: ${fmtNum(cell.km, 2)} · L: ${fmtNum(cell.litros, 2)}">${rend.toFixed(2)}</td>`;
+      } else {
+        html += '<td></td>';
+      }
+    }
+    html += '</tr>';
+  });
+
+  html += '<tr class="total"><td>Total</td>';
+  for (let d = 1; d <= maxDay; d++) {
+    let km = 0, l = 0;
+    vehicles.forEach(v => {
+      if (matrix[v][d]) { km += matrix[v][d].km; l += matrix[v][d].litros; }
+    });
+    if (l > 0) {
+      const rend = km / l;
+      html += `<td>${rend.toFixed(2)}</td>`;
+    } else {
+      html += '<td></td>';
+    }
+  }
+  html += '</tr></tbody>';
+  tbl.innerHTML = html;
+}
+
+function renderMiniBar(rend, target) {
+  if (rend <= 0) return '';
+  const pct = Math.min(100, Math.max(0, (rend / (target*1.4)) * 100));
+  const color = rend < target*0.95 ? '#ef4444' : (rend < target ? '#f59e0b' : '#84cc16');
+  return `<div style="display:inline-block;width:60px;background:#f3f4f6;height:8px;border-radius:2px;vertical-align:middle;">
+    <div style="width:${pct}%;background:${color};height:100%;border-radius:2px;"></div>
+  </div>`;
+}
+
+function renderCargas(filtered) {
+  const tbl = document.getElementById('tbl-cargas');
+  let html = `<thead><tr>
+    <th>Nómina Operador</th><th>Nombre op.</th><th>IdVehículo</th><th>Modelo</th><th>Mes</th><th>Semana</th><th>Día</th><th>Km GPS</th><th>Km</th><th>Litros</th><th>Km/L</th>
+  </tr></thead><tbody>`;
+  let totKm = 0, totL = 0;
+  const display = filtered.slice(0, 500);
+  display.forEach(r => {
+    totKm += r.km; totL += r.litros;
+    html += `<tr>
+      <td>${r.nomina || ''}</td>
+      <td>${r.nombreOp || ''}</td>
+      <td>${r.idVehiculo}</td>
+      <td>${r.marcaModelo || ''}</td>
+      <td>${r.month || ''}</td>
+      <td>${r.week || ''}</td>
+      <td>${r.day || ''}</td>
+      <td>${fmtNum(r.kmGps,2)}</td>
+      <td>${fmtNum(r.km,2)}</td>
+      <td>${fmtNum(r.litros,2)}</td>
+      <td>${fmtNum(r.rendimiento,2)}</td>
+    </tr>`;
+  });
+  filtered.slice(500).forEach(r => { totKm += r.km; totL += r.litros; });
+  html += `<tr class="total">
+    <td colspan="7">Total (${fmtNum(filtered.length)} cargas)</td>
+    <td></td><td>${fmtNum(totKm,2)}</td><td>${fmtNum(totL,2)}</td>
+    <td>${fmtNum(totL>0?totKm/totL:0,2)}</td>
+  </tr></tbody>`;
+  tbl.innerHTML = html;
+}
+
+function renderGauge(actual, target) {
+  const max = Math.max(target * 1.2, actual * 1.05, 4.8);
+  const w = 220, h = 130, cx = w/2, cy = h*0.85, r = 80;
+
+  function arc(start, end, color) {
+    const sa = Math.PI + start * Math.PI;
+    const ea = Math.PI + end * Math.PI;
+    const x1 = cx + r * Math.cos(sa), y1 = cy + r * Math.sin(sa);
+    const x2 = cx + r * Math.cos(ea), y2 = cy + r * Math.sin(ea);
+    const largeArc = (ea - sa) > Math.PI ? 1 : 0;
+    return `<path d="M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}" stroke="${color}" stroke-width="22" fill="none" stroke-linecap="butt"/>`;
+  }
+  const valPct = Math.min(1, actual / max);
+  const tgtPct = Math.min(1, target / max);
+
+  const svg = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg">
+    ${arc(0, 1, '#e5e7eb')}
+    ${arc(0, valPct, '#84cc16')}
+    <line x1="${cx + (r+15)*Math.cos(Math.PI + tgtPct*Math.PI)}" y1="${cy + (r+15)*Math.sin(Math.PI + tgtPct*Math.PI)}"
+          x2="${cx + (r-15)*Math.cos(Math.PI + tgtPct*Math.PI)}" y2="${cy + (r-15)*Math.sin(Math.PI + tgtPct*Math.PI)}"
+          stroke="#dc2626" stroke-width="3"/>
+    <text x="${cx}" y="${cy - 15}" text-anchor="middle" class="gauge-actual">${actual.toFixed(2)}</text>
+    <text x="10" y="${cy + 18}" font-size="10" fill="#6b7280">0.00</text>
+    <text x="${w-10}" y="${cy + 18}" text-anchor="end" font-size="10" fill="#6b7280">${max.toFixed(2)}</text>
+    <text x="${cx + (r+25)*Math.cos(Math.PI + tgtPct*Math.PI)}" y="${cy + (r+25)*Math.sin(Math.PI + tgtPct*Math.PI) + 4}"
+          text-anchor="middle" font-size="10" fill="#dc2626" font-weight="700">${target.toFixed(2)}</text>
+  </svg>`;
+  document.getElementById('gauge-container').innerHTML = svg;
+}
+
+function renderCharts(filtered) {
+  const fullForChart = { cargas: applyFiltersNoYear(STATE.cargas) };
+  const byYMfull = {};
+  fullForChart.cargas.forEach(r => {
+    if (!r.year || !r.month) return;
+    if (!byYMfull[r.year]) byYMfull[r.year] = {};
+    if (!byYMfull[r.year][r.month]) byYMfull[r.year][r.month] = { km:0, litros:0 };
+    byYMfull[r.year][r.month].km += r.km;
+    byYMfull[r.year][r.month].litros += r.litros;
+  });
+
+  const years = Object.keys(byYMfull).map(Number).sort();
+  const datasets = years.map((y) => {
+    const color = y === 2024 ? PBI_COLORS.azul2024 : (y === 2025 ? PBI_COLORS.rojo2025 : PBI_COLORS.naranja2026);
+    const data = Array.from({length:12}, (_,m) => {
+      const v = byYMfull[y]?.[m+1];
+      return v && v.litros > 0 ? v.km / v.litros : null;
+    });
+    return { label: `Rendimiento ${y}`, data, borderColor: color, backgroundColor: color, borderWidth: 2, fill: false, tension: 0.25, pointRadius: 2 };
+  });
+
+  if (STATE.charts.mes) STATE.charts.mes.destroy();
+  STATE.charts.mes = new Chart(document.getElementById('chart-mes'), {
+    type: 'line',
+    data: { labels: Array.from({length:12}, (_,i)=>i+1), datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { font: { size: 9 }, boxWidth: 8, padding: 6 } } },
+      scales: {
+        y: { beginAtZero: false, ticks: { font: { size: 9 } }, title: { display: true, text: 'Rendimie...', font: { size: 8 } } },
+        x: { ticks: { font: { size: 9 } } }
+      }
+    }
+  });
+
+  const byYW = {};
+  fullForChart.cargas.forEach(r => {
+    if (!r.week || !r.year) return;
+    if (!byYW[r.year]) byYW[r.year] = {};
+    if (!byYW[r.year][r.week]) byYW[r.year][r.week] = { km:0, litros:0 };
+    byYW[r.year][r.week].km += r.km;
+    byYW[r.year][r.week].litros += r.litros;
+  });
+  const datasets2 = years.map(y => {
+    const color = y === 2024 ? PBI_COLORS.azul2024 : (y === 2025 ? PBI_COLORS.rojo2025 : PBI_COLORS.naranja2026);
+    const data = Array.from({length:53}, (_,w) => {
+      const v = byYW[y]?.[w+1];
+      return v && v.litros > 0 ? v.km / v.litros : null;
+    });
+    return { label: `Rendimiento ${y}`, data, borderColor: color, backgroundColor: color, borderWidth: 1.5, fill: false, tension: 0.25, pointRadius: 1.5 };
+  });
+
+  if (STATE.charts.sem) STATE.charts.sem.destroy();
+  STATE.charts.sem = new Chart(document.getElementById('chart-sem'), {
+    type: 'line',
+    data: { labels: Array.from({length:53}, (_,i)=>i+1), datasets: datasets2 },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { font: { size: 9 }, boxWidth: 8, padding: 6 } } },
+      scales: {
+        y: { beginAtZero: false, ticks: { font: { size: 9 } } },
+        x: { ticks: { font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 25 } }
+      }
+    }
+  });
+}
+
+function applyFiltersNoYear(records) {
+  const f = STATE.f;
+  return records.filter(r => {
+    if (f.vehiculo && r.idVehiculo !== f.vehiculo) return false;
+    if (f.operador && r.nombreOp !== f.operador) return false;
+    if (f.gerente.size && !f.gerente.has(r.gerente)) return false;
+    if (f.jefe.size && !f.jefe.has(r.jefe)) return false;
+    if (f.tipoVeh.size && !f.tipoVeh.has(r.tipoVehiculo)) return false;
+    if (f.combustible.size && !f.combustible.has(r.combustible)) return false;
+    return true;
+  });
+}
+
+function generateSinCargasRecords() {
+  const targetYear = STATE.f.anio ? parseInt(STATE.f.anio) : null;
+  const targetMonth = STATE.f.mes ? parseInt(STATE.f.mes) : null;
+
+  const withCargas = new Set();
+  STATE.cargas.forEach(c => {
+    if (targetYear && c.year !== targetYear) return;
+    if (targetMonth && c.month !== targetMonth) return;
+    withCargas.add(c.idVehiculo);
+  });
+
+  const gpsByVeh = {};
+  STATE.gps.forEach(g => {
+    if (targetYear && g.year !== targetYear) return;
+    if (targetMonth && g.month !== targetMonth) return;
+    if (!gpsByVeh[g.idVehiculo]) gpsByVeh[g.idVehiculo] = { km: 0, count: 0 };
+    gpsByVeh[g.idVehiculo].km += g.distancia;
+    gpsByVeh[g.idVehiculo].count += 1;
+  });
+
+  const sinCargas = Object.keys(gpsByVeh).filter(v => !withCargas.has(v));
+  return sinCargas.map(v => {
+    const planta = STATE.vehPlantaMap[v] || '';
+    const asig = STATE.asigMap[norm(planta)] || {};
+    return {
+      idVehiculo: v, fecha: null,
+      year: targetYear, month: targetMonth, day: null, week: null,
+      km: 0, litros: 0, rendimiento: 0,
+      combustible: 'Sin Datos', tipoUnidad: 'Sin Datos',
+      tipoVehiculo: 'Sin Datos', marcaModelo: 'Sin Datos',
+      nomina: '', nombreOp: '', planta,
+      gerente: asig.gerente || 'SIN ASIGNACIÓN',
+      jefe: asig.jefe || 'SIN ASIGNACIÓN',
+      kmGps: gpsByVeh[v].km
+    };
+  });
+}
+
+/* =========================================================
+   MAIN RENDER
+========================================================= */
+function render() {
+  const target = parseFloat(document.getElementById('objetivo-rend').value) || 4.08;
+  const precio = parseFloat(document.getElementById('precio-diesel').value) || 0;
+
+  const baseRecords = STATE.f.ac === 'sc' ? generateSinCargasRecords() : STATE.cargas;
+  const filtered = applyFilters(baseRecords);
+
+  const global = calcGlobal(filtered);
+  document.getElementById('kpi-unidades').textContent = fmtNum(global.unidades);
+  renderGauge(global.rendimiento, target);
+
+  renderResumen(filtered, target);
+  renderTerapia(filtered, target);
+  renderDetalle(filtered, target);
+  renderCargas(filtered);
+  renderCargasDiarias(filtered, target);
+  renderCharts(filtered);
+
+  document.getElementById('kpi-perdida').textContent = fmtMoney(calcPerdida(filtered, target, precio));
+}
+
+/* =========================================================
+   DIAGNOSTIC PANEL
+========================================================= */
+function renderDiagnostic() {
+  const d = STATE.diagnostic;
+  const el = document.getElementById('debug-content');
+  const rows = [];
+
+  function section(title, info, expectedKeys) {
+    if (!info || !info.headers) {
+      rows.push(`<div style="margin-bottom:10px;"><b class="col-fatal">${title}</b><br>—</div>`);
+      return;
+    }
+    let inner = `<div style="margin-bottom:10px;">`;
+    inner += `<b style="color:#a3e635;">${title}</b> <span style="color:#6b7280;">(pestaña: <code>${info.sheet}</code>, filas: ${info.rowsOut}/${info.rowsRaw})</span><br>`;
+    inner += `<table>`;
+    for (const [k, ix] of Object.entries(info.idx)) {
+      const found = ix >= 0;
+      const header = found ? (info.headers[ix] || '(sin nombre)') : '<span class="col-fatal">NO ENCONTRADA</span>';
+      const cls = found ? (info.headers[ix] ? 'col-ok' : 'col-miss') : 'col-fatal';
+      inner += `<tr><td style="color:#6b7280;">${k}</td><td class="${cls}">${found ? '#' + ix : ''}</td><td>${header}</td></tr>`;
+    }
+    inner += `</table></div>`;
+    rows.push(inner);
+  }
+  section('Rendimiento', d.rendimiento);
+  section('Trafilink',   d.trafilink);
+  section('Asignacion',  d.asignacion);
+
+  el.innerHTML = rows.join('') +
+    `<div style="border-top:1px solid #374151;padding-top:6px;margin-top:6px;color:#6b7280;">
+      Cargas: <b style="color:#d1d5db;">${STATE.cargas.length}</b> · GPS: <b style="color:#d1d5db;">${STATE.gps.length}</b> · Plantas asignadas: <b style="color:#d1d5db;">${Object.keys(STATE.asigMap).length}</b>
+    </div>`;
+}
+
+/* =========================================================
+   LOAD DATA FROM GOOGLE SHEETS
+========================================================= */
+async function fetchXlsxWithFallbacks() {
+  const attempts = [];
+  const directUrl = `${GSHEET_XLSX_URL}&_ts=${Date.now()}`;
+
+  const strategies = [
+    { name: 'directo', url: directUrl },
+    { name: 'corsproxy.io', url: `https://corsproxy.io/?url=${encodeURIComponent(directUrl)}` },
+    { name: 'allorigins.win', url: `https://api.allorigins.win/raw?url=${encodeURIComponent(directUrl)}` },
+    { name: 'codetabs', url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(directUrl)}` },
+    { name: 'thingproxy', url: `https://thingproxy.freeboard.io/fetch/${directUrl}` },
+    { name: 'cors.sh', url: `https://proxy.cors.sh/${directUrl}` }
+  ];
+
+  for (const s of strategies) {
+    try {
+      const resp = await fetch(s.url, { cache: 'no-store', redirect: 'follow' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const buf = await resp.arrayBuffer();
+      if (buf.byteLength < 100) throw new Error('respuesta demasiado corta');
+      // Validar que es un XLSX (magic bytes: PK zip)
+      const b = new Uint8Array(buf.slice(0, 2));
+      if (b[0] !== 0x50 || b[1] !== 0x4B) throw new Error('no es un archivo XLSX válido');
+      return { buf, source: s.name };
+    } catch (e) {
+      attempts.push(`${s.name}: ${e.message}`);
+    }
+  }
+
+  const err = new Error('Ninguna vía funcionó.\n\nIntentos:\n• ' + attempts.join('\n• '));
+  err.corsLikely = true;
+  throw err;
+}
+
+// Procesa un ArrayBuffer o Blob y renderiza el dashboard
+async function processWorkbookBuffer(buf, sourceLabel = 'archivo') {
+  setProgress('p-fetch', 'done', `Cargado ✓ (${(buf.byteLength/1024).toFixed(0)} KB · vía ${sourceLabel})`);
+
+  setProgress('p-parse', 'working', 'Leyendo pestañas…');
+  const wb = XLSX.read(buf, { type: 'array', cellDates: false });
+  STATE.rawXlsxBlob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  setProgress('p-parse', 'done', `Pestañas leídas: ${wb.SheetNames.join(', ')}`);
+
+  setProgress('p-columns', 'working', 'Detectando columnas…');
+  STATE.cargas   = parseRendimientoSheet(wb);
+  STATE.gps      = parseTrafilinkSheet(wb);
+  STATE.asigMap  = parseAsignacionSheet(wb);
+  setProgress('p-columns', 'done', `Cargas: ${STATE.cargas.length} · GPS: ${STATE.gps.length} · Asig: ${Object.keys(STATE.asigMap).length}`);
+
+  setProgress('p-enrich', 'working', 'Cruzando datos…');
+  buildVehiclePlantaMap();
+  enrichCargas();
+  setProgress('p-enrich', 'done', 'Cruzados ✓');
+
+  setProgress('p-render', 'working', 'Renderizando…');
+  populateFilters();
+  document.getElementById('load-state').style.display = 'none';
+  document.getElementById('dashboard').classList.add('ready');
+  render();
+  setProgress('p-render', 'done', 'Listo ✓');
+
+  STATE.lastSync = new Date();
+  updateSyncLabel();
+  renderDiagnostic();
+}
+
+async function loadFromGoogleSheets({ initial = false } = {}) {
+  const btnRefresh = document.getElementById('btn-refresh');
+  btnRefresh.disabled = true;
+  btnRefresh.classList.add('spinning');
+
+  try {
+    if (initial) {
+      document.getElementById('load-state').style.display = 'block';
+      document.getElementById('dashboard').classList.remove('ready');
+    }
+    hideManualActionPanel();
+    document.getElementById('ls-error').style.display = 'none';
+    // reset progress
+    ['p-fetch','p-parse','p-columns','p-enrich','p-render'].forEach(pid => {
+      const el = document.getElementById(pid);
+      if (el) { el.classList.remove('done','working','error'); el.classList.add('pending'); }
+    });
+
+    setStatus('Descargando…', 'loading');
+    setProgress('p-fetch', 'working', 'Descargando XLSX desde Google Sheets…');
+
+    const { buf, source } = await fetchXlsxWithFallbacks();
+    await processWorkbookBuffer(buf, source);
+
+    if (!initial) showToast(`Actualizado · ${STATE.cargas.length} cargas · ${STATE.gps.length} viajes GPS`, 'ok');
+
+  } catch (err) {
+    console.error(err);
+    const detail = err && err.message ? err.message : String(err);
+    const isCors = err && err.corsLikely;
+    const help = isCors
+      ? `<b>El navegador bloqueó la descarga automática desde el Sheet.</b>
+
+Esto pasa cuando abres el HTML con doble click (protocolo <code>file://</code>) o cuando los proxies CORS públicos están caídos.
+
+<b>La solución rápida está justo abajo ⬇</b>`
+      : `<b>Verifica que:</b>
+• El Sheet siga publicado en la web (Archivo → Compartir → Publicar en la web).
+• Existan pestañas llamadas <b>rendimiento</b>, <b>trafilink</b> y <b>asignacion</b> (o nombres similares).
+• Los encabezados de columna estén en la primera fila.`;
+    showError('No se pudo cargar el Google Sheet', detail + '\n\n' + help);
+    if (isCors) showManualActionPanel();
+    ['p-fetch','p-parse','p-columns','p-enrich','p-render'].forEach(pid => {
+      const el = document.getElementById(pid);
+      if (el && !el.classList.contains('done')) { el.classList.remove('working','pending'); el.classList.add('error'); }
+    });
+    if (!initial) showToast('Error al actualizar', 'err');
+  } finally {
+    btnRefresh.disabled = false;
+    btnRefresh.classList.remove('spinning');
+  }
+}
+
+// Manejador del botón "Subir XLSX" (carga manual)
+async function loadFromManualFile(file) {
+  if (!file) return;
+  const btnRefresh = document.getElementById('btn-refresh');
+  btnRefresh.disabled = true;
+  btnRefresh.classList.add('spinning');
+  try {
+    document.getElementById('load-state').style.display = 'block';
+    document.getElementById('dashboard').classList.remove('ready');
+    hideManualActionPanel();
+    document.getElementById('ls-error').style.display = 'none';
+    ['p-fetch','p-parse','p-columns','p-enrich','p-render'].forEach(pid => {
+      const el = document.getElementById(pid);
+      if (el) { el.classList.remove('done','working','error'); el.classList.add('pending'); }
+    });
+    document.getElementById('ls-spinner').style.display = 'block';
+    document.getElementById('ls-title').textContent = 'Procesando archivo…';
+    setStatus('Procesando archivo…', 'loading');
+    setProgress('p-fetch', 'working', `Leyendo ${file.name}…`);
+
+    const buf = await file.arrayBuffer();
+    await processWorkbookBuffer(buf, `archivo local: ${file.name}`);
+    showToast(`Cargado · ${STATE.cargas.length} cargas · ${STATE.gps.length} viajes GPS`, 'ok');
+  } catch (err) {
+    console.error(err);
+    showError('Error al procesar el archivo', err.message || String(err));
+    ['p-fetch','p-parse','p-columns','p-enrich','p-render'].forEach(pid => {
+      const el = document.getElementById(pid);
+      if (el && !el.classList.contains('done')) { el.classList.remove('working','pending'); el.classList.add('error'); }
+    });
+  } finally {
+    btnRefresh.disabled = false;
+    btnRefresh.classList.remove('spinning');
+  }
+}
+
+function updateSyncLabel() {
+  if (!STATE.lastSync) return;
+  setStatus(`Sincronizado ${fmtRelative(STATE.lastSync)} · ${STATE.cargas.length} cargas`, 'ok');
+}
+setInterval(updateSyncLabel, 15000);
+
+/* =========================================================
+   UI wiring
+========================================================= */
+document.getElementById('btn-refresh').onclick = () => loadFromGoogleSheets({ initial: false });
+document.getElementById('file-manual').onchange = (ev) => {
+  const f = ev.target.files[0];
+  if (f) loadFromManualFile(f);
+  ev.target.value = ''; // permite recargar el mismo archivo
+};
+document.getElementById('btn-debug').onclick = () => {
+  renderDiagnostic();
+  document.getElementById('debug-panel').classList.toggle('show');
+};
+document.getElementById('btn-download').onclick = () => {
+  if (!STATE.rawXlsxBlob) { showToast('Aún no hay datos cargados', 'err'); return; }
+  const url = URL.createObjectURL(STATE.rawXlsxBlob);
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = `Rendimiento_Settepi_${ts}.xlsx`;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
+};
+
+// Ctrl+R / Cmd+R → recargar datos del sheet (no la página)
+window.addEventListener('keydown', ev => {
+  if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'r') {
+    ev.preventDefault();
+    loadFromGoogleSheets({ initial: false });
+  }
+});
+
+// Kickoff
+loadFromGoogleSheets({ initial: true });
+</script>
+</body>
+</html>
