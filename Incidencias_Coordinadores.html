@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#1f2937">
-<title>Incidencias — TRAXIÓN</title>
+<title>tickets_coordinadores — TRAXIÓN</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -33,11 +33,14 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 
 /* NAV */
 nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48px;gap:14px;position:sticky;top:0;z-index:300;box-shadow:0 2px 8px rgba(0,0,0,.3);}
-.nav-logo{color:#84cc16;font-weight:800;font-size:16px;text-decoration:none;letter-spacing:.5px;}
+.nav-logo{color:#84cc16;font-weight:800;font-size:16px;text-decoration:none;letter-spacing:.5px;cursor:pointer;}
+.nav-logo:hover{color:#a3e635;}
 .nav-sep{color:#4b5563;font-size:14px;font-weight:300;}
-.nav-page{color:#e5e7eb;font-size:13px;font-weight:600;}
-.nav-back{margin-left:auto;color:#9ca3af;background:transparent;border:1px solid #374151;padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;display:none;}
-.nav-back:hover{background:#374151;color:#e5e7eb;}
+.nav-page{color:#e5e7eb;font-size:13px;font-weight:600;text-decoration:none;cursor:pointer;}
+.nav-page:hover{color:#ffffff;}
+.nav-back{margin-left:auto;color:#e5e7eb;background:#374151;border:1px solid #4b5563;padding:7px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:none;transition:all .15s;}
+.nav-back:hover{background:#84cc16;color:#0a1a00;border-color:#84cc16;}
+.nav-back:active{transform:scale(.96);}
 
 /* HEADER */
 header{
@@ -122,8 +125,9 @@ select{
   background-repeat:no-repeat;background-position:right 12px center;padding-right:38px;
 }
 select:focus,input:focus,textarea:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(132,204,22,.12);}
-select:disabled{opacity:.5;background:var(--border-light);cursor:not-allowed;}
+select:disabled,input:disabled{opacity:.5;background:var(--border-light);cursor:not-allowed;}
 textarea{resize:vertical;min-height:70px;}
+.field-hint{font-size:11px;color:var(--muted);margin-top:6px;font-style:italic;}
 
 /* INDICATOR GRID */
 .ind-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -281,17 +285,17 @@ textarea{resize:vertical;min-height:70px;}
 <body>
 
 <nav>
-  <span class="nav-logo">TRAXIÓN</span>
+  <a class="nav-logo" href="#" onclick="event.preventDefault();goHome();">TRAXIÓN</a>
   <span class="nav-sep">|</span>
-  <span class="nav-page" id="navPage">Reporte de Incidencias</span>
+  <a class="nav-page" href="#" onclick="event.preventDefault();goHome();" id="navPage">tickets_coordinadores</a>
   <button class="nav-back" id="navBack" onclick="goHome()">← Menú</button>
 </nav>
 
 <header>
   <div class="h-left">
     <div class="h-dot"></div>
-    <span class="h-title">Reporte de Incidencias</span>
-    <span class="h-sub" id="hSub">Coordinadores · Captura y seguimiento</span>
+    <span class="h-title" id="hTitle">tickets_coordinadores</span>
+    <span class="h-sub" id="hSub">Captura y seguimiento</span>
   </div>
 </header>
 
@@ -362,16 +366,16 @@ textarea{resize:vertical;min-height:70px;}
 
     <div class="card">
       <label class="field-label">Ruta</label>
-      <select id="fRuta" disabled>
-        <option value="">— Primero elige planta —</option>
-      </select>
+      <input type="text" id="fRuta" list="dlRutas" placeholder="Primero elige planta" disabled autocomplete="off">
+      <datalist id="dlRutas"></datalist>
+      <div class="field-hint">Si tu ruta no aparece en la lista, escríbela directamente.</div>
     </div>
 
     <div class="card">
       <label class="field-label">Carro / Unidad</label>
-      <select id="fCarro" disabled>
-        <option value="">— Primero elige planta —</option>
-      </select>
+      <input type="text" id="fCarro" list="dlCarros" placeholder="Primero elige planta" disabled autocomplete="off">
+      <datalist id="dlCarros"></datalist>
+      <div class="field-hint">Si tu carro no aparece en la lista, escríbelo directamente.</div>
     </div>
   </div>
 </div>
@@ -603,24 +607,27 @@ function onCoordChange(){
 function onPlantaChange(){
   const c = state.data.coordinador || document.getElementById('fCoord').value;
   const p = document.getElementById('fPlanta').value;
-  const rSel = document.getElementById('fRuta');
-  const carSel = document.getElementById('fCarro');
-  rSel.innerHTML=''; carSel.innerHTML='';
+  const rInput = document.getElementById('fRuta');
+  const carInput = document.getElementById('fCarro');
+  const dlR = document.getElementById('dlRutas');
+  const dlC = document.getElementById('dlCarros');
+  rInput.value=''; carInput.value=''; dlR.innerHTML=''; dlC.innerHTML='';
+
   if(!p){
-    rSel.disabled=true; carSel.disabled=true;
-    rSel.innerHTML='<option value="">— Primero elige planta —</option>';
-    carSel.innerHTML='<option value="">— Primero elige planta —</option>';
+    rInput.disabled=true; carInput.disabled=true;
+    rInput.placeholder='Primero elige planta';
+    carInput.placeholder='Primero elige planta';
     return;
   }
   const filas = state.catalogo.filter(r=>r.coordinador===c && r.planta===p);
   const rutas = [...new Set(filas.map(r=>r.ruta).filter(Boolean))].sort();
   const carros= [...new Set(filas.map(r=>r.carro).filter(Boolean))].sort();
 
-  rSel.disabled=false; carSel.disabled=false;
-  rSel.innerHTML='<option value="">— Selecciona ruta —</option>';
-  rutas.forEach(r=>{const o=document.createElement('option');o.value=r;o.textContent=r;rSel.appendChild(o);});
-  carSel.innerHTML='<option value="">— Selecciona carro —</option>';
-  carros.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;carSel.appendChild(o);});
+  rInput.disabled=false; carInput.disabled=false;
+  rInput.placeholder = rutas.length ? 'Selecciona o escribe tu ruta' : 'Escribe tu ruta';
+  carInput.placeholder = carros.length ? 'Selecciona o escribe tu carro' : 'Escribe tu carro';
+  rutas.forEach(r=>{const o=document.createElement('option');o.value=r;dlR.appendChild(o);});
+  carros.forEach(c=>{const o=document.createElement('option');o.value=c;dlC.appendChild(o);});
 }
 
 function selectInd(nombre,btn){
@@ -645,9 +652,11 @@ function showView(id){
 }
 
 function updateNav(pageName, showBack){
-  document.getElementById('navPage').textContent = pageName;
-  document.querySelector('.h-title').textContent = pageName;
+  // El título principal siempre es tickets_coordinadores.
+  // Solo mostramos/ocultamos el botón "← Menú" y actualizamos el subtítulo.
   document.getElementById('navBack').style.display = showBack ? 'block' : 'none';
+  const hSub = document.getElementById('hSub');
+  if(hSub) hSub.textContent = pageName;
 }
 
 function goHome(){
@@ -700,8 +709,8 @@ function validateStep(id){
   }
   if(id==='viewR2'){
     if(!document.getElementById('fPlanta').value){toast('Selecciona la planta','error');return false;}
-    if(!document.getElementById('fRuta').value){toast('Selecciona la ruta','error');return false;}
-    if(!document.getElementById('fCarro').value){toast('Selecciona el carro','error');return false;}
+    if(!document.getElementById('fRuta').value.trim()){toast('Selecciona o escribe la ruta','error');return false;}
+    if(!document.getElementById('fCarro').value.trim()){toast('Selecciona o escribe el carro','error');return false;}
     return true;
   }
   if(id==='viewR3'){
@@ -719,8 +728,8 @@ function saveStep(id){
   }
   if(id==='viewR2'){
     state.data.planta = document.getElementById('fPlanta').value;
-    state.data.ruta = document.getElementById('fRuta').value;
-    state.data.carro = document.getElementById('fCarro').value;
+    state.data.ruta = document.getElementById('fRuta').value.trim();
+    state.data.carro = document.getElementById('fCarro').value.trim();
   }
   if(id==='viewR3'){
     state.data.descripcion = document.getElementById('fDesc').value.trim();
@@ -854,10 +863,11 @@ function resetForm(){
   state.data = { coordinador:state.data.coordinador, planta:"", ruta:"", carro:"", indicador:"", descripcion:"" };
   document.getElementById('fPlanta').value = '';
   document.getElementById('fPlanta').innerHTML = '<option value="">— Selecciona planta —</option>';
-  document.getElementById('fRuta').innerHTML = '<option value="">— Primero elige planta —</option>';
-  document.getElementById('fRuta').disabled = true;
-  document.getElementById('fCarro').innerHTML = '<option value="">— Primero elige planta —</option>';
-  document.getElementById('fCarro').disabled = true;
+  const rIn = document.getElementById('fRuta'), cIn = document.getElementById('fCarro');
+  rIn.value=''; rIn.disabled=true; rIn.placeholder='Primero elige planta';
+  cIn.value=''; cIn.disabled=true; cIn.placeholder='Primero elige planta';
+  document.getElementById('dlRutas').innerHTML = '';
+  document.getElementById('dlCarros').innerHTML = '';
   document.getElementById('fDesc').value = '';
   document.getElementById('fFolio').value = '';
   document.getElementById('consultResult').innerHTML = '';
