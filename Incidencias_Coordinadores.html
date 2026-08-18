@@ -274,103 +274,136 @@ textarea{resize:vertical;min-height:70px;}
 /* KPI PANEL */
 .kpi-panel{
   background:var(--surface);border:1px solid var(--border);border-radius:10px;
-  padding:12px 14px;margin-bottom:12px;
+  padding:14px;margin-bottom:12px;
 }
 .kpi-head{
-  display:flex;justify-content:space-between;align-items:center;
-  gap:8px;flex-wrap:wrap;margin-bottom:10px;
+  display:flex;justify-content:space-between;align-items:baseline;
+  gap:8px;margin-bottom:12px;
 }
 .kpi-head-title{
-  font-size:11px;font-weight:700;color:var(--text2);
-  text-transform:uppercase;letter-spacing:.06em;
-  display:flex;align-items:center;gap:6px;
+  font-size:14px;font-weight:700;color:var(--text);
+  letter-spacing:-.01em;
 }
-.kpi-head-title::before{
-  content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;
+.kpi-head-sub{
+  font-size:11px;color:var(--muted);font-weight:500;
+  font-variant-numeric:tabular-nums;
 }
-.kpi-head-select{
-  padding:5px 26px 5px 10px;font-size:12px;font-weight:500;
-  border:1px solid var(--border);border-radius:6px;
-  background-color:#fff;color:var(--text2);cursor:pointer;
-  font-family:inherit;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath d='M5 8l5 5 5-5H5z'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 6px center;
-  -webkit-appearance:none;appearance:none;
+.kpi-daterange{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  gap:6px;align-items:center;margin-bottom:8px;
 }
-.kpi-head-select:focus{outline:none;border-color:var(--accent);}
-.kpi-dates{
-  display:none;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;
-}
-.kpi-dates.show{display:grid;}
-.kpi-dates input{
-  padding:7px 10px;font-size:12px;
+.kpi-daterange input{
+  width:100%;padding:8px 10px;font-size:12px;font-weight:500;
   border:1px solid var(--border);border-radius:6px;
   background:#fff;color:var(--text);font-family:inherit;
+  -webkit-appearance:none;
 }
-.kpi-dates input:focus{outline:none;border-color:var(--accent);}
+.kpi-daterange input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(132,204,22,.12);}
+.kpi-daterange-sep{font-size:11px;color:var(--muted2);padding:0 2px;font-weight:400;}
+.kpi-presets{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap;}
+.kpi-preset{
+  font-size:11px;font-weight:600;font-family:inherit;
+  padding:4px 11px;border-radius:12px;
+  background:var(--border-light);color:var(--muted);
+  border:1px solid transparent;cursor:pointer;
+  transition:all .12s;
+}
+.kpi-preset:hover{background:var(--border);color:var(--text2);}
+.kpi-preset.active{background:var(--header);color:#fff;}
 .kpi-tiles{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:8px;
 }
 .kpi-tile{
-  background:#fafbfc;border:1px solid var(--border);border-radius:8px;
-  padding:10px 6px;text-align:center;position:relative;overflow:hidden;
+  background:#fff;border:1px solid var(--border);border-radius:8px;
+  padding:12px 10px;position:relative;overflow:hidden;
 }
 .kpi-tile::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  content:'';position:absolute;top:0;left:0;bottom:0;width:3px;
   background:var(--muted2);
 }
 .kpi-tile.kt-open::before{background:var(--red);}
 .kpi-tile.kt-closed::before{background:var(--green);}
-.kpi-tile-value{
-  font-size:22px;font-weight:700;color:var(--text);
-  line-height:1;letter-spacing:-.02em;
-}
 .kpi-tile-label{
   font-size:10px;color:var(--muted);
-  text-transform:uppercase;letter-spacing:.05em;
-  margin-top:5px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em;
+  font-weight:600;margin-bottom:4px;
+}
+.kpi-tile-value{
+  font-size:24px;font-weight:700;color:var(--text);
+  line-height:1;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;
 }
 .kpi-inds{
-  margin-top:10px;padding-top:10px;
+  margin-top:14px;padding-top:12px;
   border-top:1px solid var(--border-light);
 }
 .kpi-inds-title{
   font-size:10px;font-weight:700;color:var(--muted);
-  text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;
 }
 .kpi-ind-row{
-  display:grid;grid-template-columns:20px 1fr 28px;
-  gap:8px;align-items:center;padding:3px 0;
+  display:grid;grid-template-columns:110px 1fr 32px;
+  gap:10px;align-items:center;padding:5px 0;
 }
-.kpi-ind-emoji{font-size:13px;text-align:center;line-height:1;}
+.kpi-ind-name{
+  font-size:11.5px;font-weight:500;color:var(--text2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 .kpi-ind-bar{
-  position:relative;height:18px;background:var(--border-light);
-  border-radius:4px;overflow:hidden;
+  position:relative;height:6px;background:var(--border-light);
+  border-radius:3px;overflow:hidden;
 }
 .kpi-ind-bar-fill{
   position:absolute;top:0;bottom:0;left:0;
-  background:linear-gradient(90deg,#a3e635 0%,#84cc16 100%);
-  border-radius:4px;transition:width .35s ease;
-}
-.kpi-ind-name{
-  position:absolute;left:8px;top:50%;transform:translateY(-50%);
-  font-size:11px;font-weight:600;color:var(--text);z-index:1;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  right:8px;pointer-events:none;
-  text-shadow:0 0 2px rgba(255,255,255,.6);
+  background:var(--header);border-radius:3px;transition:width .35s ease;
 }
 .kpi-ind-count{
   text-align:right;font-size:12px;font-weight:700;color:var(--text);
   font-variant-numeric:tabular-nums;
 }
 .kpi-empty{
-  text-align:center;padding:14px;color:var(--muted);
-  font-size:11px;background:#fafbfc;border-radius:6px;
+  text-align:center;padding:16px;color:var(--muted);
+  font-size:11.5px;background:#fafbfc;border-radius:6px;
 }
 .kpi-loading{
-  text-align:center;padding:16px 8px;color:var(--muted);font-size:11px;
+  text-align:center;padding:24px 8px;color:var(--muted);font-size:11.5px;
 }
-.kpi-loading .spinner{width:20px;height:20px;border-width:2px;margin:0 auto 6px;}
+.kpi-loading .spinner{width:22px;height:22px;border-width:2px;margin:0 auto 8px;}
+
+/* FOLIO PHOTO IN RESULT */
+.folio-photo{
+  margin-top:16px;padding-top:14px;
+  border-top:1px solid var(--border-light);
+}
+.folio-photo-label{
+  font-size:10px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;
+}
+.folio-photo-thumb{
+  display:block;border-radius:8px;overflow:hidden;
+  background:#0a0a0a;border:1px solid var(--border);
+  margin-bottom:10px;cursor:pointer;position:relative;
+  min-height:120px;
+  transition:opacity .15s;
+}
+.folio-photo-thumb:hover{opacity:.88;}
+.folio-photo-thumb img{
+  width:100%;display:block;max-height:340px;object-fit:contain;
+}
+.folio-photo-link{
+  display:inline-flex;align-items:center;gap:5px;
+  color:var(--blue);text-decoration:none;
+  font-size:12px;font-weight:600;
+  padding:7px 14px;background:#eff6ff;
+  border:1px solid #bfdbfe;border-radius:6px;
+}
+.folio-photo-link:hover{background:#dbeafe;}
+.folio-photo-fallback{
+  padding:20px;text-align:center;
+  background:#fafbfc;border:1px dashed var(--border);
+  border-radius:8px;font-size:12px;color:var(--muted);
+  margin-bottom:10px;
+}
 
 /* PHOTO UPLOAD */
 .photo-upload{position:relative;}
@@ -446,7 +479,7 @@ textarea{resize:vertical;min-height:70px;}
     <span class="h-title" id="hTitle">tickets_coordinadores</span>
     <span class="h-sub" id="hSub">Captura y seguimiento</span>
   </div>
-  <span style="font-size:10px;color:#9ca3af;font-weight:500;">v2.2 · foto + KPIs</span>
+  <span style="font-size:10px;color:#9ca3af;font-weight:500;">v2.3 · KPIs pro + foto embed</span>
 </header>
 
 <!-- LOADING INICIAL -->
@@ -599,19 +632,19 @@ textarea{resize:vertical;min-height:70px;}
     <div class="kpi-panel">
       <div class="kpi-head">
         <div class="kpi-head-title">Resumen</div>
-        <select class="kpi-head-select" id="kpiPeriod">
-          <option value="7d">Últimos 7 días</option>
-          <option value="30d">Últimos 30 días</option>
-          <option value="week">Esta semana</option>
-          <option value="lastweek">Semana pasada</option>
-          <option value="month">Este mes</option>
-          <option value="all">Todo</option>
-          <option value="custom">Personalizado</option>
-        </select>
+        <div class="kpi-head-sub" id="kpiRangeLabel">—</div>
       </div>
-      <div class="kpi-dates" id="kpiDates">
+      <div class="kpi-daterange">
         <input type="date" id="kpiFrom" title="Desde">
+        <span class="kpi-daterange-sep">→</span>
         <input type="date" id="kpiTo" title="Hasta">
+      </div>
+      <div class="kpi-presets">
+        <button class="kpi-preset" data-preset="7d">7 días</button>
+        <button class="kpi-preset" data-preset="30d">30 días</button>
+        <button class="kpi-preset" data-preset="week">Esta semana</button>
+        <button class="kpi-preset" data-preset="month">Este mes</button>
+        <button class="kpi-preset" data-preset="all">Todo</button>
       </div>
       <div id="kpiBody">
         <div class="kpi-loading"><div class="spinner"></div>Cargando resumen...</div>
@@ -891,20 +924,57 @@ function resetPhotoUI(){
 const _kpiCache = { data: null, at: 0, loading: null };
 
 function bindKpiControls(){
-  document.getElementById('kpiPeriod').addEventListener('change', e=>{
-    const isCustom = e.target.value === 'custom';
-    document.getElementById('kpiDates').classList.toggle('show', isCustom);
-    if(!isCustom) renderKpis();
-    else if(document.getElementById('kpiFrom').value && document.getElementById('kpiTo').value) renderKpis();
+  document.querySelectorAll('.kpi-preset').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      applyPreset(btn.dataset.preset);
+      document.querySelectorAll('.kpi-preset').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderKpis();
+    });
   });
-  document.getElementById('kpiFrom').addEventListener('change', renderKpis);
-  document.getElementById('kpiTo').addEventListener('change', renderKpis);
+  ['kpiFrom','kpiTo'].forEach(id=>{
+    document.getElementById(id).addEventListener('change', ()=>{
+      document.querySelectorAll('.kpi-preset').forEach(b=>b.classList.remove('active'));
+      renderKpis();
+    });
+  });
+}
+
+function fmtDateISO(d){
+  return d.getFullYear() + '-'
+    + String(d.getMonth()+1).padStart(2,'0') + '-'
+    + String(d.getDate()).padStart(2,'0');
+}
+
+function fmtDateShort(d){
+  if(!d) return '';
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function applyPreset(preset){
+  const now = new Date();
+  const to = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const from = new Date(to);
+
+  if(preset === '7d')        from.setDate(from.getDate()-6);
+  else if(preset === '30d')  from.setDate(from.getDate()-29);
+  else if(preset === 'week'){ const d = from.getDay() || 7; from.setDate(from.getDate()-(d-1)); }
+  else if(preset === 'month') from.setDate(1);
+  else if(preset === 'all'){
+    document.getElementById('kpiFrom').value = '';
+    document.getElementById('kpiTo').value = '';
+    return;
+  }
+
+  document.getElementById('kpiFrom').value = fmtDateISO(from);
+  document.getElementById('kpiTo').value   = fmtDateISO(to);
 }
 
 async function loadKpis(forceReload){
   const age = Date.now() - _kpiCache.at;
-  if(!forceReload && _kpiCache.data && age < 30000){ renderKpis(); return; }
-  if(_kpiCache.loading){ await _kpiCache.loading; renderKpis(); return; }
+  if(!forceReload && _kpiCache.data && age < 30000){ ensureDefaultPreset(); renderKpis(); return; }
+  if(_kpiCache.loading){ await _kpiCache.loading; ensureDefaultPreset(); renderKpis(); return; }
 
   const body = document.getElementById('kpiBody');
   body.innerHTML = '<div class="kpi-loading"><div class="spinner"></div>Cargando resumen...</div>';
@@ -930,11 +1000,23 @@ async function loadKpis(forceReload){
 
   try{
     await _kpiCache.loading;
+    ensureDefaultPreset();
     renderKpis();
   }catch(e){
     body.innerHTML = `<div class="kpi-empty">Error cargando: ${esc(e.message)}</div>`;
   }finally{
     _kpiCache.loading = null;
+  }
+}
+
+function ensureDefaultPreset(){
+  const fromV = document.getElementById('kpiFrom').value;
+  const toV = document.getElementById('kpiTo').value;
+  const anyActive = document.querySelector('.kpi-preset.active');
+  if(!fromV && !toV && !anyActive){
+    applyPreset('7d');
+    const b = document.querySelector('.kpi-preset[data-preset="7d"]');
+    if(b) b.classList.add('active');
   }
 }
 
@@ -947,36 +1029,13 @@ function parseFecha(s){
   return isNaN(d.getTime()) ? null : d;
 }
 
-function getKpiRange(period){
-  const now = new Date();
-  const sod = d => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
-  const eod = d => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
-  const today = eod(now);
-
-  if(period === '7d'){ const f = sod(now); f.setDate(f.getDate()-6); return {from:f, to:today}; }
-  if(period === '30d'){ const f = sod(now); f.setDate(f.getDate()-29); return {from:f, to:today}; }
-  if(period === 'week'){
-    const f = sod(now); const dow = f.getDay() || 7; f.setDate(f.getDate() - (dow-1));
-    return {from:f, to:today};
-  }
-  if(period === 'lastweek'){
-    const f = sod(now); const dow = f.getDay() || 7;
-    f.setDate(f.getDate() - (dow-1) - 7);
-    const t = new Date(f); t.setDate(t.getDate()+6); t.setHours(23,59,59);
-    return {from:f, to:t};
-  }
-  if(period === 'month'){
-    return {from: new Date(now.getFullYear(), now.getMonth(), 1), to: today};
-  }
-  if(period === 'custom'){
-    const fv = document.getElementById('kpiFrom').value;
-    const tv = document.getElementById('kpiTo').value;
-    return {
-      from: fv ? new Date(fv + 'T00:00:00') : null,
-      to:   tv ? new Date(tv + 'T23:59:59') : null
-    };
-  }
-  return {from:null, to:null}; // all
+function getKpiRange(){
+  const fv = document.getElementById('kpiFrom').value;
+  const tv = document.getElementById('kpiTo').value;
+  return {
+    from: fv ? new Date(fv + 'T00:00:00') : null,
+    to:   tv ? new Date(tv + 'T23:59:59') : null
+  };
 }
 
 const _shortIndName = {
@@ -988,12 +1047,20 @@ const _shortIndName = {
 };
 
 function renderKpis(){
-  if(!_kpiCache.data){ return; }
-  const period = document.getElementById('kpiPeriod').value;
-  const {from, to} = getKpiRange(period);
+  if(!_kpiCache.data) return;
+  const {from, to} = getKpiRange();
+
+  // Etiqueta del rango en el header del panel
+  const label = document.getElementById('kpiRangeLabel');
+  if(label){
+    if(!from && !to) label.textContent = 'Todos los registros';
+    else if(from && to) label.textContent = `${fmtDateShort(from)} — ${fmtDateShort(to)}`;
+    else if(from) label.textContent = `Desde ${fmtDateShort(from)}`;
+    else label.textContent = `Hasta ${fmtDateShort(to)}`;
+  }
 
   const rows = _kpiCache.data.filter(r=>{
-    if(period === 'all') return true;
+    if(!from && !to) return true;
     if(!r.fecha) return false;
     if(from && r.fecha < from) return false;
     if(to && r.fecha > to) return false;
@@ -1013,22 +1080,21 @@ function renderKpis(){
 
   const indEntries = Object.entries(porInd).sort((a,b)=>b[1]-a[1]);
   const maxCount = indEntries[0] ? indEntries[0][1] : 1;
-  const emojiOf = n => (INDICADORES[n] && INDICADORES[n].emoji) || '📌';
   const shortOf = n => _shortIndName[n] || n;
 
   const tilesHtml = `
     <div class="kpi-tiles">
       <div class="kpi-tile">
-        <div class="kpi-tile-value">${total}</div>
         <div class="kpi-tile-label">Total</div>
+        <div class="kpi-tile-value">${total}</div>
       </div>
       <div class="kpi-tile kt-open">
-        <div class="kpi-tile-value">${abiertas}</div>
         <div class="kpi-tile-label">Abiertas</div>
+        <div class="kpi-tile-value">${abiertas}</div>
       </div>
       <div class="kpi-tile kt-closed">
-        <div class="kpi-tile-value">${cerradas}</div>
         <div class="kpi-tile-label">Cerradas</div>
+        <div class="kpi-tile-value">${cerradas}</div>
       </div>
     </div>
   `;
@@ -1038,18 +1104,28 @@ function renderKpis(){
       <div class="kpi-inds-title">Por indicador</div>
       ${indEntries.map(([name,count])=>`
         <div class="kpi-ind-row">
-          <span class="kpi-ind-emoji">${emojiOf(name)}</span>
+          <span class="kpi-ind-name">${esc(shortOf(name))}</span>
           <div class="kpi-ind-bar">
             <div class="kpi-ind-bar-fill" style="width:${Math.max(4,(count/maxCount*100)).toFixed(0)}%"></div>
-            <span class="kpi-ind-name">${esc(shortOf(name))}</span>
           </div>
           <span class="kpi-ind-count">${count}</span>
         </div>
       `).join('')}
     </div>
-  ` : '<div class="kpi-empty" style="margin-top:10px;">Sin incidencias en el periodo seleccionado</div>';
+  ` : '<div class="kpi-empty" style="margin-top:12px;">Sin incidencias en el periodo seleccionado</div>';
 
   document.getElementById('kpiBody').innerHTML = tilesHtml + indsHtml;
+}
+
+/* ---------- HELPERS DE FOTO EN DRIVE ---------- */
+function extractDriveFileId(url){
+  if(!url) return '';
+  const m = String(url).match(/\/d\/([a-zA-Z0-9_-]+)/) || String(url).match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : '';
+}
+
+function driveThumbUrl(fileId, size){
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${size||800}`;
 }
 
 function onCoordChange(){
@@ -1287,6 +1363,8 @@ function renderFolio(header, row, box){
   const folio = get('Folio');
   const estatus = (get('Estatus') || 'Abierta').trim();
   const badgeCls = statusClass(estatus);
+  const fotoUrl = get('Foto');
+  const fotoId = extractDriveFileId(fotoUrl);
 
   const campos = [
     ['Fecha del reporte', get('Fecha_Reporte')],
@@ -1302,6 +1380,33 @@ function renderFolio(header, row, box){
     ['Comentarios cierre',get('Comentarios_Cierre') || '—']
   ];
 
+  let fotoHtml = '';
+  if(fotoUrl){
+    if(fotoId){
+      fotoHtml = `
+        <div class="folio-photo">
+          <div class="folio-photo-label">Foto adjunta</div>
+          <a href="${esc(fotoUrl)}" target="_blank" rel="noopener" class="folio-photo-thumb" id="fpThumb">
+            <img src="${driveThumbUrl(fotoId, 800)}" alt="Foto de la incidencia"
+                 onerror="document.getElementById('fpThumb').outerHTML='<div class=\\'folio-photo-fallback\\'>La miniatura no cargó. Abre el link para verla.</div>';">
+          </a>
+          <div style="text-align:center;">
+            <a href="${esc(fotoUrl)}" target="_blank" rel="noopener" class="folio-photo-link">Abrir en Drive ↗</a>
+          </div>
+        </div>
+      `;
+    }else{
+      fotoHtml = `
+        <div class="folio-photo">
+          <div class="folio-photo-label">Foto adjunta</div>
+          <div style="text-align:center;">
+            <a href="${esc(fotoUrl)}" target="_blank" rel="noopener" class="folio-photo-link">Ver foto ↗</a>
+          </div>
+        </div>
+      `;
+    }
+  }
+
   box.innerHTML = `
     <div class="result-header">
       <div>
@@ -1312,6 +1417,7 @@ function renderFolio(header, row, box){
     </div>
     <div class="result-body">
       ${campos.map(([k,v])=>`<div class="summary-row"><span class="k">${k}</span><span class="v">${esc(v||'—')}</span></div>`).join('')}
+      ${fotoHtml}
     </div>
   `;
 }
