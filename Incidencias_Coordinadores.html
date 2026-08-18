@@ -345,6 +345,7 @@ textarea{resize:vertical;min-height:70px;}
     <span class="h-title" id="hTitle">tickets_coordinadores</span>
     <span class="h-sub" id="hSub">Captura y seguimiento</span>
   </div>
+  <span style="font-size:10px;color:#9ca3af;font-weight:500;">v2.1 · foto</span>
 </header>
 
 <!-- LOADING INICIAL -->
@@ -496,7 +497,7 @@ textarea{resize:vertical;min-height:70px;}
 
     <div class="consult-box">
       <label class="field-label">Folio</label>
-      <input type="text" id="fFolio" class="folio-input" placeholder="INC-20260817-142305" autocomplete="off">
+      <input type="text" id="fFolio" class="folio-input" placeholder="Log-005" autocomplete="off">
     </div>
 
     <div id="consultResult"></div>
@@ -924,6 +925,18 @@ async function submitReport(){
     });
     const out = await res.json();
     if(!out.ok) throw new Error(out.error || 'Error desconocido');
+
+    // Log de debug para diagnosticar problemas con la foto
+    if(out.debug){
+      console.log('[Incidencia]', out.folio, 'debug:', out.debug);
+      if(state.data.foto && !out.debug.fotoRecibida){
+        console.warn('La foto no llegó al servidor. Revisa la conexión.');
+      }
+      if(out.debug.fotoError){
+        console.warn('Error guardando foto en Drive:', out.debug.fotoError);
+        toast('Reporte guardado, pero la foto falló: ' + out.debug.fotoError, 'error');
+      }
+    }
 
     // Éxito → mostrar folio
     document.getElementById('doneFolio').textContent = out.folio;
