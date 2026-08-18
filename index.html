@@ -453,14 +453,27 @@ function showMenu(){
   window._kpiTimer = setInterval(loadKpis, 5*60*1000);
   logVisit();
 }
-/* Contador de visitas -> Inputs!P3 via Apps Script Web App */
+/* ============ Contador de visitas -> Inputs!P3 ============
+   La URL sale del Apps Script (Extensiones -> Apps Script del sheet).
+   Si el contador deja de subir, entra a "Administrar implementaciones"
+   y crea una version nueva; si te da una URL distinta, pegala aqui abajo.
+   Codigo del Apps Script: ver archivo contador-visitas.gs
+=========================================================== */
 const VISITS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxi2ynynh2lRJIHS-JJxUiNXQwiixBseFukG230v7YtXjtKB93vym99ESsFiicUAk-veA/exec';
 function logVisit(){
   try{
     if(sessionStorage.getItem('trx_visit_logged')) return;
     if(!VISITS_WEBAPP_URL || VISITS_WEBAPP_URL.startsWith('PEGA_AQUI')) return;
     sessionStorage.setItem('trx_visit_logged','1');
-    fetch(VISITS_WEBAPP_URL + '?t=' + Date.now(), {method:'GET', mode:'no-cors', keepalive:true}).catch(()=>{});
+    const url = VISITS_WEBAPP_URL + '?t=' + Date.now();
+    // 1) fetch no-cors: rapido y no bloquea la UI
+    try{
+      fetch(url, {method:'GET', mode:'no-cors', keepalive:true, cache:'no-store'})
+        .catch(function(){ new Image().src = url; });
+    }catch(_){
+      // 2) fallback: imagen (funciona sin CORS en cualquier navegador)
+      try{ new Image().src = url; }catch(__){}
+    }
   }catch(e){}
 }
 document.querySelectorAll('.menu-category-header').forEach(function(h){
