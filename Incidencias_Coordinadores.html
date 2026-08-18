@@ -271,6 +271,107 @@ textarea{resize:vertical;min-height:70px;}
 .alert-info{background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;}
 .alert-err{background:var(--red-bg);border:1px solid var(--red-b);color:var(--red);}
 
+/* KPI PANEL */
+.kpi-panel{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;margin-bottom:12px;
+}
+.kpi-head{
+  display:flex;justify-content:space-between;align-items:center;
+  gap:8px;flex-wrap:wrap;margin-bottom:10px;
+}
+.kpi-head-title{
+  font-size:11px;font-weight:700;color:var(--text2);
+  text-transform:uppercase;letter-spacing:.06em;
+  display:flex;align-items:center;gap:6px;
+}
+.kpi-head-title::before{
+  content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;
+}
+.kpi-head-select{
+  padding:5px 26px 5px 10px;font-size:12px;font-weight:500;
+  border:1px solid var(--border);border-radius:6px;
+  background-color:#fff;color:var(--text2);cursor:pointer;
+  font-family:inherit;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath d='M5 8l5 5 5-5H5z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 6px center;
+  -webkit-appearance:none;appearance:none;
+}
+.kpi-head-select:focus{outline:none;border-color:var(--accent);}
+.kpi-dates{
+  display:none;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;
+}
+.kpi-dates.show{display:grid;}
+.kpi-dates input{
+  padding:7px 10px;font-size:12px;
+  border:1px solid var(--border);border-radius:6px;
+  background:#fff;color:var(--text);font-family:inherit;
+}
+.kpi-dates input:focus{outline:none;border-color:var(--accent);}
+.kpi-tiles{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;
+}
+.kpi-tile{
+  background:#fafbfc;border:1px solid var(--border);border-radius:8px;
+  padding:10px 6px;text-align:center;position:relative;overflow:hidden;
+}
+.kpi-tile::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--muted2);
+}
+.kpi-tile.kt-open::before{background:var(--red);}
+.kpi-tile.kt-closed::before{background:var(--green);}
+.kpi-tile-value{
+  font-size:22px;font-weight:700;color:var(--text);
+  line-height:1;letter-spacing:-.02em;
+}
+.kpi-tile-label{
+  font-size:10px;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.05em;
+  margin-top:5px;font-weight:600;
+}
+.kpi-inds{
+  margin-top:10px;padding-top:10px;
+  border-top:1px solid var(--border-light);
+}
+.kpi-inds-title{
+  font-size:10px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;
+}
+.kpi-ind-row{
+  display:grid;grid-template-columns:20px 1fr 28px;
+  gap:8px;align-items:center;padding:3px 0;
+}
+.kpi-ind-emoji{font-size:13px;text-align:center;line-height:1;}
+.kpi-ind-bar{
+  position:relative;height:18px;background:var(--border-light);
+  border-radius:4px;overflow:hidden;
+}
+.kpi-ind-bar-fill{
+  position:absolute;top:0;bottom:0;left:0;
+  background:linear-gradient(90deg,#a3e635 0%,#84cc16 100%);
+  border-radius:4px;transition:width .35s ease;
+}
+.kpi-ind-name{
+  position:absolute;left:8px;top:50%;transform:translateY(-50%);
+  font-size:11px;font-weight:600;color:var(--text);z-index:1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  right:8px;pointer-events:none;
+  text-shadow:0 0 2px rgba(255,255,255,.6);
+}
+.kpi-ind-count{
+  text-align:right;font-size:12px;font-weight:700;color:var(--text);
+  font-variant-numeric:tabular-nums;
+}
+.kpi-empty{
+  text-align:center;padding:14px;color:var(--muted);
+  font-size:11px;background:#fafbfc;border-radius:6px;
+}
+.kpi-loading{
+  text-align:center;padding:16px 8px;color:var(--muted);font-size:11px;
+}
+.kpi-loading .spinner{width:20px;height:20px;border-width:2px;margin:0 auto 6px;}
+
 /* PHOTO UPLOAD */
 .photo-upload{position:relative;}
 .photo-drop{
@@ -345,7 +446,7 @@ textarea{resize:vertical;min-height:70px;}
     <span class="h-title" id="hTitle">tickets_coordinadores</span>
     <span class="h-sub" id="hSub">Captura y seguimiento</span>
   </div>
-  <span style="font-size:10px;color:#9ca3af;font-weight:500;">v2.1 · foto</span>
+  <span style="font-size:10px;color:#9ca3af;font-weight:500;">v2.2 · foto + KPIs</span>
 </header>
 
 <!-- LOADING INICIAL -->
@@ -493,7 +594,29 @@ textarea{resize:vertical;min-height:70px;}
 <div class="view" id="viewConsult">
   <div class="container-narrow">
     <div class="step-title">Consultar folio</div>
-    <div class="step-hint">Escribe tu folio para ver el estatus.</div>
+    <div class="step-hint">Resumen general y búsqueda por folio.</div>
+
+    <div class="kpi-panel">
+      <div class="kpi-head">
+        <div class="kpi-head-title">Resumen</div>
+        <select class="kpi-head-select" id="kpiPeriod">
+          <option value="7d">Últimos 7 días</option>
+          <option value="30d">Últimos 30 días</option>
+          <option value="week">Esta semana</option>
+          <option value="lastweek">Semana pasada</option>
+          <option value="month">Este mes</option>
+          <option value="all">Todo</option>
+          <option value="custom">Personalizado</option>
+        </select>
+      </div>
+      <div class="kpi-dates" id="kpiDates">
+        <input type="date" id="kpiFrom" title="Desde">
+        <input type="date" id="kpiTo" title="Hasta">
+      </div>
+      <div id="kpiBody">
+        <div class="kpi-loading"><div class="spinner"></div>Cargando resumen...</div>
+      </div>
+    </div>
 
     <div class="consult-box">
       <label class="field-label">Folio</label>
@@ -651,6 +774,9 @@ function initUI(){
 
   // Foto
   bindPhotoInput();
+
+  // KPIs
+  bindKpiControls();
 }
 
 /* ---------- FOTO ---------- */
@@ -761,6 +887,171 @@ function resetPhotoUI(){
   bindPhotoInput();
 }
 
+/* ---------- KPIs ---------- */
+const _kpiCache = { data: null, at: 0, loading: null };
+
+function bindKpiControls(){
+  document.getElementById('kpiPeriod').addEventListener('change', e=>{
+    const isCustom = e.target.value === 'custom';
+    document.getElementById('kpiDates').classList.toggle('show', isCustom);
+    if(!isCustom) renderKpis();
+    else if(document.getElementById('kpiFrom').value && document.getElementById('kpiTo').value) renderKpis();
+  });
+  document.getElementById('kpiFrom').addEventListener('change', renderKpis);
+  document.getElementById('kpiTo').addEventListener('change', renderKpis);
+}
+
+async function loadKpis(forceReload){
+  const age = Date.now() - _kpiCache.at;
+  if(!forceReload && _kpiCache.data && age < 30000){ renderKpis(); return; }
+  if(_kpiCache.loading){ await _kpiCache.loading; renderKpis(); return; }
+
+  const body = document.getElementById('kpiBody');
+  body.innerHTML = '<div class="kpi-loading"><div class="spinner"></div>Cargando resumen...</div>';
+
+  _kpiCache.loading = (async ()=>{
+    const res = await fetch(`${GVIZ_BASE}&sheet=Incidencias_Coordinador&t=${Date.now()}`);
+    const csv = await res.text();
+    const rows = parseCSV(csv);
+    const header = rows.shift().map(h=>h.trim());
+    const iF = header.findIndex(h=>h.toLowerCase()==='fecha_reporte');
+    const iE = header.findIndex(h=>h.toLowerCase()==='estatus');
+    const iI = header.findIndex(h=>h.toLowerCase()==='indicador');
+    const iFolio = header.findIndex(h=>h.toLowerCase()==='folio');
+    _kpiCache.data = rows
+      .filter(r=>iFolio<0 || (r[iFolio]||'').trim())
+      .map(r=>({
+        fecha: parseFecha(r[iF]||''),
+        estatus: (r[iE]||'').trim(),
+        indicador: (r[iI]||'').trim()
+      }));
+    _kpiCache.at = Date.now();
+  })();
+
+  try{
+    await _kpiCache.loading;
+    renderKpis();
+  }catch(e){
+    body.innerHTML = `<div class="kpi-empty">Error cargando: ${esc(e.message)}</div>`;
+  }finally{
+    _kpiCache.loading = null;
+  }
+}
+
+function parseFecha(s){
+  if(!s) return null;
+  const str = String(s).trim();
+  const m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{1,2}))?/);
+  if(m) return new Date(+m[1], +m[2]-1, +m[3], +(m[4]||0), +(m[5]||0));
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function getKpiRange(period){
+  const now = new Date();
+  const sod = d => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0);
+  const eod = d => new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59);
+  const today = eod(now);
+
+  if(period === '7d'){ const f = sod(now); f.setDate(f.getDate()-6); return {from:f, to:today}; }
+  if(period === '30d'){ const f = sod(now); f.setDate(f.getDate()-29); return {from:f, to:today}; }
+  if(period === 'week'){
+    const f = sod(now); const dow = f.getDay() || 7; f.setDate(f.getDate() - (dow-1));
+    return {from:f, to:today};
+  }
+  if(period === 'lastweek'){
+    const f = sod(now); const dow = f.getDay() || 7;
+    f.setDate(f.getDate() - (dow-1) - 7);
+    const t = new Date(f); t.setDate(t.getDate()+6); t.setHours(23,59,59);
+    return {from:f, to:t};
+  }
+  if(period === 'month'){
+    return {from: new Date(now.getFullYear(), now.getMonth(), 1), to: today};
+  }
+  if(period === 'custom'){
+    const fv = document.getElementById('kpiFrom').value;
+    const tv = document.getElementById('kpiTo').value;
+    return {
+      from: fv ? new Date(fv + 'T00:00:00') : null,
+      to:   tv ? new Date(tv + 'T23:59:59') : null
+    };
+  }
+  return {from:null, to:null}; // all
+}
+
+const _shortIndName = {
+  'Nivel de servicio inicios':  'NS Inicios',
+  'Nivel de servicio llegadas': 'NS Llegadas',
+  'Calidad de ruta':            'Calidad ruta',
+  'Score de seguridad':         'Seguridad',
+  'Rendimiento':                'Rendimiento'
+};
+
+function renderKpis(){
+  if(!_kpiCache.data){ return; }
+  const period = document.getElementById('kpiPeriod').value;
+  const {from, to} = getKpiRange(period);
+
+  const rows = _kpiCache.data.filter(r=>{
+    if(period === 'all') return true;
+    if(!r.fecha) return false;
+    if(from && r.fecha < from) return false;
+    if(to && r.fecha > to) return false;
+    return true;
+  });
+
+  const total = rows.length;
+  let cerradas = 0;
+  const porInd = {};
+  rows.forEach(r=>{
+    const e = r.estatus.toLowerCase();
+    if(e.includes('cerrad')) cerradas++;
+    const ind = r.indicador || 'Sin indicador';
+    porInd[ind] = (porInd[ind]||0) + 1;
+  });
+  const abiertas = total - cerradas;
+
+  const indEntries = Object.entries(porInd).sort((a,b)=>b[1]-a[1]);
+  const maxCount = indEntries[0] ? indEntries[0][1] : 1;
+  const emojiOf = n => (INDICADORES[n] && INDICADORES[n].emoji) || '📌';
+  const shortOf = n => _shortIndName[n] || n;
+
+  const tilesHtml = `
+    <div class="kpi-tiles">
+      <div class="kpi-tile">
+        <div class="kpi-tile-value">${total}</div>
+        <div class="kpi-tile-label">Total</div>
+      </div>
+      <div class="kpi-tile kt-open">
+        <div class="kpi-tile-value">${abiertas}</div>
+        <div class="kpi-tile-label">Abiertas</div>
+      </div>
+      <div class="kpi-tile kt-closed">
+        <div class="kpi-tile-value">${cerradas}</div>
+        <div class="kpi-tile-label">Cerradas</div>
+      </div>
+    </div>
+  `;
+
+  const indsHtml = total > 0 ? `
+    <div class="kpi-inds">
+      <div class="kpi-inds-title">Por indicador</div>
+      ${indEntries.map(([name,count])=>`
+        <div class="kpi-ind-row">
+          <span class="kpi-ind-emoji">${emojiOf(name)}</span>
+          <div class="kpi-ind-bar">
+            <div class="kpi-ind-bar-fill" style="width:${Math.max(4,(count/maxCount*100)).toFixed(0)}%"></div>
+            <span class="kpi-ind-name">${esc(shortOf(name))}</span>
+          </div>
+          <span class="kpi-ind-count">${count}</span>
+        </div>
+      `).join('')}
+    </div>
+  ` : '<div class="kpi-empty" style="margin-top:10px;">Sin incidencias en el periodo seleccionado</div>';
+
+  document.getElementById('kpiBody').innerHTML = tilesHtml + indsHtml;
+}
+
 function onCoordChange(){
   const c = document.getElementById('fCoord').value;
   const pSel = document.getElementById('fPlanta');
@@ -820,6 +1111,10 @@ function showView(id){
     const btnBack = document.getElementById('btnBack');
     btnBack.style.display = (id==='viewR1') ? 'none' : 'block';
     document.getElementById('btnNext').textContent = (id==='viewR3') ? '✓ Enviar reporte' : 'Siguiente →';
+  }
+  // Cargar KPIs al abrir el consulta
+  if(id === 'viewConsult'){
+    loadKpis();
   }
   window.scrollTo(0,0);
 }
