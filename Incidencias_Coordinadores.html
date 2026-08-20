@@ -453,6 +453,131 @@ textarea{resize:vertical;min-height:70px;}
 }
 .done-photo a:hover{background:#dbeafe;}
 
+/* ==== CONSULTA – FILTROS Y TABLA (v2.4) ==== */
+.consult-container{max-width:1180px;margin:0 auto;padding:20px 20px 40px;}
+
+.filters-panel{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:14px;margin-bottom:12px;
+}
+.filters-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:12px;
+}
+.filters-head-title{
+  font-size:13px;font-weight:700;color:var(--text);
+  display:flex;align-items:center;gap:6px;
+}
+.filters-clear{
+  background:var(--border-light);color:var(--text2);
+  border:1px solid var(--border);border-radius:6px;
+  padding:5px 12px;font-size:11px;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:all .12s;
+}
+.filters-clear:hover{background:var(--border);}
+.filters-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:10px;margin-bottom:12px;
+}
+.f-item{display:flex;flex-direction:column;gap:4px;}
+.f-item label{
+  font-size:10px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.f-item select,.f-item input[type="date"]{
+  width:100%;font-size:12px;padding:8px 10px;
+  border:1px solid var(--border);border-radius:6px;
+  background:#fff;color:var(--text);font-family:inherit;
+  -webkit-appearance:none;appearance:none;
+}
+.f-item select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath d='M5 8l5 5 5-5H5z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;padding-right:28px;
+}
+.f-item select:focus,.f-item input:focus{
+  outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(132,204,22,.15);
+}
+
+.folio-search{
+  display:flex;gap:8px;padding-top:10px;
+  border-top:1px solid var(--border-light);
+}
+.folio-search input{
+  flex:1;padding:10px 14px;font-size:13px;
+  border:1.5px solid var(--border);border-radius:7px;
+  font-family:'SF Mono',Monaco,monospace;text-transform:uppercase;
+  letter-spacing:.5px;background:#fafbfc;color:var(--text);
+}
+.folio-search input:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 2px rgba(132,204,22,.15);}
+.btn-search{
+  background:var(--header);color:#fff;border:none;border-radius:7px;
+  padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;
+  font-family:inherit;transition:all .12s;white-space:nowrap;
+}
+.btn-search:hover{background:#000;}
+.btn-search:active{transform:scale(.98);}
+
+.results-panel{
+  background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;margin-bottom:12px;
+}
+.results-head{
+  padding:10px 14px;background:#fafbfc;
+  border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:11px;color:var(--muted);font-weight:600;
+}
+.results-count b{color:var(--text);}
+.results-table-wrap{overflow-x:auto;max-height:560px;overflow-y:auto;}
+.results-table{
+  width:100%;border-collapse:collapse;font-size:12px;
+  min-width:1000px;
+}
+.results-table thead th{
+  background:var(--header);color:#fff;
+  text-align:left;padding:10px 12px;
+  font-size:10.5px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;white-space:nowrap;
+  position:sticky;top:0;z-index:2;
+}
+.results-table tbody td{
+  padding:10px 12px;border-bottom:1px solid var(--border-light);
+  vertical-align:middle;
+}
+.results-table tbody tr{transition:background .1s;}
+.results-table tbody tr:hover{background:#f7fee7;cursor:pointer;}
+.results-table tbody tr:last-child td{border-bottom:none;}
+.results-table .col-folio{
+  font-family:'SF Mono',Monaco,monospace;font-weight:700;
+  color:var(--text);letter-spacing:.3px;
+}
+.results-table .col-week{
+  text-align:center;font-weight:600;color:var(--text2);
+  font-variant-numeric:tabular-nums;
+}
+.results-table .col-date{
+  color:var(--muted);white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.results-table .col-action{text-align:right;}
+.results-table .row-btn{
+  background:var(--border-light);color:var(--text2);
+  border:1px solid var(--border);border-radius:5px;
+  padding:4px 10px;font-size:11px;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:all .1s;
+}
+.results-table .row-btn:hover{background:var(--accent);color:#0a1a00;border-color:var(--accent);}
+.results-empty{
+  text-align:center;padding:32px 12px;color:var(--muted);
+  font-size:12px;font-style:italic;
+}
+@media(max-width:640px){
+  .consult-container{padding:14px 10px 40px;}
+  .filters-grid{grid-template-columns:1fr 1fr;}
+  .folio-search{flex-direction:column;}
+  .btn-search{width:100%;}
+}
+
 /* SUBMITTING OVERLAY */
 .submitting{
   position:fixed;inset:0;background:rgba(255,255,255,.85);
@@ -467,7 +592,7 @@ textarea{resize:vertical;min-height:70px;}
 <body>
 
 <nav>
-  <a class="nav-logo" href="#" onclick="event.preventDefault();goHome();">TRAXIÓN</a>
+  <a class="nav-logo" href="index.html" title="Ir al inicio">TRAXIÓN</a>
   <span class="nav-sep">|</span>
   <a class="nav-page" href="#" onclick="event.preventDefault();goHome();" id="navPage">tickets_coordinadores</a>
   <button class="nav-back" id="navBack" onclick="goHome()">← Menú</button>
@@ -524,9 +649,9 @@ textarea{resize:vertical;min-height:70px;}
 
     <div class="card">
       <label class="field-label">Coordinador</label>
-      <select id="fCoord">
-        <option value="">— Selecciona tu nombre —</option>
-      </select>
+      <input type="text" id="fCoord" list="dlCoords" placeholder="— Selecciona o escribe tu nombre —" autocomplete="off">
+      <datalist id="dlCoords"></datalist>
+      <div class="field-hint">Si tu nombre no está en la lista, escríbelo directamente.</div>
     </div>
   </div>
 </div>
@@ -625,10 +750,11 @@ textarea{resize:vertical;min-height:70px;}
 
 <!-- CONSULTAR FOLIO -->
 <div class="view" id="viewConsult">
-  <div class="container-narrow">
-    <div class="step-title">Consultar folio</div>
-    <div class="step-hint">Resumen general y búsqueda por folio.</div>
+  <div class="consult-container">
+    <div class="step-title">Consulta de folios</div>
+    <div class="step-hint">Filtra por coordinador, incidencia, rango de fechas, semana o estatus — o busca por folio.</div>
 
+    <!-- Panel de KPIs -->
     <div class="kpi-panel">
       <div class="kpi-head">
         <div class="kpi-head-title">Resumen</div>
@@ -651,11 +777,69 @@ textarea{resize:vertical;min-height:70px;}
       </div>
     </div>
 
-    <div class="consult-box">
-      <label class="field-label">Folio</label>
-      <input type="text" id="fFolio" class="folio-input" placeholder="Log-005" autocomplete="off">
+    <!-- Panel de filtros -->
+    <div class="filters-panel">
+      <div class="filters-head">
+        <div class="filters-head-title">🔎 Filtros</div>
+        <button class="filters-clear" onclick="clearFilters()">Limpiar filtros</button>
+      </div>
+      <div class="filters-grid">
+        <div class="f-item">
+          <label>Coordinador</label>
+          <select id="filterCoord"><option value="">Todos</option></select>
+        </div>
+        <div class="f-item">
+          <label>Incidencia</label>
+          <select id="filterInd"><option value="">Todas</option></select>
+        </div>
+        <div class="f-item">
+          <label>Estatus</label>
+          <select id="filterStatus">
+            <option value="">Todos</option>
+            <option value="abierta">Abiertas</option>
+            <option value="cerrada">Cerradas</option>
+          </select>
+        </div>
+        <div class="f-item">
+          <label>Semana</label>
+          <select id="filterWeek"><option value="">Todas</option></select>
+        </div>
+      </div>
+      <div class="folio-search">
+        <input type="text" id="fFolio" placeholder="Buscar por folio (ej: Log-005)" autocomplete="off">
+        <button class="btn-search" onclick="onFolioSearch()">Buscar folio</button>
+      </div>
     </div>
 
+    <!-- Tabla horizontal de resultados -->
+    <div class="results-panel">
+      <div class="results-head">
+        <div class="results-count" id="resultsCount">—</div>
+      </div>
+      <div class="results-table-wrap">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>Folio</th>
+              <th>Fecha</th>
+              <th>Sem.</th>
+              <th>Coordinador</th>
+              <th>Planta</th>
+              <th>Ruta</th>
+              <th>Carro</th>
+              <th>Indicador</th>
+              <th>Estatus</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody">
+            <tr><td colspan="10" class="results-empty">Cargando incidencias...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Detalle del folio seleccionado -->
     <div id="consultResult"></div>
   </div>
 </div>
@@ -779,15 +963,18 @@ async function loadCatalogo(){
 
 /* ---------- INIT UI ---------- */
 function initUI(){
-  // Coordinadores
-  const cSel = document.getElementById('fCoord');
+  // Coordinadores (input + datalist para permitir escribir uno nuevo)
+  const cDl = document.getElementById('dlCoords');
   state.coordinadores.forEach(n=>{
-    const o=document.createElement('option'); o.value=n; o.textContent=n; cSel.appendChild(o);
+    const o=document.createElement('option'); o.value=n; cDl.appendChild(o);
   });
+  const cInput = document.getElementById('fCoord');
   // Recuerda último coord
   const last = localStorage.getItem('last_coord');
-  if(last && state.coordinadores.includes(last)) cSel.value = last;
-  cSel.addEventListener('change', onCoordChange);
+  if(last) cInput.value = last;
+  cInput.addEventListener('change', onCoordChange);
+  cInput.addEventListener('input', debounce(onCoordChange, 250));
+  cInput.addEventListener('blur', onCoordChange);
 
   // Indicadores
   const grid = document.getElementById('indGrid');
@@ -802,8 +989,7 @@ function initUI(){
 
   // Planta change → filtra ruta/carro
   document.getElementById('fPlanta').addEventListener('change', onPlantaChange);
-  document.getElementById('fFolio').addEventListener('input', debounce(onConsult, 400));
-  document.getElementById('fFolio').addEventListener('keydown', e=>{if(e.key==='Enter'){e.preventDefault();onConsult();}});
+  // (El fFolio se enlaza dentro de bindKpiControls)
 
   // Foto
   bindPhotoInput();
@@ -920,8 +1106,8 @@ function resetPhotoUI(){
   bindPhotoInput();
 }
 
-/* ---------- KPIs ---------- */
-const _kpiCache = { data: null, at: 0, loading: null };
+/* ---------- KPIs + FILTROS + TABLA ---------- */
+const _kpiCache = { data: null, header: null, at: 0, loading: null };
 
 function bindKpiControls(){
   document.querySelectorAll('.kpi-preset').forEach(btn=>{
@@ -929,15 +1115,36 @@ function bindKpiControls(){
       applyPreset(btn.dataset.preset);
       document.querySelectorAll('.kpi-preset').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
-      renderKpis();
+      applyFilters();
     });
   });
   ['kpiFrom','kpiTo'].forEach(id=>{
     document.getElementById(id).addEventListener('change', ()=>{
       document.querySelectorAll('.kpi-preset').forEach(b=>b.classList.remove('active'));
-      renderKpis();
+      applyFilters();
     });
   });
+  // Filtros de la tabla
+  ['filterCoord','filterInd','filterStatus','filterWeek'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('change', applyFilters);
+  });
+  // Búsqueda por folio en tabla (input directo hace filtro rápido)
+  const folioIn = document.getElementById('fFolio');
+  if(folioIn){
+    folioIn.addEventListener('input', debounce(applyFilters, 200));
+    folioIn.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); onFolioSearch(); }});
+  }
+}
+
+/* Nº de semana ISO 8601 */
+function getISOWeek(d){
+  if(!d) return '';
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
 }
 
 function fmtDateISO(d){
@@ -973,40 +1180,85 @@ function applyPreset(preset){
 
 async function loadKpis(forceReload){
   const age = Date.now() - _kpiCache.at;
-  if(!forceReload && _kpiCache.data && age < 30000){ ensureDefaultPreset(); renderKpis(); return; }
-  if(_kpiCache.loading){ await _kpiCache.loading; ensureDefaultPreset(); renderKpis(); return; }
+  if(!forceReload && _kpiCache.data && age < 30000){ ensureDefaultPreset(); buildFilterOptions(); applyFilters(); return; }
+  if(_kpiCache.loading){ await _kpiCache.loading; ensureDefaultPreset(); buildFilterOptions(); applyFilters(); return; }
 
   const body = document.getElementById('kpiBody');
   body.innerHTML = '<div class="kpi-loading"><div class="spinner"></div>Cargando resumen...</div>';
+  const tbody = document.getElementById('resultsBody');
+  if(tbody) tbody.innerHTML = '<tr><td colspan="10" class="results-empty">Cargando incidencias...</td></tr>';
 
   _kpiCache.loading = (async ()=>{
     const res = await fetch(`${GVIZ_BASE}&sheet=Incidencias_Coordinador&t=${Date.now()}`);
     const csv = await res.text();
     const rows = parseCSV(csv);
     const header = rows.shift().map(h=>h.trim());
-    const iF = header.findIndex(h=>h.toLowerCase()==='fecha_reporte');
-    const iE = header.findIndex(h=>h.toLowerCase()==='estatus');
-    const iI = header.findIndex(h=>h.toLowerCase()==='indicador');
-    const iFolio = header.findIndex(h=>h.toLowerCase()==='folio');
+    _kpiCache.header = header;
+    const idx = name => header.findIndex(h=>h.toLowerCase()===name.toLowerCase());
+    const iFolio = idx('Folio');
+    const iF     = idx('Fecha_Reporte');
+    const iCoord = idx('Coordinador');
+    const iPl    = idx('Planta');
+    const iRu    = idx('Ruta');
+    const iCa    = idx('Carro');
+    const iI     = idx('Indicador');
+    const iDesc  = idx('Descripcion');
+    const iE     = idx('Estatus');
+    const iFoto  = idx('Foto');
     _kpiCache.data = rows
       .filter(r=>iFolio<0 || (r[iFolio]||'').trim())
-      .map(r=>({
-        fecha: parseFecha(r[iF]||''),
-        estatus: (r[iE]||'').trim(),
-        indicador: (r[iI]||'').trim()
-      }));
+      .map(r=>{
+        const fecha = parseFecha(r[iF]||'');
+        return {
+          folio: iFolio>=0 ? (r[iFolio]||'').trim() : '',
+          fecha,
+          fechaStr: r[iF] ? String(r[iF]).trim() : '',
+          semana: fecha ? getISOWeek(fecha) : '',
+          coordinador: iCoord>=0 ? (r[iCoord]||'').trim() : '',
+          planta:      iPl>=0    ? (r[iPl]||'').trim()    : '',
+          ruta:        iRu>=0    ? (r[iRu]||'').trim()    : '',
+          carro:       iCa>=0    ? (r[iCa]||'').trim()    : '',
+          indicador:   iI>=0     ? (r[iI]||'').trim()     : '',
+          descripcion: iDesc>=0  ? (r[iDesc]||'').trim()  : '',
+          estatus:     iE>=0     ? (r[iE]||'').trim()     : '',
+          fotoUrl:     iFoto>=0  ? (r[iFoto]||'').trim()  : '',
+          _raw: r
+        };
+      });
     _kpiCache.at = Date.now();
   })();
 
   try{
     await _kpiCache.loading;
     ensureDefaultPreset();
-    renderKpis();
+    buildFilterOptions();
+    applyFilters();
   }catch(e){
     body.innerHTML = `<div class="kpi-empty">Error cargando: ${esc(e.message)}</div>`;
+    if(tbody) tbody.innerHTML = `<tr><td colspan="10" class="results-empty">Error: ${esc(e.message)}</td></tr>`;
   }finally{
     _kpiCache.loading = null;
   }
+}
+
+/* Poblar dropdowns de coordinador / incidencia / semana con los valores presentes */
+function buildFilterOptions(){
+  if(!_kpiCache.data) return;
+  const coords = [...new Set(_kpiCache.data.map(r=>r.coordinador).filter(Boolean))].sort();
+  const inds   = [...new Set(_kpiCache.data.map(r=>r.indicador).filter(Boolean))].sort();
+  const weeks  = [...new Set(_kpiCache.data.map(r=>r.semana).filter(w=>w!==''))].sort((a,b)=>a-b);
+
+  fillSelectKeepValue('filterCoord', coords, 'Todos');
+  fillSelectKeepValue('filterInd',   inds,   'Todas');
+  fillSelectKeepValue('filterWeek',  weeks.map(w=>String(w)), 'Todas', v=>`Semana ${v}`);
+}
+function fillSelectKeepValue(id, values, allLabel, labelFn){
+  const sel = document.getElementById(id);
+  if(!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">${allLabel}</option>` +
+    values.map(v=>`<option value="${esc(v)}">${esc(labelFn?labelFn(v):v)}</option>`).join('');
+  if(values.includes(cur)) sel.value = cur;
 }
 
 function ensureDefaultPreset(){
@@ -1046,9 +1298,33 @@ const _shortIndName = {
   'Rendimiento':                'Rendimiento'
 };
 
-function renderKpis(){
+/* applyFilters — orquesta: lee filtros, calcula rows, y pinta KPIs + tabla */
+function applyFilters(){
   if(!_kpiCache.data) return;
   const {from, to} = getKpiRange();
+  const coord  = (document.getElementById('filterCoord')?.value || '').trim();
+  const ind    = (document.getElementById('filterInd')?.value   || '').trim();
+  const estF   = (document.getElementById('filterStatus')?.value|| '').trim().toLowerCase();
+  const weekF  = (document.getElementById('filterWeek')?.value  || '').trim();
+  const folioQ = (document.getElementById('fFolio')?.value      || '').trim().toUpperCase();
+
+  const rows = _kpiCache.data.filter(r=>{
+    if(from || to){
+      if(!r.fecha) return false;
+      if(from && r.fecha < from) return false;
+      if(to && r.fecha > to) return false;
+    }
+    if(coord && r.coordinador !== coord) return false;
+    if(ind && r.indicador !== ind) return false;
+    if(weekF && String(r.semana) !== weekF) return false;
+    if(estF){
+      const e = r.estatus.toLowerCase();
+      if(estF === 'cerrada' && !e.includes('cerrad')) return false;
+      if(estF === 'abierta' && e.includes('cerrad'))  return false;
+    }
+    if(folioQ && !r.folio.toUpperCase().includes(folioQ)) return false;
+    return true;
+  });
 
   // Etiqueta del rango en el header del panel
   const label = document.getElementById('kpiRangeLabel');
@@ -1059,13 +1335,12 @@ function renderKpis(){
     else label.textContent = `Hasta ${fmtDateShort(to)}`;
   }
 
-  const rows = _kpiCache.data.filter(r=>{
-    if(!from && !to) return true;
-    if(!r.fecha) return false;
-    if(from && r.fecha < from) return false;
-    if(to && r.fecha > to) return false;
-    return true;
-  });
+  renderKpis(rows);
+  renderResultsTable(rows);
+}
+
+function renderKpis(rows){
+  if(!rows) rows = _kpiCache.data || [];
 
   const total = rows.length;
   let cerradas = 0;
@@ -1117,6 +1392,88 @@ function renderKpis(){
   document.getElementById('kpiBody').innerHTML = tilesHtml + indsHtml;
 }
 
+/* ---------- TABLA HORIZONTAL DE RESULTADOS ---------- */
+function renderResultsTable(rows){
+  const tbody = document.getElementById('resultsBody');
+  const count = document.getElementById('resultsCount');
+  if(!tbody) return;
+
+  if(count){
+    const total = _kpiCache.data ? _kpiCache.data.length : 0;
+    count.innerHTML = `<b>${rows.length}</b> de ${total} incidencias`;
+  }
+
+  if(!rows.length){
+    tbody.innerHTML = '<tr><td colspan="10" class="results-empty">Sin resultados con los filtros actuales.</td></tr>';
+    return;
+  }
+
+  const shortOf = n => _shortIndName[n] || n || '—';
+  // Orden más reciente primero
+  const sorted = rows.slice().sort((a,b)=>{
+    const ta = a.fecha ? a.fecha.getTime() : 0;
+    const tb = b.fecha ? b.fecha.getTime() : 0;
+    return tb - ta;
+  });
+
+  tbody.innerHTML = sorted.map(r=>{
+    const cls = statusClass(r.estatus);
+    const fechaTxt = r.fecha ? fmtDateShort(r.fecha) : (r.fechaStr || '—');
+    return `
+      <tr onclick="showFolioDetail('${esc(r.folio)}')">
+        <td class="col-folio">${esc(r.folio||'—')}</td>
+        <td class="col-date">${esc(fechaTxt)}</td>
+        <td class="col-week">${esc(r.semana||'—')}</td>
+        <td>${esc(r.coordinador||'—')}</td>
+        <td>${esc(r.planta||'—')}</td>
+        <td>${esc(r.ruta||'—')}</td>
+        <td>${esc(r.carro||'—')}</td>
+        <td>${esc(shortOf(r.indicador))}</td>
+        <td><span class="badge badge-${cls}"><span class="badge-dot"></span>${esc(r.estatus||'—')}</span></td>
+        <td class="col-action"><button class="row-btn" onclick="event.stopPropagation();showFolioDetail('${esc(r.folio)}')">Ver</button></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function clearFilters(){
+  ['filterCoord','filterInd','filterStatus','filterWeek'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+  const f = document.getElementById('fFolio');
+  if(f) f.value = '';
+  // Reset del rango de fechas: vuelve al preset por defecto (7 días)
+  document.getElementById('kpiFrom').value = '';
+  document.getElementById('kpiTo').value = '';
+  document.querySelectorAll('.kpi-preset').forEach(b=>b.classList.remove('active'));
+  applyPreset('7d');
+  const b7 = document.querySelector('.kpi-preset[data-preset="7d"]');
+  if(b7) b7.classList.add('active');
+  document.getElementById('consultResult').innerHTML = '';
+  applyFilters();
+}
+
+function onFolioSearch(){
+  const folio = (document.getElementById('fFolio').value || '').trim().toUpperCase();
+  if(!folio){ toast('Escribe un folio para buscar', 'error'); return; }
+  showFolioDetail(folio);
+}
+
+function showFolioDetail(folio){
+  if(!_kpiCache.data){ toast('Aún cargando datos...', 'error'); return; }
+  const r = _kpiCache.data.find(x=>x.folio.toUpperCase() === String(folio).toUpperCase());
+  const box = document.getElementById('consultResult');
+  if(!r){
+    box.innerHTML = `<div class="not-found" style="margin-top:12px;">❌ Folio <b>${esc(folio)}</b> no encontrado</div>`;
+    box.scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
+  renderFolio(_kpiCache.header, r._raw, box);
+  // Scroll al detalle
+  setTimeout(()=>box.scrollIntoView({behavior:'smooth', block:'start'}), 50);
+}
+
 /* ---------- HELPERS DE FOTO EN DRIVE ---------- */
 function extractDriveFileId(url){
   if(!url) return '';
@@ -1129,23 +1486,31 @@ function driveThumbUrl(fileId, size){
 }
 
 function onCoordChange(){
-  const c = document.getElementById('fCoord').value;
+  const c = document.getElementById('fCoord').value.trim();
   const pSel = document.getElementById('fPlanta');
   pSel.innerHTML = '<option value="">— Selecciona planta —</option>';
   if(!c) return;
-  const plantas = [...new Set(state.catalogo.filter(r=>r.coordinador===c).map(r=>r.planta))].sort();
+  // Si el coordinador está en el catálogo → filtramos por él.
+  // Si no (nombre escrito a mano) → mostramos TODAS las plantas del catálogo.
+  const enCatalogo = state.coordinadores.includes(c);
+  const filas = enCatalogo ? state.catalogo.filter(r=>r.coordinador===c) : state.catalogo;
+  const plantas = [...new Set(filas.map(r=>r.planta))].sort();
   plantas.forEach(p=>{
     const o=document.createElement('option'); o.value=p; o.textContent=p; pSel.appendChild(o);
   });
   // reset ruta/carro
-  document.getElementById('fRuta').innerHTML = '<option value="">— Primero elige planta —</option>';
-  document.getElementById('fRuta').disabled = true;
-  document.getElementById('fCarro').innerHTML = '<option value="">— Primero elige planta —</option>';
-  document.getElementById('fCarro').disabled = true;
+  const rIn = document.getElementById('fRuta');
+  const carIn = document.getElementById('fCarro');
+  rIn.value=''; carIn.value='';
+  rIn.disabled=true; carIn.disabled=true;
+  rIn.placeholder='Primero elige planta';
+  carIn.placeholder='Primero elige planta';
+  document.getElementById('dlRutas').innerHTML='';
+  document.getElementById('dlCarros').innerHTML='';
 }
 
 function onPlantaChange(){
-  const c = state.data.coordinador || document.getElementById('fCoord').value;
+  const c = (state.data.coordinador || document.getElementById('fCoord').value).trim();
   const p = document.getElementById('fPlanta').value;
   const rInput = document.getElementById('fRuta');
   const carInput = document.getElementById('fCarro');
@@ -1159,7 +1524,9 @@ function onPlantaChange(){
     carInput.placeholder='Primero elige planta';
     return;
   }
-  const filas = state.catalogo.filter(r=>r.coordinador===c && r.planta===p);
+  // Si el coord no está en el catálogo, filtramos rutas/carros sólo por planta.
+  const enCatalogo = state.coordinadores.includes(c);
+  const filas = state.catalogo.filter(r=> (enCatalogo ? r.coordinador===c : true) && r.planta===p);
   const rutas = [...new Set(filas.map(r=>r.ruta).filter(Boolean))].sort();
   const carros= [...new Set(filas.map(r=>r.carro).filter(Boolean))].sort();
 
@@ -1220,10 +1587,14 @@ function goToConsult(){
   resetForm();
   showView('viewConsult');
   updateNav('Consultar Folio', true);
-  // Pre-llenar el folio recién generado
+  // Pre-llenar el folio recién generado y mostrarlo cuando la carga termine
   if(lastFolio && !lastFolio.includes('X')){
     document.getElementById('fFolio').value = lastFolio;
-    onConsult();
+    const tryShow = ()=>{
+      if(_kpiCache.data){ showFolioDetail(lastFolio); }
+      else { setTimeout(tryShow, 250); }
+    };
+    tryShow();
   }
 }
 
@@ -1248,7 +1619,7 @@ function getCurrentView(){
 
 function validateStep(id){
   if(id==='viewR1'){
-    if(!document.getElementById('fCoord').value){toast('Selecciona tu nombre','error');return false;}
+    if(!document.getElementById('fCoord').value.trim()){toast('Selecciona o escribe tu nombre','error');return false;}
     return true;
   }
   if(id==='viewR2'){
@@ -1266,7 +1637,7 @@ function validateStep(id){
 
 function saveStep(id){
   if(id==='viewR1'){
-    state.data.coordinador = document.getElementById('fCoord').value;
+    state.data.coordinador = document.getElementById('fCoord').value.trim();
     localStorage.setItem('last_coord', state.data.coordinador);
     if(state.data.coordinador) onCoordChange();
   }
