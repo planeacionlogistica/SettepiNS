@@ -578,6 +578,164 @@ textarea{resize:vertical;min-height:70px;}
   .btn-search{width:100%;}
 }
 
+/* ==== MODAL (detalle de folio + cierre) ==== */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,.55);
+  z-index:1500;display:none;align-items:flex-start;justify-content:center;
+  padding:24px 16px;overflow-y:auto;
+  backdrop-filter:blur(2px);
+}
+.modal-overlay.show{display:flex;animation:fadeIn .18s ease;}
+.modal-panel{
+  background:var(--surface);border-radius:12px;
+  max-width:760px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+  animation:slideDown .22s ease;
+  margin:auto;overflow:hidden;
+}
+@keyframes slideDown{
+  from{opacity:0;transform:translateY(-16px);}
+  to{opacity:1;transform:none;}
+}
+.modal-header{
+  background:var(--header);color:#fff;
+  padding:14px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;
+}
+.modal-h-left{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
+.modal-h-title{
+  font-family:'SF Mono',Monaco,monospace;
+  font-size:16px;font-weight:700;letter-spacing:.5px;
+}
+.modal-h-sub{font-size:10px;opacity:.6;letter-spacing:1px;}
+.modal-close{
+  background:rgba(255,255,255,.1);color:#fff;border:none;
+  width:32px;height:32px;border-radius:8px;
+  font-size:18px;cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .12s;
+}
+.modal-close:hover{background:rgba(220,38,38,.8);}
+.modal-body{
+  padding:16px 20px;
+  max-height:calc(100vh - 200px);
+  overflow-y:auto;
+}
+.modal-footer{
+  padding:12px 20px;
+  border-top:1px solid var(--border);
+  background:#fafbfc;
+  display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;
+}
+.btn-cerrar-folio{
+  background:linear-gradient(135deg,#f59e0b 0%,#ea580c 100%);
+  color:#fff;border:none;border-radius:8px;
+  padding:11px 20px;font-size:13px;font-weight:700;
+  cursor:pointer;font-family:inherit;
+  transition:all .12s;display:inline-flex;align-items:center;gap:6px;
+  box-shadow:0 4px 12px rgba(245,158,11,.25);
+}
+.btn-cerrar-folio:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(245,158,11,.35);}
+.btn-cerrar-folio:active{transform:translateY(0);}
+.btn-cerrar-folio.done{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-d) 100%);color:#0a1a00;box-shadow:0 4px 12px rgba(132,204,22,.3);}
+.btn-guardar-cierre{
+  background:var(--accent);color:#0a1a00;border:none;border-radius:8px;
+  padding:11px 22px;font-size:13px;font-weight:700;
+  cursor:pointer;font-family:inherit;transition:all .12s;
+}
+.btn-guardar-cierre:hover{background:var(--accent-d);}
+.btn-guardar-cierre:disabled{background:#d1d5db;color:#9ca3af;cursor:not-allowed;}
+.btn-cancelar-cierre{
+  background:var(--border-light);color:var(--text2);
+  border:1px solid var(--border);border-radius:8px;
+  padding:11px 18px;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:inherit;
+}
+.btn-cancelar-cierre:hover{background:var(--border);}
+
+/* Formulario de cierre dentro del modal */
+.cierre-form{
+  margin-top:14px;padding:14px;border-radius:10px;
+  background:#fff7ed;border:1.5px dashed #fed7aa;
+  animation:fadeIn .2s ease;
+}
+.cierre-form.saved{background:#f0fdf4;border-color:#bbf7d0;border-style:solid;}
+.cierre-form h3{
+  font-size:13px;font-weight:700;color:#9a3412;
+  margin-bottom:12px;display:flex;align-items:center;gap:6px;
+  text-transform:uppercase;letter-spacing:.05em;
+}
+.cierre-form.saved h3{color:var(--green);}
+.cierre-field{margin-bottom:10px;}
+.cierre-field label{
+  display:block;font-size:10px;font-weight:700;color:var(--muted);
+  margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;
+}
+.cierre-field input[type="text"],
+.cierre-field textarea,
+.cierre-field select{
+  width:100%;font-size:13px;padding:9px 12px;
+  border:1.5px solid var(--border);border-radius:7px;
+  background:#fff;color:var(--text);font-family:inherit;
+  -webkit-appearance:none;appearance:none;
+}
+.cierre-field select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath d='M5 8l5 5 5-5H5z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;padding-right:30px;
+}
+.cierre-field textarea{min-height:64px;resize:vertical;}
+.cierre-field input:focus,.cierre-field textarea:focus,.cierre-field select:focus{
+  outline:none;border-color:var(--orange);
+  box-shadow:0 0 0 2px rgba(234,88,12,.15);
+}
+.cierre-form.saved .cierre-field input:focus,
+.cierre-form.saved .cierre-field textarea:focus{
+  border-color:var(--accent);box-shadow:0 0 0 2px rgba(132,204,22,.15);
+}
+.cierre-two{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:520px){.cierre-two{grid-template-columns:1fr;}}
+.cierre-evi-drop{
+  border:2px dashed #fed7aa;border-radius:8px;
+  padding:14px;text-align:center;background:#fff;
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:all .12s;
+}
+.cierre-evi-drop:hover{border-color:var(--orange);background:#fffbf5;}
+.cierre-evi-drop input{
+  position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0;
+}
+.cierre-evi-icon{font-size:24px;display:block;margin-bottom:2px;}
+.cierre-evi-txt{font-size:12px;font-weight:600;color:var(--text2);}
+.cierre-evi-hint{font-size:10px;color:var(--muted);margin-top:2px;}
+.cierre-evi-preview{
+  position:relative;border-radius:8px;overflow:hidden;
+  background:#0a0a0a;border:1px solid var(--border);
+}
+.cierre-evi-preview img{width:100%;display:block;max-height:200px;object-fit:contain;}
+.cierre-evi-preview .rm{
+  position:absolute;top:6px;right:6px;
+  background:rgba(0,0,0,.65);color:#fff;border:none;
+  width:26px;height:26px;border-radius:50%;
+  font-size:13px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.cierre-evi-info{
+  padding:6px 10px;background:var(--border-light);
+  font-size:10px;color:var(--muted);
+  display:flex;justify-content:space-between;
+}
+.cierre-cierre-info{
+  background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;
+  padding:10px 12px;font-size:11px;color:#065f46;
+  display:flex;align-items:center;gap:6px;margin-top:10px;
+}
+.cierre-processing{
+  padding:12px;text-align:center;font-size:11px;color:var(--muted);
+  background:#fff;border:1px solid var(--border);border-radius:8px;
+}
+.cierre-processing .spinner{width:20px;height:20px;border-width:2px;margin:0 auto 4px;}
+
 /* SUBMITTING OVERLAY */
 .submitting{
   position:fixed;inset:0;background:rgba(255,255,255,.85);
@@ -604,7 +762,7 @@ textarea{resize:vertical;min-height:70px;}
     <span class="h-title" id="hTitle">tickets_coordinadores</span>
     <span class="h-sub" id="hSub">Captura y seguimiento</span>
   </div>
-  <span style="font-size:10px;color:#9ca3af;font-weight:500;">v2.3 · KPIs pro + foto embed</span>
+  <span style="font-size:10px;color:#9ca3af;font-weight:500;">v2.5 · modal + cierre logístico</span>
 </header>
 
 <!-- LOADING INICIAL -->
@@ -849,6 +1007,15 @@ textarea{resize:vertical;min-height:70px;}
   <div class="actions-inner">
     <button class="btn btn-secondary" id="btnBack" onclick="goBack()">← Atrás</button>
     <button class="btn btn-primary" id="btnNext" onclick="goNext()">Siguiente →</button>
+  </div>
+</div>
+
+<!-- MODAL DETALLE DE FOLIO -->
+<div class="modal-overlay" id="folioModal" onclick="if(event.target===this)closeFolioModal()">
+  <div class="modal-panel">
+    <div class="modal-header" id="modalHeader"></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer" id="modalFooter"></div>
   </div>
 </div>
 
@@ -1460,19 +1627,277 @@ function onFolioSearch(){
   showFolioDetail(folio);
 }
 
+/* ---------- MODAL DE DETALLE + CIERRE ---------- */
+const _cierreState = { folio:'', foto:'', fotoName:'', fotoType:'', formOpen:false };
+
 function showFolioDetail(folio){
   if(!_kpiCache.data){ toast('Aún cargando datos...', 'error'); return; }
   const r = _kpiCache.data.find(x=>x.folio.toUpperCase() === String(folio).toUpperCase());
-  const box = document.getElementById('consultResult');
   if(!r){
-    box.innerHTML = `<div class="not-found" style="margin-top:12px;">❌ Folio <b>${esc(folio)}</b> no encontrado</div>`;
-    box.scrollIntoView({behavior:'smooth', block:'start'});
+    openFolioModal({notFound:true, folio});
     return;
   }
-  renderFolio(_kpiCache.header, r._raw, box);
-  // Scroll al detalle
-  setTimeout(()=>box.scrollIntoView({behavior:'smooth', block:'start'}), 50);
+  openFolioModal({row:r});
 }
+
+function openFolioModal(opts){
+  const overlay = document.getElementById('folioModal');
+  const header = document.getElementById('modalHeader');
+  const body   = document.getElementById('modalBody');
+  const footer = document.getElementById('modalFooter');
+
+  if(opts.notFound){
+    header.innerHTML = `
+      <div class="modal-h-left">
+        <span class="modal-h-sub">FOLIO</span>
+        <span class="modal-h-title">${esc(opts.folio)}</span>
+      </div>
+      <button class="modal-close" onclick="closeFolioModal()" title="Cerrar">✕</button>
+    `;
+    body.innerHTML = `<div class="not-found">❌ Folio <b>${esc(opts.folio)}</b> no encontrado</div>`;
+    footer.innerHTML = `<button class="btn-cancelar-cierre" onclick="closeFolioModal()">Cerrar</button>`;
+    overlay.classList.add('show');
+    return;
+  }
+
+  const r = opts.row;
+  _cierreState.folio = r.folio;
+  _cierreState.foto = ''; _cierreState.fotoName = ''; _cierreState.fotoType = '';
+  _cierreState.formOpen = false;
+
+  const estatus = r.estatus || 'Abierta';
+  const cerrado = estatus.toLowerCase().includes('cerrad');
+  const badgeCls = statusClass(estatus);
+
+  header.innerHTML = `
+    <div class="modal-h-left">
+      <span class="modal-h-sub">FOLIO</span>
+      <span class="modal-h-title">${esc(r.folio)}</span>
+      <span class="badge badge-${badgeCls}"><span class="badge-dot"></span>${esc(estatus)}</span>
+    </div>
+    <button class="modal-close" onclick="closeFolioModal()" title="Cerrar (Esc)">✕</button>
+  `;
+
+  // Reusar renderFolio: renderiza dentro de un div temporal y sacamos su body
+  const tmp = document.createElement('div');
+  renderFolio(_kpiCache.header, r._raw, tmp);
+  // renderFolio genera .result-header + .result-body; sólo usamos el body (el header ya está arriba)
+  const rb = tmp.querySelector('.result-body');
+  body.innerHTML = rb ? rb.innerHTML : tmp.innerHTML;
+
+  // Footer con el botón de ejecutar/cerrar
+  if(cerrado){
+    footer.innerHTML = `
+      <span class="cierre-cierre-info" style="margin:0;">✓ Este folio ya está cerrado</span>
+      <button class="btn-cancelar-cierre" onclick="closeFolioModal()">Cerrar ventana</button>
+    `;
+  } else {
+    footer.innerHTML = `
+      <button class="btn-cancelar-cierre" onclick="closeFolioModal()">Cerrar ventana</button>
+      <button class="btn-cerrar-folio" onclick="openCierreForm()">
+        ⚡ Ejecutar / cerrar folio
+      </button>
+    `;
+  }
+
+  overlay.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeFolioModal(){
+  document.getElementById('folioModal').classList.remove('show');
+  document.body.style.overflow = '';
+  _cierreState.formOpen = false;
+}
+
+/* --- Formulario de cierre --- */
+function openCierreForm(){
+  if(_cierreState.formOpen) return;
+  _cierreState.formOpen = true;
+  const body = document.getElementById('modalBody');
+  // Pre-cargar datos actuales si existían
+  const r = _kpiCache.data.find(x=>x.folio === _cierreState.folio);
+  const cur = {
+    responsable:  getRawField(r, 'Responsable'),
+    accion:       getRawField(r, 'Accion_Tomada'),
+    comentarios:  getRawField(r, 'Comentarios_Cierre')
+  };
+
+  const formHtml = `
+    <div class="cierre-form" id="cierreForm">
+      <h3>⚡ Ejecución / cierre de folio</h3>
+
+      <div class="cierre-two">
+        <div class="cierre-field">
+          <label>Responsable</label>
+          <input type="text" id="cResp" value="${esc(cur.responsable)}" placeholder="Nombre de quien ejecutó" autocomplete="off">
+        </div>
+        <div class="cierre-field">
+          <label>Estatus final</label>
+          <select id="cEst">
+            <option value="En proceso">En proceso</option>
+            <option value="Cerrada" selected>Cerrada</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="cierre-field">
+        <label>Acción tomada</label>
+        <textarea id="cAcc" placeholder="¿Qué se hizo para resolver la incidencia?">${esc(cur.accion)}</textarea>
+      </div>
+
+      <div class="cierre-field">
+        <label>Comentarios de cierre</label>
+        <textarea id="cCom" placeholder="Observaciones, seguimiento, etc.">${esc(cur.comentarios)}</textarea>
+      </div>
+
+      <div class="cierre-field">
+        <label>Evidencia (foto de la ejecución)</label>
+        <div id="cEviWrap">
+          <label class="cierre-evi-drop">
+            <span class="cierre-evi-icon">📷</span>
+            <div class="cierre-evi-txt">Toca para subir evidencia</div>
+            <div class="cierre-evi-hint">Cámara o galería · máx. 10 MB (opcional)</div>
+            <input type="file" id="cEvi" accept="image/*">
+          </label>
+        </div>
+      </div>
+    </div>
+  `;
+  body.insertAdjacentHTML('beforeend', formHtml);
+  document.getElementById('cEvi').addEventListener('change', handleEvidenciaSelect);
+
+  // Cambia el footer
+  const footer = document.getElementById('modalFooter');
+  footer.innerHTML = `
+    <button class="btn-cancelar-cierre" onclick="cancelCierreForm()">Cancelar</button>
+    <button class="btn-guardar-cierre" onclick="submitCierre()">💾 Guardar cierre</button>
+  `;
+
+  // Scroll al formulario
+  setTimeout(()=>document.getElementById('cierreForm').scrollIntoView({behavior:'smooth', block:'start'}), 60);
+}
+
+function cancelCierreForm(){
+  _cierreState.formOpen = false;
+  _cierreState.foto = ''; _cierreState.fotoName = ''; _cierreState.fotoType = '';
+  // Re-abrir el modal desde cero con los datos actuales
+  const r = _kpiCache.data.find(x=>x.folio === _cierreState.folio);
+  if(r) openFolioModal({row:r});
+}
+
+function getRawField(row, name){
+  if(!row || !_kpiCache.header) return '';
+  const i = _kpiCache.header.findIndex(h=>h.toLowerCase()===name.toLowerCase());
+  return i>=0 && row._raw ? String(row._raw[i]||'').trim() : '';
+}
+
+async function handleEvidenciaSelect(e){
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ toast('Solo imágenes','error'); e.target.value=''; return; }
+  if(file.size > 10*1024*1024){ toast('Imagen muy grande (máx 10 MB)','error'); e.target.value=''; return; }
+
+  const wrap = document.getElementById('cEviWrap');
+  wrap.innerHTML = `<div class="cierre-processing"><div class="spinner"></div>Procesando evidencia...</div>`;
+  try{
+    const out = await compressImage(file);
+    _cierreState.foto = out.base64;
+    _cierreState.fotoName = (file.name || 'evidencia.jpg').replace(/[^\w.\-]/g,'_');
+    _cierreState.fotoType = 'image/jpeg';
+    wrap.innerHTML = `
+      <div class="cierre-evi-preview">
+        <img src="${out.dataUrl}" alt="Evidencia">
+        <button type="button" class="rm" onclick="removeEvidencia()" title="Quitar">✕</button>
+      </div>
+      <div class="cierre-evi-info"><span style="color:var(--green);font-weight:600;">✓ Evidencia lista</span><span>${out.sizeKB} KB</span></div>
+    `;
+  }catch(err){
+    toast('Error: '+err.message,'error');
+    removeEvidencia();
+  }
+}
+
+function removeEvidencia(){
+  _cierreState.foto = ''; _cierreState.fotoName = ''; _cierreState.fotoType = '';
+  const wrap = document.getElementById('cEviWrap');
+  if(!wrap) return;
+  wrap.innerHTML = `
+    <label class="cierre-evi-drop">
+      <span class="cierre-evi-icon">📷</span>
+      <div class="cierre-evi-txt">Toca para subir evidencia</div>
+      <div class="cierre-evi-hint">Cámara o galería · máx. 10 MB (opcional)</div>
+      <input type="file" id="cEvi" accept="image/*">
+    </label>
+  `;
+  document.getElementById('cEvi').addEventListener('change', handleEvidenciaSelect);
+}
+
+async function submitCierre(){
+  const responsable = document.getElementById('cResp').value.trim();
+  const accion      = document.getElementById('cAcc').value.trim();
+  const comentarios = document.getElementById('cCom').value.trim();
+  const estatus     = document.getElementById('cEst').value;
+
+  if(!responsable){ toast('Escribe el nombre del responsable','error'); return; }
+  if(!accion){ toast('Describe la acción tomada','error'); return; }
+
+  document.getElementById('submitting').querySelector('.submitting-text').textContent = 'Guardando cierre...';
+  document.getElementById('submitting').classList.add('show');
+
+  try{
+    const payload = {
+      action: 'cerrar',
+      folio: _cierreState.folio,
+      responsable, accion, comentarios, estatus,
+      evidencia: _cierreState.foto,
+      evidenciaName: _cierreState.fotoName,
+      evidenciaType: _cierreState.fotoType
+    };
+    const res = await fetch(SCRIPT_URL, {
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    const out = await res.json();
+    if(!out.ok) throw new Error(out.error || 'Error del servidor');
+
+    // Actualizar cache local para reflejar el cierre sin volver a fetch
+    const r = _kpiCache.data.find(x=>x.folio === _cierreState.folio);
+    if(r){
+      r.estatus = estatus;
+      setRawField(r, 'Responsable', responsable);
+      setRawField(r, 'Accion_Tomada', accion);
+      setRawField(r, 'Comentarios_Cierre', comentarios);
+      setRawField(r, 'Estatus', estatus);
+      if(out.fechaCierre) setRawField(r, 'Fecha_Cierre', out.fechaCierre);
+      if(out.evidenciaUrl) setRawField(r, 'Evidencia', out.evidenciaUrl);
+    }
+    toast('✓ Cierre guardado');
+    applyFilters(); // refresca la tabla y KPIs
+    // Reabrir el modal con la info actualizada
+    if(r) openFolioModal({row:r});
+  }catch(e){
+    toast('Error guardando: '+e.message, 'error');
+  }finally{
+    document.getElementById('submitting').classList.remove('show');
+    document.getElementById('submitting').querySelector('.submitting-text').textContent = 'Registrando incidencia...';
+  }
+}
+
+function setRawField(row, name, value){
+  if(!row || !_kpiCache.header || !row._raw) return;
+  const i = _kpiCache.header.findIndex(h=>h.toLowerCase()===name.toLowerCase());
+  if(i>=0) row._raw[i] = value;
+}
+
+// Cerrar el modal con Escape
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){
+    const m = document.getElementById('folioModal');
+    if(m && m.classList.contains('show')) closeFolioModal();
+  }
+});
 
 /* ---------- HELPERS DE FOTO EN DRIVE ---------- */
 function extractDriveFileId(url){
