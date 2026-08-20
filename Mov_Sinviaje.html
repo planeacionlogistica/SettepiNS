@@ -199,7 +199,7 @@
             <input type="date" id="filtroFecha" onchange="cambiarFechaFiltro()">
         </div>
 
-        <button class="btn-export" onclick="exportarExcel()">Exportar Semana a Excel (.xlsx)</button>
+        <button class="btn-export" onclick="exportarExcel()">Exportar Fecha Seleccionada a Excel (.xlsx)</button>
     </div>
 
     <div class="form-grid">
@@ -512,28 +512,36 @@
 
     function exportarExcel() {
         const semanaSeleccionada = document.getElementById('semana').value;
+        const fechaActiva = document.getElementById('filtroFecha').value;
+
         if (!semanaSeleccionada) {
             alert("Por favor, selecciona una Semana de Trabajo antes de exportar.");
             return;
         }
-        if (registros.length === 0) {
-            alert("No tienes ningún registro en la base de datos local para exportar.");
+        if (!fechaActiva) {
+            alert("Por favor, selecciona una Fecha válida antes de exportar.");
             return;
         }
 
+        // Filtramos únicamente los registros de la fecha seleccionada
+        const registrosFiltrados = registros.filter(r => r.fechaLlave === fechaActiva);
+
+        if (registrosFiltrados.length === 0) {
+            alert("No tienes ningún registro capturado en la fecha seleccionada para exportar.");
+            return;
+        }
+
+        const partes = fechaActiva.split('-');
+        const fechaBonita = `${partes[2]}/${partes[1]}/${partes[0]}`;
+
         const datosMatriz = [];
-        datosMatriz.push([`Movimientos sin viaje - Resumen Guardado (${semanaSeleccionada})`]);
-        datosMatriz.push([]); 
+        datosMatriz.push([`Movimientos sin viaje - ${semanaSeleccionada} - Día ${fechaBonita}`]);
+        datosMatriz.push([]);
         datosMatriz.push(["Fecha del Día", "Cliente", "Operador", "Nómina", "Unidad", "Fecha / Hora Viaje", "Km Recorrido", "$10.00 x Km", "Incidencia $500", "Total", "Comentarios / Observaciones"]);
 
         let totKm = 0, totXKm = 0, totInc = 0, totFinal = 0;
 
-        const registrosOrdenados = [...registros].sort((a,b) => a.fechaLlave.localeCompare(b.fechaLlave));
-
-        registrosOrdenados.forEach(r => {
-            const p = r.fechaLlave.split('-');
-            const fechaBonita = `${p[2]}/${p[1]}/${p[0]}`;
-
+        registrosFiltrados.forEach(r => {
             datosMatriz.push([fechaBonita, r.cliente, r.operador, r.nomina, r.unidad, r.hora, r.km, r.pagoPorKm, r.incidencia, r.total, r.comentarios]);
             totKm += r.km;
             totXKm += r.pagoPorKm;
@@ -542,13 +550,14 @@
         });
 
         datosMatriz.push([]);
-        datosMatriz.push(["TOTALES ACUMULADOS", "", "", "", "", "", totKm, totXKm, totInc, totFinal, ""]);
+        datosMatriz.push([`TOTALES DEL DÍA ${fechaBonita}`, "", "", "", "", "", totKm, totXKm, totInc, totFinal, ""]);
 
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(datosMatriz);
         XLSX.utils.book_append_sheet(wb, ws, "Movimientos_sin_viaje");
 
-        const nombreArchivo = `Movimientos_sin_viaje_${semanaSeleccionada.replace(" ", "_")}.xlsx`;
+        const fechaArchivo = `${partes[0]}-${partes[1]}-${partes[2]}`;
+        const nombreArchivo = `Movimientos_sin_viaje_${semanaSeleccionada.replace(" ", "_")}_${fechaArchivo}.xlsx`;
         XLSX.writeFile(wb, nombreArchivo);
     }
 </script>
