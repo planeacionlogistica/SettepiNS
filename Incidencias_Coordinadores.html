@@ -254,10 +254,11 @@ textarea{resize:vertical;min-height:70px;}
 /* TOAST */
 .toast{
   position:fixed;top:70px;left:50%;transform:translateX(-50%);
-  background:var(--header);color:#fff;padding:10px 18px;
+  background:var(--header);color:#fff;padding:12px 20px;
   border-radius:8px;font-size:13px;font-weight:600;
-  box-shadow:0 4px 14px rgba(0,0,0,.2);
-  z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s;
+  box-shadow:0 6px 20px rgba(0,0,0,.35);
+  z-index:3000;opacity:0;pointer-events:none;transition:opacity .2s;
+  max-width:calc(100vw - 40px);text-align:center;
 }
 .toast.show{opacity:1;}
 .toast.error{background:var(--red);}
@@ -1842,9 +1843,14 @@ async function submitCierre(){
   if(!responsable){ toast('Escribe el nombre del responsable','error'); return; }
   if(!accion){ toast('Describe la acción tomada','error'); return; }
 
+  // Limpia cualquier error anterior
+  const prevErr = document.getElementById('cierreErr');
+  if(prevErr) prevErr.remove();
+
   document.getElementById('submitting').querySelector('.submitting-text').textContent = 'Guardando cierre...';
   document.getElementById('submitting').classList.add('show');
 
+  let rawResponse = ''; // para diagnóstico
   try{
     const payload = {
       action: 'cerrar',
@@ -1854,13 +1860,20 @@ async function submitCierre(){
       evidenciaName: _cierreState.fotoName,
       evidenciaType: _cierreState.fotoType
     };
+    console.log('[cierre] enviando', {...payload, evidencia: payload.evidencia?`(${payload.evidencia.length} chars)`:''});
     const res = await fetch(SCRIPT_URL, {
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify(payload)
     });
-    const out = await res.json();
-    if(!out.ok) throw new Error(out.error || 'Error del servidor');
+    rawResponse = await res.text();
+    console.log('[cierre] respuesta', res.status, rawResponse);
+    let out;
+    try{ out = JSON.parse(rawResponse); }
+    catch(_){
+      throw new Error(`El servidor no devolvió JSON. Probable causa: el Apps Script no reconoce action:'cerrar'. HTTP ${res.status}. Ver consola.`);
+    }
+    if(!out.ok) throw new Error(out.error || 'El Apps Script respondió ok=false sin mensaje.');
 
     // Actualizar cache local para reflejar el cierre sin volver a fetch
     const r = _kpiCache.data.find(x=>x.folio === _cierreState.folio);
@@ -1878,11 +1891,35 @@ async function submitCierre(){
     // Reabrir el modal con la info actualizada
     if(r) openFolioModal({row:r});
   }catch(e){
-    toast('Error guardando: '+e.message, 'error');
+    console.error('[cierre] ERROR:', e, 'raw:', rawResponse);
+    // Muestra el error fijo dentro del modal para que no lo tape nada
+    showCierreError(e.message, rawResponse);
+    toast('Error guardando (ver detalle en el modal)', 'error');
   }finally{
     document.getElementById('submitting').classList.remove('show');
     document.getElementById('submitting').querySelector('.submitting-text').textContent = 'Registrando incidencia...';
   }
+}
+
+function showCierreError(msg, rawResponse){
+  const form = document.getElementById('cierreForm');
+  if(!form) return;
+  const div = document.createElement('div');
+  div.id = 'cierreErr';
+  div.className = 'alert alert-err';
+  div.style.marginTop = '10px';
+  div.innerHTML = `
+    <div>
+      <b>❌ No se pudo guardar el cierre.</b><br>
+      ${esc(msg)}
+      ${rawResponse ? `<details style="margin-top:6px;font-size:11px;"><summary style="cursor:pointer;">Ver respuesta del servidor</summary><pre style="white-space:pre-wrap;margin-top:4px;padding:6px;background:#fff;border-radius:4px;max-height:120px;overflow:auto;">${esc(rawResponse.slice(0,600))}</pre></details>` : ''}
+      <div style="margin-top:8px;font-size:11px;color:var(--text2);">
+        💡 Casi seguro tu Apps Script todavía no tiene el handler de <code>action:'cerrar'</code>. Mira la consola del navegador (F12) para más detalle.
+      </div>
+    </div>
+  `;
+  form.appendChild(div);
+  div.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
 function setRawField(row, name, value){
