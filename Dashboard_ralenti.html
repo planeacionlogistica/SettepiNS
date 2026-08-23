@@ -185,14 +185,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
       <a href="Radar_Riesgos.html">Radar de Riesgos</a>
     </div>
   </div>
-  <div class="dropdown" id="dropdownCombustible">
-    <button class="dropdown-toggle" onclick="toggleDropdown('dropdownCombustible')">
-      Combustible <span class="dropdown-arrow">▼</span>
-    </button>
-    <div class="dropdown-menu">
-      <a href="Dashboard_ralenti.html" class="active">Ralentí</a>
-    </div>
-  </div>
+  <a href="Dashboard_ralenti.html" style="color:#84cc16;">Ralentí</a>
 </nav>
 
 <div class="loading-overlay" id="loadingOverlay">
@@ -700,19 +693,23 @@ function parseHoras(v){
 function parseKm(v){if(!v||String(v).trim()===''||String(v).trim()==='-')return 0;const n=parseFloat(String(v).replace(',','.'));return isNaN(n)?0:n;}
 function getFecha(r){
   const raw=(r[C.inicio]||'').trim();
-  const m=raw.match(/(\d{2})\/(\d{2})\/(\d{4})/);if(m)return`${m[3]}-${m[2]}-${m[1]}`;
+  // acepta d/m/yyyy o dd/mm/yyyy (con o sin ceros a la izquierda)
+  const m=raw.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m)return`${m[3]}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
   const m2=raw.match(/(\d{4})-(\d{2})-(\d{2})/);if(m2)return raw.slice(0,10);
   return raw.slice(0,10)||'';
 }
 function getHora(r){
   const raw=(r[C.inicio]||'').trim();
-  const m=raw.match(/\d{2}\/\d{2}\/\d{4}\s+(\d{2}:\d{2})/);if(m)return m[1];
+  const m=raw.match(/\d{1,2}\/\d{1,2}\/\d{4}\s+(\d{1,2}:\d{2})/);
+  if(m)return m[1].padStart(5,'0');
   const m2=raw.match(/\d{4}-\d{2}-\d{2}[T\s](\d{2}:\d{2})/);if(m2)return m2[1];
   return '–';
 }
 function getHoraFin(r){
   const raw=(r[C.fin]||'').trim();
-  const m=raw.match(/\d{2}\/\d{2}\/\d{4}\s+(\d{2}:\d{2})/);if(m)return m[1];
+  const m=raw.match(/\d{1,2}\/\d{1,2}\/\d{4}\s+(\d{1,2}:\d{2})/);
+  if(m)return m[1].padStart(5,'0');
   const m2=raw.match(/\d{4}-\d{2}-\d{2}[T\s](\d{2}:\d{2})/);if(m2)return m2[1];
   return '–';
 }
