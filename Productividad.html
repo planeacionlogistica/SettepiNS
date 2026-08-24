@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Productividad — Sem 33</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+:root{
+  --bg:#f5f6fa;
+  --surface:#ffffff;
+  --border:#e5e7eb;
+  --border-light:#f3f4f6;
+  --text:#111827;
+  --text2:#374151;
+  --muted:#6b7280;
+  --muted2:#9ca3af;
+  --header:#1f2937;
+  --accent:#84cc16;
+  --red:#dc2626;    --red-bg:#fef2f2;    --red-b:#fecaca;
+  --orange:#ea580c; --orange-bg:#fff7ed; --orange-b:#fed7aa;
+  --yellow:#ca8a04; --yellow-bg:#fefce8; --yellow-b:#fef08a;
+  --green:#16a34a;  --green-bg:#f0fdf4;  --green-b:#bbf7d0;
+  --blue:#2563eb;   --blue-bg:#eff6ff;   --blue-b:#bfdbfe;
+}
+
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;min-height:100vh;}
+
+/* NAV */
+nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48px;gap:14px;position:sticky;top:0;z-index:300;box-shadow:0 2px 8px rgba(0,0,0,.3);}
+.nav-logo{color:#84cc16;font-weight:800;font-size:16px;text-decoration:none;}
+.nav-sep{color:#4b5563;font-size:14px;font-weight:300;}
+.nav-page{color:#e5e7eb;font-size:13px;font-weight:600;}
+
+/* HEADER */
+header{
+  background:var(--header);padding:0 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:54px;gap:16px;
+}
+.h-left{display:flex;align-items:center;gap:8px;}
+.h-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;box-shadow:0 0 0 3px rgba(132,204,22,.2);}
+.h-title{font-size:14px;font-weight:600;color:#fff;}
+.h-sub{font-size:11px;color:#9ca3af;margin-left:6px;}
+.h-right{display:flex;gap:8px;align-items:center;}
+.h-pill{background:rgba(255,255,255,.06);color:#e5e7eb;font-size:11px;padding:5px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.08);font-weight:500;}
+.h-pill b{color:var(--accent);font-weight:700;}
+
+/* Semana tag */
+.week-tag{text-align:center;padding:8px 0;color:#94a3b8;font-size:12px;font-style:italic;background:#fff;border-bottom:1px solid var(--border);}
+
+/* KPIs */
+.kpi-row{
+  padding:20px 28px 0;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px;
+  max-width:1400px;
+  margin:0 auto;
+}
+.kpi{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:15px 18px;
+  position:relative;overflow:hidden;
+  transition:transform .15s,box-shadow .15s;
+}
+.kpi:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(17,24,39,.06);}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.kpi.red::before    {background:var(--red);}
+.kpi.orange::before {background:var(--orange);}
+.kpi.yellow::before {background:var(--yellow);}
+.kpi.green::before  {background:var(--green);}
+.kpi.blue::before   {background:var(--blue);}
+.kpi.gray::before   {background:#6b7280;}
+.kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
+.kpi-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.kpi.red    .kpi-icon{background:var(--red-bg);color:var(--red);}
+.kpi.orange .kpi-icon{background:var(--orange-bg);color:var(--orange);}
+.kpi.yellow .kpi-icon{background:var(--yellow-bg);color:var(--yellow);}
+.kpi.green  .kpi-icon{background:var(--green-bg);color:var(--green);}
+.kpi.blue   .kpi-icon{background:var(--blue-bg);color:var(--blue);}
+.kpi.gray   .kpi-icon{background:#f3f4f6;color:#6b7280;}
+.kpi-val{font-size:28px;font-weight:700;line-height:1;color:var(--text);margin-bottom:5px;}
+.kpi-val .unit{font-size:14px;font-weight:500;color:var(--muted);margin-left:2px;}
+.kpi.red    .kpi-val{color:var(--red);}
+.kpi.orange .kpi-val{color:var(--orange);}
+.kpi.yellow .kpi-val{color:var(--yellow);}
+.kpi.green  .kpi-val{color:var(--green);}
+.kpi.blue   .kpi-val{color:var(--blue);}
+.kpi-label{font-size:11px;font-weight:600;color:var(--text2);}
+.kpi-sub{font-size:10px;color:var(--muted2);margin-top:3px;}
+
+/* MID SECTION */
+.mid{
+  padding:16px 28px 0;
+  max-width:1400px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:1.6fr 1fr;
+  gap:14px;
+}
+@media(max-width:960px){.mid{grid-template-columns:1fr;}}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;}
+.card-title{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.card-title .dot{width:6px;height:6px;background:var(--accent);border-radius:50%;}
+.card-title .hint{margin-left:auto;font-size:10px;color:var(--muted2);font-weight:400;font-style:italic;}
+
+/* MATRIX (scatter) */
+.matrix-wrap{position:relative;padding:20px 8px 8px 40px;}
+.matrix{
+  position:relative;width:100%;aspect-ratio:1.5/1;
+  background:
+    linear-gradient(to right, rgba(22,163,74,.04) 0%, rgba(22,163,74,.04) 100%),
+    linear-gradient(to top, rgba(220,38,38,.03) 0%, rgba(220,38,38,.03) 100%);
+  border:1px solid var(--border);border-radius:8px;overflow:hidden;
+}
+.matrix-q{position:absolute;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;pointer-events:none;opacity:.7;}
+.matrix-q.tl{top:6px;left:6px;color:var(--yellow);}
+.matrix-q.tr{top:6px;right:6px;color:var(--green);}
+.matrix-q.bl{bottom:6px;left:6px;color:var(--red);}
+.matrix-q.br{bottom:6px;right:6px;color:var(--orange);}
+.matrix-line{position:absolute;background:rgba(107,114,128,.25);pointer-events:none;}
+.matrix-line.v{width:1px;height:100%;top:0;border-left:1px dashed rgba(107,114,128,.5);background:transparent;}
+.matrix-line.h{height:1px;width:100%;left:0;border-top:1px dashed rgba(107,114,128,.5);background:transparent;}
+.matrix-tick{position:absolute;font-size:9px;color:var(--muted2);}
+.matrix-tick.x{bottom:-18px;transform:translateX(-50%);}
+.matrix-tick.y{left:-28px;transform:translateY(50%);}
+.matrix-dot{
+  position:absolute;width:14px;height:14px;border-radius:50%;
+  transform:translate(-50%,50%);cursor:pointer;
+  border:2px solid #fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+  transition:transform .12s;
+}
+.matrix-dot:hover{transform:translate(-50%,50%) scale(1.4);z-index:5;}
+.matrix-axis-lbl{font-size:10px;color:var(--muted);font-weight:600;position:absolute;}
+.matrix-axis-lbl.x{bottom:-38px;left:50%;transform:translateX(-50%);}
+.matrix-axis-lbl.y{left:-38px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:center;white-space:nowrap;}
+
+/* RANK CARD (right) */
+.rank-list{display:flex;flex-direction:column;gap:8px;}
+.rank-tabs{display:flex;gap:4px;margin-bottom:10px;background:var(--border-light);padding:3px;border-radius:7px;}
+.rank-tab{flex:1;padding:6px 8px;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:600;border-radius:5px;cursor:pointer;transition:all .12s;font-family:inherit;}
+.rank-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.06);}
+.rank-item{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:6px;transition:background .12s;cursor:pointer;}
+.rank-item:hover{background:var(--border-light);}
+.rank-pos{
+  width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;background:var(--border-light);color:var(--muted);
+}
+.rank-pos.top1{background:#fef3c7;color:#b45309;}
+.rank-pos.top2{background:#e5e7eb;color:#4b5563;}
+.rank-pos.top3{background:#fed7aa;color:#c2410c;}
+.rank-name{flex:1;font-size:12px;font-weight:500;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rank-bar-wrap{width:70px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;flex-shrink:0;}
+.rank-bar{height:100%;border-radius:3px;}
+.rank-val{font-size:12px;font-weight:700;min-width:38px;text-align:right;flex-shrink:0;}
+
+/* TABLE */
+.tbl-section{padding:16px 28px 40px;max-width:1400px;margin:0 auto;width:100%;}
+.tbl-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.tbl-title{font-size:13px;font-weight:600;color:var(--text);}
+.tbl-cnt{margin-left:auto;font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:4px 10px;border-radius:5px;}
+.tbl-search{
+  padding:5px 10px;border:1px solid var(--border);border-radius:6px;
+  font-size:12px;font-family:inherit;outline:none;background:var(--surface);color:var(--text);
+  width:200px;transition:border-color .12s;
+}
+.tbl-search:focus{border-color:var(--accent);}
+
+.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;overflow-x:auto;}
+table{width:100%;border-collapse:collapse;min-width:820px;}
+thead tr{background:#f9fafb;border-bottom:1px solid var(--border);}
+th{
+  padding:9px 12px;text-align:left;
+  font-size:10px;font-weight:600;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;
+  white-space:nowrap;cursor:pointer;user-select:none;
+}
+th:hover{color:var(--text);}
+th.asc::after{content:" ▲";color:var(--green);}
+th.dsc::after{content:" ▼";color:var(--green);}
+th.ns{cursor:default;}
+th.num{text-align:right;}
+
+tbody tr{border-bottom:1px solid var(--border-light);transition:background .1s;cursor:pointer;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:#f9fafb;}
+
+td{padding:8px 12px;vertical-align:middle;}
+td.num{text-align:right;font-variant-numeric:tabular-nums;}
+
+.tec-cell{display:flex;align-items:center;gap:10px;}
+.tec-avatar{
+  width:28px;height:28px;border-radius:6px;
+  background:var(--header);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;flex-shrink:0;
+  letter-spacing:-.02em;
+}
+.tec-name{font-size:12px;font-weight:600;color:var(--text);line-height:1.2;}
+.tec-idx{font-size:10px;color:var(--muted2);}
+
+.metric-cell{display:flex;align-items:center;gap:8px;justify-content:flex-end;}
+.metric-val{font-size:12px;font-weight:700;color:var(--text);min-width:36px;text-align:right;}
+.metric-bar-wrap{width:56px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.metric-bar{height:100%;border-radius:3px;}
+
+.hours-val{font-size:12px;font-weight:500;color:var(--text2);}
+.hours-hint{font-size:10px;color:var(--muted2);margin-left:2px;}
+
+.spill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:20px;
+  font-size:11px;font-weight:600;
+}
+.sp-r{background:var(--red-bg);   color:var(--red);   border:1px solid var(--red-b);}
+.sp-o{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-b);}
+.sp-y{background:var(--yellow-bg);color:var(--yellow);border:1px solid var(--yellow-b);}
+.sp-g{background:var(--green-bg); color:var(--green); border:1px solid var(--green-b);}
+.sp-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.sp-r .sp-dot{background:var(--red);}
+.sp-o .sp-dot{background:var(--orange);}
+.sp-y .sp-dot{background:var(--yellow);}
+.sp-g .sp-dot{background:var(--green);}
+
+/* MODAL */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.45);z-index:1000;
+  align-items:center;justify-content:center;
+  padding:20px;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--surface);
+  border-radius:12px;
+  width:100%;max-width:640px;
+  max-height:88vh;
+  display:flex;flex-direction:column;
+  box-shadow:0 20px 60px rgba(0,0,0,.25);
+  overflow:hidden;
+}
+.modal-head{
+  padding:18px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:#f9fafb;
+  flex-shrink:0;
+}
+.modal-head-left{display:flex;align-items:center;gap:12px;}
+.modal-avatar{width:40px;height:40px;border-radius:8px;background:var(--header);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
+.modal-title{font-size:15px;font-weight:700;color:var(--text);}
+.modal-sub{font-size:11px;color:var(--muted);margin-top:2px;display:flex;gap:6px;align-items:center;}
+.modal-close{
+  width:30px;height:30px;border-radius:6px;border:1px solid var(--border);
+  background:transparent;cursor:pointer;font-size:16px;color:var(--muted);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.modal-close:hover{background:var(--border);color:var(--text);}
+
+.modal-body{overflow-y:auto;padding:18px 20px;flex:1;}
+.modal-section-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px;}
+.modal-section-title:first-child{margin-top:0;}
+
+/* Gauge */
+.gauges{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.gauge-card{
+  background:#fafbfc;border:1px solid var(--border);border-radius:10px;padding:14px 12px;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+}
+.gauge-svg{width:140px;height:80px;overflow:visible;}
+.gauge-val{font-size:24px;font-weight:800;line-height:1;margin-top:-8px;}
+.gauge-lbl{font-size:11px;color:var(--muted);font-weight:600;margin-top:4px;}
+.gauge-diff{font-size:10px;font-weight:600;margin-top:3px;padding:2px 6px;border-radius:8px;}
+.gauge-diff.pos{background:var(--green-bg);color:var(--green);}
+.gauge-diff.neg{background:var(--red-bg);color:var(--red);}
+
+/* Detail rows */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.detail-item{background:var(--border-light);padding:10px 12px;border-radius:8px;}
+.detail-lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.detail-val{font-size:15px;font-weight:700;color:var(--text);}
+.detail-val .u{font-size:11px;font-weight:500;color:var(--muted);margin-left:2px;}
+
+.modal-note{
+  margin-top:16px;padding:12px 14px;
+  border-radius:8px;
+  font-size:12px;line-height:1.5;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.modal-note.n-g{background:var(--green-bg);color:#166534;border-left:3px solid var(--green);}
+.modal-note.n-y{background:var(--yellow-bg);color:#854d0e;border-left:3px solid var(--yellow);}
+.modal-note.n-o{background:var(--orange-bg);color:#9a3412;border-left:3px solid var(--orange);}
+.modal-note.n-r{background:var(--red-bg);color:#991b1b;border-left:3px solid var(--red);}
+.modal-note-ico{font-size:14px;flex-shrink:0;}
+.modal-note b{font-weight:700;}
+
+/* Legend */
+.legend-row{display:flex;gap:14px;margin-top:12px;flex-wrap:wrap;border-top:1px solid var(--border-light);padding-top:12px;}
+.leg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);}
+.leg-dot{width:9px;height:9px;border-radius:50%;}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">TRAXIÓN</a>
+  <span class="nav-sep">|</span>
+  <span class="nav-page">Productividad</span>
+</nav>
+
+<header>
+  <div class="h-left">
+    <div class="h-dot"></div>
+    <span class="h-title">Productividad &amp; Eficiencia</span>
+    <span class="h-sub">SETTEPI / set_gar — Técnicos de Mantenimiento</span>
+  </div>
+  <div class="h-right">
+    <span class="h-pill">UDN <b>STP GARCIA</b></span>
+    <span class="h-pill">ORG <b>769 / SG</b></span>
+  </div>
+</header>
+
+<div class="week-tag">Datos correspondientes a la Semana <b>33</b> · 19 técnicos evaluados</div>
+
+<!-- KPIs -->
+<div class="kpi-row" id="kpiRow"></div>
+
+<!-- MID: matrix + rank -->
+<div class="mid">
+  <div class="card">
+    <div class="card-title">
+      <span class="dot"></span>Matriz de Desempeño — Productividad vs Eficiencia
+      <span class="hint">Haz clic en un punto para ver detalle</span>
+    </div>
+    <div class="matrix-wrap">
+      <div class="matrix" id="matrix">
+        <div class="matrix-line v" style="left:64.3%;"></div>
+        <div class="matrix-line h" style="bottom:62.5%;"></div>
+        <div class="matrix-q tl">Eficientes · Baja carga</div>
+        <div class="matrix-q tr">★ Estrellas</div>
+        <div class="matrix-q bl">Requieren atención</div>
+        <div class="matrix-q br">Alta carga · Baja eficiencia</div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;padding:0 0 0 0;font-size:9px;color:var(--muted2);">
+        <span>0%</span><span>50%</span><span>90%</span><span>140%</span>
+      </div>
+      <div style="text-align:center;font-size:10px;color:var(--muted);font-weight:600;margin-top:6px;">% Productividad →</div>
+      <div style="position:absolute;left:6px;top:50%;transform:rotate(-90deg) translateX(50%);transform-origin:left top;font-size:10px;color:var(--muted);font-weight:600;white-space:nowrap;">↑ % Eficiencia</div>
+    </div>
+    <div class="legend-row">
+      <div class="leg"><div class="leg-dot" style="background:#16a34a"></div>Óptimo</div>
+      <div class="leg"><div class="leg-dot" style="background:#ca8a04"></div>Aceptable</div>
+      <div class="leg"><div class="leg-dot" style="background:#ea580c"></div>Bajo</div>
+      <div class="leg"><div class="leg-dot" style="background:#dc2626"></div>Crítico</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Ranking de Técnicos</div>
+    <div class="rank-tabs">
+      <button class="rank-tab active" data-metric="prod" onclick="setRankMetric('prod')">Productividad</button>
+      <button class="rank-tab" data-metric="efic" onclick="setRankMetric('efic')">Eficiencia</button>
+    </div>
+    <div class="rank-list" id="rankList"></div>
+  </div>
+</div>
+
+<!-- TABLE -->
+<div class="tbl-section">
+  <div class="tbl-top">
+    <span class="tbl-title">Detalle por Técnico</span>
+    <input class="tbl-search" id="search" type="text" placeholder="Buscar técnico...">
+    <span class="tbl-cnt" id="tblCnt"></span>
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th id="th-tec" onclick="srt('nombre')">Técnico</th>
+          <th id="th-hrs" onclick="srt('horas')" class="num">Horas Turno</th>
+          <th id="th-real" onclick="srt('real')" class="num">T. Real</th>
+          <th id="th-prod" onclick="srt('prod')" class="num dsc">% Productividad</th>
+          <th id="th-std" onclick="srt('std')" class="num">T. Std</th>
+          <th id="th-efic" onclick="srt('efic')" class="num">% Eficiencia</th>
+          <th class="ns">Estatus</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-head-left">
+        <div class="modal-avatar" id="mAvatar"></div>
+        <div>
+          <div class="modal-title" id="mTitle">Técnico</div>
+          <div class="modal-sub" id="mSub"></div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="modal-section-title">Indicadores</div>
+      <div class="gauges">
+        <div class="gauge-card">
+          <svg class="gauge-svg" viewBox="0 0 140 80" id="mGaugeProd"></svg>
+          <div class="gauge-val" id="mGaugeProdVal"></div>
+          <div class="gauge-lbl">Productividad</div>
+          <div class="gauge-diff" id="mGaugeProdDiff"></div>
+        </div>
+        <div class="gauge-card">
+          <svg class="gauge-svg" viewBox="0 0 140 80" id="mGaugeEfic"></svg>
+          <div class="gauge-val" id="mGaugeEficVal"></div>
+          <div class="gauge-lbl">Eficiencia</div>
+          <div class="gauge-diff" id="mGaugeEficDiff"></div>
+        </div>
+      </div>
+
+      <div class="modal-section-title">Detalle Operativo</div>
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="detail-lbl">Horas Turno</div>
+          <div class="detail-val" id="mHoras">— <span class="u">hrs</span></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-lbl">Tiempo Real Trabajado</div>
+          <div class="detail-val" id="mReal">— <span class="u">hrs</span></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-lbl">Tiempo Standard</div>
+          <div class="detail-val" id="mStd">— <span class="u">hrs</span></div>
+        </div>
+        <div class="detail-item">
+          <div class="detail-lbl">Ranking Global</div>
+          <div class="detail-val" id="mRank">—</div>
+        </div>
+      </div>
+
+      <div class="modal-note" id="mNote">
+        <span class="modal-note-ico" id="mNoteIco">●</span>
+        <span id="mNoteText"></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* ============================ DATA ============================ */
+const DATA = [
+  {nombre:'CESAR RODRIGUEZ',                        real:29.63, horas:34.87, prod:85,  std:29.33, efic:99 },
+  {nombre:'RODRIGUEZ GARCIA JUAN',                  real:30.42, horas:34.95, prod:87,  std:31.00, efic:102},
+  {nombre:'PECINA BAUTISTA EDSON',                  real:35.95, horas:39.32, prod:91,  std:38.57, efic:107},
+  {nombre:'MARTINEZ TORRES JUAN',                   real:33.93, horas:41.27, prod:82,  std:45.32, efic:134},
+  {nombre:'RODRIGUEZ TOBIAS ROBERTO',               real:48.13, horas:43.22, prod:111, std:53.57, efic:111},
+  {nombre:'GÓMEZ FLORES JOSÉ MARIO',                real:54.02, horas:60.66, prod:89,  std:83.50, efic:155},
+  {nombre:'NOE SANTOS WILSON',                      real:36.72, horas:61.60, prod:60,  std:40.08, efic:109},
+  {nombre:'ALANÍS ALANÍS JOSUÉ',                    real:56.45, horas:62.01, prod:91,  std:57.88, efic:103},
+  {nombre:'MENDOZA COVARRUBIAS ADRIAN ISAC',        real:61.57, horas:66.12, prod:93,  std:62.48, efic:101},
+  {nombre:'PEREZ PEREZ ENRIQUE',                    real:45.33, horas:66.60, prod:68,  std:48.28, efic:107},
+  {nombre:'RODRIGUEZ GARCÍA DEMETRIO ALFREDO',      real:52.38, horas:67.58, prod:78,  std:49.00, efic:94 },
+  {nombre:'CESAR CRUZ',                             real:92.52, horas:68.92, prod:134, std:47.67, efic:52 },
+  {nombre:'RAUL GUSTAVO ALANIS',                    real:56.87, horas:68.92, prod:83,  std:55.50, efic:98 },
+  {nombre:'GALLEGOS MARTINEZ MARCO ANTONIO',        real:41.75, horas:69.61, prod:60,  std:44.00, efic:105},
+  {nombre:'CUELLAR DIAZ HAMBLET MISAEL',            real:46.63, horas:70.29, prod:66,  std:45.68, efic:98 },
+  {nombre:'MARTINEZ GONZALEZ LUIS ENRIQUE',         real:102.90,horas:73.43, prod:140, std:64.63, efic:63 },
+  {nombre:'JONATHAN PAÑEDA TENORIO',                real:80.63, horas:80.08, prod:101, std:58.85, efic:73 },
+  {nombre:'OVALLE MONTOYA CRISTIAN AARON',          real:87.23, horas:82.67, prod:106, std:76.28, efic:87 },
+  {nombre:'EDUARDO MACIAS PONCE',                   real:90.25, horas:84.27, prod:107, std:73.58, efic:82 },
+];
+
+const TOTALS = {real:1083.33, horas:1176.39, prod:92, std:1005.23, efic:93};
+
+/* ============================ HELPERS ============================ */
+function initials(n){
+  const p=n.trim().split(/\s+/).filter(w=>w.length>1);
+  return (p[0]?.[0]||'')+(p[1]?.[0]||'');
+}
+function prodClass(v){
+  if(v>=90 && v<=110) return 'g';
+  if(v>=80 && v<120)  return 'y';
+  if(v>=70 && v<130)  return 'o';
+  return 'r';
+}
+function eficClass(v){
+  if(v>=100) return 'g';
+  if(v>=90)  return 'y';
+  if(v>=70)  return 'o';
+  return 'r';
+}
+function combinedClass(prod,efic){
+  const p = prodClass(prod), e = eficClass(efic);
+  const rank = {g:4,y:3,o:2,r:1};
+  const min = Math.min(rank[p],rank[e]);
+  return ['r','o','y','g'][min-1];
+}
+function classToColor(c){
+  return {r:'#dc2626',o:'#ea580c',y:'#ca8a04',g:'#16a34a'}[c];
+}
+function classToLabel(c){
+  return {r:'Crítico',o:'Bajo',y:'Aceptable',g:'Óptimo'}[c];
+}
+
+/* ============================ KPIs ============================ */
+function renderKPIs(){
+  const stars = DATA.filter(d=>combinedClass(d.prod,d.efic)==='g').length;
+  const critical = DATA.filter(d=>combinedClass(d.prod,d.efic)==='r').length;
+  const sobreStd = DATA.filter(d=>d.efic>=100).length;
+  const avgProd = TOTALS.prod;
+  const avgEfic = TOTALS.efic;
+
+  const kpis = [
+    {cls:'gray',  ico:'👥', val:DATA.length,      lbl:'Técnicos evaluados', sub:'Semana 33'},
+    {cls:prodClass(avgProd)==='g'?'green':prodClass(avgProd)==='y'?'yellow':'orange', ico:'⏱', val:avgProd+'<span class="unit">%</span>', lbl:'Productividad promedio', sub:'Tiempo real / horas turno'},
+    {cls:eficClass(avgEfic)==='g'?'green':eficClass(avgEfic)==='y'?'yellow':'orange', ico:'⚡', val:avgEfic+'<span class="unit">%</span>', lbl:'Eficiencia promedio', sub:'Std / tiempo real'},
+    {cls:'green', ico:'✓',  val:sobreStd, lbl:'Sobre standard', sub:'Eficiencia ≥ 100%'},
+    {cls:'red',   ico:'⚠',  val:critical, lbl:'Requieren atención', sub:'Prod o efic. crítica'},
+  ];
+  document.getElementById('kpiRow').innerHTML = kpis.map(k=>`
+    <div class="kpi ${k.cls}">
+      <div class="kpi-top">
+        <div>
+          <div class="kpi-val">${k.val}</div>
+          <div class="kpi-label">${k.lbl}</div>
+          <div class="kpi-sub">${k.sub}</div>
+        </div>
+        <div class="kpi-icon">${k.ico}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ============================ MATRIX ============================ */
+function renderMatrix(){
+  const box = document.getElementById('matrix');
+  // Domain: prod 0..140, efic 0..160
+  // dividers at prod=90 (=64.3% from left) and efic=100 (=62.5% from bottom)
+  box.querySelectorAll('.matrix-dot').forEach(el=>el.remove());
+  DATA.forEach((d,i)=>{
+    const x = Math.min(100, (d.prod/140)*100);
+    const y = Math.min(100, (d.efic/160)*100);
+    const c = combinedClass(d.prod,d.efic);
+    const dot = document.createElement('div');
+    dot.className='matrix-dot';
+    dot.style.left = x+'%';
+    dot.style.bottom = y+'%';
+    dot.style.background = classToColor(c);
+    dot.title = `${d.nombre}\nProductividad: ${d.prod}% · Eficiencia: ${d.efic}%`;
+    dot.onclick=()=>openModal(d);
+    box.appendChild(dot);
+  });
+}
+
+/* ============================ RANK ============================ */
+let rankMetric = 'prod';
+function setRankMetric(m){
+  rankMetric = m;
+  document.querySelectorAll('.rank-tab').forEach(el=>el.classList.toggle('active', el.dataset.metric===m));
+  renderRank();
+}
+function renderRank(){
+  const items = [...DATA].sort((a,b)=>b[rankMetric]-a[rankMetric]).slice(0,8);
+  const max = items[0][rankMetric];
+  document.getElementById('rankList').innerHTML = items.map((d,i)=>{
+    const cls = rankMetric==='prod'?prodClass(d[rankMetric]):eficClass(d[rankMetric]);
+    const color = classToColor(cls);
+    const w = Math.min(100, (d[rankMetric]/max)*100);
+    const posCls = i===0?'top1':i===1?'top2':i===2?'top3':'';
+    return `<div class="rank-item" onclick='openModal(${JSON.stringify(d)})'>
+      <div class="rank-pos ${posCls}">${i+1}</div>
+      <div class="rank-name" title="${d.nombre}">${d.nombre}</div>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${w}%;background:${color}"></div></div>
+      <div class="rank-val" style="color:${color}">${d[rankMetric]}%</div>
+    </div>`;
+  }).join('');
+}
+
+/* ============================ TABLE ============================ */
+let sortF='prod',sortD='d';
+let searchTxt='';
+function getRows(){
+  let d = [...DATA];
+  if(searchTxt){
+    const q = searchTxt.toLowerCase();
+    d = d.filter(r=>r.nombre.toLowerCase().includes(q));
+  }
+  d.sort((a,b)=>{
+    if(sortF==='nombre') return sortD==='d'?b.nombre.localeCompare(a.nombre):a.nombre.localeCompare(b.nombre);
+    return sortD==='d'?b[sortF]-a[sortF]:a[sortF]-b[sortF];
+  });
+  return d;
+}
+function renderTable(){
+  const rows = getRows();
+  document.getElementById('tblCnt').textContent = `${rows.length} de ${DATA.length} técnicos`;
+  const tb = document.getElementById('tbody');
+  tb.innerHTML = '';
+  rows.forEach((row)=>{
+    const pcls = prodClass(row.prod), ecls = eficClass(row.efic);
+    const combCls = combinedClass(row.prod,row.efic);
+    const combLbl = classToLabel(combCls);
+    const pcolor = classToColor(pcls), ecolor = classToColor(ecls);
+    const pw = Math.min(100, (row.prod/140)*100);
+    const ew = Math.min(100, (row.efic/160)*100);
+    const idx = DATA.indexOf(row)+1;
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <div class="tec-cell">
+          <div class="tec-avatar">${initials(row.nombre)}</div>
+          <div>
+            <div class="tec-name">${row.nombre}</div>
+            <div class="tec-idx">Técnico #${idx}</div>
+          </div>
+        </div>
+      </td>
+      <td class="num"><span class="hours-val">${row.horas.toFixed(2)}</span><span class="hours-hint">h</span></td>
+      <td class="num"><span class="hours-val">${row.real.toFixed(2)}</span><span class="hours-hint">h</span></td>
+      <td class="num">
+        <div class="metric-cell">
+          <div class="metric-bar-wrap"><div class="metric-bar" style="width:${pw}%;background:${pcolor}"></div></div>
+          <span class="metric-val" style="color:${pcolor}">${row.prod}%</span>
+        </div>
+      </td>
+      <td class="num"><span class="hours-val">${row.std.toFixed(2)}</span><span class="hours-hint">h</span></td>
+      <td class="num">
+        <div class="metric-cell">
+          <div class="metric-bar-wrap"><div class="metric-bar" style="width:${ew}%;background:${ecolor}"></div></div>
+          <span class="metric-val" style="color:${ecolor}">${row.efic}%</span>
+        </div>
+      </td>
+      <td><span class="spill sp-${combCls}"><span class="sp-dot"></span>${combLbl}</span></td>
+    `;
+    tr.addEventListener('click',()=>openModal(row));
+    tb.appendChild(tr);
+  });
+}
+
+/* ============================ GAUGE ============================ */
+function drawGauge(svgId, valEl, diffEl, val, avg, isEfic){
+  const svg = document.getElementById(svgId);
+  const cls = isEfic?eficClass(val):prodClass(val);
+  const color = classToColor(cls);
+  // Semi-circle gauge from 180° to 0°, val mapped 0..(isEfic?160:140)
+  const max = isEfic?160:140;
+  const pct = Math.min(1, val/max);
+  const angleStart = Math.PI; // 180°
+  const angleEnd = angleStart - pct*Math.PI;
+  const cx=70, cy=70, r=55;
+  const x1 = cx + r*Math.cos(angleStart);
+  const y1 = cy - r*Math.sin(angleStart);
+  const x2 = cx + r*Math.cos(angleEnd);
+  const y2 = cy - r*Math.sin(angleEnd);
+  const largeArc = pct>0.5 ? 1 : 0;
+  const bgPath = `M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}`;
+  const fgPath = `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
+
+  // Reference markers at good thresholds
+  const markers = isEfic?[70,90,100]:[70,80,90,100];
+
+  let markerSvg = '';
+  markers.forEach(m=>{
+    const mAngle = Math.PI - (m/max)*Math.PI;
+    const mx = cx + (r+3)*Math.cos(mAngle);
+    const my = cy - (r+3)*Math.sin(mAngle);
+    const mx2 = cx + (r-3)*Math.cos(mAngle);
+    const my2 = cy - (r-3)*Math.sin(mAngle);
+    markerSvg += `<line x1="${mx}" y1="${my}" x2="${mx2}" y2="${my2}" stroke="#d1d5db" stroke-width="1"/>`;
+  });
+
+  svg.innerHTML = `
+    <path d="${bgPath}" fill="none" stroke="#e5e7eb" stroke-width="10" stroke-linecap="round"/>
+    <path d="${fgPath}" fill="none" stroke="${color}" stroke-width="10" stroke-linecap="round"/>
+    ${markerSvg}
+    <text x="70" y="78" text-anchor="middle" font-size="9" fill="#9ca3af" font-weight="600">0%</text>
+    <text x="18" y="78" text-anchor="middle" font-size="9" fill="#9ca3af" font-weight="600"></text>
+    <text x="122" y="78" text-anchor="middle" font-size="9" fill="#9ca3af" font-weight="600">${max}%</text>
+  `;
+
+  valEl.textContent = val+'%';
+  valEl.style.color = color;
+
+  const diff = val - avg;
+  diffEl.textContent = (diff>=0?'+':'')+diff+'% vs prom';
+  diffEl.className = 'gauge-diff '+(diff>=0?'pos':'neg');
+}
+
+/* ============================ MODAL ============================ */
+function openModal(row){
+  document.getElementById('mAvatar').textContent = initials(row.nombre);
+  document.getElementById('mTitle').textContent = row.nombre;
+
+  const cls = combinedClass(row.prod,row.efic);
+  const lbl = classToLabel(cls);
+  document.getElementById('mSub').innerHTML = `<span class="spill sp-${cls}" style="font-size:10px;padding:2px 8px;"><span class="sp-dot"></span>${lbl}</span><span>· Técnico #${DATA.indexOf(row)+1}</span>`;
+
+  drawGauge('mGaugeProd', document.getElementById('mGaugeProdVal'), document.getElementById('mGaugeProdDiff'), row.prod, TOTALS.prod, false);
+  drawGauge('mGaugeEfic', document.getElementById('mGaugeEficVal'), document.getElementById('mGaugeEficDiff'), row.efic, TOTALS.efic, true);
+
+  document.getElementById('mHoras').innerHTML = row.horas.toFixed(2)+' <span class="u">hrs</span>';
+  document.getElementById('mReal').innerHTML  = row.real.toFixed(2)+' <span class="u">hrs</span>';
+  document.getElementById('mStd').innerHTML   = row.std.toFixed(2)+' <span class="u">hrs</span>';
+
+  // Global rank (by combined score = prod capped at 100 + efic capped at 100)
+  const scored = DATA.map(d=>({n:d.nombre, s:Math.min(100,d.prod)+Math.min(100,d.efic)})).sort((a,b)=>b.s-a.s);
+  const pos = scored.findIndex(x=>x.n===row.nombre)+1;
+  document.getElementById('mRank').innerHTML = `${pos} <span class="u">de ${DATA.length}</span>`;
+
+  // Note
+  const note = document.getElementById('mNote');
+  const noteText = document.getElementById('mNoteText');
+  const noteIco = document.getElementById('mNoteIco');
+  note.className = 'modal-note n-'+cls;
+  let msg = '';
+  if(cls==='g'){
+    noteIco.textContent = '★';
+    msg = `<b>Desempeño óptimo.</b> El técnico opera dentro del rango esperado tanto en productividad (${row.prod}%) como en eficiencia (${row.efic}%). Buen candidato como referencia del equipo.`;
+  } else if(cls==='y'){
+    noteIco.textContent = '●';
+    msg = `<b>Desempeño aceptable.</b> Productividad ${row.prod}% / Eficiencia ${row.efic}%. Hay margen de mejora en al menos un indicador; considerar seguimiento en la próxima semana.`;
+  } else if(cls==='o'){
+    noteIco.textContent = '⚠';
+    if(row.prod<70) msg = `<b>Baja productividad (${row.prod}%).</b> El tiempo real trabajado (${row.real.toFixed(2)}h) está por debajo del turno (${row.horas.toFixed(2)}h). Revisar tiempos muertos y asignación de trabajo.`;
+    else if(row.efic<70) msg = `<b>Baja eficiencia (${row.efic}%).</b> Se está tardando más del standard para completar trabajos. Revisar métodos, herramientas o capacitación.`;
+    else if(row.prod>120) msg = `<b>Sobrecarga (${row.prod}%).</b> Se están reportando horas por encima del turno. Validar registro de tiempos y balance de carga.`;
+    else msg = `<b>Indicadores fuera de rango.</b> Prod ${row.prod}% / Efic ${row.efic}%. Requiere revisión de causas.`;
+  } else {
+    noteIco.textContent = '⚠';
+    if(row.efic<70 && row.prod>120) msg = `<b>ALERTA:</b> Alta actividad reportada (${row.prod}% productividad) con muy baja eficiencia (${row.efic}%). Puede indicar problemas de método, materiales, o registro incorrecto. Auditar inmediatamente.`;
+    else if(row.prod<70) msg = `<b>ALERTA:</b> Productividad crítica en ${row.prod}%. Solo ${row.real.toFixed(2)}h reales sobre ${row.horas.toFixed(2)}h de turno. Requiere acción inmediata.`;
+    else msg = `<b>Indicadores en zona crítica.</b> Prod ${row.prod}% / Efic ${row.efic}%. Se recomienda seguimiento uno-a-uno.`;
+  }
+  noteText.innerHTML = msg;
+
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(e){if(e.target===document.getElementById('modalOverlay'))closeModalBtn();}
+function closeModalBtn(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModalBtn();});
+
+/* ============================ SORT ============================ */
+function srt(field){
+  if(sortF===field) sortD = sortD==='d'?'a':'d';
+  else{sortF=field; sortD='d';}
+  ['th-tec','th-hrs','th-real','th-prod','th-std','th-efic'].forEach(id=>document.getElementById(id)?.classList.remove('asc','dsc'));
+  const map={nombre:'th-tec',horas:'th-hrs',real:'th-real',prod:'th-prod',std:'th-std',efic:'th-efic'};
+  document.getElementById(map[sortF])?.classList.add(sortD==='d'?'dsc':'asc');
+  renderTable();
+}
+
+document.getElementById('search').addEventListener('input',e=>{searchTxt=e.target.value;renderTable();});
+
+/* ============================ INIT ============================ */
+renderKPIs();
+renderMatrix();
+renderRank();
+renderTable();
+</script>
+</body>
+</html>
