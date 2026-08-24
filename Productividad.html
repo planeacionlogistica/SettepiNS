@@ -24,12 +24,11 @@
   --orange:#ea580c; --orange-bg:#fff7ed; --orange-b:#fed7aa;
   --yellow:#ca8a04; --yellow-bg:#fefce8; --yellow-b:#fef08a;
   --green:#16a34a;  --green-bg:#f0fdf4;  --green-b:#bbf7d0;
-  --blue:#2563eb;   --blue-bg:#eff6ff;   --blue-b:#bfdbfe;
 }
 
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:13px;min-height:100vh;}
 
-/* NAV */
+/* NAV — mismo estilo que Cambio de Manos */
 nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48px;gap:14px;position:sticky;top:0;z-index:300;box-shadow:0 2px 8px rgba(0,0,0,.3);}
 .nav-logo{color:#84cc16;font-weight:800;font-size:16px;text-decoration:none;}
 .nav-sep{color:#4b5563;font-size:14px;font-weight:300;}
@@ -49,8 +48,8 @@ header{
 .h-pill{background:rgba(255,255,255,.06);color:#e5e7eb;font-size:11px;padding:5px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.08);font-weight:500;}
 .h-pill b{color:var(--accent);font-weight:700;}
 
-/* Semana tag */
 .week-tag{text-align:center;padding:8px 0;color:#94a3b8;font-size:12px;font-style:italic;background:#fff;border-bottom:1px solid var(--border);}
+.week-tag b{color:var(--text2);}
 
 /* KPIs */
 .kpi-row{
@@ -58,7 +57,7 @@ header{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
   gap:12px;
-  max-width:1400px;
+  max-width:1200px;
   margin:0 auto;
 }
 .kpi{
@@ -75,7 +74,6 @@ header{
 .kpi.orange::before {background:var(--orange);}
 .kpi.yellow::before {background:var(--yellow);}
 .kpi.green::before  {background:var(--green);}
-.kpi.blue::before   {background:var(--blue);}
 .kpi.gray::before   {background:#6b7280;}
 .kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
 .kpi-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
@@ -83,7 +81,6 @@ header{
 .kpi.orange .kpi-icon{background:var(--orange-bg);color:var(--orange);}
 .kpi.yellow .kpi-icon{background:var(--yellow-bg);color:var(--yellow);}
 .kpi.green  .kpi-icon{background:var(--green-bg);color:var(--green);}
-.kpi.blue   .kpi-icon{background:var(--blue-bg);color:var(--blue);}
 .kpi.gray   .kpi-icon{background:#f3f4f6;color:#6b7280;}
 .kpi-val{font-size:28px;font-weight:700;line-height:1;color:var(--text);margin-bottom:5px;}
 .kpi-val .unit{font-size:14px;font-weight:500;color:var(--muted);margin-left:2px;}
@@ -91,64 +88,65 @@ header{
 .kpi.orange .kpi-val{color:var(--orange);}
 .kpi.yellow .kpi-val{color:var(--yellow);}
 .kpi.green  .kpi-val{color:var(--green);}
-.kpi.blue   .kpi-val{color:var(--blue);}
 .kpi-label{font-size:11px;font-weight:600;color:var(--text2);}
 .kpi-sub{font-size:10px;color:var(--muted2);margin-top:3px;}
 
-/* MID SECTION */
+/* MID */
 .mid{
   padding:16px 28px 0;
-  max-width:1400px;
+  max-width:1200px;
   margin:0 auto;
   display:grid;
-  grid-template-columns:1.6fr 1fr;
+  grid-template-columns:1.55fr 1fr;
   gap:14px;
 }
-@media(max-width:960px){.mid{grid-template-columns:1fr;}}
+@media(max-width:900px){.mid{grid-template-columns:1fr;}}
 
 .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 20px;}
 .card-title{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
 .card-title .dot{width:6px;height:6px;background:var(--accent);border-radius:50%;}
 .card-title .hint{margin-left:auto;font-size:10px;color:var(--muted2);font-weight:400;font-style:italic;}
 
-/* MATRIX (scatter) */
-.matrix-wrap{position:relative;padding:20px 8px 8px 40px;}
-.matrix{
-  position:relative;width:100%;aspect-ratio:1.5/1;
+/* DISTRIBUTION CHART — estilo similar al reference (Cambio de Manos) */
+.dist-wrap{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(30px,1fr));
+  align-items:end;
+  gap:8px;
+  min-height:180px;
+  padding:18px 14px 8px;
+  border:1px solid var(--border-light);
+  border-radius:8px;
   background:
-    linear-gradient(to right, rgba(22,163,74,.04) 0%, rgba(22,163,74,.04) 100%),
-    linear-gradient(to top, rgba(220,38,38,.03) 0%, rgba(220,38,38,.03) 100%);
-  border:1px solid var(--border);border-radius:8px;overflow:hidden;
+    linear-gradient(to top,rgba(229,231,235,.9) 1px,transparent 1px) 0 0/100% 25%,
+    #fcfcfd;
 }
-.matrix-q{position:absolute;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;pointer-events:none;opacity:.7;}
-.matrix-q.tl{top:6px;left:6px;color:var(--yellow);}
-.matrix-q.tr{top:6px;right:6px;color:var(--green);}
-.matrix-q.bl{bottom:6px;left:6px;color:var(--red);}
-.matrix-q.br{bottom:6px;right:6px;color:var(--orange);}
-.matrix-line{position:absolute;background:rgba(107,114,128,.25);pointer-events:none;}
-.matrix-line.v{width:1px;height:100%;top:0;border-left:1px dashed rgba(107,114,128,.5);background:transparent;}
-.matrix-line.h{height:1px;width:100%;left:0;border-top:1px dashed rgba(107,114,128,.5);background:transparent;}
-.matrix-tick{position:absolute;font-size:9px;color:var(--muted2);}
-.matrix-tick.x{bottom:-18px;transform:translateX(-50%);}
-.matrix-tick.y{left:-28px;transform:translateY(50%);}
-.matrix-dot{
-  position:absolute;width:14px;height:14px;border-radius:50%;
-  transform:translate(-50%,50%);cursor:pointer;
-  border:2px solid #fff;
-  box-shadow:0 2px 6px rgba(0,0,0,.15);
-  transition:transform .12s;
+.dist-col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:140px;min-width:0;cursor:pointer;transition:transform .12s;}
+.dist-col:hover{transform:translateY(-2px);}
+.dist-bar{
+  width:100%;
+  max-width:44px;
+  min-height:4px;
+  border-radius:6px 6px 2px 2px;
+  box-shadow:inset 0 -8px 14px rgba(0,0,0,.08),0 4px 10px rgba(17,24,39,.08);
+  transition:opacity .15s;
 }
-.matrix-dot:hover{transform:translate(-50%,50%) scale(1.4);z-index:5;}
-.matrix-axis-lbl{font-size:10px;color:var(--muted);font-weight:600;position:absolute;}
-.matrix-axis-lbl.x{bottom:-38px;left:50%;transform:translateX(-50%);}
-.matrix-axis-lbl.y{left:-38px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:center;white-space:nowrap;}
+.dist-cnt{font-size:11px;font-weight:700;line-height:1;min-height:12px;}
+.dist-lbl{font-size:10px;color:var(--muted);font-weight:600;text-align:center;line-height:1.15;}
+.dist-lbl small{display:block;color:var(--muted2);font-weight:500;font-size:9px;margin-top:1px;}
+.dist-axis{text-align:center;margin-top:10px;font-size:10px;color:var(--muted);font-weight:600;}
+.dist-legend{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap;border-top:1px solid var(--border-light);padding-top:12px;justify-content:center;}
+.leg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);}
+.leg-dot{width:9px;height:9px;border-radius:2px;}
 
-/* RANK CARD (right) */
-.rank-list{display:flex;flex-direction:column;gap:8px;}
-.rank-tabs{display:flex;gap:4px;margin-bottom:10px;background:var(--border-light);padding:3px;border-radius:7px;}
-.rank-tab{flex:1;padding:6px 8px;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:600;border-radius:5px;cursor:pointer;transition:all .12s;font-family:inherit;}
+/* RANK card */
+.rank-tabs{display:flex;gap:4px;margin-bottom:12px;background:var(--border-light);padding:3px;border-radius:7px;}
+.rank-tab{flex:1;padding:7px 10px;border:none;background:transparent;color:var(--muted);font-size:11px;font-weight:600;border-radius:5px;cursor:pointer;transition:all .12s;font-family:inherit;}
 .rank-tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.06);}
-.rank-item{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:6px;transition:background .12s;cursor:pointer;}
+.rank-list{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;padding-right:4px;}
+.rank-list::-webkit-scrollbar{width:6px;}
+.rank-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+.rank-item{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:6px;transition:background .12s;cursor:pointer;}
 .rank-item:hover{background:var(--border-light);}
 .rank-pos{
   width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;
@@ -158,19 +156,19 @@ header{
 .rank-pos.top2{background:#e5e7eb;color:#4b5563;}
 .rank-pos.top3{background:#fed7aa;color:#c2410c;}
 .rank-name{flex:1;font-size:12px;font-weight:500;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.rank-bar-wrap{width:70px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;flex-shrink:0;}
+.rank-bar-wrap{width:60px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;flex-shrink:0;}
 .rank-bar{height:100%;border-radius:3px;}
 .rank-val{font-size:12px;font-weight:700;min-width:38px;text-align:right;flex-shrink:0;}
 
 /* TABLE */
-.tbl-section{padding:16px 28px 40px;max-width:1400px;margin:0 auto;width:100%;}
+.tbl-section{padding:16px 28px 40px;max-width:1200px;margin:0 auto;width:100%;}
 .tbl-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
 .tbl-title{font-size:13px;font-weight:600;color:var(--text);}
 .tbl-cnt{margin-left:auto;font-size:11px;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:4px 10px;border-radius:5px;}
 .tbl-search{
-  padding:5px 10px;border:1px solid var(--border);border-radius:6px;
+  padding:6px 10px;border:1px solid var(--border);border-radius:6px;
   font-size:12px;font-family:inherit;outline:none;background:var(--surface);color:var(--text);
-  width:200px;transition:border-color .12s;
+  width:220px;transition:border-color .12s;
 }
 .tbl-search:focus{border-color:var(--accent);}
 
@@ -257,7 +255,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;}
 .modal-head-left{display:flex;align-items:center;gap:12px;}
 .modal-avatar{width:40px;height:40px;border-radius:8px;background:var(--header);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;}
 .modal-title{font-size:15px;font-weight:700;color:var(--text);}
-.modal-sub{font-size:11px;color:var(--muted);margin-top:2px;display:flex;gap:6px;align-items:center;}
+.modal-sub{font-size:11px;color:var(--muted);margin-top:4px;display:flex;gap:6px;align-items:center;}
 .modal-close{
   width:30px;height:30px;border-radius:6px;border:1px solid var(--border);
   background:transparent;cursor:pointer;font-size:16px;color:var(--muted);
@@ -267,21 +265,30 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;}
 .modal-close:hover{background:var(--border);color:var(--text);}
 
 .modal-body{overflow-y:auto;padding:18px 20px;flex:1;}
-.modal-section-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 10px;}
+.modal-section-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;}
 .modal-section-title:first-child{margin-top:0;}
 
-/* Gauge */
-.gauges{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.gauge-card{
-  background:#fafbfc;border:1px solid var(--border);border-radius:10px;padding:14px 12px;
-  display:flex;flex-direction:column;align-items:center;text-align:center;
+/* INDICADORES (linear meter — limpio y legible) */
+.indicators{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.ind-card{
+  background:#fafbfc;border:1px solid var(--border);border-radius:10px;padding:14px 16px;
 }
-.gauge-svg{width:140px;height:80px;overflow:visible;}
-.gauge-val{font-size:24px;font-weight:800;line-height:1;margin-top:-8px;}
-.gauge-lbl{font-size:11px;color:var(--muted);font-weight:600;margin-top:4px;}
-.gauge-diff{font-size:10px;font-weight:600;margin-top:3px;padding:2px 6px;border-radius:8px;}
-.gauge-diff.pos{background:var(--green-bg);color:var(--green);}
-.gauge-diff.neg{background:var(--red-bg);color:var(--red);}
+.ind-top{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px;}
+.ind-lbl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+.ind-diff{font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;white-space:nowrap;}
+.ind-diff.pos{background:var(--green-bg);color:var(--green);}
+.ind-diff.neg{background:var(--red-bg);color:var(--red);}
+.ind-diff.eq {background:var(--border-light);color:var(--muted);}
+.ind-val{font-size:32px;font-weight:800;line-height:1;margin-bottom:12px;letter-spacing:-.02em;}
+.ind-val .u{font-size:16px;font-weight:600;color:var(--muted);margin-left:2px;}
+.ind-meter{
+  position:relative;height:8px;background:var(--border);border-radius:5px;overflow:hidden;margin-bottom:6px;
+}
+.ind-meter-fill{position:absolute;top:0;left:0;bottom:0;border-radius:5px;transition:width .4s ease;}
+.ind-meter-goal{
+  position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--text2);opacity:.55;
+}
+.ind-scale{display:flex;justify-content:space-between;font-size:9px;color:var(--muted2);font-weight:500;margin-top:4px;}
 
 /* Detail rows */
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -302,11 +309,6 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;}
 .modal-note.n-r{background:var(--red-bg);color:#991b1b;border-left:3px solid var(--red);}
 .modal-note-ico{font-size:14px;flex-shrink:0;}
 .modal-note b{font-weight:700;}
-
-/* Legend */
-.legend-row{display:flex;gap:14px;margin-top:12px;flex-wrap:wrap;border-top:1px solid var(--border-light);padding-top:12px;}
-.leg{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);}
-.leg-dot{width:9px;height:9px;border-radius:50%;}
 </style>
 </head>
 <body>
@@ -334,30 +336,17 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;}
 <!-- KPIs -->
 <div class="kpi-row" id="kpiRow"></div>
 
-<!-- MID: matrix + rank -->
+<!-- MID: distribution + rank -->
 <div class="mid">
   <div class="card">
     <div class="card-title">
-      <span class="dot"></span>Matriz de Desempeño — Productividad vs Eficiencia
-      <span class="hint">Haz clic en un punto para ver detalle</span>
+      <span class="dot"></span>Distribución del equipo por rango de Productividad
+      <span class="hint">Click en una barra para filtrar la tabla</span>
     </div>
-    <div class="matrix-wrap">
-      <div class="matrix" id="matrix">
-        <div class="matrix-line v" style="left:64.3%;"></div>
-        <div class="matrix-line h" style="bottom:62.5%;"></div>
-        <div class="matrix-q tl">Eficientes · Baja carga</div>
-        <div class="matrix-q tr">★ Estrellas</div>
-        <div class="matrix-q bl">Requieren atención</div>
-        <div class="matrix-q br">Alta carga · Baja eficiencia</div>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-top:6px;padding:0 0 0 0;font-size:9px;color:var(--muted2);">
-        <span>0%</span><span>50%</span><span>90%</span><span>140%</span>
-      </div>
-      <div style="text-align:center;font-size:10px;color:var(--muted);font-weight:600;margin-top:6px;">% Productividad →</div>
-      <div style="position:absolute;left:6px;top:50%;transform:rotate(-90deg) translateX(50%);transform-origin:left top;font-size:10px;color:var(--muted);font-weight:600;white-space:nowrap;">↑ % Eficiencia</div>
-    </div>
-    <div class="legend-row">
-      <div class="leg"><div class="leg-dot" style="background:#16a34a"></div>Óptimo</div>
+    <div class="dist-wrap" id="distChart"></div>
+    <div class="dist-axis">% Productividad (tiempo real / horas turno)</div>
+    <div class="dist-legend">
+      <div class="leg"><div class="leg-dot" style="background:#16a34a"></div>Óptimo (90–110%)</div>
       <div class="leg"><div class="leg-dot" style="background:#ca8a04"></div>Aceptable</div>
       <div class="leg"><div class="leg-dot" style="background:#ea580c"></div>Bajo</div>
       <div class="leg"><div class="leg-dot" style="background:#dc2626"></div>Crítico</div>
@@ -415,18 +404,30 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;}
 
     <div class="modal-body">
       <div class="modal-section-title">Indicadores</div>
-      <div class="gauges">
-        <div class="gauge-card">
-          <svg class="gauge-svg" viewBox="0 0 140 80" id="mGaugeProd"></svg>
-          <div class="gauge-val" id="mGaugeProdVal"></div>
-          <div class="gauge-lbl">Productividad</div>
-          <div class="gauge-diff" id="mGaugeProdDiff"></div>
+      <div class="indicators">
+        <div class="ind-card">
+          <div class="ind-top">
+            <span class="ind-lbl">Productividad</span>
+            <span class="ind-diff" id="mProdDiff"></span>
+          </div>
+          <div class="ind-val" id="mProdVal" style="color:#16a34a">—<span class="u">%</span></div>
+          <div class="ind-meter">
+            <div class="ind-meter-fill" id="mProdFill"></div>
+            <div class="ind-meter-goal" id="mProdGoal" style="left:64.3%"></div>
+          </div>
+          <div class="ind-scale"><span>0%</span><span style="opacity:.7">90% meta</span><span>140%</span></div>
         </div>
-        <div class="gauge-card">
-          <svg class="gauge-svg" viewBox="0 0 140 80" id="mGaugeEfic"></svg>
-          <div class="gauge-val" id="mGaugeEficVal"></div>
-          <div class="gauge-lbl">Eficiencia</div>
-          <div class="gauge-diff" id="mGaugeEficDiff"></div>
+        <div class="ind-card">
+          <div class="ind-top">
+            <span class="ind-lbl">Eficiencia</span>
+            <span class="ind-diff" id="mEficDiff"></span>
+          </div>
+          <div class="ind-val" id="mEficVal" style="color:#16a34a">—<span class="u">%</span></div>
+          <div class="ind-meter">
+            <div class="ind-meter-fill" id="mEficFill"></div>
+            <div class="ind-meter-goal" id="mEficGoal" style="left:62.5%"></div>
+          </div>
+          <div class="ind-scale"><span>0%</span><span style="opacity:.7">100% meta</span><span>160%</span></div>
         </div>
       </div>
 
@@ -485,6 +486,11 @@ const DATA = [
 
 const TOTALS = {real:1083.33, horas:1176.39, prod:92, std:1005.23, efic:93};
 
+// Ranking global fijo (por score combinado prod+efic capados en 100)
+const GLOBAL_RANK = DATA
+  .map((d,i)=>({i, nombre:d.nombre, s:Math.min(100,d.prod)+Math.min(100,d.efic)}))
+  .sort((a,b)=>b.s-a.s);
+
 /* ============================ HELPERS ============================ */
 function initials(n){
   const p=n.trim().split(/\s+/).filter(w=>w.length>1);
@@ -508,25 +514,22 @@ function combinedClass(prod,efic){
   const min = Math.min(rank[p],rank[e]);
   return ['r','o','y','g'][min-1];
 }
-function classToColor(c){
-  return {r:'#dc2626',o:'#ea580c',y:'#ca8a04',g:'#16a34a'}[c];
-}
-function classToLabel(c){
-  return {r:'Crítico',o:'Bajo',y:'Aceptable',g:'Óptimo'}[c];
-}
+const CLASS_COLOR = {r:'#dc2626',o:'#ea580c',y:'#ca8a04',g:'#16a34a'};
+const CLASS_LABEL = {r:'Crítico',o:'Bajo',y:'Aceptable',g:'Óptimo'};
 
 /* ============================ KPIs ============================ */
 function renderKPIs(){
-  const stars = DATA.filter(d=>combinedClass(d.prod,d.efic)==='g').length;
   const critical = DATA.filter(d=>combinedClass(d.prod,d.efic)==='r').length;
   const sobreStd = DATA.filter(d=>d.efic>=100).length;
   const avgProd = TOTALS.prod;
   const avgEfic = TOTALS.efic;
 
+  const prodClsMap = {g:'green', y:'yellow', o:'orange', r:'red'};
+
   const kpis = [
     {cls:'gray',  ico:'👥', val:DATA.length,      lbl:'Técnicos evaluados', sub:'Semana 33'},
-    {cls:prodClass(avgProd)==='g'?'green':prodClass(avgProd)==='y'?'yellow':'orange', ico:'⏱', val:avgProd+'<span class="unit">%</span>', lbl:'Productividad promedio', sub:'Tiempo real / horas turno'},
-    {cls:eficClass(avgEfic)==='g'?'green':eficClass(avgEfic)==='y'?'yellow':'orange', ico:'⚡', val:avgEfic+'<span class="unit">%</span>', lbl:'Eficiencia promedio', sub:'Std / tiempo real'},
+    {cls:prodClsMap[prodClass(avgProd)], ico:'⏱', val:avgProd+'<span class="unit">%</span>', lbl:'Productividad promedio', sub:'Tiempo real / horas turno'},
+    {cls:prodClsMap[eficClass(avgEfic)], ico:'⚡', val:avgEfic+'<span class="unit">%</span>', lbl:'Eficiencia promedio', sub:'Tiempo std / tiempo real'},
     {cls:'green', ico:'✓',  val:sobreStd, lbl:'Sobre standard', sub:'Eficiencia ≥ 100%'},
     {cls:'red',   ico:'⚠',  val:critical, lbl:'Requieren atención', sub:'Prod o efic. crítica'},
   ];
@@ -543,25 +546,38 @@ function renderKPIs(){
     </div>`).join('');
 }
 
-/* ============================ MATRIX ============================ */
-function renderMatrix(){
-  const box = document.getElementById('matrix');
-  // Domain: prod 0..140, efic 0..160
-  // dividers at prod=90 (=64.3% from left) and efic=100 (=62.5% from bottom)
-  box.querySelectorAll('.matrix-dot').forEach(el=>el.remove());
-  DATA.forEach((d,i)=>{
-    const x = Math.min(100, (d.prod/140)*100);
-    const y = Math.min(100, (d.efic/160)*100);
-    const c = combinedClass(d.prod,d.efic);
-    const dot = document.createElement('div');
-    dot.className='matrix-dot';
-    dot.style.left = x+'%';
-    dot.style.bottom = y+'%';
-    dot.style.background = classToColor(c);
-    dot.title = `${d.nombre}\nProductividad: ${d.prod}% · Eficiencia: ${d.efic}%`;
-    dot.onclick=()=>openModal(d);
-    box.appendChild(dot);
-  });
+/* ============================ DISTRIBUTION ============================ */
+const BUCKETS = [
+  {min:0,   max:70,  lbl:'<70%',     sub:'Crítico',   color:'#dc2626'},
+  {min:70,  max:80,  lbl:'70-79%',   sub:'Bajo',      color:'#ea580c'},
+  {min:80,  max:90,  lbl:'80-89%',   sub:'Aceptable', color:'#ca8a04'},
+  {min:90,  max:110, lbl:'90-110%',  sub:'Óptimo',    color:'#16a34a'},
+  {min:110, max:120, lbl:'111-119%', sub:'Alta',      color:'#ca8a04'},
+  {min:120, max:130, lbl:'120-129%', sub:'Sobrec.',   color:'#ea580c'},
+  {min:130, max:9e9, lbl:'≥130%',    sub:'Crítico',   color:'#dc2626'},
+];
+
+let bucketFilter = -1; // -1 = ninguno
+
+function renderDist(){
+  const counts = BUCKETS.map(b=>DATA.filter(d=>d.prod>=b.min && d.prod<b.max).length);
+  const max = Math.max(...counts, 1);
+  document.getElementById('distChart').innerHTML = BUCKETS.map((b,i)=>{
+    const c = counts[i];
+    const h = c ? Math.max(10, Math.round(c/max*128)) : 4;
+    const active = bucketFilter===i;
+    const opacity = c ? (bucketFilter===-1 || active ? .95 : .32) : .18;
+    return `<div class="dist-col" onclick="toggleBucket(${i})" title="${b.lbl}: ${c} técnico(s)">
+      <div class="dist-cnt" style="color:${b.color}">${c||''}</div>
+      <div class="dist-bar" style="height:${h}px;background:${b.color};opacity:${opacity};${active?'outline:2px solid '+b.color+';outline-offset:2px;':''}"></div>
+      <div class="dist-lbl">${b.lbl}<small>${b.sub}</small></div>
+    </div>`;
+  }).join('');
+}
+function toggleBucket(i){
+  bucketFilter = (bucketFilter===i) ? -1 : i;
+  renderDist();
+  renderTable();
 }
 
 /* ============================ RANK ============================ */
@@ -572,15 +588,16 @@ function setRankMetric(m){
   renderRank();
 }
 function renderRank(){
-  const items = [...DATA].sort((a,b)=>b[rankMetric]-a[rankMetric]).slice(0,8);
-  const max = items[0][rankMetric];
-  document.getElementById('rankList').innerHTML = items.map((d,i)=>{
+  const items = DATA.map((d,i)=>({d, i})).sort((a,b)=>b.d[rankMetric]-a.d[rankMetric]);
+  const max = items[0].d[rankMetric];
+  document.getElementById('rankList').innerHTML = items.map((it,rankIdx)=>{
+    const d = it.d;
     const cls = rankMetric==='prod'?prodClass(d[rankMetric]):eficClass(d[rankMetric]);
-    const color = classToColor(cls);
+    const color = CLASS_COLOR[cls];
     const w = Math.min(100, (d[rankMetric]/max)*100);
-    const posCls = i===0?'top1':i===1?'top2':i===2?'top3':'';
-    return `<div class="rank-item" onclick='openModal(${JSON.stringify(d)})'>
-      <div class="rank-pos ${posCls}">${i+1}</div>
+    const posCls = rankIdx===0?'top1':rankIdx===1?'top2':rankIdx===2?'top3':'';
+    return `<div class="rank-item" onclick="openModalByIdx(${it.i})">
+      <div class="rank-pos ${posCls}">${rankIdx+1}</div>
       <div class="rank-name" title="${d.nombre}">${d.nombre}</div>
       <div class="rank-bar-wrap"><div class="rank-bar" style="width:${w}%;background:${color}"></div></div>
       <div class="rank-val" style="color:${color}">${d[rankMetric]}%</div>
@@ -592,30 +609,38 @@ function renderRank(){
 let sortF='prod',sortD='d';
 let searchTxt='';
 function getRows(){
-  let d = [...DATA];
+  let rows = DATA.map((d,i)=>({d,i}));
   if(searchTxt){
     const q = searchTxt.toLowerCase();
-    d = d.filter(r=>r.nombre.toLowerCase().includes(q));
+    rows = rows.filter(r=>r.d.nombre.toLowerCase().includes(q));
   }
-  d.sort((a,b)=>{
-    if(sortF==='nombre') return sortD==='d'?b.nombre.localeCompare(a.nombre):a.nombre.localeCompare(b.nombre);
-    return sortD==='d'?b[sortF]-a[sortF]:a[sortF]-b[sortF];
+  if(bucketFilter>=0){
+    const b = BUCKETS[bucketFilter];
+    rows = rows.filter(r=>r.d.prod>=b.min && r.d.prod<b.max);
+  }
+  rows.sort((a,b)=>{
+    if(sortF==='nombre') return sortD==='d'?b.d.nombre.localeCompare(a.d.nombre):a.d.nombre.localeCompare(b.d.nombre);
+    return sortD==='d'?b.d[sortF]-a.d[sortF]:a.d[sortF]-b.d[sortF];
   });
-  return d;
+  return rows;
 }
 function renderTable(){
   const rows = getRows();
-  document.getElementById('tblCnt').textContent = `${rows.length} de ${DATA.length} técnicos`;
+  const cnt = document.getElementById('tblCnt');
+  if(bucketFilter>=0){
+    cnt.innerHTML = `${rows.length} de ${DATA.length} · filtro: <b>${BUCKETS[bucketFilter].lbl}</b> <a href="#" onclick="event.preventDefault();toggleBucket(${bucketFilter});" style="color:var(--red);text-decoration:none;">✕</a>`;
+  } else {
+    cnt.textContent = `${rows.length} de ${DATA.length} técnicos`;
+  }
   const tb = document.getElementById('tbody');
   tb.innerHTML = '';
-  rows.forEach((row)=>{
+  rows.forEach(({d:row, i:origIdx})=>{
     const pcls = prodClass(row.prod), ecls = eficClass(row.efic);
     const combCls = combinedClass(row.prod,row.efic);
-    const combLbl = classToLabel(combCls);
-    const pcolor = classToColor(pcls), ecolor = classToColor(ecls);
+    const combLbl = CLASS_LABEL[combCls];
+    const pcolor = CLASS_COLOR[pcls], ecolor = CLASS_COLOR[ecls];
     const pw = Math.min(100, (row.prod/140)*100);
     const ew = Math.min(100, (row.efic/160)*100);
-    const idx = DATA.indexOf(row)+1;
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -624,7 +649,7 @@ function renderTable(){
           <div class="tec-avatar">${initials(row.nombre)}</div>
           <div>
             <div class="tec-name">${row.nombre}</div>
-            <div class="tec-idx">Técnico #${idx}</div>
+            <div class="tec-idx">Técnico #${origIdx+1}</div>
           </div>
         </div>
       </td>
@@ -645,82 +670,55 @@ function renderTable(){
       </td>
       <td><span class="spill sp-${combCls}"><span class="sp-dot"></span>${combLbl}</span></td>
     `;
-    tr.addEventListener('click',()=>openModal(row));
+    tr.addEventListener('click',()=>openModalByIdx(origIdx));
     tb.appendChild(tr);
   });
 }
 
-/* ============================ GAUGE ============================ */
-function drawGauge(svgId, valEl, diffEl, val, avg, isEfic){
-  const svg = document.getElementById(svgId);
-  const cls = isEfic?eficClass(val):prodClass(val);
-  const color = classToColor(cls);
-  // Semi-circle gauge from 180° to 0°, val mapped 0..(isEfic?160:140)
-  const max = isEfic?160:140;
-  const pct = Math.min(1, val/max);
-  const angleStart = Math.PI; // 180°
-  const angleEnd = angleStart - pct*Math.PI;
-  const cx=70, cy=70, r=55;
-  const x1 = cx + r*Math.cos(angleStart);
-  const y1 = cy - r*Math.sin(angleStart);
-  const x2 = cx + r*Math.cos(angleEnd);
-  const y2 = cy - r*Math.sin(angleEnd);
-  const largeArc = pct>0.5 ? 1 : 0;
-  const bgPath = `M ${cx-r} ${cy} A ${r} ${r} 0 0 1 ${cx+r} ${cy}`;
-  const fgPath = `M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
-
-  // Reference markers at good thresholds
-  const markers = isEfic?[70,90,100]:[70,80,90,100];
-
-  let markerSvg = '';
-  markers.forEach(m=>{
-    const mAngle = Math.PI - (m/max)*Math.PI;
-    const mx = cx + (r+3)*Math.cos(mAngle);
-    const my = cy - (r+3)*Math.sin(mAngle);
-    const mx2 = cx + (r-3)*Math.cos(mAngle);
-    const my2 = cy - (r-3)*Math.sin(mAngle);
-    markerSvg += `<line x1="${mx}" y1="${my}" x2="${mx2}" y2="${my2}" stroke="#d1d5db" stroke-width="1"/>`;
-  });
-
-  svg.innerHTML = `
-    <path d="${bgPath}" fill="none" stroke="#e5e7eb" stroke-width="10" stroke-linecap="round"/>
-    <path d="${fgPath}" fill="none" stroke="${color}" stroke-width="10" stroke-linecap="round"/>
-    ${markerSvg}
-    <text x="70" y="78" text-anchor="middle" font-size="9" fill="#9ca3af" font-weight="600">0%</text>
-    <text x="18" y="78" text-anchor="middle" font-size="9" fill="#9ca3af" font-weight="600"></text>
-    <text x="122" y="78" text-anchor="middle" font-size="9" fill="#9ca3af" font-weight="600">${max}%</text>
-  `;
-
-  valEl.textContent = val+'%';
+/* ============================ MODAL ============================ */
+function paintIndicator(fillEl, valEl, diffEl, val, avg, maxScale, cls){
+  const color = CLASS_COLOR[cls];
+  const w = Math.min(100, (val/maxScale)*100);
+  fillEl.style.width = w+'%';
+  fillEl.style.background = color;
+  valEl.innerHTML = val+'<span class="u">%</span>';
   valEl.style.color = color;
-
   const diff = val - avg;
-  diffEl.textContent = (diff>=0?'+':'')+diff+'% vs prom';
-  diffEl.className = 'gauge-diff '+(diff>=0?'pos':'neg');
+  const sign = diff>0?'+':'';
+  diffEl.textContent = sign+diff+'% vs prom';
+  diffEl.className = 'ind-diff '+(diff>0?'pos':diff<0?'neg':'eq');
 }
 
-/* ============================ MODAL ============================ */
-function openModal(row){
+function openModalByIdx(origIdx){
+  const row = DATA[origIdx];
   document.getElementById('mAvatar').textContent = initials(row.nombre);
   document.getElementById('mTitle').textContent = row.nombre;
 
   const cls = combinedClass(row.prod,row.efic);
-  const lbl = classToLabel(cls);
-  document.getElementById('mSub').innerHTML = `<span class="spill sp-${cls}" style="font-size:10px;padding:2px 8px;"><span class="sp-dot"></span>${lbl}</span><span>· Técnico #${DATA.indexOf(row)+1}</span>`;
+  const lbl = CLASS_LABEL[cls];
+  document.getElementById('mSub').innerHTML = `<span class="spill sp-${cls}" style="font-size:10px;padding:2px 8px;"><span class="sp-dot"></span>${lbl}</span><span>· Técnico #${origIdx+1}</span>`;
 
-  drawGauge('mGaugeProd', document.getElementById('mGaugeProdVal'), document.getElementById('mGaugeProdDiff'), row.prod, TOTALS.prod, false);
-  drawGauge('mGaugeEfic', document.getElementById('mGaugeEficVal'), document.getElementById('mGaugeEficDiff'), row.efic, TOTALS.efic, true);
+  paintIndicator(
+    document.getElementById('mProdFill'),
+    document.getElementById('mProdVal'),
+    document.getElementById('mProdDiff'),
+    row.prod, TOTALS.prod, 140, prodClass(row.prod)
+  );
+  paintIndicator(
+    document.getElementById('mEficFill'),
+    document.getElementById('mEficVal'),
+    document.getElementById('mEficDiff'),
+    row.efic, TOTALS.efic, 160, eficClass(row.efic)
+  );
 
   document.getElementById('mHoras').innerHTML = row.horas.toFixed(2)+' <span class="u">hrs</span>';
   document.getElementById('mReal').innerHTML  = row.real.toFixed(2)+' <span class="u">hrs</span>';
   document.getElementById('mStd').innerHTML   = row.std.toFixed(2)+' <span class="u">hrs</span>';
 
-  // Global rank (by combined score = prod capped at 100 + efic capped at 100)
-  const scored = DATA.map(d=>({n:d.nombre, s:Math.min(100,d.prod)+Math.min(100,d.efic)})).sort((a,b)=>b.s-a.s);
-  const pos = scored.findIndex(x=>x.n===row.nombre)+1;
-  document.getElementById('mRank').innerHTML = `${pos} <span class="u">de ${DATA.length}</span>`;
+  const pos = GLOBAL_RANK.findIndex(x=>x.i===origIdx)+1;
+  document.getElementById('mRank').innerHTML = `#${pos} <span class="u">de ${DATA.length}</span>`;
 
-  // Note
+  // Nota diagnóstica
   const note = document.getElementById('mNote');
   const noteText = document.getElementById('mNoteText');
   const noteIco = document.getElementById('mNoteIco');
@@ -728,20 +726,20 @@ function openModal(row){
   let msg = '';
   if(cls==='g'){
     noteIco.textContent = '★';
-    msg = `<b>Desempeño óptimo.</b> El técnico opera dentro del rango esperado tanto en productividad (${row.prod}%) como en eficiencia (${row.efic}%). Buen candidato como referencia del equipo.`;
+    msg = `<b>Desempeño óptimo.</b> Opera dentro del rango esperado tanto en productividad (${row.prod}%) como en eficiencia (${row.efic}%). Buen candidato como referencia del equipo.`;
   } else if(cls==='y'){
     noteIco.textContent = '●';
-    msg = `<b>Desempeño aceptable.</b> Productividad ${row.prod}% / Eficiencia ${row.efic}%. Hay margen de mejora en al menos un indicador; considerar seguimiento en la próxima semana.`;
+    msg = `<b>Desempeño aceptable.</b> Productividad ${row.prod}% / Eficiencia ${row.efic}%. Hay margen de mejora en al menos un indicador; considerar seguimiento la próxima semana.`;
   } else if(cls==='o'){
     noteIco.textContent = '⚠';
-    if(row.prod<70) msg = `<b>Baja productividad (${row.prod}%).</b> El tiempo real trabajado (${row.real.toFixed(2)}h) está por debajo del turno (${row.horas.toFixed(2)}h). Revisar tiempos muertos y asignación de trabajo.`;
-    else if(row.efic<70) msg = `<b>Baja eficiencia (${row.efic}%).</b> Se está tardando más del standard para completar trabajos. Revisar métodos, herramientas o capacitación.`;
-    else if(row.prod>120) msg = `<b>Sobrecarga (${row.prod}%).</b> Se están reportando horas por encima del turno. Validar registro de tiempos y balance de carga.`;
+    if(row.prod<80) msg = `<b>Baja productividad (${row.prod}%).</b> El tiempo real trabajado (${row.real.toFixed(2)}h) está por debajo del turno (${row.horas.toFixed(2)}h). Revisar tiempos muertos y asignación de trabajo.`;
+    else if(row.efic<90) msg = `<b>Eficiencia baja (${row.efic}%).</b> Se está tardando más del standard para completar trabajos. Revisar métodos, herramientas o capacitación.`;
     else msg = `<b>Indicadores fuera de rango.</b> Prod ${row.prod}% / Efic ${row.efic}%. Requiere revisión de causas.`;
   } else {
     noteIco.textContent = '⚠';
-    if(row.efic<70 && row.prod>120) msg = `<b>ALERTA:</b> Alta actividad reportada (${row.prod}% productividad) con muy baja eficiencia (${row.efic}%). Puede indicar problemas de método, materiales, o registro incorrecto. Auditar inmediatamente.`;
-    else if(row.prod<70) msg = `<b>ALERTA:</b> Productividad crítica en ${row.prod}%. Solo ${row.real.toFixed(2)}h reales sobre ${row.horas.toFixed(2)}h de turno. Requiere acción inmediata.`;
+    if(row.efic<70 && row.prod>=120) msg = `<b>ALERTA:</b> Alta actividad reportada (${row.prod}% productividad) con muy baja eficiencia (${row.efic}%). Puede indicar problemas de método, materiales o registro incorrecto. Auditar de inmediato.`;
+    else if(row.prod<70) msg = `<b>ALERTA:</b> Productividad crítica en ${row.prod}%. Sólo ${row.real.toFixed(2)}h reales sobre ${row.horas.toFixed(2)}h de turno. Requiere acción inmediata.`;
+    else if(row.prod>=130) msg = `<b>ALERTA:</b> Productividad muy alta (${row.prod}%) — se están reportando más horas que el turno. Validar registro de tiempos.`;
     else msg = `<b>Indicadores en zona crítica.</b> Prod ${row.prod}% / Efic ${row.efic}%. Se recomienda seguimiento uno-a-uno.`;
   }
   noteText.innerHTML = msg;
@@ -770,7 +768,7 @@ document.getElementById('search').addEventListener('input',e=>{searchTxt=e.targe
 
 /* ============================ INIT ============================ */
 renderKPIs();
-renderMatrix();
+renderDist();
 renderRank();
 renderTable();
 </script>
