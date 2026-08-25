@@ -140,6 +140,39 @@ a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
 .kpi-card:nth-child(4){animation-delay:.76s}
 .kpi-card:nth-child(5){animation-delay:.83s}
 .kpi-card:nth-child(6){animation-delay:.9s}
+
+/* =================== MODAL DASHBOARD =================== */
+.trx-modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);z-index:9990;opacity:0;pointer-events:none;transition:opacity .25s ease}
+.trx-modal-overlay.show{opacity:1;pointer-events:auto}
+.trx-modal-overlay.hidden-for-min{opacity:0;pointer-events:none}
+.trx-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(92vw,1400px);height:min(90vh,900px);background:#fff;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.5);z-index:9995;display:none;flex-direction:column;overflow:hidden}
+.trx-modal.show{display:flex;animation:trxModalIn .35s cubic-bezier(.16,1,.3,1)}
+@keyframes trxModalIn{from{opacity:0;transform:translate(-50%,-50%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.trx-modal.animating{transition:width .3s cubic-bezier(.16,1,.3,1),height .3s cubic-bezier(.16,1,.3,1),top .3s cubic-bezier(.16,1,.3,1),left .3s cubic-bezier(.16,1,.3,1),right .3s cubic-bezier(.16,1,.3,1),bottom .3s cubic-bezier(.16,1,.3,1),transform .3s cubic-bezier(.16,1,.3,1),border-radius .3s ease}
+.trx-modal.maximized{top:0!important;left:0!important;right:auto;bottom:auto;width:100vw!important;height:100vh!important;transform:none!important;border-radius:0}
+.trx-modal.minimized{top:auto!important;bottom:16px!important;left:auto!important;right:16px!important;width:320px!important;height:52px!important;transform:none!important;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+.trx-modal.minimized .trx-modal-body{display:none}
+.trx-modal.minimized .trx-modal-header{cursor:pointer;border-bottom:0}
+.trx-modal-header{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#1f2937;color:#fff;border-bottom:1px solid #374151;user-select:none;flex-shrink:0;cursor:move}
+.trx-modal.maximized .trx-modal-header{cursor:default}
+.trx-modal.minimized .trx-modal-header{cursor:pointer}
+.trx-modal-title{flex:1;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#e5e7eb;display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trx-modal-title .trx-dot{width:8px;height:8px;border-radius:50%;background:#84cc16;flex-shrink:0;box-shadow:0 0 8px #84cc16}
+.trx-modal-controls{display:flex;gap:6px;flex-shrink:0}
+.trx-modal-btn{width:30px;height:30px;border-radius:6px;border:0;background:transparent;color:#9ca3af;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;padding:0}
+.trx-modal-btn:hover{background:#374151;color:#fff}
+.trx-modal-btn.close:hover{background:#dc2626;color:#fff}
+.trx-modal-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.trx-modal-body{flex:1;position:relative;background:#f3f4f6;overflow:hidden}
+.trx-modal-iframe{width:100%;height:100%;border:0;display:block;background:#fff}
+.trx-modal-loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#6b7280;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;z-index:1}
+.trx-modal-loader.hidden{display:none}
+.trx-modal-loader .trx-spinner{width:36px;height:36px;border:3px solid #e5e7eb;border-top-color:#84cc16;border-radius:50%;animation:trxSpin .8s linear infinite;margin-right:12px}
+@keyframes trxSpin{to{transform:rotate(360deg)}}
+@media (max-width:900px){
+  .trx-modal{width:96vw;height:92vh}
+  .trx-modal.minimized{width:calc(100vw - 32px)!important;right:16px!important;left:16px!important;bottom:16px!important}
+}
 </style>
 </head>
 <body>
@@ -177,10 +210,10 @@ a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
             <svg viewBox="0 0 24 24"><path d="M12 2L3 6v6c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V6l-9-4z"/><polyline points="9 12 11 14 15 10"/></svg>
             Nivel de Servicio
           </a>
-           <a href="https://traxionmonterrey.github.io/Ranking/index.html" class="menu-item" target="_blank" rel="noopener noreferrer">
+           <a href="#" class="menu-item" data-trx-modal="https://traxionmonterrey.github.io/Ranking/index.html" data-trx-title="Dashboard Coordinador y Operador">
             <!-- Escudo con check: Nivel de servicio -->
             <svg viewBox="0 0 24 24"><path d="M12 2L3 6v6c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V6l-9-4z"/><polyline points="9 12 11 14 15 10"/></svg>
-           Dashobard Coordinador y Operador
+           Dashboard Coordinador y Operador
           </a>
           <a href="Dashboard_Kilometros.html" class="menu-item">
             <!-- Velocimetro: Kilometros recorridos -->
@@ -421,6 +454,35 @@ a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
     </div>
   </main>
 </div>
+<!-- ============ MODAL DE DASHBOARDS EMBEBIDOS ============ -->
+<div class="trx-modal-overlay" id="trxModalOverlay"></div>
+<div class="trx-modal" id="trxModal" role="dialog" aria-modal="true" aria-labelledby="trxModalTitle">
+  <div class="trx-modal-header" id="trxModalHeader">
+    <div class="trx-modal-title" id="trxModalTitle">
+      <span class="trx-dot"></span>
+      <span id="trxModalTitleText">Dashboard</span>
+    </div>
+    <div class="trx-modal-controls">
+      <button type="button" class="trx-modal-btn" id="trxModalMin" title="Minimizar" aria-label="Minimizar">
+        <svg viewBox="0 0 24 24"><line x1="5" y1="19" x2="19" y2="19"/></svg>
+      </button>
+      <button type="button" class="trx-modal-btn" id="trxModalMax" title="Maximizar" aria-label="Maximizar">
+        <svg viewBox="0 0 24 24" id="trxModalMaxIcon"><rect x="4" y="4" width="16" height="16" rx="1"/></svg>
+      </button>
+      <button type="button" class="trx-modal-btn close" id="trxModalClose" title="Cerrar" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="trx-modal-body">
+    <div class="trx-modal-loader" id="trxModalLoader">
+      <div class="trx-spinner"></div>
+      <span>Cargando dashboard&hellip;</span>
+    </div>
+    <iframe class="trx-modal-iframe" id="trxModalIframe" src="about:blank" title="Dashboard" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+  </div>
+</div>
+
 <script id="trx-validator" type="text/plain">mmF01QsTmGJCuAdVtyOU5miutD2BnjYzxPkxPG5QThu/lF3dMBECPAE1/Sd1KOhWNiWV0RPF56aw+UOF95W6+mE=</script>
 <script>
 const VALIDATOR_EXPECTED = "trx-settepi-garcia-ok";
@@ -626,6 +688,196 @@ async function loadKpis(){
     grid.innerHTML = '<div class="kpi-loading">No se pudieron cargar los KPIs</div>';
   }
 }
+
+/* ============ MODAL DE DASHBOARDS EMBEBIDOS ============ */
+(function(){
+  const modal   = document.getElementById('trxModal');
+  const overlay = document.getElementById('trxModalOverlay');
+  const header  = document.getElementById('trxModalHeader');
+  const title   = document.getElementById('trxModalTitleText');
+  const iframe  = document.getElementById('trxModalIframe');
+  const loader  = document.getElementById('trxModalLoader');
+  const btnMin  = document.getElementById('trxModalMin');
+  const btnMax  = document.getElementById('trxModalMax');
+  const btnClose= document.getElementById('trxModalClose');
+  const maxIcon = document.getElementById('trxModalMaxIcon');
+  if(!modal) return;
+
+  const ICON_MAX     = '<rect x="4" y="4" width="16" height="16" rx="1"/>';
+  const ICON_RESTORE = '<rect x="7" y="7" width="13" height="13" rx="1"/><path d="M4 15V5a1 1 0 0 1 1-1h10"/>';
+
+  let state = 'normal'; // 'normal' | 'maximized' | 'minimized'
+  let prevState = 'normal';
+  let dragging = false, dragOffX=0, dragOffY=0;
+  let posLeft=null, posTop=null;
+
+  function openModal(url, tit){
+    title.textContent = tit || 'Dashboard';
+    loader.classList.remove('hidden');
+    iframe.src = url;
+    modal.classList.remove('animating');
+    modal.classList.remove('maximized','minimized');
+    state = 'normal';
+    posLeft = null; posTop = null;
+    modal.style.left = ''; modal.style.top = '';
+    modal.style.right= ''; modal.style.bottom= '';
+    modal.style.transform = '';
+    maxIcon.innerHTML = ICON_MAX;
+    btnMax.title = 'Maximizar';
+    overlay.classList.add('show');
+    overlay.classList.remove('hidden-for-min');
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(){
+    modal.classList.remove('show','maximized','minimized','animating');
+    overlay.classList.remove('show','hidden-for-min');
+    iframe.src = 'about:blank';
+    document.body.style.overflow = '';
+    state = 'normal';
+  }
+
+  function toggleMaximize(){
+    if(state === 'minimized'){ restoreFromMin(); return; }
+    modal.classList.add('animating');
+    if(state === 'maximized'){
+      modal.classList.remove('maximized');
+      maxIcon.innerHTML = ICON_MAX;
+      btnMax.title = 'Maximizar';
+      state = 'normal';
+      // Vuelve al centro
+      modal.style.left=''; modal.style.top=''; modal.style.transform='';
+      posLeft=null; posTop=null;
+    }else{
+      prevState = 'normal';
+      modal.classList.add('maximized');
+      modal.classList.remove('minimized');
+      maxIcon.innerHTML = ICON_RESTORE;
+      btnMax.title = 'Restaurar';
+      overlay.classList.remove('hidden-for-min');
+      overlay.classList.add('show');
+      state = 'maximized';
+    }
+    setTimeout(()=>modal.classList.remove('animating'), 320);
+  }
+
+  function minimize(){
+    if(state === 'minimized') return;
+    prevState = state;
+    modal.classList.add('animating');
+    modal.classList.remove('maximized');
+    modal.classList.add('minimized');
+    // Fuera de flujo: el overlay se oculta para no bloquear la pagina
+    overlay.classList.add('hidden-for-min');
+    // Reset de estilos inline para no chocar con la barra minimizada
+    modal.style.left=''; modal.style.top=''; modal.style.transform='';
+    maxIcon.innerHTML = ICON_MAX;
+    btnMax.title = 'Maximizar';
+    state = 'minimized';
+    setTimeout(()=>modal.classList.remove('animating'), 320);
+  }
+
+  function restoreFromMin(){
+    modal.classList.add('animating');
+    modal.classList.remove('minimized');
+    overlay.classList.remove('hidden-for-min');
+    overlay.classList.add('show');
+    if(prevState === 'maximized'){
+      modal.classList.add('maximized');
+      maxIcon.innerHTML = ICON_RESTORE;
+      btnMax.title = 'Restaurar';
+      state = 'maximized';
+    }else{
+      state = 'normal';
+      maxIcon.innerHTML = ICON_MAX;
+      btnMax.title = 'Maximizar';
+    }
+    setTimeout(()=>modal.classList.remove('animating'), 320);
+  }
+
+  // ==== Drag del modal (solo en estado 'normal') ====
+  header.addEventListener('mousedown', function(e){
+    if(state !== 'normal') return;
+    if(e.target.closest('.trx-modal-btn')) return;
+    dragging = true;
+    const rect = modal.getBoundingClientRect();
+    // Al iniciar drag, congelamos posicion absoluta (sin translate)
+    modal.style.left = rect.left + 'px';
+    modal.style.top  = rect.top  + 'px';
+    modal.style.transform = 'none';
+    dragOffX = e.clientX - rect.left;
+    dragOffY = e.clientY - rect.top;
+    document.body.style.userSelect='none';
+    // Bloquea el iframe para que no se coma los eventos del drag
+    iframe.style.pointerEvents='none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', function(e){
+    if(!dragging) return;
+    let nx = e.clientX - dragOffX;
+    let ny = e.clientY - dragOffY;
+    const w = modal.offsetWidth, h = modal.offsetHeight;
+    nx = Math.max(0, Math.min(window.innerWidth  - 40, nx));
+    ny = Math.max(0, Math.min(window.innerHeight - 40, ny));
+    modal.style.left = nx + 'px';
+    modal.style.top  = ny + 'px';
+  });
+  document.addEventListener('mouseup', function(){
+    if(!dragging) return;
+    dragging = false;
+    document.body.style.userSelect='';
+    iframe.style.pointerEvents='';
+  });
+
+  // Click en barra minimizada -> restaurar
+  header.addEventListener('click', function(e){
+    if(state !== 'minimized') return;
+    if(e.target.closest('.trx-modal-btn')) return;
+    restoreFromMin();
+  });
+
+  // Botones
+  btnMin  .addEventListener('click', function(e){ e.stopPropagation(); minimize(); });
+  btnMax  .addEventListener('click', function(e){ e.stopPropagation(); toggleMaximize(); });
+  btnClose.addEventListener('click', function(e){ e.stopPropagation(); closeModal(); });
+
+  // Cerrar al clic sobre el overlay (excepto si esta minimizado)
+  overlay.addEventListener('click', function(){
+    if(state === 'minimized') return;
+    closeModal();
+  });
+
+  // ESC cierra, F11 (dentro del modal) maximiza
+  document.addEventListener('keydown', function(e){
+    if(!modal.classList.contains('show')) return;
+    if(e.key === 'Escape'){ closeModal(); }
+  });
+
+  // Loader off cuando el iframe termina de cargar
+  iframe.addEventListener('load', function(){
+    if(iframe.src && iframe.src !== 'about:blank'){
+      setTimeout(()=>loader.classList.add('hidden'), 150);
+    }
+  });
+
+  // Delegacion: cualquier enlace con data-trx-modal abre el modal
+  document.addEventListener('click', function(e){
+    const a = e.target.closest('[data-trx-modal]');
+    if(!a) return;
+    e.preventDefault();
+    const url = a.getAttribute('data-trx-modal');
+    const tit = a.getAttribute('data-trx-title') || a.textContent.trim();
+    openModal(url, tit);
+    // En mobile, cierra el drawer del sidebar tras abrir
+    if(window.matchMedia('(max-width:900px)').matches){
+      const sb = document.querySelector('.sidebar');
+      const ov = document.getElementById('sidebarOverlay');
+      if(sb) sb.classList.remove('open');
+      if(ov) ov.classList.remove('show');
+    }
+  });
+})();
 </script>
 </body>
 </html>
