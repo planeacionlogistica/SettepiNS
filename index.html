@@ -889,12 +889,20 @@ async function loadKpis(){
       });
     });
 
-    // ==== interaccion del item del dock ====
+    // ==== interaccion del item del dock (toggle: abrir / minimizar) ====
     item.addEventListener('click', function(e){
       if(e.target.closest('.trx-dock-item-close')) return;
       const r = modals.get(id); if(!r) return;
-      if(r.state === 'minimized') restoreFromMin(id);
-      else bringToFront(id);
+      if(r.state === 'minimized'){
+        // Esta minimizado -> abrir
+        restoreFromMin(id);
+      }else if(activeId === id){
+        // Es el activo visible -> minimizar
+        minimize(id);
+      }else{
+        // Esta visible pero no activo -> traer al frente
+        bringToFront(id);
+      }
       // Scroll horizontal para que el item quede visible
       setTimeout(()=>item.scrollIntoView({behavior:'smooth', inline:'nearest', block:'nearest'}), 50);
     });
