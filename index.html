@@ -141,37 +141,57 @@ a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
 .kpi-card:nth-child(5){animation-delay:.83s}
 .kpi-card:nth-child(6){animation-delay:.9s}
 
-/* =================== MODAL DASHBOARD =================== */
-.trx-modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);z-index:9990;opacity:0;pointer-events:none;transition:opacity .25s ease}
-.trx-modal-overlay.show{opacity:1;pointer-events:auto}
-.trx-modal-overlay.hidden-for-min{opacity:0;pointer-events:none}
-.trx-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(92vw,1400px);height:min(90vh,900px);background:#fff;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.5);z-index:9995;display:none;flex-direction:column;overflow:hidden}
-.trx-modal.show{display:flex;animation:trxModalIn .35s cubic-bezier(.16,1,.3,1)}
-@keyframes trxModalIn{from{opacity:0;transform:translate(-50%,-50%) scale(.92)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
-.trx-modal.animating{transition:width .3s cubic-bezier(.16,1,.3,1),height .3s cubic-bezier(.16,1,.3,1),top .3s cubic-bezier(.16,1,.3,1),left .3s cubic-bezier(.16,1,.3,1),right .3s cubic-bezier(.16,1,.3,1),bottom .3s cubic-bezier(.16,1,.3,1),transform .3s cubic-bezier(.16,1,.3,1),border-radius .3s ease}
-.trx-modal.maximized{top:0!important;left:0!important;right:auto;bottom:auto;width:100vw!important;height:100vh!important;transform:none!important;border-radius:0}
-.trx-modal.minimized{top:auto!important;bottom:16px!important;left:auto!important;right:16px!important;width:320px!important;height:52px!important;transform:none!important;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.35)}
-.trx-modal.minimized .trx-modal-body{display:none}
-.trx-modal.minimized .trx-modal-header{cursor:pointer;border-bottom:0}
-.trx-modal-header{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#1f2937;color:#fff;border-bottom:1px solid #374151;user-select:none;flex-shrink:0;cursor:move}
+/* =================== SISTEMA MULTI-MODAL =================== */
+.trx-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:min(90vw,1300px);height:min(85vh,860px);background:#fff;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.45);z-index:9000;display:flex;flex-direction:column;overflow:hidden;animation:trxModalIn .3s cubic-bezier(.16,1,.3,1)}
+@keyframes trxModalIn{from{opacity:0;transform:translate(-50%,-50%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+.trx-modal.animating{transition:width .28s cubic-bezier(.16,1,.3,1),height .28s cubic-bezier(.16,1,.3,1),top .28s cubic-bezier(.16,1,.3,1),left .28s cubic-bezier(.16,1,.3,1),transform .28s cubic-bezier(.16,1,.3,1),border-radius .28s ease,opacity .2s ease}
+.trx-modal.maximized{top:0!important;left:0!important;width:100vw!important;height:calc(100vh - 48px)!important;transform:none!important;border-radius:0}
+.trx-modal.minimized{opacity:0;pointer-events:none;transform:translate(-50%,20vh) scale(.7)!important}
+.trx-modal.active{box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 2px rgba(132,204,22,.35)}
+.trx-modal-header{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#1f2937;color:#fff;border-bottom:1px solid #374151;user-select:none;flex-shrink:0;cursor:move}
 .trx-modal.maximized .trx-modal-header{cursor:default}
-.trx-modal.minimized .trx-modal-header{cursor:pointer}
-.trx-modal-title{flex:1;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#e5e7eb;display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trx-modal-title{flex:1;font-size:12.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#e5e7eb;display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .trx-modal-title .trx-dot{width:8px;height:8px;border-radius:50%;background:#84cc16;flex-shrink:0;box-shadow:0 0 8px #84cc16}
-.trx-modal-controls{display:flex;gap:6px;flex-shrink:0}
+.trx-modal-title-txt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trx-modal-controls{display:flex;gap:4px;flex-shrink:0}
 .trx-modal-btn{width:30px;height:30px;border-radius:6px;border:0;background:transparent;color:#9ca3af;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;padding:0}
 .trx-modal-btn:hover{background:#374151;color:#fff}
 .trx-modal-btn.close:hover{background:#dc2626;color:#fff}
+.trx-modal-btn.newtab:hover{background:#374151;color:#84cc16}
 .trx-modal-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .trx-modal-body{flex:1;position:relative;background:#f3f4f6;overflow:hidden}
 .trx-modal-iframe{width:100%;height:100%;border:0;display:block;background:#fff}
-.trx-modal-loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#6b7280;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;z-index:1}
+.trx-modal-loader{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#f3f4f6;color:#6b7280;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;z-index:1;gap:12px}
 .trx-modal-loader.hidden{display:none}
-.trx-modal-loader .trx-spinner{width:36px;height:36px;border:3px solid #e5e7eb;border-top-color:#84cc16;border-radius:50%;animation:trxSpin .8s linear infinite;margin-right:12px}
+.trx-modal-loader .trx-spinner{width:36px;height:36px;border:3px solid #e5e7eb;border-top-color:#84cc16;border-radius:50%;animation:trxSpin .8s linear infinite}
 @keyframes trxSpin{to{transform:rotate(360deg)}}
+.trx-modal-resize{position:absolute;width:16px;height:16px;right:2px;bottom:2px;cursor:nwse-resize;z-index:5;background:linear-gradient(135deg,transparent 0 45%,#84cc16 46% 55%,transparent 56% 100%),linear-gradient(135deg,transparent 0 65%,#84cc16 66% 75%,transparent 76% 100%);opacity:.6}
+.trx-modal.maximized .trx-modal-resize{display:none}
+
+/* =================== TASKBAR (barra inferior) =================== */
+.trx-taskbar{position:fixed;left:0;right:0;bottom:0;height:44px;background:#111827;border-top:1px solid #374151;display:none;align-items:center;gap:6px;padding:0 10px;z-index:9500;overflow-x:auto;overflow-y:hidden;box-shadow:0 -6px 20px rgba(0,0,0,.35)}
+.trx-taskbar.show{display:flex}
+.trx-taskbar::-webkit-scrollbar{height:5px}
+.trx-taskbar::-webkit-scrollbar-thumb{background:#374151;border-radius:3px}
+.trx-tab{display:flex;align-items:center;gap:8px;background:#1f2937;color:#e5e7eb;padding:6px 8px 6px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #374151;transition:all .18s;flex-shrink:0;max-width:220px;min-width:120px}
+.trx-tab:hover{background:#374151;border-color:#4b5563}
+.trx-tab.active{background:#374151;border-color:#84cc16;color:#fff}
+.trx-tab .trx-tab-dot{width:6px;height:6px;border-radius:50%;background:#84cc16;flex-shrink:0;box-shadow:0 0 6px #84cc16}
+.trx-tab.minimized .trx-tab-dot{background:#9ca3af;box-shadow:none}
+.trx-tab-txt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;letter-spacing:.3px}
+.trx-tab-close{width:20px;height:20px;border-radius:5px;border:0;background:transparent;color:#9ca3af;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
+.trx-tab-close:hover{background:#dc2626;color:#fff}
+.trx-tab-close svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Cuando la taskbar esta visible, deja aire abajo en el main */
+body.has-taskbar .main{padding-bottom:44px}
+body.has-taskbar .trx-modal.maximized{height:calc(100vh - 44px)!important}
+
 @media (max-width:900px){
-  .trx-modal{width:96vw;height:92vh}
-  .trx-modal.minimized{width:calc(100vw - 32px)!important;right:16px!important;left:16px!important;bottom:16px!important}
+  .trx-modal{width:96vw;height:88vh}
+  .trx-modal.maximized{height:calc(100vh - 44px)!important}
+  .trx-tab{max-width:160px;min-width:100px;font-size:11.5px;padding:6px 6px 6px 10px}
+  .trx-modal-resize{display:none}
 }
 </style>
 </head>
@@ -205,7 +225,7 @@ a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-          <a href="Dashboard_NS.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Dashboard_NS.html" data-trx-title="Nivel de Servicio">
             <!-- Escudo con check: Nivel de servicio -->
             <svg viewBox="0 0 24 24"><path d="M12 2L3 6v6c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V6l-9-4z"/><polyline points="9 12 11 14 15 10"/></svg>
             Nivel de Servicio
@@ -215,37 +235,37 @@ a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
             <svg viewBox="0 0 24 24"><path d="M12 2L3 6v6c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V6l-9-4z"/><polyline points="9 12 11 14 15 10"/></svg>
            Dashboard Coordinador y Operador
           </a>
-          <a href="Dashboard_Kilometros.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Dashboard_Kilometros.html" data-trx-title="Kilometros Recorridos">
             <!-- Velocimetro: Kilometros recorridos -->
             <svg viewBox="0 0 24 24"><path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/><circle cx="12" cy="17" r="1.2" fill="#9ca3af" stroke="none"/><line x1="12" y1="5" x2="12" y2="6.5"/><line x1="5.5" y1="10" x2="6.8" y2="10.7"/><line x1="18.5" y1="10" x2="17.2" y2="10.7"/></svg>
             Kilometros Recorridos
           </a>
-          <a href="Dashboard_Flota.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Dashboard_Flota.html" data-trx-title="Flota Vehicular">
             <!-- Camion: Flota Vehicular -->
             <svg viewBox="0 0 24 24"><rect x="1" y="5" width="13" height="11" rx="1"/><path d="M14 8h4l3 4v4h-7V8z"/><circle cx="5.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/><path d="M14 18H7.5"/></svg>
             Flota Vehicular
           </a>
-          <a href="Planeador_Territorio.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Planeador_Territorio.html" data-trx-title="Eficiencias internas">
             <!-- Grafico de tendencia: Eficiencias internas -->
             <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><polyline points="7 15 11 11 14 14 20 7"/><polyline points="16 7 20 7 20 11"/></svg>
             Eficiencias internas
           </a>
-           <a href="kms_vacios.html" class="menu-item">
+           <a href="#" class="menu-item" data-trx-modal="kms_vacios.html" data-trx-title="Kms vacios">
             <!-- Camion vacio: Kms vacios -->
             <svg viewBox="0 0 24 24"><rect x="1" y="6" width="13" height="10" rx="1" stroke-dasharray="2 2"/><path d="M14 9h4l3 4v3h-7V9z"/><circle cx="5.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/></svg>
           Kms vacios
           </a>
-          <a href="Asignacion_eficiente.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Asignacion_eficiente.html" data-trx-title="Asignacion eficiente">
             <!-- Persona: icono -->
             <svg viewBox="0 0 24 24"><rect x="1" y="6" width="13" height="10" rx="1" stroke-dasharray="2 2"/><path d="M14 9h4l3 4v3h-7V9z"/><circle cx="5.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/></svg>
           Asignacion eficiente
           </a>
-          <a href="Viaje_ok.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Viaje_ok.html" data-trx-title="Viaje ok">
             <!-- Pin con check: Viaje ok -->
             <svg viewBox="0 0 24 24"><path d="M12 22s-7-8-7-13a7 7 0 0 1 14 0c0 5-7 13-7 13z"/><polyline points="9 9 11 11 15 7"/></svg>
           Viaje ok
           </a>
-           <a href="Calidad_ruta.html" class="menu-item">
+           <a href="#" class="menu-item" data-trx-modal="Calidad_ruta.html" data-trx-title="Calidad de ruta">
             <!-- Ruta con estrella: Calidad de ruta -->
             <svg viewBox="0 0 24 24"><path d="M5 21c0-3 2-4 5-4s5-1 5-4-2-4-5-4-5-1-5-4"/><circle cx="5" cy="4" r="1.6"/><polygon points="18 14 19 16.5 21.5 16.7 19.6 18.3 20.2 20.8 18 19.4 15.8 20.8 16.4 18.3 14.5 16.7 17 16.5"/></svg>
           Calidad de ruta
@@ -263,22 +283,22 @@ a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-          <a href="Radar_Riesgos.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Radar_Riesgos.html" data-trx-title="Radar de Riesgos">
             <!-- Radar concentric: Radar de Riesgos -->
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="12" x2="19" y2="5"/></svg>
             Radar de Riesgos
           </a>
-          <a href="Dashboard_Descansos.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Dashboard_Descansos.html" data-trx-title="Descansos">
             <!-- Luna: Descansos -->
             <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             Descansos
           </a>
-          <a href="Dashboard_DMAS.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Dashboard_DMAS.html" data-trx-title="uso DMAS">
             <!-- Telefono movil con onda: uso DMAS -->
             <svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><line x1="10" y1="18.5" x2="14" y2="18.5"/><line x1="9" y1="6" x2="15" y2="6"/><path d="M18.5 9.5c1 .8 1 2.2 0 3"/><path d="M20 8c1.8 1.4 1.8 3.6 0 5"/></svg>
             uso DMAS
           </a>
-          <a href="Dashboard_Excesos.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Dashboard_Excesos.html" data-trx-title="80 Excesos de Velocidad">
             <!-- Senal de velocidad: Excesos -->
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><text x="12" y="15.5" text-anchor="middle" font-size="8.5" font-weight="800" fill="#9ca3af" stroke="none" font-family="Segoe UI,Tahoma,sans-serif">80</text></svg>
             Excesos de Velocidad
@@ -295,7 +315,7 @@ a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-          <a href="Productividad.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Productividad.html" data-trx-title="Productividad Departamento">
             <!-- Motor / engranaje: Ralenti -->
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.5"/><path d="M12 18.5V21"/><path d="M3 12h2.5"/><path d="M18.5 12H21"/><path d="M5.6 5.6l1.8 1.8"/><path d="M16.6 16.6l1.8 1.8"/><path d="M5.6 18.4l1.8-1.8"/><path d="M16.6 7.4l1.8-1.8"/></svg>
             Productividad Departamento
@@ -312,17 +332,17 @@ a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-          <a href="Dashboard_ralenti.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Dashboard_ralenti.html" data-trx-title="Ralenti">
             <!-- Motor / engranaje: Ralenti -->
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.5"/><path d="M12 18.5V21"/><path d="M3 12h2.5"/><path d="M18.5 12H21"/><path d="M5.6 5.6l1.8 1.8"/><path d="M16.6 16.6l1.8 1.8"/><path d="M5.6 18.4l1.8-1.8"/><path d="M16.6 7.4l1.8-1.8"/></svg>
             Ralenti
           </a>
-          <a href="Score_Operaciones.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Score_Operaciones.html" data-trx-title="Score de Operaciones">
             <!-- Trofeo: Score de operaciones -->
             <svg viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 6H4v2a3 3 0 0 0 3 3"/><path d="M17 6h3v2a3 3 0 0 1-3 3"/><line x1="12" y1="14" x2="12" y2="18"/><path d="M8 21h8"/><path d="M9 18h6l-.5 3h-5L9 18z"/></svg>
             Score de Operaciones
           </a>
-          <a href="Rendimiento.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Rendimiento.html" data-trx-title="Rendimiento">
            <!-- Motor / engranaje: Rendimeinto -->
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.5"/><path d="M12 18.5V21"/><path d="M3 12h2.5"/><path d="M18.5 12H21"/><path d="M5.6 5.6l1.8 1.8"/><path d="M16.6 16.6l1.8 1.8"/><path d="M5.6 18.4l1.8-1.8"/><path d="M16.6 7.4l1.8-1.8"/></svg>
             Rendimiento
@@ -340,33 +360,33 @@ a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-           <a href="Incidencias_Coordinadores.html" class="menu-item">
+           <a href="#" class="menu-item" data-trx-modal="Incidencias_Coordinadores.html" data-trx-title="Incidencias Coordinadores">
             <!-- Flechas circulares: Incidencias Coordinadores -->
             <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-3.6"/><polyline points="20 4 20 8 16 8"/><path d="M4 13a8 8 0 0 0 14.3 3.6"/><polyline points="4 20 4 16 8 16"/></svg>
             Incidencias Coordinadores
           </a>
-          <a href="Rolador.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Rolador.html" data-trx-title="Rolador">
             <!-- Flechas circulares: Rolador -->
             <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-3.6"/><polyline points="20 4 20 8 16 8"/><path d="M4 13a8 8 0 0 0 14.3 3.6"/><polyline points="4 20 4 16 8 16"/></svg>
             Rolador
           </a>
-          <a href="Cambio_Manos.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Cambio_Manos.html" data-trx-title="Cambio de manos">
             <!-- Intercambio de flechas: Cambio de manos -->
             <svg viewBox="0 0 24 24"><polyline points="17 3 21 7 17 11"/><line x1="3" y1="7" x2="21" y2="7"/><polyline points="7 21 3 17 7 13"/><line x1="21" y1="17" x2="3" y2="17"/></svg>
             Cambio de manos
           </a>
          
-          <a href="Auditoria_Niveles.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Auditoria_Niveles.html" data-trx-title="Captura Auditoria Niveles">
             <!-- Clipboard con lapiz: Captura Auditoria -->
             <svg viewBox="0 0 24 24"><path d="M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1z"/><path d="M16 5h2a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/><path d="M14 12l-4 4-2-1 1-2 4-4 1 3z"/></svg>
             Captura Auditoria Niveles
           </a>
-          <a href="Resumen_Auditoria_Niveles.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Resumen_Auditoria_Niveles.html" data-trx-title="Resumen Auditoria Niveles">
             <!-- Reporte con grafico de barras: Resumen Auditoria -->
             <svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6z"/><polyline points="14 3 14 9 20 9"/><line x1="8" y1="17" x2="8" y2="14"/><line x1="12" y1="17" x2="12" y2="12"/><line x1="16" y1="17" x2="16" y2="15"/></svg>
             Resumen Auditoria Niveles
           </a>
-          <a href="Mapeo_rutas.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Mapeo_rutas.html" data-trx-title="Mapeo de Rutas">
             <!-- Mapa doblado con pin: Mapeo de rutas -->
             <svg viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><line x1="9" y1="4" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="20"/></svg>
             Mapeo de Rutas
@@ -385,7 +405,7 @@ a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-          <a href="Rentabilidad.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Rentabilidad.html" data-trx-title="Clientes Rentabilidad">
             <!-- Usuarios / clientes -->
             <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             Clientes Rentabilidad
@@ -403,17 +423,17 @@ a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-          <a href="Control_viajes.html" class="menu-item">
+          <a href="#" class="menu-item" data-trx-modal="Control_viajes.html" data-trx-title="Control de Viajes">
             <!-- Ruta con puntos: Control de Viajes -->
             <svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h4a4 4 0 0 0 0-8H10a4 4 0 0 1 0-8h6"/></svg>
             Control de Viajes
           </a>
-           <a href="Mov_Sinviaje.html" class="menu-item">
+           <a href="#" class="menu-item" data-trx-modal="Mov_Sinviaje.html" data-trx-title="Movimientos sin viaje">
             <!-- Caja / paquete: Movimientos sin viaje -->
             <svg viewBox="0 0 24 24"><path d="M20 7L12 3 4 7v10l8 4 8-4V7z"/><path d="M4 7l8 4 8-4"/><line x1="12" y1="11" x2="12" y2="21"/><line x1="8" y1="5" x2="16" y2="9"/></svg>
             Movimientos sin viaje
           </a>
-           <a href="Captura_Incidencia.html" class="menu-item">
+           <a href="#" class="menu-item" data-trx-modal="Captura_Incidencia.html" data-trx-title="Captura de incidencias">
             <!-- Triangulo de alerta: Captura de incidencias -->
             <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17.1"/></svg>
             Captura de incidencias
@@ -454,34 +474,8 @@ a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
     </div>
   </main>
 </div>
-<!-- ============ MODAL DE DASHBOARDS EMBEBIDOS ============ -->
-<div class="trx-modal-overlay" id="trxModalOverlay"></div>
-<div class="trx-modal" id="trxModal" role="dialog" aria-modal="true" aria-labelledby="trxModalTitle">
-  <div class="trx-modal-header" id="trxModalHeader">
-    <div class="trx-modal-title" id="trxModalTitle">
-      <span class="trx-dot"></span>
-      <span id="trxModalTitleText">Dashboard</span>
-    </div>
-    <div class="trx-modal-controls">
-      <button type="button" class="trx-modal-btn" id="trxModalMin" title="Minimizar" aria-label="Minimizar">
-        <svg viewBox="0 0 24 24"><line x1="5" y1="19" x2="19" y2="19"/></svg>
-      </button>
-      <button type="button" class="trx-modal-btn" id="trxModalMax" title="Maximizar" aria-label="Maximizar">
-        <svg viewBox="0 0 24 24" id="trxModalMaxIcon"><rect x="4" y="4" width="16" height="16" rx="1"/></svg>
-      </button>
-      <button type="button" class="trx-modal-btn close" id="trxModalClose" title="Cerrar" aria-label="Cerrar">
-        <svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
-      </button>
-    </div>
-  </div>
-  <div class="trx-modal-body">
-    <div class="trx-modal-loader" id="trxModalLoader">
-      <div class="trx-spinner"></div>
-      <span>Cargando dashboard&hellip;</span>
-    </div>
-    <iframe class="trx-modal-iframe" id="trxModalIframe" src="about:blank" title="Dashboard" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
-  </div>
-</div>
+<!-- ============ TASKBAR PARA MODALES MINIMIZADOS/ACTIVOS ============ -->
+<div class="trx-taskbar" id="trxTaskbar"></div>
 
 <script id="trx-validator" type="text/plain">mmF01QsTmGJCuAdVtyOU5miutD2BnjYzxPkxPG5QThu/lF3dMBECPAE1/Sd1KOhWNiWV0RPF56aw+UOF95W6+mE=</script>
 <script>
@@ -689,186 +683,344 @@ async function loadKpis(){
   }
 }
 
-/* ============ MODAL DE DASHBOARDS EMBEBIDOS ============ */
+/* ============ SISTEMA MULTI-MODAL DE DASHBOARDS ============ */
 (function(){
-  const modal   = document.getElementById('trxModal');
-  const overlay = document.getElementById('trxModalOverlay');
-  const header  = document.getElementById('trxModalHeader');
-  const title   = document.getElementById('trxModalTitleText');
-  const iframe  = document.getElementById('trxModalIframe');
-  const loader  = document.getElementById('trxModalLoader');
-  const btnMin  = document.getElementById('trxModalMin');
-  const btnMax  = document.getElementById('trxModalMax');
-  const btnClose= document.getElementById('trxModalClose');
-  const maxIcon = document.getElementById('trxModalMaxIcon');
-  if(!modal) return;
+  const taskbar = document.getElementById('trxTaskbar');
+  if(!taskbar) return;
 
   const ICON_MAX     = '<rect x="4" y="4" width="16" height="16" rx="1"/>';
   const ICON_RESTORE = '<rect x="7" y="7" width="13" height="13" rx="1"/><path d="M4 15V5a1 1 0 0 1 1-1h10"/>';
+  const ICON_NEWTAB  = '<path d="M14 3h7v7"/><path d="M10 14L21 3"/><path d="M18 13v7a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h7"/>';
+  const ICON_MIN     = '<line x1="5" y1="19" x2="19" y2="19"/>';
+  const ICON_CLOSE   = '<line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>';
 
-  let state = 'normal'; // 'normal' | 'maximized' | 'minimized'
-  let prevState = 'normal';
-  let dragging = false, dragOffX=0, dragOffY=0;
-  let posLeft=null, posTop=null;
+  const modals = new Map(); // id -> {modal, tab, url, title, state, prevState}
+  let seq = 0, topZ = 9000;
+  let activeId = null;
 
-  function openModal(url, tit){
-    title.textContent = tit || 'Dashboard';
-    loader.classList.remove('hidden');
+  function refreshTaskbar(){
+    if(modals.size > 0){
+      taskbar.classList.add('show');
+      document.body.classList.add('has-taskbar');
+    }else{
+      taskbar.classList.remove('show');
+      document.body.classList.remove('has-taskbar');
+    }
+  }
+
+  function bringToFront(id){
+    const m = modals.get(id); if(!m) return;
+    if(m.state === 'minimized') return;
+    topZ += 1;
+    m.modal.style.zIndex = topZ;
+    if(activeId && activeId !== id){
+      const a = modals.get(activeId);
+      if(a){ a.modal.classList.remove('active'); a.tab.classList.remove('active'); }
+    }
+    activeId = id;
+    m.modal.classList.add('active');
+    m.tab.classList.add('active');
+  }
+
+  function focusNextAvailable(){
+    // Cuando se cierra/minimiza el activo, activamos otro que este visible
+    let next = null;
+    modals.forEach((m,id)=>{
+      if(m.state !== 'minimized' && id !== activeId) next = id;
+    });
+    if(next) bringToFront(next);
+    else{
+      activeId = null;
+      modals.forEach(m=>{ m.modal.classList.remove('active'); m.tab.classList.remove('active'); });
+    }
+  }
+
+  function cascadePosition(){
+    // Ligero offset por cada modal abierto para que no queden encima
+    const n = modals.size;
+    if(n <= 1) return {};
+    const offset = ((n-1) % 6) * 26;
+    return {left: `calc(50% + ${offset}px)`, top: `calc(50% + ${offset}px)`};
+  }
+
+  function openModal(url, title){
+    const id = 'trxm-' + (++seq);
+
+    // ==== crear modal ====
+    const modal = document.createElement('div');
+    modal.className = 'trx-modal';
+    modal.setAttribute('role','dialog');
+    modal.setAttribute('aria-modal','false');
+    modal.dataset.id = id;
+    modal.innerHTML = `
+      <div class="trx-modal-header">
+        <div class="trx-modal-title">
+          <span class="trx-dot"></span>
+          <span class="trx-modal-title-txt">${escapeHtml(title)}</span>
+        </div>
+        <div class="trx-modal-controls">
+          <button type="button" class="trx-modal-btn newtab" data-act="newtab" title="Abrir en nueva pestana de Chrome" aria-label="Abrir en nueva pestana">
+            <svg viewBox="0 0 24 24">${ICON_NEWTAB}</svg>
+          </button>
+          <button type="button" class="trx-modal-btn" data-act="min" title="Minimizar" aria-label="Minimizar">
+            <svg viewBox="0 0 24 24">${ICON_MIN}</svg>
+          </button>
+          <button type="button" class="trx-modal-btn" data-act="max" title="Maximizar" aria-label="Maximizar">
+            <svg viewBox="0 0 24 24" data-role="maxicon">${ICON_MAX}</svg>
+          </button>
+          <button type="button" class="trx-modal-btn close" data-act="close" title="Cerrar" aria-label="Cerrar">
+            <svg viewBox="0 0 24 24">${ICON_CLOSE}</svg>
+          </button>
+        </div>
+      </div>
+      <div class="trx-modal-body">
+        <div class="trx-modal-loader">
+          <div class="trx-spinner"></div>
+          <span>Cargando dashboard&hellip;</span>
+        </div>
+        <iframe class="trx-modal-iframe" src="about:blank" title="${escapeHtml(title)}" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
+        <div class="trx-modal-resize" data-role="resize" title="Redimensionar"></div>
+      </div>`;
+
+    // Cascada de posicion
+    const pos = cascadePosition();
+    if(pos.left){ modal.style.left = pos.left; modal.style.top = pos.top; }
+    document.body.appendChild(modal);
+
+    const iframe = modal.querySelector('.trx-modal-iframe');
+    const loader = modal.querySelector('.trx-modal-loader');
+    const header = modal.querySelector('.trx-modal-header');
+    const maxIcon = modal.querySelector('[data-role="maxicon"]');
+    const resizeHandle = modal.querySelector('[data-role="resize"]');
+
     iframe.src = url;
-    modal.classList.remove('animating');
-    modal.classList.remove('maximized','minimized');
-    state = 'normal';
-    posLeft = null; posTop = null;
-    modal.style.left = ''; modal.style.top = '';
-    modal.style.right= ''; modal.style.bottom= '';
-    modal.style.transform = '';
-    maxIcon.innerHTML = ICON_MAX;
-    btnMax.title = 'Maximizar';
-    overlay.classList.add('show');
-    overlay.classList.remove('hidden-for-min');
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
+    iframe.addEventListener('load', function(){
+      if(iframe.src && iframe.src !== 'about:blank'){
+        setTimeout(()=>loader.classList.add('hidden'), 150);
+      }
+    });
+
+    // ==== crear tab en la taskbar ====
+    const tab = document.createElement('div');
+    tab.className = 'trx-tab';
+    tab.dataset.id = id;
+    tab.innerHTML = `
+      <span class="trx-tab-dot"></span>
+      <span class="trx-tab-txt">${escapeHtml(title)}</span>
+      <button type="button" class="trx-tab-close" data-act="tabclose" title="Cerrar" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24">${ICON_CLOSE}</svg>
+      </button>`;
+    taskbar.appendChild(tab);
+    // Scroll a la tab recien creada
+    setTimeout(()=>tab.scrollIntoView({behavior:'smooth', inline:'nearest', block:'nearest'}), 50);
+
+    // ==== registrar ====
+    const rec = {modal, tab, url, title, state:'normal', prevState:'normal',
+                 iframe, loader, header, maxIcon, resizeHandle};
+    modals.set(id, rec);
+    refreshTaskbar();
+    bringToFront(id);
+
+    // ==== drag ====
+    header.addEventListener('mousedown', function(e){
+      if(rec.state !== 'normal') return;
+      if(e.target.closest('.trx-modal-btn')) return;
+      startDrag(id, e);
+    });
+
+    // ==== resize ====
+    resizeHandle.addEventListener('mousedown', function(e){
+      if(rec.state !== 'normal') return;
+      startResize(id, e);
+    });
+
+    // Foco al hacer clic en cualquier parte del modal
+    modal.addEventListener('mousedown', function(){
+      if(rec.state !== 'minimized' && activeId !== id) bringToFront(id);
+    }, true);
+
+    // ==== botones del modal ====
+    modal.querySelectorAll('[data-act]').forEach(btn=>{
+      btn.addEventListener('click', function(e){
+        e.stopPropagation();
+        const act = btn.dataset.act;
+        if(act === 'min')    minimize(id);
+        else if(act === 'max')    toggleMaximize(id);
+        else if(act === 'close')  closeModal(id);
+        else if(act === 'newtab') openInNewTab(id);
+      });
+    });
+
+    // ==== interaccion de la tab ====
+    tab.addEventListener('click', function(e){
+      if(e.target.closest('.trx-tab-close')) return;
+      const r = modals.get(id); if(!r) return;
+      if(r.state === 'minimized') restoreFromMin(id);
+      else if(activeId === id) minimize(id);
+      else bringToFront(id);
+    });
+    tab.querySelector('.trx-tab-close').addEventListener('click', function(e){
+      e.stopPropagation();
+      closeModal(id);
+    });
+
+    return id;
   }
 
-  function closeModal(){
-    modal.classList.remove('show','maximized','minimized','animating');
-    overlay.classList.remove('show','hidden-for-min');
-    iframe.src = 'about:blank';
-    document.body.style.overflow = '';
-    state = 'normal';
-  }
-
-  function toggleMaximize(){
-    if(state === 'minimized'){ restoreFromMin(); return; }
-    modal.classList.add('animating');
-    if(state === 'maximized'){
-      modal.classList.remove('maximized');
-      maxIcon.innerHTML = ICON_MAX;
-      btnMax.title = 'Maximizar';
-      state = 'normal';
-      // Vuelve al centro
-      modal.style.left=''; modal.style.top=''; modal.style.transform='';
-      posLeft=null; posTop=null;
+  function toggleMaximize(id){
+    const r = modals.get(id); if(!r) return;
+    if(r.state === 'minimized'){ restoreFromMin(id); return; }
+    r.modal.classList.add('animating');
+    if(r.state === 'maximized'){
+      r.modal.classList.remove('maximized');
+      r.maxIcon.innerHTML = ICON_MAX;
+      r.state = 'normal';
+      // Vuelve al centro (limpia estilos inline)
+      r.modal.style.left=''; r.modal.style.top='';
+      r.modal.style.width=''; r.modal.style.height='';
+      r.modal.style.transform='';
     }else{
-      prevState = 'normal';
-      modal.classList.add('maximized');
-      modal.classList.remove('minimized');
-      maxIcon.innerHTML = ICON_RESTORE;
-      btnMax.title = 'Restaurar';
-      overlay.classList.remove('hidden-for-min');
-      overlay.classList.add('show');
-      state = 'maximized';
+      r.prevState = 'normal';
+      r.modal.classList.add('maximized');
+      r.maxIcon.innerHTML = ICON_RESTORE;
+      r.state = 'maximized';
     }
-    setTimeout(()=>modal.classList.remove('animating'), 320);
+    bringToFront(id);
+    setTimeout(()=>r.modal.classList.remove('animating'), 300);
   }
 
-  function minimize(){
-    if(state === 'minimized') return;
-    prevState = state;
-    modal.classList.add('animating');
-    modal.classList.remove('maximized');
-    modal.classList.add('minimized');
-    // Fuera de flujo: el overlay se oculta para no bloquear la pagina
-    overlay.classList.add('hidden-for-min');
-    // Reset de estilos inline para no chocar con la barra minimizada
-    modal.style.left=''; modal.style.top=''; modal.style.transform='';
-    maxIcon.innerHTML = ICON_MAX;
-    btnMax.title = 'Maximizar';
-    state = 'minimized';
-    setTimeout(()=>modal.classList.remove('animating'), 320);
+  function minimize(id){
+    const r = modals.get(id); if(!r) return;
+    if(r.state === 'minimized') return;
+    r.prevState = r.state;
+    r.modal.classList.add('animating','minimized');
+    r.state = 'minimized';
+    r.tab.classList.add('minimized');
+    r.tab.classList.remove('active');
+    if(activeId === id) focusNextAvailable();
+    setTimeout(()=>r.modal.classList.remove('animating'), 300);
   }
 
-  function restoreFromMin(){
-    modal.classList.add('animating');
-    modal.classList.remove('minimized');
-    overlay.classList.remove('hidden-for-min');
-    overlay.classList.add('show');
-    if(prevState === 'maximized'){
-      modal.classList.add('maximized');
-      maxIcon.innerHTML = ICON_RESTORE;
-      btnMax.title = 'Restaurar';
-      state = 'maximized';
-    }else{
-      state = 'normal';
-      maxIcon.innerHTML = ICON_MAX;
-      btnMax.title = 'Maximizar';
-    }
-    setTimeout(()=>modal.classList.remove('animating'), 320);
+  function restoreFromMin(id){
+    const r = modals.get(id); if(!r) return;
+    r.modal.classList.add('animating');
+    r.modal.classList.remove('minimized');
+    r.tab.classList.remove('minimized');
+    r.state = r.prevState || 'normal';
+    if(r.state === 'maximized') r.maxIcon.innerHTML = ICON_RESTORE;
+    else r.maxIcon.innerHTML = ICON_MAX;
+    bringToFront(id);
+    setTimeout(()=>r.modal.classList.remove('animating'), 300);
   }
 
-  // ==== Drag del modal (solo en estado 'normal') ====
-  header.addEventListener('mousedown', function(e){
-    if(state !== 'normal') return;
-    if(e.target.closest('.trx-modal-btn')) return;
-    dragging = true;
-    const rect = modal.getBoundingClientRect();
-    // Al iniciar drag, congelamos posicion absoluta (sin translate)
-    modal.style.left = rect.left + 'px';
-    modal.style.top  = rect.top  + 'px';
-    modal.style.transform = 'none';
-    dragOffX = e.clientX - rect.left;
-    dragOffY = e.clientY - rect.top;
+  function closeModal(id){
+    const r = modals.get(id); if(!r) return;
+    r.iframe.src = 'about:blank';
+    r.modal.classList.add('animating','minimized');
+    setTimeout(()=>{
+      r.modal.remove();
+      r.tab.remove();
+      modals.delete(id);
+      if(activeId === id) activeId = null;
+      focusNextAvailable();
+      refreshTaskbar();
+    }, 220);
+  }
+
+  function openInNewTab(id){
+    const r = modals.get(id); if(!r) return;
+    window.open(r.url, '_blank', 'noopener,noreferrer');
+  }
+
+  // ==== drag global ====
+  let drag = null;
+  function startDrag(id, e){
+    const r = modals.get(id); if(!r) return;
+    const rect = r.modal.getBoundingClientRect();
+    r.modal.style.left = rect.left + 'px';
+    r.modal.style.top  = rect.top  + 'px';
+    r.modal.style.transform = 'none';
+    drag = {id, offX: e.clientX - rect.left, offY: e.clientY - rect.top};
     document.body.style.userSelect='none';
-    // Bloquea el iframe para que no se coma los eventos del drag
-    iframe.style.pointerEvents='none';
+    modals.forEach(x=>x.iframe.style.pointerEvents='none');
+    bringToFront(id);
     e.preventDefault();
-  });
+  }
   document.addEventListener('mousemove', function(e){
-    if(!dragging) return;
-    let nx = e.clientX - dragOffX;
-    let ny = e.clientY - dragOffY;
-    const w = modal.offsetWidth, h = modal.offsetHeight;
-    nx = Math.max(0, Math.min(window.innerWidth  - 40, nx));
-    ny = Math.max(0, Math.min(window.innerHeight - 40, ny));
-    modal.style.left = nx + 'px';
-    modal.style.top  = ny + 'px';
+    if(!drag) return;
+    const r = modals.get(drag.id); if(!r) return;
+    let nx = e.clientX - drag.offX;
+    let ny = e.clientY - drag.offY;
+    nx = Math.max(0, Math.min(window.innerWidth  - 60, nx));
+    ny = Math.max(0, Math.min(window.innerHeight - 60, ny));
+    r.modal.style.left = nx + 'px';
+    r.modal.style.top  = ny + 'px';
   });
   document.addEventListener('mouseup', function(){
-    if(!dragging) return;
-    dragging = false;
-    document.body.style.userSelect='';
-    iframe.style.pointerEvents='';
-  });
-
-  // Click en barra minimizada -> restaurar
-  header.addEventListener('click', function(e){
-    if(state !== 'minimized') return;
-    if(e.target.closest('.trx-modal-btn')) return;
-    restoreFromMin();
-  });
-
-  // Botones
-  btnMin  .addEventListener('click', function(e){ e.stopPropagation(); minimize(); });
-  btnMax  .addEventListener('click', function(e){ e.stopPropagation(); toggleMaximize(); });
-  btnClose.addEventListener('click', function(e){ e.stopPropagation(); closeModal(); });
-
-  // Cerrar al clic sobre el overlay (excepto si esta minimizado)
-  overlay.addEventListener('click', function(){
-    if(state === 'minimized') return;
-    closeModal();
-  });
-
-  // ESC cierra, F11 (dentro del modal) maximiza
-  document.addEventListener('keydown', function(e){
-    if(!modal.classList.contains('show')) return;
-    if(e.key === 'Escape'){ closeModal(); }
-  });
-
-  // Loader off cuando el iframe termina de cargar
-  iframe.addEventListener('load', function(){
-    if(iframe.src && iframe.src !== 'about:blank'){
-      setTimeout(()=>loader.classList.add('hidden'), 150);
+    if(drag){
+      drag = null;
+      document.body.style.userSelect='';
+      modals.forEach(x=>x.iframe.style.pointerEvents='');
+    }
+    if(resz){
+      resz = null;
+      document.body.style.userSelect='';
+      modals.forEach(x=>x.iframe.style.pointerEvents='');
     }
   });
 
-  // Delegacion: cualquier enlace con data-trx-modal abre el modal
+  // ==== resize global ====
+  let resz = null;
+  function startResize(id, e){
+    const r = modals.get(id); if(!r) return;
+    const rect = r.modal.getBoundingClientRect();
+    r.modal.style.left = rect.left + 'px';
+    r.modal.style.top  = rect.top  + 'px';
+    r.modal.style.transform = 'none';
+    r.modal.style.width  = rect.width + 'px';
+    r.modal.style.height = rect.height + 'px';
+    resz = {id, startX: e.clientX, startY: e.clientY, startW: rect.width, startH: rect.height};
+    document.body.style.userSelect='none';
+    modals.forEach(x=>x.iframe.style.pointerEvents='none');
+    bringToFront(id);
+    e.preventDefault();
+  }
+  document.addEventListener('mousemove', function(e){
+    if(!resz) return;
+    const r = modals.get(resz.id); if(!r) return;
+    const w = Math.max(320, resz.startW + (e.clientX - resz.startX));
+    const h = Math.max(220, resz.startH + (e.clientY - resz.startY));
+    r.modal.style.width  = w + 'px';
+    r.modal.style.height = h + 'px';
+  });
+
+  // ==== ESC cierra el modal activo ====
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && activeId){
+      const r = modals.get(activeId);
+      if(r && r.state !== 'minimized') closeModal(activeId);
+    }
+  });
+
+  // ==== delegacion: cualquier enlace con data-trx-modal abre uno ====
   document.addEventListener('click', function(e){
     const a = e.target.closest('[data-trx-modal]');
     if(!a) return;
     e.preventDefault();
     const url = a.getAttribute('data-trx-modal');
-    const tit = a.getAttribute('data-trx-title') || a.textContent.trim();
-    openModal(url, tit);
+    const tit = a.getAttribute('data-trx-title') || a.textContent.trim() || 'Dashboard';
+
+    // Si el mismo URL ya esta abierto, enfocar en vez de duplicar
+    let existing = null;
+    modals.forEach((r,id)=>{ if(r.url === url) existing = id; });
+    if(existing){
+      const r = modals.get(existing);
+      if(r.state === 'minimized') restoreFromMin(existing);
+      else bringToFront(existing);
+    }else{
+      openModal(url, tit);
+    }
+
     // En mobile, cierra el drawer del sidebar tras abrir
     if(window.matchMedia('(max-width:900px)').matches){
       const sb = document.querySelector('.sidebar');
@@ -877,6 +1029,12 @@ async function loadKpis(){
       if(ov) ov.classList.remove('show');
     }
   });
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
 })();
 </script>
 </body>
