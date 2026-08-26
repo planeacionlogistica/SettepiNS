@@ -10,59 +10,297 @@
 body { display:flex; min-height:100vh; background:#f5f7fa; color:#1f2937; overflow-x:hidden; }
 
 .sidebar {
-  width:220px; background:#0f172a; color:#fff;
-  padding:18px; display:flex; flex-direction:column; gap:10px;
+  width:260px; background:#0f172a; color:#fff;
+  padding:0; display:flex; flex-direction:column;
   position:sticky; top:0; height:100vh; overflow:auto;
   flex-shrink:0;
   border-right:1px solid #1e293b;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
-.logo {
-  font-size:22px; font-weight:800; margin-bottom:16px;
-  letter-spacing:0.5px; color:#a3e635;
-}
-.menu-btn {
-  width:100%; padding:12px; border:none; border-radius:8px;
-  background:#1e293b; color:#e2e8f0; cursor:pointer; font-size:13px;
-  text-align:left; transition:background 0.15s, color 0.15s;
-}
-.menu-btn:hover { background:#334155; color:#fff; }
-.menu-btn.active {
-  background:#a3e635; color:#0f172a; font-weight:700;
-  box-shadow:0 2px 8px rgba(163,230,53,0.25);
-}
-.menu-btn.upload { background:#65a30d; color:#fff; text-align:center; margin-bottom:16px; }
-.menu-btn.upload:hover { background:#4d7c0f; }
-.upload-status { font-size:11px; color:#94a3b8; padding:4px 8px; margin-top:4px; }
-.upload-status.ok { color:#a3e635; }
+.sidebar::-webkit-scrollbar { width:6px; }
+.sidebar::-webkit-scrollbar-thumb { background:#334155; border-radius:3px; }
 
-.menu-btn-sheet {
-  background:#0ea5e9 !important; color:#fff !important;
-  text-align:center !important; font-weight:700;
-  margin-bottom:6px;
+/* ========== BRAND ========== */
+.sidebar-brand {
+  padding:26px 22px 22px;
+  text-align:center;
+  border-bottom:1px solid rgba(163,230,53,0.12);
 }
-.menu-btn-sheet:hover { background:#0284c7 !important; }
-.menu-btn-sheet:disabled { opacity:0.6; cursor:wait; }
+.brand-title {
+  font-size:26px; font-weight:900;
+  color:#a3e635;
+  letter-spacing:2px;
+  line-height:1;
+  text-shadow:0 0 20px rgba(163,230,53,0.35);
+}
+.brand-sub {
+  font-size:9px; color:#64748b;
+  letter-spacing:2px;
+  margin-top:6px;
+  font-weight:600;
+  text-transform:uppercase;
+}
 
-.semana-filter {
-  margin-top:10px; padding:10px;
-  background:#1e293b; border-radius:8px;
-  border:1px solid #7c3aed;
+/* ========== NAV ITEMS ========== */
+.side-nav {
+  display:flex; flex-direction:column;
+  padding:16px 12px 10px;
+  gap:4px;
 }
-.semana-lbl {
-  display:block; font-size:10px;
-  color:#a3e635; font-weight:700;
-  text-transform:uppercase; letter-spacing:0.5px;
-  margin-bottom:6px;
-}
-.semana-filter select {
-  width:100%; padding:8px 10px;
-  background:#0f172a; color:#fff;
-  border:1px solid #475569; border-radius:6px;
-  font-size:12px; font-weight:600;
+.side-item {
+  display:flex; align-items:center; gap:14px;
+  padding:14px 14px;
+  background:transparent;
+  border:1px solid transparent;
+  border-radius:10px;
+  color:#e2e8f0;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:1px;
   cursor:pointer;
+  transition:all 0.18s;
+  text-align:left;
+  font-family:inherit;
+  position:relative;
+  overflow:hidden;
 }
-.semana-filter select:focus { border-color:#a3e635; outline:none; }
-.semana-filter select option { background:#0f172a; color:#fff; }
+.side-item:hover {
+  background:rgba(163,230,53,0.06);
+  border-color:rgba(163,230,53,0.15);
+  color:#fff;
+}
+.side-item.active {
+  background:linear-gradient(90deg, rgba(163,230,53,0.15), rgba(163,230,53,0.03));
+  border-color:rgba(163,230,53,0.4);
+  color:#a3e635;
+  box-shadow:0 2px 12px rgba(163,230,53,0.12);
+}
+.side-item.active::before {
+  content:'';
+  position:absolute; left:0; top:8px; bottom:8px;
+  width:3px;
+  background:#a3e635;
+  border-radius:0 2px 2px 0;
+  box-shadow:0 0 8px rgba(163,230,53,0.6);
+}
+.side-item-icon {
+  width:22px; height:22px;
+  display:flex; align-items:center; justify-content:center;
+  color:#a3e635;
+  flex-shrink:0;
+}
+.side-item-icon svg {
+  width:100%; height:100%;
+}
+.side-item-text {
+  flex:1;
+  font-size:11px;
+  letter-spacing:1.2px;
+}
+.side-item-arrow {
+  color:#a3e635;
+  font-size:14px;
+  font-weight:700;
+  opacity:0.7;
+  transition:transform 0.15s, opacity 0.15s;
+}
+.side-item:hover .side-item-arrow {
+  opacity:1;
+  transform:translateX(3px);
+}
+.side-item.active .side-item-arrow {
+  opacity:1;
+}
+
+/* ========== SECCIÓN GENÉRICA ========== */
+.side-section {
+  margin:12px;
+  padding:12px 14px;
+  background:rgba(30,41,59,0.6);
+  border:1px solid rgba(163,230,53,0.15);
+  border-radius:10px;
+}
+.side-section-label {
+  display:flex; align-items:center; gap:8px;
+  color:#a3e635;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:1.5px;
+  margin-bottom:10px;
+  text-transform:uppercase;
+}
+.side-section-label svg {
+  width:14px; height:14px;
+}
+.side-select {
+  width:100%;
+  padding:9px 12px;
+  background:#0f172a;
+  color:#fff;
+  border:1px solid #334155;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+  outline:none;
+  transition:border-color 0.15s;
+  font-family:inherit;
+}
+.side-select:focus { border-color:#a3e635; }
+.side-select option { background:#0f172a; color:#fff; }
+
+/* ========== STATUS ========== */
+.side-status {
+  margin:0 12px 12px;
+  padding:10px 14px;
+  background:rgba(30,41,59,0.6);
+  border:1px solid rgba(148,163,184,0.15);
+  border-radius:10px;
+  display:flex; align-items:center; gap:10px;
+  font-size:11px;
+  color:#cbd5e1;
+  font-weight:600;
+}
+.side-status-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:#f59e0b;
+  flex-shrink:0;
+  box-shadow:0 0 8px rgba(245,158,11,0.6);
+  animation:pulse 1.5s ease-in-out infinite;
+}
+.side-status.ok .side-status-dot {
+  background:#a3e635;
+  box-shadow:0 0 8px rgba(163,230,53,0.7);
+  animation:none;
+}
+.side-status.error .side-status-dot {
+  background:#ef4444;
+  box-shadow:0 0 8px rgba(239,68,68,0.7);
+  animation:none;
+}
+.side-status.ok { border-color:rgba(163,230,53,0.25); }
+.side-status.error { border-color:rgba(239,68,68,0.25); }
+.side-status-text {
+  flex:1;
+  line-height:1.35;
+  font-size:10.5px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+@keyframes pulse {
+  0%, 100% { opacity:1; }
+  50% { opacity:0.4; }
+}
+
+/* ========== MOTOR DE RUTAS ========== */
+.side-motor {
+  margin-top:auto;
+  margin-bottom:16px;
+  background:rgba(30,41,59,0.6);
+  border-color:rgba(163,230,53,0.15);
+}
+.motor-badge {
+  margin-left:auto;
+  padding:3px 8px;
+  background:#334155; color:#cbd5e1;
+  border-radius:10px;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:0.5px;
+}
+.motor-badge.ors-active {
+  background:#a3e635; color:#0f172a;
+  box-shadow:0 0 8px rgba(163,230,53,0.4);
+}
+.side-details { margin-top:4px; }
+.side-details-toggle {
+  cursor:pointer;
+  padding:6px 10px;
+  background:#0f172a;
+  border-radius:6px;
+  font-size:11px;
+  color:#94a3b8;
+  font-weight:600;
+  list-style:none;
+  transition:color 0.15s;
+}
+.side-details-toggle::-webkit-details-marker { display:none; }
+.side-details-toggle::before {
+  content:'⚙ ';
+  color:#a3e635;
+}
+.side-details[open] .side-details-toggle {
+  color:#a3e635;
+}
+.side-details-body {
+  padding:10px 4px 0;
+}
+.motor-status {
+  color:#cbd5e1;
+  padding:6px 10px;
+  background:rgba(15,23,42,0.6);
+  border-radius:6px;
+  font-size:10px;
+  margin-bottom:8px;
+}
+.motor-lbl {
+  display:block;
+  color:#94a3b8;
+  font-size:9.5px;
+  margin-bottom:4px;
+  font-weight:700;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+}
+.motor-input {
+  width:100%;
+  padding:7px 10px;
+  background:#0f172a;
+  color:#fff;
+  border:1px solid #334155;
+  border-radius:6px;
+  font-size:10.5px;
+  font-family:'SF Mono',Monaco,monospace;
+  outline:none;
+  margin-bottom:6px;
+}
+.motor-input:focus { border-color:#a3e635; }
+.motor-buttons {
+  display:flex; gap:5px;
+}
+.motor-btn {
+  flex:1;
+  padding:6px 10px;
+  border-radius:6px;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+  border:none;
+  transition:all 0.15s;
+  font-family:inherit;
+}
+.motor-btn.primary {
+  background:#a3e635;
+  color:#0f172a;
+}
+.motor-btn.primary:hover { background:#84cc16; }
+.motor-btn.ghost {
+  background:transparent;
+  color:#ef4444;
+  border:1px solid #ef4444;
+}
+.motor-btn.ghost:hover { background:#ef4444; color:#fff; }
+.motor-help {
+  margin-top:8px;
+  padding:8px 10px;
+  background:rgba(15,23,42,0.6);
+  border-radius:6px;
+  color:#94a3b8;
+  font-size:10px;
+  line-height:1.5;
+}
+.motor-help a { color:#a3e635; text-decoration:none; font-weight:700; }
+.motor-help a:hover { text-decoration:underline; }
 
 /* Toolbar de tabla con botón exportar Excel */
 .table-toolbar {
@@ -93,93 +331,46 @@ body { display:flex; min-height:100vh; background:#f5f7fa; color:#1f2937; overfl
   opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none;
 }
 
-/* Motor de rutas ORS */
-.ors-config {
-  margin-top:16px;
-  border-top:1px solid #334155;
-  padding-top:14px;
-}
-.ors-config details summary {
-  cursor:pointer; padding:8px 10px;
-  background:#1e293b; border-radius:6px;
-  font-size:12px; font-weight:600; color:#e2e8f0;
-  display:flex; align-items:center; justify-content:space-between;
-  list-style:none;
-  gap:6px;
-}
-.ors-config details summary::-webkit-details-marker { display:none; }
-.ors-badge {
-  padding:2px 8px; border-radius:10px; font-size:9px;
-  font-weight:700; letter-spacing:0.3px;
-  background:#475569; color:#cbd5e1;
-}
-.ors-badge.ors-active { background:#a3e635; color:#0f172a; }
-.ors-body {
-  padding:10px 4px; font-size:11px;
-}
-.ors-current {
-  color:#cbd5e1; margin-bottom:8px;
-  padding:6px 10px; background:#1e293b; border-radius:6px;
-}
-.ors-lbl { display:block; color:#94a3b8; margin-bottom:4px; font-size:10px; }
-.ors-input-row input {
-  width:100%; padding:6px 8px;
-  background:#0f172a; color:#fff;
-  border:1px solid #334155; border-radius:5px;
-  font-size:10px; font-family:monospace;
-  outline:none;
-}
-.ors-input-row input:focus { border-color:#a3e635; }
-.ors-buttons {
-  display:flex; gap:5px; margin-top:6px;
-}
-.ors-buttons button {
-  flex:1; padding:6px 8px;
-  background:#a3e635; color:#0f172a;
-  border:none; border-radius:5px;
-  font-size:11px; font-weight:700; cursor:pointer;
-}
-.ors-buttons button:hover { background:#84cc16; }
-.ors-buttons #orsKeyClear {
-  background:transparent; color:#f87171; border:1px solid #f87171;
-}
-.ors-buttons #orsKeyClear:hover { background:#f87171; color:#fff; }
-.ors-help {
-  margin-top:8px; padding:6px 8px;
-  background:#0f172a; border-radius:5px;
-  color:#94a3b8; font-size:10px; line-height:1.4;
-}
-.ors-help a { color:#a3e635; text-decoration:underline; }
-.ors-help-note { color:#64748b; font-size:9px; margin-top:4px; }
-
 .main { flex:1; padding:18px; overflow-x:hidden; min-width:0; }
 .tab { display:none; }
 .tab.active { display:block; }
 
 .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:12px; }
 .card {
-  background:#fff; padding:10px 14px; border-radius:10px;
-  box-shadow:0 1px 4px rgba(0,0,0,0.05);
-  border-left:4px solid #cbd5e1;
+  background:#fff; padding:12px 16px; border-radius:10px;
+  box-shadow:0 1px 3px rgba(15,23,42,0.06);
+  border-left:3px solid #0f172a;
   transition:transform 0.15s, box-shadow 0.15s;
+  position:relative;
 }
-.card:hover { transform:translateY(-1px); box-shadow:0 3px 10px rgba(0,0,0,0.08); }
-.card h2 { color:#0f172a; font-size:22px; margin-bottom:2px; font-weight:800; line-height:1.1; }
-.card p { color:#64748b; font-size:10px; text-transform:uppercase; letter-spacing:0.4px; font-weight:600; }
+.card:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(15,23,42,0.09); }
+.card h2 { color:#0f172a; font-size:24px; margin-bottom:2px; font-weight:800; line-height:1.1; letter-spacing:-0.5px; }
+.card p { color:#64748b; font-size:10px; text-transform:uppercase; letter-spacing:0.6px; font-weight:700; }
 .card .kpi-sub {
   display:block; margin-top:3px; font-size:10px;
-  color:#f59e0b; font-weight:600;
+  color:#94a3b8; font-weight:600;
 }
 .card .kpi-sub:empty { display:none; }
-/* Colores pastel diferentes por KPI (estilo TRAXIÓN Flota) */
-.card.kpi-total    { background:#f0fdf4; border-left-color:#16a34a; }
-.card.kpi-total h2 { color:#166534; }
-.card.kpi-prom     { background:#fef3c7; border-left-color:#ca8a04; }
-.card.kpi-prom h2  { color:#92400e; }
-.card.kpi-ops      { background:#eff6ff; border-left-color:#2563eb; }
-.card.kpi-ops h2   { color:#1e40af; }
-.card.kpi-mayor    { background:#fef2f2; border-left-color:#dc2626; }
-.card.kpi-mayor h2 { color:#991b1b; }
+/* Todos los KPIs superiores usan la paleta TRAXIÓN: fondo blanco + acento navy sutil */
+.card.kpi-total,
+.card.kpi-prom,
+.card.kpi-ops,
+.card.kpi-mayor {
+  background:#fff;
+  border-left-color:#0f172a;
+}
+.card.kpi-total h2,
+.card.kpi-prom h2,
+.card.kpi-ops h2,
+.card.kpi-mayor h2 { color:#0f172a; }
+/* Detalle sutil: pequeño ícono lime en la esquina */
+.card::after {
+  content:'';
+  position:absolute; top:12px; right:14px;
+  width:6px; height:6px; border-radius:50%;
+  background:#a3e635;
+  opacity:0.7;
+}
 
 .filters {
   display:grid; grid-template-columns:repeat(6, minmax(0, 1fr));
@@ -272,21 +463,81 @@ body { display:flex; min-height:100vh; background:#f5f7fa; color:#1f2937; overfl
 
 /* ==== TABLA A ANCHO COMPLETO (ya no hay panel derecho fijo) ==== */
 .table-container {
-  background:#fff; padding:14px; border-radius:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  background:#fff; padding:0; border-radius:12px;
+  box-shadow:0 1px 3px rgba(15,23,42,0.06), 0 8px 24px rgba(15,23,42,0.04);
   overflow:auto; max-height:70vh;
+  border:1px solid #f1f5f9;
 }
 table { width:100%; border-collapse:collapse; font-size:13px; }
-th {
-  background:#0f172a; color:#fff; padding:10px; text-align:left;
-  position:sticky; top:0; z-index:1; font-weight:700;
+thead th {
+  background:#0f172a; color:#fff;
+  padding:13px 16px;
+  text-align:left;
+  position:sticky; top:0; z-index:2;
+  font-weight:700;
+  font-size:11px;
+  letter-spacing:0.6px;
+  text-transform:uppercase;
+  border-bottom:2px solid #a3e635;
+}
+tbody td {
+  padding:11px 16px;
+  border-bottom:1px solid #f1f5f9;
+  cursor:pointer;
+  color:#334155;
+  vertical-align:middle;
+  transition:background 0.1s;
+}
+tbody tr:nth-child(even) td { background:#fafbfc; }
+tbody tr:hover td { background:#f0f7ff; }
+tbody tr.selected td { background:#dbeafe; border-color:#93c5fd; }
+tbody tr:last-child td { border-bottom:none; }
+
+/* Nómina como chip discreto */
+.td-nomina { width:110px; }
+.nom-chip {
+  display:inline-block;
+  padding:3px 9px;
+  background:#f1f5f9;
+  color:#475569;
+  border-radius:5px;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size:11px; font-weight:700;
   letter-spacing:0.3px;
 }
-td { padding:9px; border-bottom:1px solid #e5e7eb; cursor:pointer; }
-tr:hover { background:#eef4ff; }
-tr.selected { background:#dbeafe; }
+tr:hover .nom-chip { background:#e2e8f0; color:#0f172a; }
+tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
 
-.km-cell { font-weight:700; }
+/* Hora en monoespaciada */
+.td-hora {
+  width:70px;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  font-size:12px; font-weight:700; color:#0f172a;
+}
+
+/* Planta como etiqueta */
+.td-planta { width:140px; }
+.planta-tag {
+  display:inline-block;
+  padding:2px 8px;
+  background:transparent;
+  color:#0f172a;
+  border:1px solid #cbd5e1;
+  border-radius:5px;
+  font-size:11px; font-weight:700;
+  letter-spacing:0.3px;
+  white-space:nowrap;
+}
+
+/* Ruta */
+.td-ruta { color:#475569; font-weight:500; }
+
+/* KM celda destacada */
+.km-cell {
+  font-weight:800; font-size:14px;
+  text-align:right; width:80px;
+  font-variant-numeric:tabular-nums;
+}
 .km-bad   { color:#dc2626; }
 .km-warn  { color:#ea580c; }
 .km-mid   { color:#ca8a04; }
@@ -411,8 +662,358 @@ tr.selected { background:#dbeafe; }
 /* ============================================================
    MODAL DEL OPERADOR (mapa + info + ruta ideal)
    ============================================================ */
-.op-modal-overlay {
-  position:fixed; inset:0; z-index:9999;
+
+/* ============ BADGE DE FACTURACIÓN (minimalista, elegante) ============ */
+.op-cell {
+  display:flex; align-items:center; gap:10px;
+  flex-wrap:wrap;
+}
+.op-nombre {
+  flex:0 1 auto;
+  font-weight:600; color:#0f172a;
+  letter-spacing:-0.1px;
+}
+.badge-fact {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:2px 9px;
+  background:transparent;
+  color:#475569;
+  border:1px solid #cbd5e1;
+  border-radius:6px;
+  font-size:10px; font-weight:700;
+  cursor:pointer;
+  transition:all 0.15s;
+  white-space:nowrap;
+  letter-spacing:0.4px;
+  text-transform:uppercase;
+  line-height:1.4;
+}
+.badge-fact::before {
+  content:'▸';
+  font-size:9px;
+  color:#94a3b8;
+  transition:transform 0.15s;
+}
+.badge-fact:hover {
+  border-color:#0f172a;
+  color:#0f172a;
+  background:#f8fafc;
+}
+.badge-fact:hover::before {
+  color:#0f172a;
+  transform:translateX(2px);
+}
+.badge-fact-mini {
+  padding:1px 6px;
+  font-size:9px;
+  margin-left:6px;
+  vertical-align:middle;
+  letter-spacing:0.3px;
+}
+
+/* ============ MODAL DE FACTURACIÓN ============ */
+.fact-modal-overlay {
+  position:fixed; inset:0; z-index:10000;
+  background:rgba(15,23,42,0.75);
+  backdrop-filter:blur(4px);
+  display:none;
+  align-items:center; justify-content:center;
+  padding:20px;
+  animation:factFadeIn 0.2s ease-out;
+}
+.fact-modal-overlay.open { display:flex; }
+@keyframes factFadeIn { from { opacity:0; } to { opacity:1; } }
+
+.fact-modal {
+  background:#f8fafc;
+  border-radius:16px;
+  width:100%; max-width:1180px;
+  max-height:92vh;
+  overflow:hidden;
+  display:flex; flex-direction:column;
+  box-shadow:0 25px 60px rgba(0,0,0,0.35);
+  animation:factSlideUp 0.25s ease-out;
+}
+@keyframes factSlideUp {
+  from { transform:translateY(20px); opacity:0; }
+  to { transform:translateY(0); opacity:1; }
+}
+
+.fact-modal-header {
+  background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color:#fff;
+  padding:20px 28px;
+  display:flex; justify-content:space-between; align-items:center;
+  gap:20px;
+  border-bottom:3px solid #a855f7;
+}
+.fact-header-left {
+  display:flex; align-items:center; gap:16px;
+}
+.fact-badge-icon {
+  width:56px; height:56px;
+  background:linear-gradient(135deg, #a855f7, #7c3aed);
+  border-radius:14px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:28px;
+  box-shadow:0 4px 12px rgba(168,85,247,0.4);
+}
+.fact-modal-eyebrow {
+  font-size:10px; font-weight:700; color:#a855f7;
+  letter-spacing:2px; text-transform:uppercase;
+  margin-bottom:2px;
+}
+.fact-modal-title {
+  font-size:22px; font-weight:800; color:#fff;
+  line-height:1.15;
+}
+.fact-modal-subtitle {
+  font-size:12px; color:#94a3b8;
+  margin-top:3px;
+}
+.fact-modal-close {
+  padding:8px 16px;
+  background:rgba(255,255,255,0.1);
+  color:#fff;
+  border:1px solid rgba(255,255,255,0.2);
+  border-radius:8px;
+  font-size:13px; font-weight:600;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+.fact-modal-close:hover {
+  background:rgba(255,255,255,0.2);
+}
+
+/* KPIs */
+.fact-kpis {
+  display:grid; grid-template-columns:repeat(4, 1fr);
+  gap:12px; padding:20px 28px 14px;
+  background:#fff;
+  border-bottom:1px solid #e5e7eb;
+}
+.fact-kpi {
+  padding:12px 14px;
+  border-radius:10px;
+  border-left:4px solid;
+  background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+}
+.fact-kpi.total    { border-color:#7c3aed; background:#faf5ff; }
+.fact-kpi.rutas    { border-color:#2563eb; background:#eff6ff; }
+.fact-kpi.plantas  { border-color:#16a34a; background:#f0fdf4; }
+.fact-kpi.dias     { border-color:#ca8a04; background:#fefce8; }
+.fact-kpi-num {
+  font-size:24px; font-weight:800; color:#0f172a;
+  line-height:1.1;
+}
+.fact-kpi-lbl {
+  font-size:10px; color:#64748b; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.4px;
+  margin-top:3px;
+}
+
+/* Toolbar */
+.fact-toolbar {
+  display:flex; gap:14px; align-items:center;
+  padding:14px 28px;
+  background:#fff;
+  border-bottom:1px solid #e5e7eb;
+}
+.fact-filter-group {
+  display:flex; align-items:center; gap:8px;
+  flex:1;
+}
+.fact-filter-group:last-child { flex:2; }
+.fact-filter-group label {
+  font-size:12px; font-weight:600; color:#475569;
+  text-transform:uppercase; letter-spacing:0.4px;
+}
+.fact-filter-group select,
+.fact-filter-group input {
+  padding:7px 12px;
+  border:1px solid #d1d5db;
+  border-radius:8px;
+  font-size:13px;
+  background:#fff;
+  outline:none;
+  transition:border-color 0.15s;
+}
+.fact-filter-group select:focus,
+.fact-filter-group input:focus { border-color:#7c3aed; }
+.fact-filter-group input { flex:1; min-width:200px; }
+
+/* Tabs */
+.fact-tabs {
+  display:flex; gap:0;
+  background:#fff;
+  border-bottom:1px solid #e5e7eb;
+  padding:0 28px;
+}
+.fact-tab {
+  padding:12px 20px;
+  background:transparent;
+  border:none;
+  border-bottom:3px solid transparent;
+  color:#64748b;
+  font-size:13px; font-weight:600;
+  cursor:pointer;
+  transition:all 0.15s;
+  margin-bottom:-1px;
+}
+.fact-tab:hover { color:#0f172a; background:#f8fafc; }
+.fact-tab.active {
+  color:#7c3aed;
+  border-bottom-color:#7c3aed;
+  background:#faf5ff;
+}
+
+/* Body */
+.fact-body {
+  flex:1;
+  overflow-y:auto;
+  padding:20px 28px;
+  background:#f8fafc;
+}
+.fact-empty {
+  padding:60px 20px;
+  text-align:center;
+  color:#94a3b8;
+  font-size:14px;
+}
+
+/* Vista por Día */
+.fact-day-card {
+  background:#fff;
+  border-radius:10px;
+  padding:14px 16px;
+  margin-bottom:12px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+  border-left:4px solid #7c3aed;
+}
+.fact-day-header {
+  display:flex; justify-content:space-between; align-items:baseline;
+  margin-bottom:10px;
+  padding-bottom:8px;
+  border-bottom:1px solid #f1f5f9;
+}
+.fact-day-title {
+  font-size:15px; font-weight:800; color:#0f172a;
+}
+.fact-day-count {
+  font-size:11px; color:#7c3aed; font-weight:700;
+  background:#faf5ff; padding:3px 10px; border-radius:12px;
+}
+.fact-viaje {
+  display:grid;
+  grid-template-columns:80px 1fr 1fr 80px 90px;
+  gap:12px; align-items:center;
+  padding:9px 0;
+  border-bottom:1px dashed #f1f5f9;
+  font-size:12px;
+}
+.fact-viaje:last-child { border-bottom:none; }
+.fact-viaje-hora {
+  font-weight:700; color:#0f172a;
+  font-family: 'SF Mono', 'Monaco', monospace;
+  font-size:12px;
+}
+.fact-viaje-ruta {
+  color:#0f172a; font-weight:600;
+}
+.fact-viaje-ruta small {
+  display:block; color:#64748b; font-weight:400;
+  font-size:11px; margin-top:1px;
+}
+.fact-viaje-planta {
+  color:#475569; font-size:11px;
+}
+.fact-viaje-unidad {
+  background:#fef3c7; color:#78350f;
+  padding:3px 8px; border-radius:6px;
+  font-size:11px; font-weight:700;
+  text-align:center;
+  font-family: 'SF Mono', 'Monaco', monospace;
+}
+.fact-viaje-badge {
+  padding:3px 8px; border-radius:6px;
+  font-size:10px; font-weight:700;
+  text-align:center;
+  text-transform:uppercase; letter-spacing:0.3px;
+}
+.fact-viaje-badge.ok { background:#dcfce7; color:#166534; }
+.fact-viaje-badge.warn { background:#fef3c7; color:#78350f; }
+.fact-viaje-badge.bad { background:#fef2f2; color:#991b1b; }
+.fact-viaje-badge.info { background:#dbeafe; color:#1e40af; }
+
+/* Vista Top Rutas / Unidades */
+.fact-top-list {
+  background:#fff; border-radius:10px;
+  padding:8px 0;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+}
+.fact-top-item {
+  display:flex; align-items:center; gap:12px;
+  padding:12px 20px;
+  border-bottom:1px solid #f1f5f9;
+}
+.fact-top-item:last-child { border-bottom:none; }
+.fact-top-rank {
+  width:28px; height:28px;
+  background:#7c3aed; color:#fff;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:800;
+}
+.fact-top-item:nth-child(1) .fact-top-rank { background:#facc15; color:#78350f; }
+.fact-top-item:nth-child(2) .fact-top-rank { background:#94a3b8; color:#0f172a; }
+.fact-top-item:nth-child(3) .fact-top-rank { background:#f97316; color:#fff; }
+.fact-top-name {
+  flex:1; font-size:14px; font-weight:600; color:#0f172a;
+}
+.fact-top-name small { display:block; color:#64748b; font-weight:400; font-size:11px; margin-top:2px; }
+.fact-top-count {
+  font-size:22px; font-weight:800; color:#7c3aed;
+  padding:0 12px;
+}
+.fact-top-bar {
+  width:120px; height:6px;
+  background:#f1f5f9;
+  border-radius:3px; overflow:hidden;
+}
+.fact-top-bar > div {
+  height:100%;
+  background:linear-gradient(90deg, #7c3aed, #a855f7);
+  border-radius:3px;
+  transition:width 0.3s;
+}
+
+/* Tabla todos los viajes */
+.fact-table {
+  width:100%;
+  background:#fff;
+  border-radius:10px;
+  overflow:hidden;
+  border-collapse:collapse;
+  box-shadow:0 1px 3px rgba(0,0,0,0.05);
+  font-size:12px;
+}
+.fact-table thead th {
+  background:#0f172a; color:#fff;
+  padding:10px 12px;
+  text-align:left;
+  font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.4px;
+  position:sticky; top:0;
+}
+.fact-table tbody td {
+  padding:8px 12px;
+  border-bottom:1px solid #f1f5f9;
+  color:#334155;
+}
+.fact-table tbody tr:hover { background:#f8fafc; }
+
+.op-modal-overlay {  position:fixed; inset:0; z-index:9999;
   background:rgba(15, 23, 42, 0.55);
   backdrop-filter:blur(6px);
   -webkit-backdrop-filter:blur(6px);
@@ -802,6 +1403,60 @@ tr.selected { background:#dbeafe; }
 .swap-cat-badge.cat-ahorro-b { background:#dbeafe; color:#1e40af; }
 .swap-badge.doble { background:#dcfce7; color:#166534; }
 .swap-badge.rescate-medio { background:#ffedd5; color:#9a3412; }
+.swap-badge.tripleta {
+  background:linear-gradient(135deg,#a855f7,#7c3aed);
+  color:#fff;
+  box-shadow:0 2px 6px rgba(124,58,237,0.35);
+}
+.swap-badge.cuarteta {
+  background:linear-gradient(135deg,#f97316,#c2410c);
+  color:#fff;
+  box-shadow:0 2px 6px rgba(194,65,12,0.35);
+}
+
+/* Layout de tripleta: 3 operadores con flechas de rotación */
+.swap-operadores.is-triple {
+  display:grid;
+  grid-template-columns:1fr 20px 1fr 20px 1fr;
+  gap:0;
+}
+/* Layout de cuarteta: 4 operadores */
+.swap-operadores.is-quad {
+  display:grid;
+  grid-template-columns:1fr 18px 1fr 18px 1fr 18px 1fr;
+  gap:0;
+}
+.swap-item.swap-is-tripleta {
+  background:linear-gradient(to right, #faf5ff 0%, #fff 40%);
+  border-left-width:5px !important;
+  border-left-color:#7c3aed !important;
+}
+.swap-item.swap-is-tripleta .swap-op {
+  border-color:#c4b5fd;
+}
+.swap-item.swap-is-tripleta .swap-op.C {
+  background:#faf5ff;
+}
+.swap-item.swap-is-tripleta .swap-arrow {
+  color:#7c3aed;
+  font-size:20px;
+  font-weight:800;
+}
+.swap-item.swap-is-cuarteta {
+  background:linear-gradient(to right, #fff7ed 0%, #fff 50%);
+  border-left-width:5px !important;
+  border-left-color:#c2410c !important;
+}
+.swap-item.swap-is-cuarteta .swap-op {
+  border-color:#fdba74;
+}
+.swap-item.swap-is-cuarteta .swap-op.C { background:#fff7ed; }
+.swap-item.swap-is-cuarteta .swap-op.D { background:#ffedd5; }
+.swap-item.swap-is-cuarteta .swap-arrow {
+  color:#c2410c;
+  font-size:18px;
+  font-weight:800;
+}
 
 /* Borde izquierdo de las tarjetas según categoría */
 .swap-item.swap-cat-excelente { border-left:4px solid #7c3aed; }
@@ -900,6 +1555,265 @@ tr.selected { background:#dbeafe; }
 .hidden-counter button:hover { color:#1e40af; }
 
 /* TAB CUADRANTES */
+/* ============================================================
+   TAB: PROGRAMACIÓN IDEAL
+   ============================================================ */
+.ideal-header {
+  display:flex; align-items:flex-end; justify-content:space-between;
+  margin-bottom:14px; gap:20px; flex-wrap:wrap;
+}
+.ideal-title {
+  font-size:22px; font-weight:800; color:#0f172a;
+  margin:0; letter-spacing:-0.4px;
+}
+.ideal-sub {
+  font-size:12px; color:#64748b; margin:4px 0 0 0;
+}
+
+.ideal-filters {
+  display:grid;
+  grid-template-columns:1fr 1fr 1fr auto auto;
+  gap:10px;
+  background:#fff;
+  padding:14px 16px;
+  border-radius:10px;
+  box-shadow:0 1px 3px rgba(15,23,42,0.06);
+  margin-bottom:14px;
+  align-items:end;
+}
+.ideal-filter {
+  display:flex; flex-direction:column; gap:4px;
+}
+.ideal-filter label {
+  font-size:10px; font-weight:700; color:#64748b;
+  text-transform:uppercase; letter-spacing:0.5px;
+}
+.ideal-filter select {
+  padding:8px 12px;
+  border:1px solid #d1d5db;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:600;
+  color:#0f172a;
+  background:#fff;
+  cursor:pointer;
+  outline:none;
+  transition:border-color 0.15s;
+}
+.ideal-filter select:focus { border-color:#0f172a; }
+.ideal-btn-reset,
+.ideal-btn-calc {
+  padding:8px 16px;
+  border-radius:8px;
+  font-size:12px; font-weight:700;
+  cursor:pointer;
+  border:none;
+  transition:all 0.15s;
+  white-space:nowrap;
+  height:38px;
+}
+.ideal-btn-reset {
+  background:#fff;
+  color:#64748b;
+  border:1px solid #d1d5db;
+}
+.ideal-btn-reset:hover { background:#f8fafc; border-color:#0f172a; color:#0f172a; }
+.ideal-btn-calc {
+  background:linear-gradient(135deg, #0f172a, #1e293b);
+  color:#a3e635;
+  border:1px solid #0f172a;
+  letter-spacing:0.4px;
+}
+.ideal-btn-calc:hover {
+  background:linear-gradient(135deg, #1e293b, #334155);
+  transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(15,23,42,0.25);
+}
+
+/* KPIs superiores del tab ideal */
+.ideal-kpis {
+  display:grid; grid-template-columns:repeat(5, 1fr);
+  gap:10px; margin-bottom:14px;
+}
+.ideal-kpi {
+  background:#fff; padding:12px 16px; border-radius:10px;
+  box-shadow:0 1px 3px rgba(15,23,42,0.06);
+  border-left:3px solid #0f172a;
+  position:relative;
+}
+.ideal-kpi::after {
+  content:''; position:absolute; top:12px; right:14px;
+  width:6px; height:6px; border-radius:50%;
+  background:#a3e635; opacity:0.7;
+}
+.ideal-kpi .num {
+  font-size:24px; font-weight:800; color:#0f172a;
+  line-height:1.1; letter-spacing:-0.5px;
+}
+.ideal-kpi .lbl {
+  font-size:10px; color:#64748b; text-transform:uppercase;
+  letter-spacing:0.6px; font-weight:700;
+  margin-top:3px;
+}
+.ideal-kpi .sub {
+  font-size:11px; color:#94a3b8; margin-top:2px;
+}
+
+/* Distribución por rango */
+.ideal-rangos {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:10px;
+  margin-bottom:14px;
+}
+.ideal-rango {
+  background:#fff; padding:10px 14px; border-radius:10px;
+  box-shadow:0 1px 3px rgba(15,23,42,0.06);
+  border-left:4px solid;
+}
+.ideal-rango.ok    { border-color:#16a34a; background:#f0fdf4; }
+.ideal-rango.mid   { border-color:#ca8a04; background:#fefce8; }
+.ideal-rango.warn  { border-color:#ea580c; background:#fff7ed; }
+.ideal-rango.bad   { border-color:#dc2626; background:#fef2f2; }
+.ideal-rango .top {
+  display:flex; justify-content:space-between; align-items:baseline;
+}
+.ideal-rango .num { font-size:20px; font-weight:800; line-height:1.1; }
+.ideal-rango .pct { font-size:11px; color:#6b7280; font-weight:600; }
+.ideal-rango .lbl { font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:0.4px; font-weight:700; margin-top:2px; }
+.ideal-rango.ok .num   { color:#166534; }
+.ideal-rango.mid .num  { color:#92400e; }
+.ideal-rango.warn .num { color:#9a3412; }
+.ideal-rango.bad .num  { color:#991b1b; }
+
+/* Comparativa actual vs ideal */
+.ideal-compare {
+  background:#fff; padding:14px 18px; border-radius:10px;
+  box-shadow:0 1px 3px rgba(15,23,42,0.06);
+  margin-bottom:14px;
+  display:grid;
+  grid-template-columns:1fr auto 1fr auto 1fr;
+  gap:16px; align-items:center;
+}
+.ideal-compare-block {
+  text-align:center;
+}
+.ideal-compare-block .lbl {
+  font-size:10px; color:#64748b; text-transform:uppercase;
+  letter-spacing:0.5px; font-weight:700;
+  margin-bottom:4px;
+}
+.ideal-compare-block .val {
+  font-size:20px; font-weight:800; color:#0f172a;
+  letter-spacing:-0.3px;
+}
+.ideal-compare-arrow {
+  font-size:22px; color:#94a3b8; font-weight:700;
+}
+.ideal-compare-block.saving .val { color:#16a34a; }
+.ideal-compare-block.saving .lbl { color:#16a34a; }
+
+/* Secciones de tabla */
+.ideal-section {
+  background:#fff; border-radius:12px;
+  box-shadow:0 1px 3px rgba(15,23,42,0.06);
+  margin-bottom:14px;
+  overflow:hidden;
+  border:1px solid #f1f5f9;
+}
+.ideal-section-header {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:12px 18px;
+  background:#0f172a; color:#fff;
+  border-bottom:2px solid #a3e635;
+}
+.ideal-section-header.ideal-section-warn {
+  background:#7c2d12;
+  border-bottom-color:#f97316;
+}
+.ideal-section-header h3 {
+  margin:0; font-size:13px; font-weight:700;
+  letter-spacing:0.5px; text-transform:uppercase;
+}
+.ideal-count {
+  padding:3px 10px;
+  background:rgba(255,255,255,0.15);
+  color:#fff; border-radius:12px;
+  font-size:11px; font-weight:700;
+  letter-spacing:0.3px;
+}
+.ideal-table-wrap {
+  max-height:400px; overflow:auto;
+}
+.ideal-table {
+  width:100%; border-collapse:collapse; font-size:12px;
+}
+.ideal-table thead th {
+  background:#f8fafc; color:#334155;
+  padding:8px 12px;
+  text-align:left;
+  font-weight:700;
+  font-size:10px;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  position:sticky; top:0;
+  border-bottom:1px solid #e2e8f0;
+  white-space:nowrap;
+}
+.ideal-table tbody td {
+  padding:9px 12px;
+  border-bottom:1px solid #f1f5f9;
+  color:#334155;
+}
+.ideal-table tbody tr:nth-child(even) td { background:#fafbfc; }
+.ideal-table tbody tr:hover td { background:#f0f7ff; }
+.ideal-table .rank {
+  font-family:'SF Mono','Monaco','Consolas',monospace;
+  font-size:11px; color:#94a3b8; font-weight:700;
+  text-align:center; width:40px;
+}
+.ideal-table .op-name { font-weight:600; color:#0f172a; }
+.ideal-table .nom {
+  font-family:'SF Mono','Monaco','Consolas',monospace;
+  font-size:11px; color:#475569;
+}
+.ideal-table .km-val {
+  font-weight:800; font-variant-numeric:tabular-nums;
+  text-align:right;
+}
+.ideal-table .delta {
+  font-weight:700; font-variant-numeric:tabular-nums;
+  text-align:right;
+}
+.ideal-table .delta.good { color:#16a34a; }
+.ideal-table .delta.bad  { color:#dc2626; }
+.ideal-table .delta.same { color:#94a3b8; }
+
+.ideal-empty {
+  padding:40px 20px; text-align:center; color:#94a3b8; font-size:13px;
+}
+
+/* Badge de ruta VACANTE */
+.vacante-badge {
+  display:inline-block;
+  padding:2px 8px;
+  margin-left:8px;
+  background:#fef3c7;
+  color:#92400e;
+  border:1px solid #fbbf24;
+  border-radius:6px;
+  font-size:9px;
+  font-weight:800;
+  letter-spacing:0.5px;
+  vertical-align:middle;
+  white-space:nowrap;
+}
+.row-vacante td {
+  background:#fffbeb !important;
+  border-left:3px solid #f59e0b;
+}
+.row-vacante td:first-child {
+  border-left:3px solid #f59e0b;
+}
+
 .cuad-toolbar {
   display:flex; align-items:center; gap:12px; flex-wrap:wrap;
   background:#fff; padding:14px 16px; border-radius:10px;
@@ -1362,32 +2276,41 @@ tr.selected { background:#dbeafe; }
   gap:10px; margin-bottom:12px;
 }
 .ger-card {
-  background:#fff; padding:9px 13px; border-radius:10px;
-  box-shadow:0 1px 4px rgba(0,0,0,0.05);
-  border-left:4px solid;
+  background:#fff; padding:10px 14px; border-radius:10px;
+  box-shadow:0 1px 3px rgba(15,23,42,0.06);
+  border-left:3px solid #0f172a;
+  transition:transform 0.15s, box-shadow 0.15s;
 }
-.ger-card.eric      { border-color:#6366f1; background:#eef2ff; }
-.ger-card.omar      { border-color:#ec4899; background:#fdf2f8; }
-.ger-card.alejandro { border-color:#14b8a6; background:#f0fdfa; }
+.ger-card:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(15,23,42,0.09); }
+/* Todas las gerencias comparten el mismo estilo, sin colores distintivos */
+.ger-card.eric,
+.ger-card.omar,
+.ger-card.miguel,
+.ger-card.alejandro {
+  border-left-color:#0f172a;
+  background:#fff;
+}
 .ger-head {
   display:flex; justify-content:space-between; align-items:baseline;
-  margin-bottom:6px;
+  margin-bottom:8px;
+  padding-bottom:6px;
+  border-bottom:1px solid #f1f5f9;
 }
 .ger-name {
-  font-weight:700; font-size:13px; color:#0f172a;
-  letter-spacing:0.3px;
+  font-weight:800; font-size:13px; color:#0f172a;
+  letter-spacing:-0.2px;
 }
-.ger-ops { font-size:10px; color:#6b7280; font-weight:600; }
+.ger-ops { font-size:10px; color:#94a3b8; font-weight:600; }
 .ger-stats {
   display:grid; grid-template-columns:repeat(3,1fr); gap:6px;
-  padding-top:6px; border-top:1px solid rgba(0,0,0,0.08);
 }
 .ger-stat { text-align:center; }
-.ger-stat .num { font-size:16px; font-weight:800; line-height:1.1; }
+.ger-stat .num { font-size:17px; font-weight:800; line-height:1.1; }
 .ger-stat .lbl {
-  font-size:9px; color:#6b7280; margin-top:1px;
-  text-transform:uppercase; letter-spacing:0.3px; font-weight:600;
+  font-size:9px; color:#64748b; margin-top:1px;
+  text-transform:uppercase; letter-spacing:0.3px; font-weight:700;
 }
+/* Los NÚMEROS internos sí conservan los colores semánticos (verde/rojo/azul) */
 .ger-stat.ok .num  { color:#16a34a; }
 .ger-stat.bad .num { color:#dc2626; }
 .ger-stat.avg .num { color:#2563eb; }
@@ -1397,41 +2320,75 @@ tr.selected { background:#dbeafe; }
 <body>
 
 <div class="sidebar">
-  <div class="logo">KM VACÍO</div>
-
-  <button class="menu-btn menu-btn-sheet" id="btnCargarSheet">🌐 Cargar desde Sheet</button>
-
-  <label class="menu-btn upload" for="csvInput">📁 Cargar archivo local</label>
-  <input type="file" id="csvInput" accept=".csv,.xlsx,.xls" style="display:none"/>
-
-  <div class="semana-filter" id="semanaFilterWrap" style="display:none">
-    <label class="semana-lbl">📅 Semana</label>
-    <select id="semanaFilter"></select>
+  <div class="sidebar-brand">
+    <div class="brand-title">KM VACÍO</div>
+    <div class="brand-sub">TRAXIÓN · Flota BAU</div>
   </div>
 
-  <div class="upload-status" id="uploadStatus">Sin datos cargados</div>
-  <button class="menu-btn active" data-tab="km">📊 Kilometraje Vacío</button>
-  <button class="menu-btn" data-tab="cambios">🔄 Cambios</button>
-  <button class="menu-btn" data-tab="cuadrantes">🗺️ Cuadrantes</button>
+  <input type="file" id="csvInput" accept=".csv,.xlsx,.xls" style="display:none"/>
 
-  <div class="ors-config">
-    <details>
-      <summary>🚛 Motor de rutas <span class="ors-badge" id="orsBadge">OSRM</span></summary>
-      <div class="ors-body">
-        <div class="ors-current" id="orsStatus">Usando OSRM (rutas básicas)</div>
-        <label class="ors-lbl">API Key de OpenRouteService:</label>
-        <div class="ors-input-row">
-          <input type="password" id="orsKeyInput" placeholder="Pega tu API key aquí..." />
+  <nav class="side-nav">
+    <button class="side-item active" data-tab="km">
+      <span class="side-item-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="12" width="4" height="8" rx="1"/><rect x="10" y="8" width="4" height="12" rx="1"/><rect x="17" y="4" width="4" height="16" rx="1"/></svg>
+      </span>
+      <span class="side-item-text">KILOMETRAJE VACÍO</span>
+      <span class="side-item-arrow">›</span>
+    </button>
+    <button class="side-item" data-tab="cambios">
+      <span class="side-item-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      </span>
+      <span class="side-item-text">CAMBIOS</span>
+      <span class="side-item-arrow">›</span>
+    </button>
+    <button class="side-item" data-tab="ideal">
+      <span class="side-item-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      </span>
+      <span class="side-item-text">PROGRAMACIÓN IDEAL</span>
+      <span class="side-item-arrow">›</span>
+    </button>
+    <button class="side-item" data-tab="cuadrantes">
+      <span class="side-item-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+      </span>
+      <span class="side-item-text">CUADRANTES</span>
+      <span class="side-item-arrow">›</span>
+    </button>
+  </nav>
+
+  <div class="side-section" id="semanaFilterWrap" style="display:none">
+    <div class="side-section-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      SEMANA
+    </div>
+    <select id="semanaFilter" class="side-select"></select>
+  </div>
+
+  <div class="side-status" id="uploadStatus">
+    <span class="side-status-dot"></span>
+    <span class="side-status-text">Conectando...</span>
+  </div>
+
+  <div class="side-section side-motor">
+    <div class="side-section-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      MOTOR DE RUTAS
+      <span class="motor-badge" id="orsBadge">OSRM</span>
+    </div>
+    <details class="side-details">
+      <summary class="side-details-toggle">Configurar API</summary>
+      <div class="side-details-body">
+        <div class="motor-status" id="orsStatus">Usando OSRM (rutas básicas)</div>
+        <label class="motor-lbl">API Key de OpenRouteService:</label>
+        <input type="password" id="orsKeyInput" class="motor-input" placeholder="Pega tu API key..." />
+        <div class="motor-buttons">
+          <button id="orsKeySave" class="motor-btn primary">Guardar</button>
+          <button id="orsKeyClear" class="motor-btn ghost" style="display:none">Quitar</button>
         </div>
-        <div class="ors-buttons">
-          <button id="orsKeySave">💾 Guardar</button>
-          <button id="orsKeyClear" style="display:none">✕ Quitar</button>
-        </div>
-        <div class="ors-help">
-          Regístrate gratis en
-          <a href="https://openrouteservice.org/dev/#/signup" target="_blank">openrouteservice.org</a>
-          — 2000 rutas/día, con perfil HGV específico para camiones pesados.
-          <div class="ors-help-note">📌 La key se guarda solo en tu navegador (localStorage).</div>
+        <div class="motor-help">
+          Gratis en <a href="https://openrouteservice.org/dev/#/signup" target="_blank">openrouteservice.org</a> — 2000 rutas/día con perfil HGV.
         </div>
       </div>
     </details>
@@ -1571,6 +2528,123 @@ tr.selected { background:#dbeafe; }
 
   </section>
 
+  <!-- =====================================================
+       TAB: PROGRAMACIÓN IDEAL
+       ===================================================== -->
+  <section id="tab-ideal" class="tab">
+    <div class="ideal-header">
+      <div class="ideal-header-left">
+        <h2 class="ideal-title">🎯 Programación Ideal</h2>
+        <p class="ideal-sub">Asigna cada servicio al operador más cercano posible. Sin repetir operadores ni rutas.</p>
+      </div>
+      <button class="btn-descargar-excel" id="btnDescargarIdeal">📥 Descargar Excel</button>
+    </div>
+
+    <!-- Filtros: Jefe + Coordinador -->
+    <div class="ideal-filters">
+      <div class="ideal-filter">
+        <label>👤 Jefe de Operaciones</label>
+        <select id="idealFiltroJefe">
+          <option value="">Todos los jefes</option>
+        </select>
+      </div>
+      <div class="ideal-filter">
+        <label>🧑‍💼 Coordinador</label>
+        <select id="idealFiltroCoord">
+          <option value="">Todos los coordinadores</option>
+        </select>
+      </div>
+      <div class="ideal-filter">
+        <label>🏭 Planta</label>
+        <select id="idealFiltroPlanta">
+          <option value="">Todas las plantas</option>
+        </select>
+      </div>
+      <button class="ideal-btn-reset" id="idealBtnReset">↺ Reset</button>
+      <button class="ideal-btn-calc" id="idealBtnCalc">⚡ Calcular</button>
+    </div>
+
+    <!-- KPIs de la asignación -->
+    <div class="ideal-kpis" id="idealKpis"></div>
+
+    <!-- Distribución por rangos -->
+    <div class="ideal-rangos" id="idealRangos"></div>
+
+    <!-- Comparativa actual vs ideal -->
+    <div class="ideal-compare" id="idealCompare"></div>
+
+    <!-- Tabla principal de asignación -->
+    <div class="ideal-section">
+      <div class="ideal-section-header">
+        <h3>✅ Asignación óptima</h3>
+        <span class="ideal-count" id="idealAsignCount">—</span>
+      </div>
+      <div class="ideal-table-wrap">
+        <table class="ideal-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Operador</th>
+              <th>Nómina</th>
+              <th>Domicilio</th>
+              <th>Planta</th>
+              <th>Ruta ideal</th>
+              <th>KM propuesto</th>
+              <th>KM actual</th>
+              <th>Δ</th>
+            </tr>
+          </thead>
+          <tbody id="idealTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Operadores sin asignar -->
+    <div class="ideal-section">
+      <div class="ideal-section-header ideal-section-warn">
+        <h3>⚠️ Operadores sin asignar</h3>
+        <span class="ideal-count" id="idealOpsSinCount">—</span>
+      </div>
+      <div class="ideal-table-wrap">
+        <table class="ideal-table">
+          <thead>
+            <tr>
+              <th>Operador</th>
+              <th>Nómina</th>
+              <th>Planta actual</th>
+              <th>Ruta actual</th>
+              <th>KM actual</th>
+              <th>Motivo</th>
+            </tr>
+          </thead>
+          <tbody id="idealOpsSinBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Rutas sin cubrir -->
+    <div class="ideal-section">
+      <div class="ideal-section-header ideal-section-warn">
+        <h3>❗ Rutas sin cubrir</h3>
+        <span class="ideal-count" id="idealRutSinCount">—</span>
+      </div>
+      <div class="ideal-table-wrap">
+        <table class="ideal-table">
+          <thead>
+            <tr>
+              <th>Ruta</th>
+              <th>Planta</th>
+              <th>Jefe</th>
+              <th>Coordinador</th>
+              <th>Hora inicio</th>
+            </tr>
+          </thead>
+          <tbody id="idealRutSinBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
   <!-- TAB: CUADRANTES -->
   <section id="tab-cuadrantes" class="tab">
     <div class="cuad-toolbar">
@@ -1600,7 +2674,7 @@ tr.selected { background:#dbeafe; }
         <option value="">Todas las gerencias</option>
         <option value="ERICK SANDOVAL">ERICK SANDOVAL</option>
         <option value="OMAR GONZALEZ">OMAR GONZALEZ</option>
-        <option value="ALEJANDRO SAAVEDRA">ALEJANDRO SAAVEDRA</option>
+        <option value="MIGUEL GRANADOS">MIGUEL GRANADOS</option>
       </select>
       <select id="cuadPlanta">
         <option value="">Todas las plantas</option>
@@ -1699,6 +2773,52 @@ tr.selected { background:#dbeafe; }
         <span class="leg"><span style="display:inline-block; width:10px; height:10px; background:#eab308; border:2px solid #fff; border-radius:50%; box-shadow:0 0 0 1px #eab308"></span> Ops. cercanos al inicio</span>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- =====================================================
+     MODAL DE FACTURACIÓN (viajes reales del operador)
+     ===================================================== -->
+<div class="fact-modal-overlay" id="factModal">
+  <div class="fact-modal">
+    <div class="fact-modal-header">
+      <div class="fact-header-left">
+        <div class="fact-badge-icon">📋</div>
+        <div>
+          <div class="fact-modal-eyebrow">VIAJES FACTURACIÓN</div>
+          <div class="fact-modal-title" id="factModalTitle">—</div>
+          <div class="fact-modal-subtitle" id="factModalSubtitle">—</div>
+        </div>
+      </div>
+      <button class="fact-modal-close" id="factModalClose">✕ Cerrar</button>
+    </div>
+
+    <!-- KPIs del operador -->
+    <div class="fact-kpis" id="factKpis"></div>
+
+    <!-- Filtro por semana + Search -->
+    <div class="fact-toolbar">
+      <div class="fact-filter-group">
+        <label>Semana:</label>
+        <select id="factSemFilter">
+          <option value="">Todas</option>
+        </select>
+      </div>
+      <div class="fact-filter-group">
+        <input type="text" id="factSearchInput" placeholder="Buscar ruta, planta, unidad..." />
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="fact-tabs">
+      <button class="fact-tab active" data-vista="dias">📅 Por Día</button>
+      <button class="fact-tab" data-vista="rutas">🚌 Top Rutas</button>
+      <button class="fact-tab" data-vista="unidades">🚛 Top Unidades</button>
+      <button class="fact-tab" data-vista="todo">📋 Todos los viajes</button>
+    </div>
+
+    <!-- Contenido dinámico -->
+    <div class="fact-body" id="factBody"></div>
   </div>
 </div>
 
@@ -1804,6 +2924,7 @@ tr.selected { background:#dbeafe; }
 // Usa una etiqueta <script> con Google GViz — funciona desde file:// sin CORS
 const GOOGLE_SHEET_ID = '1hu1PV9ZSI0AjOYHdazrVU0V7fyznfqhCL-bO32Uiax8';
 const GOOGLE_SHEET_NAME = 'bau';  // Nombre de la hoja/pestaña dentro del Sheet
+const GOOGLE_SHEET_NAME_FACT = 'facturacion';  // Hoja con viajes reales
 
 // =========================================================
 // CONSTANTES Y MAPEOS
@@ -1836,9 +2957,13 @@ const JEFES_POR_PLANTA = {
 };
 
 const GERENTES_POR_JEFE = {
-  'MIGUEL GRANADOS':'ERICK SANDOVAL','JOEL MENA':'ERICK SANDOVAL',
-  'RAUL MARTINEZ':'OMAR GONZALEZ','JULIO GANDARA':'OMAR GONZALEZ',
-  'HUMBERTO PALOMARES':'ALEJANDRO SAAVEDRA','ABRAHAM COBOS':'ALEJANDRO SAAVEDRA'
+  // Nuevas asignaciones actualizadas
+  'MIGUEL GRANADOS':'MIGUEL GRANADOS',
+  'JOEL MENA':'ERICK SANDOVAL',
+  'RAUL MARTINEZ':'OMAR GONZALEZ',
+  'JULIO GANDARA':'OMAR GONZALEZ',
+  'HUMBERTO PALOMARES':'MIGUEL GRANADOS',
+  'ABRAHAM COBOS':'ERICK SANDOVAL'
 };
 
 // Coordinador por planta + subdivisión (F1, F2, N1, J1, etc.)
@@ -1847,11 +2972,11 @@ const COORDINADOR_PLANTA = {
   'ACU-ACUMENT':'EDGAR DE LA CRUZ','ALC-ALCALI':'HERNAN RUBIO','AMD-AMD':'IRVING GONZALEZ',
   'BRU-BRUNNEN':'EDGAR DE LA CRUZ','BWY-BRAZEWAY':'OSCAR LUCIO','DND-DONALDSON':'FERNANDO ESPINOZA',
   'EMC-EMPAQUES CARVAJAL':'IXCATL OLAZARAN','EYA-ENERYA':'IRVING GONZALEZ',
-  'FMI-FANTASIAS MIGUEL':'FRANSISCO JAVIER','GAL-GRUPO ALEN':'IXCATL OLAZARAN',
+  'FMI-FANTASIAS MIGUEL':'GABRIEL MORALES','GAL-GRUPO ALEN':'IXCATL OLAZARAN',
   'GIN-GINO':'ANGEL ORTIZ','GON-GONHER':'IRVING GONZALEZ','GRA-ARTIGRAF':'DANIEL CASTILLO',
   'HAR-HARIMASA':'MANUEL AVALOS','LBL-LUBRAL':'DANIEL CASTILLO','MOL-MOLISABA':'EDGAR DE LA CRUZ',
-  'MRM-MRM MTY':'DANIEL CASTILLO','NOV-NOVEM':'FRANSISCO JAVIER','REG-MARATHON':'FRANSISCO JAVIER',
-  'REG-REGAL MARATHON':'FRANSISCO JAVIER','REH-REHAU':'HERNAN RUBIO','RYC-RYDER CIENEGA':'ANDRES CARREON',
+  'MRM-MRM MTY':'DANIEL CASTILLO','NOV-NOVEM':'GABRIEL MORALES','REG-MARATHON':'GABRIEL MORALES',
+  'REG-REGAL MARATHON':'GABRIEL MORALES','REH-REHAU':'HERNAN RUBIO','RYC-RYDER CIENEGA':'ANDRES CARREON',
   'RYD-RYDER GARCIA':'MANUEL AVALOS','SID-GRUPO SID GARCIA':'DANIEL CASTILLO',
   'STD-SANTANDER MTY':'EDGAR DE LA CRUZ','TSO-TIENDAS SORIANA':'ANGEL ORTIZ',
   'VTE-VERTEX MTY':'DANIEL CASTILLO','YAN-YANFENG':'ANDRES CARREON','YKE-YANFENG - KEIPER':'ANDRES CARREON',
@@ -1884,12 +3009,29 @@ function coordinadorDe(planta, ruta) {
 // =========================================================
 let operadores = [];
 let rutasCsv = [];  // Todas las rutas únicas del CSV (para tab Cuadrantes)
+let rutasVacantes = [];  // Rutas cuyo operador registrado es VACANTE / "C." (plazas abiertas)
+
+// Helper para actualizar el estatus del sidebar
+function setStatus(text, tipo) {
+  // tipo: 'ok' | 'error' | 'loading'
+  const el = document.getElementById('uploadStatus');
+  if (!el) return;
+  el.classList.remove('ok', 'error');
+  if (tipo === 'ok') el.classList.add('ok');
+  else if (tipo === 'error') el.classList.add('error');
+  const textEl = el.querySelector('.side-status-text');
+  if (textEl) textEl.textContent = text;
+  else el.textContent = text;  // fallback
+}
 let operadorSel = null;
 // Semanas: guardamos los datos crudos y filtramos por semana en tiempo real
 let filasRawTour = [];       // Filas crudas del archivo Tour Details
 let headerRawTour = [];
 let semanasDisponibles = [];
 let semanaSeleccionada = '';
+// Viajes facturación (datos reales por operador, indexado por nómina)
+let viajesFacturacion = new Map();  // Map<nomina, [{ruta, planta, unidad, fecha, hora_inicio, hora_fin, ...}]>
+let viajesFactCargados = false;
 let operadoresSeleccionados = new Set();  // ids de operadores multi-seleccionados
 let filtroGerentes = new Set();
 let filtroJefes = new Set();
@@ -2170,6 +3312,8 @@ function procesarFilasTourInterno(filas, header) {
 
   // Elegir el servicio principal de cada operador (más días entre semana)
   operadores = [];
+  rutasVacantes = [];  // Reset
+  const rutasVacMap = new Map();
   serviciosPorOp.forEach(sm => {
     const cands = [...sm.values()].filter(s => s.diasEntreSemana.size >= 3);
     if (!cands.length) return;
@@ -2181,13 +3325,28 @@ function procesarFilasTourInterno(filas, header) {
     });
     const elegido = cands[0];
     const n = elegido.nombre.trim().toUpperCase();
-    if (n.startsWith('C.') || n.includes('VACANTE')) return;
+    if (n.startsWith('C.') || n.includes('VACANTE')) {
+      // Guardar la ruta como VACANTE (plaza abierta) para el tab Programación Ideal
+      if (elegido.ruta && !rutasVacMap.has(elegido.ruta)) {
+        rutasVacMap.set(elegido.ruta, {
+          ruta: elegido.ruta,
+          planta: elegido.planta,
+          jefe: elegido.jefe,
+          gerente: elegido.gerente,
+          lat: elegido.startLat,
+          lng: elegido.startLng,
+          inicio: elegido.horario,
+          esVacante: true,
+          nombreVacante: elegido.nombre  // "VACANTE" o "C. XXX"
+        });
+      }
+      return;
+    }
     operadores.push(elegido);
   });
+  rutasVacantes = Array.from(rutasVacMap.values());
 
-  document.getElementById('uploadStatus').textContent =
-    `✓ ${operadores.length} operadores cargados (Tour Details · ${saquesDescartados} saques descartados)`;
-  document.getElementById('uploadStatus').classList.add('ok');
+  setStatus(`${operadores.length} operadores · ${saquesDescartados} saques descartados`, 'ok');
 
   llenarFiltros();
   renderKPIs();
@@ -2261,6 +3420,8 @@ function procesarCSV(text) {
   rutasCsv = Array.from(rutasUnicasMap.values());
 
   operadores = [];
+  rutasVacantes = [];
+  const rutasVacMap2 = new Map();
   serviciosPorOp.forEach((sm) => {
     // Aceptar cualquier turno: solo se requiere que el servicio se haga entre semana
     const cands = Array.from(sm.values()).filter(s =>
@@ -2276,13 +3437,27 @@ function procesarCSV(text) {
     });
     const elegido = cands[0];
     const n = elegido.nombre.trim().toUpperCase();
-    if (n.startsWith('C.') || n.includes('VACANTE')) return;
+    if (n.startsWith('C.') || n.includes('VACANTE')) {
+      if (elegido.ruta && !rutasVacMap2.has(elegido.ruta)) {
+        rutasVacMap2.set(elegido.ruta, {
+          ruta: elegido.ruta,
+          planta: elegido.planta,
+          jefe: elegido.jefe,
+          gerente: elegido.gerente,
+          lat: elegido.startLat,
+          lng: elegido.startLng,
+          inicio: elegido.horario,
+          esVacante: true,
+          nombreVacante: elegido.nombre
+        });
+      }
+      return;
+    }
     operadores.push(elegido);
   });
+  rutasVacantes = Array.from(rutasVacMap2.values());
 
-  document.getElementById('uploadStatus').textContent =
-    `✓ ${operadores.length} operadores cargados`;
-  document.getElementById('uploadStatus').classList.add('ok');
+  setStatus(`${operadores.length} operadores cargados`, 'ok');
 
   llenarFiltros();
   renderKPIs();
@@ -2311,8 +3486,8 @@ function renderComparativaGerencias() {
     if (o.kmVacio >= 15) porGer[g].gt15++;
   });
 
-  const orden = ['ERICK SANDOVAL', 'OMAR GONZALEZ', 'ALEJANDRO SAAVEDRA'];
-  const cls = { 'ERICK SANDOVAL': 'eric', 'OMAR GONZALEZ': 'omar', 'ALEJANDRO SAAVEDRA': 'alejandro' };
+  const orden = ['ERICK SANDOVAL', 'OMAR GONZALEZ', 'MIGUEL GRANADOS'];
+  const cls = { 'ERICK SANDOVAL': 'eric', 'OMAR GONZALEZ': 'omar', 'MIGUEL GRANADOS': 'miguel' };
 
   cont.innerHTML = orden.map(g => {
     const d = porGer[g] || { ops: 0, sumaKm: 0, lt5: 0, gt15: 0 };
@@ -2507,18 +3682,30 @@ function renderTabla() {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#9ca3af; padding:30px">No hay operadores que coincidan</td></tr>';
     return;
   }
-  tbody.innerHTML = lista.map(o => `
+  tbody.innerHTML = lista.map(o => {
+    const tieneFact = viajesFacturacion.has(String(o.id));
+    const badgeFact = tieneFact
+      ? `<span class="badge-fact" data-nomina="${o.id}" data-nombre="${o.nombre.replace(/"/g, '&quot;')}" title="Ver viajes reales de este operador">Facturación</span>`
+      : '';
+    return `
     <tr data-id="${o.id}" class="${operadorSel && operadorSel.id === o.id ? 'selected' : ''}">
-      <td>${o.id}</td>
-      <td>${o.nombre}</td>
-      <td>${o.horario}</td>
-      <td>${o.planta}</td>
-      <td>${o.ruta}</td>
+      <td class="td-nomina"><span class="nom-chip">${o.id}</span></td>
+      <td class="op-cell"><span class="op-nombre">${o.nombre}</span>${badgeFact}</td>
+      <td class="td-hora">${o.horario}</td>
+      <td class="td-planta"><span class="planta-tag">${o.planta}</span></td>
+      <td class="td-ruta">${o.ruta}</td>
       <td class="km-cell ${colorKm(o.kmVacio)}">${o.kmVacio.toFixed(2)}</td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
   tbody.querySelectorAll('tr').forEach(tr => {
-    tr.addEventListener('click', () => {
+    tr.addEventListener('click', (e) => {
+      // Si se hizo click en el badge de facturación, abrir el modal
+      if (e.target.classList.contains('badge-fact')) {
+        e.stopPropagation();
+        abrirModalFacturacion(e.target.dataset.nomina, e.target.dataset.nombre);
+        return;
+      }
       const op = operadores.find(o => o.id === tr.dataset.id);
       if (op) seleccionarOperador(op);
     });
@@ -2993,6 +4180,18 @@ async function calcularSwaps() {
         const A = grupo[i], B = grupo[j];
         if (A.ruta === B.ruta) continue;
 
+        // FALSO POSITIVO: si los operadores viven a menos de 500m entre sí
+        // Y los inicios de las rutas también están a menos de 500m,
+        // intercambiar sus rutas no genera beneficio real. El CSV puede tener
+        // coordenadas ligeramente distintas (ruido de GPS) que engañan al algoritmo.
+        const distCasas = distMetros(A.homeLat, A.homeLng, B.homeLat, B.homeLng);
+        const distInicios = distMetros(A.startLat, A.startLng, B.startLat, B.startLng);
+        if (distCasas < 500 && distInicios < 500) continue;
+
+        // También descartar si los INICIOS de ruta están MUY cerca (< 300m)
+        // porque los operadores caminan/manejan casi lo mismo sin importar cuál ruta hagan.
+        if (distInicios < 300) continue;
+
         const hA = distMetros(A.homeLat, A.homeLng, B.startLat, B.startLng) / 1000;
         const hB = distMetros(B.homeLat, B.homeLng, A.startLat, A.startLng) / 1000;
 
@@ -3115,6 +4314,17 @@ async function calcularSwaps() {
       return;
     }
 
+    // SANITY CHECK — Detecta falsos positivos por coordenadas ruidosas del CSV
+    // Si los operadores viven cerca (< 1 km) Y sus inicios de ruta actuales están cerca (< 1 km),
+    // el swap NO debería producir un ahorro grande. Si el algoritmo dice que ahorra >5 km,
+    // significa que las coordenadas del CSV son inconsistentes y el ahorro es fantasma.
+    const distCasas = distMetros(p.A.homeLat, p.A.homeLng, p.B.homeLat, p.B.homeLng) / 1000;
+    const distInicios = distMetros(p.A.startLat, p.A.startLng, p.B.startLat, p.B.startLng) / 1000;
+    if (distCasas < 1 && distInicios < 1 && ahorro > 3) {
+      // Ahorro fantasma — descartar silenciosamente
+      return;
+    }
+
     const dobleBajo = nuevoA < 5 && nuevoB < 5;
 
     // Clasificación del swap por tipo de impacto
@@ -3168,11 +4378,333 @@ async function calcularSwaps() {
     if (swapsRecomendados.length >= 60) break;  // Al menos 20 garantizados si hay ahorros
   }
 
+  // =========================================================
+  // TRIPLETAS (rotación de 3 operadores) — solo en modo "planta"
+  // Busca combinaciones de 3 donde no exista un swap de 2 mejor
+  // =========================================================
+  if (modoSwap === 'planta') {
+    const tripletas = generarTripletas(elegibles, usados, matriz, homeIds, rutaIds);
+    for (const t of tripletas) {
+      if (usados.has(t.A.id) || usados.has(t.B.id) || usados.has(t.C.id)) continue;
+      usados.add(t.A.id);
+      usados.add(t.B.id);
+      usados.add(t.C.id);
+      swapsRecomendados.push(t);
+      if (swapsRecomendados.length >= 80) break;
+    }
+
+    // CUARTETAS: rotación de 4 operadores (solo si rescata al menos 1 de >15 km)
+    const cuartetas = generarCuartetas(elegibles, usados, matriz, homeIds, rutaIds);
+    for (const q of cuartetas) {
+      if (usados.has(q.A.id) || usados.has(q.B.id) || usados.has(q.C.id) || usados.has(q.D.id)) continue;
+      usados.add(q.A.id);
+      usados.add(q.B.id);
+      usados.add(q.C.id);
+      usados.add(q.D.id);
+      swapsRecomendados.push(q);
+      if (swapsRecomendados.length >= 100) break;
+    }
+
+    // Re-ordenar todo por categoría → rescate → ahorro
+    swapsRecomendados.sort((a, b) => {
+      const catOrd = { excelente: 6, rescate: 5, excelente_medio: 4, rescate_medio: 3, doble_bajo: 2, ahorro: 1 };
+      if (catOrd[a.categoria] !== catOrd[b.categoria]) return catOrd[b.categoria] - catOrd[a.categoria];
+      if (a.rescate !== b.rescate) return b.rescate - a.rescate;
+      return b.ahorro - a.ahorro;
+    });
+  }
+
   // Ya no calculamos apariciones múltiples porque cada operador aparece 1 vez
   swapsRecomendados.forEach(s => { s.opcionA = null; s.opcionB = null; });
 
   if (swapActivoIdx !== null && typeof cerrarSwapMap === 'function') cerrarSwapMap();
   renderSwaps();
+}
+
+// =========================================================
+// GENERADOR DE TRIPLETAS (rotación circular A→B→C→A)
+// Solo para modo "planta". Usa la matriz OSRM ya calculada.
+// =========================================================
+function generarTripletas(elegibles, usados, matriz, homeIds, rutaIds) {
+  const tripletas = [];
+  if (!elegibles.length) return tripletas;
+
+  // Solo operadores NO usados en swaps de 2
+  const libres = elegibles.filter(o => !usados.has(o.id));
+  if (libres.length < 3) return tripletas;
+
+  // Ordenar por km vacío descendente — priorizar rescatar altos
+  libres.sort((a, b) => b.kmVacio - a.kmVacio);
+
+  // Limitar el espacio de búsqueda para no explotar
+  const MAX_SEMILLAS = 25;    // Cuántos "altos" usar como semilla
+  const MAX_CANDIDATOS = 30;  // Cuántos otros considerar para cada semilla
+  const semillas = libres.slice(0, MAX_SEMILLAS);
+  const pool = libres.slice(0, Math.min(libres.length, 60));
+
+  // Helper: distancia OSRM entre home[i] e inicio de ruta[j], o haversine si falla
+  const dist = (op1, op2) => {
+    if (matriz) {
+      const iH = homeIds.indexOf(op1.id);
+      const iR = rutaIds.indexOf(op2.ruta);
+      if (iH >= 0 && iR >= 0 && matriz[iH] && matriz[iH][iR] != null) {
+        return matriz[iH][iR] / 1000;
+      }
+    }
+    return distMetros(op1.homeLat, op1.homeLng, op2.startLat, op2.startLng) / 1000;
+  };
+
+  const vistas = new Set();  // Para no repetir tripletas (ordenamos ids)
+
+  for (const A of semillas) {
+    if (A.kmVacio < 5) continue;  // No tiene mucho sentido tripleta si A ya está bien
+    for (let i = 0; i < pool.length; i++) {
+      const B = pool[i];
+      if (B.id === A.id) continue;
+      if (A.ruta === B.ruta) continue;
+
+      // FALSO POSITIVO — casas y rutas cercanas
+      const distCasasAB = distMetros(A.homeLat, A.homeLng, B.homeLat, B.homeLng);
+      if (distCasasAB < 100) continue;  // gemelos geográficos
+
+      for (let j = i + 1; j < pool.length; j++) {
+        const C = pool[j];
+        if (C.id === A.id) continue;
+        if (A.ruta === C.ruta || B.ruta === C.ruta) continue;
+
+        const distCasasBC = distMetros(B.homeLat, B.homeLng, C.homeLat, C.homeLng);
+        const distCasasAC = distMetros(A.homeLat, A.homeLng, C.homeLat, C.homeLng);
+        if (distCasasBC < 100 || distCasasAC < 100) continue;
+
+        // Dedupe
+        const key = [A.id, B.id, C.id].sort().join('|');
+        if (vistas.has(key)) continue;
+        vistas.add(key);
+
+        // Rotación 1: A→ruta B, B→ruta C, C→ruta A
+        const nA1 = dist(A, B);
+        const nB1 = dist(B, C);
+        const nC1 = dist(C, A);
+        const total1 = nA1 + nB1 + nC1;
+
+        // Rotación 2: A→ruta C, C→ruta B, B→ruta A
+        const nA2 = dist(A, C);
+        const nC2 = dist(C, B);
+        const nB2 = dist(B, A);
+        const total2 = nA2 + nC2 + nB2;
+
+        const totalAntes = A.kmVacio + B.kmVacio + C.kmVacio;
+        // Elegir la mejor rotación
+        let nA, nB, nC, rotacion;
+        if (total1 <= total2) {
+          nA = nA1; nB = nB1; nC = nC1; rotacion = 'ABC';
+        } else {
+          nA = nA2; nB = nB2; nC = nC2; rotacion = 'ACB';
+        }
+        const ahorro = totalAntes - (nA + nB + nC);
+
+        // Filtro mínimo de ahorro (>3 km porque afecta a 3 personas)
+        if (ahorro < 3) continue;
+
+        // Anti-empeoramiento crítico
+        const altosAntes  = (A.kmVacio > 15 ? 1 : 0) + (B.kmVacio > 15 ? 1 : 0) + (C.kmVacio > 15 ? 1 : 0);
+        const altosDespues = (nA > 15 ? 1 : 0) + (nB > 15 ? 1 : 0) + (nC > 15 ? 1 : 0);
+        if (altosDespues > altosAntes) continue;
+
+        const mediosAntes = (A.kmVacio >= 10 && A.kmVacio <= 15 ? 1 : 0)
+                         + (B.kmVacio >= 10 && B.kmVacio <= 15 ? 1 : 0)
+                         + (C.kmVacio >= 10 && C.kmVacio <= 15 ? 1 : 0);
+        const mediosDespues = (nA >= 10 && nA <= 15 ? 1 : 0)
+                           + (nB >= 10 && nB <= 15 ? 1 : 0)
+                           + (nC >= 10 && nC <= 15 ? 1 : 0);
+        const rescate = altosAntes - altosDespues;
+        const rescateMedio = mediosAntes - mediosDespues;
+        const dobleBajo = nA < 5 && nB < 5 && nC < 5;
+
+        let categoria;
+        if (rescate >= 1 && dobleBajo)           categoria = 'excelente';
+        else if (rescate >= 1)                    categoria = 'rescate';
+        else if (rescateMedio >= 1 && dobleBajo) categoria = 'excelente_medio';
+        else if (rescateMedio >= 1)               categoria = 'rescate_medio';
+        else if (dobleBajo)                       categoria = 'doble_bajo';
+        else                                       categoria = 'ahorro';
+
+        tripletas.push({
+          A, B, C, rotacion,
+          nuevoA: nA, nuevoB: nB, nuevoC: nC,
+          ahorro, rescate, rescateMedio, categoria, dobleBajo,
+          esTripleta: true,
+          picoAntes: Math.max(A.kmVacio, B.kmVacio, C.kmVacio),
+          picoDespues: Math.max(nA, nB, nC)
+        });
+      }
+      if (tripletas.length > 200) break;  // Suficiente pool
+    }
+    if (tripletas.length > 200) break;
+  }
+
+  // Ordenar por prioridad
+  tripletas.sort((a, b) => {
+    const catOrd = { excelente: 6, rescate: 5, excelente_medio: 4, rescate_medio: 3, doble_bajo: 2, ahorro: 1 };
+    if (catOrd[a.categoria] !== catOrd[b.categoria]) return catOrd[b.categoria] - catOrd[a.categoria];
+    if (a.rescate !== b.rescate) return b.rescate - a.rescate;
+    return b.ahorro - a.ahorro;
+  });
+
+  return tripletas;
+}
+
+// =========================================================
+// GENERADOR DE CUARTETAS (rotación circular A→B→C→D→A)
+// SOLO se aceptan si rescatan al menos 1 operador de >15 km
+// =========================================================
+function generarCuartetas(elegibles, usados, matriz, homeIds, rutaIds) {
+  const cuartetas = [];
+  if (!elegibles.length) return cuartetas;
+
+  const libres = elegibles.filter(o => !usados.has(o.id));
+  if (libres.length < 4) return cuartetas;
+
+  // Semillas: SOLO operadores con km > 15 (los que hay que rescatar)
+  // Sin candidatos altos → no hay cuartetas posibles
+  const altos = libres.filter(o => o.kmVacio > 15).sort((a, b) => b.kmVacio - a.kmVacio);
+  if (!altos.length) return cuartetas;
+
+  // Ordenar el resto por km ascendente (bajos primero — mejores receptores)
+  const otros = libres.filter(o => o.kmVacio <= 15).sort((a, b) => a.kmVacio - b.kmVacio);
+  if (otros.length < 3) return cuartetas;
+
+  const MAX_SEMILLAS = 15;      // Máximo N operadores altos a probar como semilla
+  const MAX_CANDIDATOS = 20;    // Para cada semilla, considerar N candidatos cercanos
+
+  const dist = (op1, op2) => {
+    if (matriz) {
+      const iH = homeIds.indexOf(op1.id);
+      const iR = rutaIds.indexOf(op2.ruta);
+      if (iH >= 0 && iR >= 0 && matriz[iH] && matriz[iH][iR] != null) {
+        return matriz[iH][iR] / 1000;
+      }
+    }
+    return distMetros(op1.homeLat, op1.homeLng, op2.startLat, op2.startLng) / 1000;
+  };
+
+  const vistas = new Set();
+
+  outer:
+  for (const A of altos.slice(0, MAX_SEMILLAS)) {
+    // Para eficiencia: candidatos ordenados por cercanía al inicio de ruta de A
+    // (los que pueden ir a la ruta de A sin gastar mucho)
+    const candidatos = otros
+      .map(o => ({
+        op: o,
+        d: distMetros(o.homeLat, o.homeLng, A.startLat, A.startLng)
+      }))
+      .sort((a, b) => a.d - b.d)
+      .slice(0, MAX_CANDIDATOS)
+      .map(x => x.op);
+
+    if (candidatos.length < 3) continue;
+
+    // Iterar combinaciones de 3 entre los candidatos
+    for (let i = 0; i < candidatos.length; i++) {
+      const B = candidatos[i];
+      if (A.ruta === B.ruta) continue;
+      if (distMetros(A.homeLat, A.homeLng, B.homeLat, B.homeLng) < 100) continue;
+
+      for (let j = i + 1; j < candidatos.length; j++) {
+        const C = candidatos[j];
+        if (A.ruta === C.ruta || B.ruta === C.ruta) continue;
+        if (distMetros(A.homeLat, A.homeLng, C.homeLat, C.homeLng) < 100) continue;
+        if (distMetros(B.homeLat, B.homeLng, C.homeLat, C.homeLng) < 100) continue;
+
+        for (let k = j + 1; k < candidatos.length; k++) {
+          const D = candidatos[k];
+          if (A.ruta === D.ruta || B.ruta === D.ruta || C.ruta === D.ruta) continue;
+          if (distMetros(A.homeLat, A.homeLng, D.homeLat, D.homeLng) < 100) continue;
+          if (distMetros(B.homeLat, B.homeLng, D.homeLat, D.homeLng) < 100) continue;
+          if (distMetros(C.homeLat, C.homeLng, D.homeLat, D.homeLng) < 100) continue;
+
+          const key = [A.id, B.id, C.id, D.id].sort().join('|');
+          if (vistas.has(key)) continue;
+          vistas.add(key);
+
+          const totalAntes = A.kmVacio + B.kmVacio + C.kmVacio + D.kmVacio;
+
+          // Probar las 3 rotaciones cíclicas únicas
+          // Rotación 1: A→B→C→D→A (A hace ruta B, B hace ruta C, C hace ruta D, D hace ruta A)
+          const r1 = { nA: dist(A, B), nB: dist(B, C), nC: dist(C, D), nD: dist(D, A) };
+          const t1 = r1.nA + r1.nB + r1.nC + r1.nD;
+
+          // Rotación 2: A→B→D→C→A (A hace ruta B, B hace ruta D, D hace ruta C, C hace ruta A)
+          const r2 = { nA: dist(A, B), nB: dist(B, D), nD: dist(D, C), nC: dist(C, A) };
+          const t2 = r2.nA + r2.nB + r2.nD + r2.nC;
+
+          // Rotación 3: A→C→B→D→A (A hace ruta C, C hace ruta B, B hace ruta D, D hace ruta A)
+          const r3 = { nA: dist(A, C), nC: dist(C, B), nB: dist(B, D), nD: dist(D, A) };
+          const t3 = r3.nA + r3.nC + r3.nB + r3.nD;
+
+          let nA, nB, nC, nD, rotacion, mejorTotal;
+          if (t1 <= t2 && t1 <= t3) {
+            nA = r1.nA; nB = r1.nB; nC = r1.nC; nD = r1.nD;
+            rotacion = 'ABCD'; mejorTotal = t1;
+          } else if (t2 <= t3) {
+            nA = r2.nA; nB = r2.nB; nC = r2.nC; nD = r2.nD;
+            rotacion = 'ABDC'; mejorTotal = t2;
+          } else {
+            nA = r3.nA; nB = r3.nB; nC = r3.nC; nD = r3.nD;
+            rotacion = 'ACBD'; mejorTotal = t3;
+          }
+
+          const ahorro = totalAntes - mejorTotal;
+          if (ahorro < 5) continue;  // Umbral más alto para cuartetas (4 personas involucradas)
+
+          // Anti-empeoramiento crítico
+          const altosAntes  = (A.kmVacio > 15 ? 1 : 0) + (B.kmVacio > 15 ? 1 : 0)
+                           + (C.kmVacio > 15 ? 1 : 0) + (D.kmVacio > 15 ? 1 : 0);
+          const altosDespues = (nA > 15 ? 1 : 0) + (nB > 15 ? 1 : 0)
+                            + (nC > 15 ? 1 : 0) + (nD > 15 ? 1 : 0);
+          const rescate = altosAntes - altosDespues;
+
+          // REGLA ESTRICTA — solo aceptar si rescata al menos 1 de >15
+          if (rescate < 1) continue;
+
+          const mediosAntes = (A.kmVacio >= 10 && A.kmVacio <= 15 ? 1 : 0)
+                           + (B.kmVacio >= 10 && B.kmVacio <= 15 ? 1 : 0)
+                           + (C.kmVacio >= 10 && C.kmVacio <= 15 ? 1 : 0)
+                           + (D.kmVacio >= 10 && D.kmVacio <= 15 ? 1 : 0);
+          const mediosDespues = (nA >= 10 && nA <= 15 ? 1 : 0)
+                             + (nB >= 10 && nB <= 15 ? 1 : 0)
+                             + (nC >= 10 && nC <= 15 ? 1 : 0)
+                             + (nD >= 10 && nD <= 15 ? 1 : 0);
+          const rescateMedio = mediosAntes - mediosDespues;
+          const dobleBajo = nA < 5 && nB < 5 && nC < 5 && nD < 5;
+
+          let categoria;
+          if (rescate >= 1 && dobleBajo)  categoria = 'excelente';
+          else                             categoria = 'rescate';  // Siempre rescata >=1 alto
+
+          cuartetas.push({
+            A, B, C, D, rotacion,
+            nuevoA: nA, nuevoB: nB, nuevoC: nC, nuevoD: nD,
+            ahorro, rescate, rescateMedio, categoria, dobleBajo,
+            esCuarteta: true,
+            picoAntes: Math.max(A.kmVacio, B.kmVacio, C.kmVacio, D.kmVacio),
+            picoDespues: Math.max(nA, nB, nC, nD)
+          });
+
+          if (cuartetas.length > 100) break outer;
+        }
+      }
+    }
+  }
+
+  // Ordenar por prioridad: rescate mayor primero, luego ahorro
+  cuartetas.sort((a, b) => {
+    if (a.rescate !== b.rescate) return b.rescate - a.rescate;
+    return b.ahorro - a.ahorro;
+  });
+
+  return cuartetas;
 }
 
 // =========================================================
@@ -3227,6 +4759,14 @@ function cambiarFiltroCategoria(cat) {
 window.cambiarFiltroCategoria = cambiarFiltroCategoria;
 
 function swapId(s) {
+  if (s.esCuarteta) {
+    const ids = [s.A.id, s.B.id, s.C.id, s.D.id].sort();
+    return `q_${ids[0]}_${ids[1]}_${ids[2]}_${ids[3]}`;
+  }
+  if (s.esTripleta) {
+    const ids = [s.A.id, s.B.id, s.C.id].sort();
+    return `t_${ids[0]}_${ids[1]}_${ids[2]}`;
+  }
   const ids = [s.A.id, s.B.id].sort();
   return `p_${ids[0]}_${ids[1]}`;
 }
@@ -3472,33 +5012,84 @@ function renderSwaps() {
         <button class="dec-btn dec-dismiss" data-action="dismiss" title="Ocultar este cambio">🗑️ Ocultar</button>
       `;
 
+    // Determinar rutas destino según rotación (para tripletas: A→ruta X, X→ruta Y, Y→ruta A)
+    let rutaDestA, rutaDestB, rutaDestC, rutaDestD;
+    if (s.esCuarteta) {
+      if (s.rotacion === 'ABCD') {
+        // A→ruta B, B→ruta C, C→ruta D, D→ruta A
+        rutaDestA = s.B.ruta; rutaDestB = s.C.ruta; rutaDestC = s.D.ruta; rutaDestD = s.A.ruta;
+      } else if (s.rotacion === 'ABDC') {
+        // A→ruta B, B→ruta D, D→ruta C, C→ruta A
+        rutaDestA = s.B.ruta; rutaDestB = s.D.ruta; rutaDestD = s.C.ruta; rutaDestC = s.A.ruta;
+      } else {
+        // ACBD: A→ruta C, C→ruta B, B→ruta D, D→ruta A
+        rutaDestA = s.C.ruta; rutaDestC = s.B.ruta; rutaDestB = s.D.ruta; rutaDestD = s.A.ruta;
+      }
+    } else if (s.esTripleta) {
+      if (s.rotacion === 'ABC') {
+        // A→ruta B, B→ruta C, C→ruta A
+        rutaDestA = s.B.ruta; rutaDestB = s.C.ruta; rutaDestC = s.A.ruta;
+      } else {
+        // A→ruta C, C→ruta B, B→ruta A
+        rutaDestA = s.C.ruta; rutaDestB = s.A.ruta; rutaDestC = s.B.ruta;
+      }
+    } else {
+      rutaDestA = s.B.ruta; rutaDestB = s.A.ruta;
+    }
+
+    const tripleteBadge = s.esCuarteta
+      ? '<span class="swap-badge cuarteta">🔷 Rotación de 4</span>'
+      : s.esTripleta
+        ? '<span class="swap-badge tripleta">🔺 Rotación de 3</span>'
+        : '';
+
     return `
-      <div class="swap-item swap-cat-${s.categoria} ${dec === 'accepted' ? 'status-accepted' : dec === 'rejected' ? 'status-rejected' : ''}${i === swapActivoIdx ? ' selected-on-map' : ''}${esVistaOcultos ? ' is-hidden-view' : ''}" data-swap-id="${id}" data-idx="${i}">
+      <div class="swap-item swap-cat-${s.categoria} ${s.esCuarteta ? 'swap-is-cuarteta' : (s.esTripleta ? 'swap-is-tripleta' : '')} ${dec === 'accepted' ? 'status-accepted' : dec === 'rejected' ? 'status-rejected' : ''}${i === swapActivoIdx ? ' selected-on-map' : ''}${esVistaOcultos ? ' is-hidden-view' : ''}" data-swap-id="${id}" data-idx="${i}">
         <div class="swap-rank">${i+1}</div>
         <div>
-          <div class="swap-chip">${catBadge} ${chip}${s.rescate > 0 ? `<span class="swap-badge rescate">↓ rescata ${s.rescate} de &gt;15km</span>` : ''}${(s.rescateMedio || 0) > 0 && s.rescate === 0 ? `<span class="swap-badge rescate-medio">↓ rescata ${s.rescateMedio} de 10-15km</span>` : ''}${s.dobleBajo ? `<span class="swap-badge doble">↓↓ ambos &lt;5 km</span>` : ''}</div>
-          <div class="swap-operadores">
+          <div class="swap-chip">${catBadge} ${chip}${tripleteBadge}${s.rescate > 0 ? `<span class="swap-badge rescate">↓ rescata ${s.rescate} de &gt;15km</span>` : ''}${(s.rescateMedio || 0) > 0 && s.rescate === 0 ? `<span class="swap-badge rescate-medio">↓ rescata ${s.rescateMedio} de 10-15km</span>` : ''}${s.dobleBajo ? `<span class="swap-badge doble">↓↓ ${s.esCuarteta ? 'los 4' : (s.esTripleta ? 'los 3' : 'ambos')} &lt;5 km</span>` : ''}</div>
+          <div class="swap-operadores ${s.esCuarteta ? 'is-quad' : (s.esTripleta ? 'is-triple' : '')}">
             <div class="swap-op A">
-              <div class="name">${s.A.nombre}</div>
+              <div class="name">${s.A.nombre}${viajesFacturacion.has(String(s.A.id)) ? `<span class="badge-fact badge-fact-mini" data-nomina="${s.A.id}" data-nombre="${s.A.nombre.replace(/"/g, '&quot;')}" title="Ver viajes reales">Fact</span>` : ''}</div>
               <div class="row">Nóm <b>${s.A.id}</b> · Un <b>${s.A.unidad || '—'}</b></div>
-              <div class="row">Ruta: <span class="strike">${s.A.ruta}</span> → <b>${s.B.ruta}</b></div>
+              <div class="row">Ruta: <span class="strike">${s.A.ruta}</span> → <b>${rutaDestA}</b></div>
               <div class="row">KM: <span class="strike">${s.A.kmVacio.toFixed(2)}</span> → <b class="${colorKm(s.nuevoA)}">${s.nuevoA.toFixed(2)} km</b></div>
               <div class="row">Hora: ${s.A.horario}</div>
             </div>
-            <div class="swap-arrow">⇄</div>
+            <div class="swap-arrow">${(s.esTripleta || s.esCuarteta) ? '↻' : '⇄'}</div>
             <div class="swap-op B">
-              <div class="name">${s.B.nombre}</div>
+              <div class="name">${s.B.nombre}${viajesFacturacion.has(String(s.B.id)) ? `<span class="badge-fact badge-fact-mini" data-nomina="${s.B.id}" data-nombre="${s.B.nombre.replace(/"/g, '&quot;')}" title="Ver viajes reales">Fact</span>` : ''}</div>
               <div class="row">Nóm <b>${s.B.id}</b> · Un <b>${s.B.unidad || '—'}</b></div>
-              <div class="row">Ruta: <span class="strike">${s.B.ruta}</span> → <b>${s.A.ruta}</b></div>
+              <div class="row">Ruta: <span class="strike">${s.B.ruta}</span> → <b>${rutaDestB}</b></div>
               <div class="row">KM: <span class="strike">${s.B.kmVacio.toFixed(2)}</span> → <b class="${colorKm(s.nuevoB)}">${s.nuevoB.toFixed(2)} km</b></div>
               <div class="row">Hora: ${s.B.horario}</div>
             </div>
+            ${s.esTripleta || s.esCuarteta ? `
+              <div class="swap-arrow">↻</div>
+              <div class="swap-op C">
+                <div class="name">${s.C.nombre}${viajesFacturacion.has(String(s.C.id)) ? `<span class="badge-fact badge-fact-mini" data-nomina="${s.C.id}" data-nombre="${s.C.nombre.replace(/"/g, '&quot;')}" title="Ver viajes reales">Fact</span>` : ''}</div>
+                <div class="row">Nóm <b>${s.C.id}</b> · Un <b>${s.C.unidad || '—'}</b></div>
+                <div class="row">Ruta: <span class="strike">${s.C.ruta}</span> → <b>${rutaDestC}</b></div>
+                <div class="row">KM: <span class="strike">${s.C.kmVacio.toFixed(2)}</span> → <b class="${colorKm(s.nuevoC)}">${s.nuevoC.toFixed(2)} km</b></div>
+                <div class="row">Hora: ${s.C.horario}</div>
+              </div>
+            ` : ''}
+            ${s.esCuarteta ? `
+              <div class="swap-arrow">↻</div>
+              <div class="swap-op D">
+                <div class="name">${s.D.nombre}${viajesFacturacion.has(String(s.D.id)) ? `<span class="badge-fact badge-fact-mini" data-nomina="${s.D.id}" data-nombre="${s.D.nombre.replace(/"/g, '&quot;')}" title="Ver viajes reales">Fact</span>` : ''}</div>
+                <div class="row">Nóm <b>${s.D.id}</b> · Un <b>${s.D.unidad || '—'}</b></div>
+                <div class="row">Ruta: <span class="strike">${s.D.ruta}</span> → <b>${rutaDestD}</b></div>
+                <div class="row">KM: <span class="strike">${s.D.kmVacio.toFixed(2)}</span> → <b class="${colorKm(s.nuevoD)}">${s.nuevoD.toFixed(2)} km</b></div>
+                <div class="row">Hora: ${s.D.horario}</div>
+              </div>
+            ` : ''}
           </div>
         </div>
         <div class="swap-saving">
           <div class="lbl">Ahorro</div>
           <div class="val">${s.ahorro.toFixed(2)}</div>
-          <div class="pct">−${pct}% · pico ${s.picoAntes.toFixed(1)}→${s.picoDespues.toFixed(1)}</div>
+          <div class="pct">${s.esCuarteta ? '4 ops' : (s.esTripleta ? '3 ops' : '−' + pct + '%')} · pico ${s.picoAntes.toFixed(1)}→${s.picoDespues.toFixed(1)}</div>
         </div>
         <div class="swap-decisions">${decisiones}</div>
       </div>
@@ -3511,6 +5102,12 @@ function renderSwaps() {
 
     item.addEventListener('click', e => {
       if (e.target.closest('.swap-decisions')) return;
+      // Si se hizo click en el badge de facturación, abrir modal y no seleccionar el swap
+      if (e.target.classList.contains('badge-fact')) {
+        e.stopPropagation();
+        abrirModalFacturacion(e.target.dataset.nomina, e.target.dataset.nombre);
+        return;
+      }
       mostrarSwapEnMapa(idx);
     });
 
@@ -3605,16 +5202,59 @@ async function mostrarSwapEnMapa(idx) {
     item.classList.toggle('selected-on-map', parseInt(item.dataset.idx) === idx)
   );
 
-  // Llenar información del modal
-  document.getElementById('swapModalTitle').textContent =
-    `#${idx + 1} · ${s.A.nombre} ⇄ ${s.B.nombre}`;
+  // Determinar rutas destino según rotación
+  let rutaDestA, rutaDestB, rutaDestC, rutaDestD, startDestA, startDestB, startDestC, startDestD;
+  if (s.esCuarteta) {
+    if (s.rotacion === 'ABCD') {
+      rutaDestA = s.B.ruta; rutaDestB = s.C.ruta; rutaDestC = s.D.ruta; rutaDestD = s.A.ruta;
+      startDestA = [s.B.startLat, s.B.startLng];
+      startDestB = [s.C.startLat, s.C.startLng];
+      startDestC = [s.D.startLat, s.D.startLng];
+      startDestD = [s.A.startLat, s.A.startLng];
+    } else if (s.rotacion === 'ABDC') {
+      rutaDestA = s.B.ruta; rutaDestB = s.D.ruta; rutaDestD = s.C.ruta; rutaDestC = s.A.ruta;
+      startDestA = [s.B.startLat, s.B.startLng];
+      startDestB = [s.D.startLat, s.D.startLng];
+      startDestD = [s.C.startLat, s.C.startLng];
+      startDestC = [s.A.startLat, s.A.startLng];
+    } else {
+      rutaDestA = s.C.ruta; rutaDestC = s.B.ruta; rutaDestB = s.D.ruta; rutaDestD = s.A.ruta;
+      startDestA = [s.C.startLat, s.C.startLng];
+      startDestC = [s.B.startLat, s.B.startLng];
+      startDestB = [s.D.startLat, s.D.startLng];
+      startDestD = [s.A.startLat, s.A.startLng];
+    }
+  } else if (s.esTripleta) {
+    if (s.rotacion === 'ABC') {
+      rutaDestA = s.B.ruta; rutaDestB = s.C.ruta; rutaDestC = s.A.ruta;
+      startDestA = [s.B.startLat, s.B.startLng];
+      startDestB = [s.C.startLat, s.C.startLng];
+      startDestC = [s.A.startLat, s.A.startLng];
+    } else {
+      rutaDestA = s.C.ruta; rutaDestB = s.A.ruta; rutaDestC = s.B.ruta;
+      startDestA = [s.C.startLat, s.C.startLng];
+      startDestB = [s.A.startLat, s.A.startLng];
+      startDestC = [s.B.startLat, s.B.startLng];
+    }
+  } else {
+    rutaDestA = s.B.ruta; rutaDestB = s.A.ruta;
+    startDestA = [s.B.startLat, s.B.startLng];
+    startDestB = [s.A.startLat, s.A.startLng];
+  }
+
+  // Título del modal
+  document.getElementById('swapModalTitle').textContent = s.esCuarteta
+    ? `#${idx + 1} · Rotación de 4: ${s.A.nombre} → ${s.B.nombre} → ${s.C.nombre} → ${s.D.nombre}`
+    : s.esTripleta
+      ? `#${idx + 1} · Rotación de 3: ${s.A.nombre} → ${s.B.nombre} → ${s.C.nombre}`
+      : `#${idx + 1} · ${s.A.nombre} ⇄ ${s.B.nombre}`;
 
   // Operador A
   document.getElementById('smA_nombre').textContent = s.A.nombre;
   document.getElementById('smA_id').textContent = s.A.id;
   document.getElementById('smA_planta').textContent = s.A.planta;
   document.getElementById('smA_rutaAct').textContent = s.A.ruta;
-  document.getElementById('smA_rutaNew').textContent = s.B.ruta;
+  document.getElementById('smA_rutaNew').textContent = rutaDestA;
   document.getElementById('smA_kmAct').innerHTML = `<span class="${colorKm(s.A.kmVacio)}">${s.A.kmVacio.toFixed(2)} km</span>`;
   document.getElementById('smA_kmNew').innerHTML = `<span class="${colorKm(s.nuevoA)}">${s.nuevoA.toFixed(2)} km</span>`;
 
@@ -3623,7 +5263,7 @@ async function mostrarSwapEnMapa(idx) {
   document.getElementById('smB_id').textContent = s.B.id;
   document.getElementById('smB_planta').textContent = s.B.planta;
   document.getElementById('smB_rutaAct').textContent = s.B.ruta;
-  document.getElementById('smB_rutaNew').textContent = s.A.ruta;
+  document.getElementById('smB_rutaNew').textContent = rutaDestB;
   document.getElementById('smB_kmAct').innerHTML = `<span class="${colorKm(s.B.kmVacio)}">${s.B.kmVacio.toFixed(2)} km</span>`;
   document.getElementById('smB_kmNew').innerHTML = `<span class="${colorKm(s.nuevoB)}">${s.nuevoB.toFixed(2)} km</span>`;
 
@@ -3641,6 +5281,8 @@ async function mostrarSwapEnMapa(idx) {
   const COLOR_A_SOFT = '#fca5a5';
   const COLOR_B = '#2563eb';
   const COLOR_B_SOFT = '#93c5fd';
+  const COLOR_C = '#16a34a';
+  const COLOR_C_SOFT = '#86efac';
 
   swapMapLayers.push(
     makeMapMarker(homeA,  COLOR_A,      'A', `<b>Domicilio de A</b><br>${s.A.nombre}<br>Nóm ${s.A.id}<br>Planta: ${s.A.planta}`, 'home').addTo(swapMap),
@@ -3654,23 +5296,88 @@ async function mostrarSwapEnMapa(idx) {
     L.polyline([homeB, startB], { color:'#9ca3af', weight:2, dashArray:'6 5', opacity:0.85 }).addTo(swapMap)
   );
 
-  swapMap.fitBounds(L.latLngBounds([homeA, homeB, startA, startB]), { padding:[60,60] });
+  const bounds = [homeA, homeB, startA, startB];
 
-  const [rutaA, rutaB] = await Promise.all([
-    obtenerRutaOSRM(homeA, startB),
-    obtenerRutaOSRM(homeB, startA)
-  ]);
-  if (swapActivoIdx !== idx) return;
-
-  if (rutaA) {
-    swapMapLayers.push(L.polyline(rutaA, { color: COLOR_A, weight: 4.5, opacity: 0.85 }).addTo(swapMap));
-  } else {
-    swapMapLayers.push(L.polyline([homeA, startB], { color: COLOR_A, weight: 3, opacity: 0.7, dashArray:'4 4' }).addTo(swapMap));
+  // Si es tripleta o cuarteta, agregar operador C
+  if (s.esTripleta || s.esCuarteta) {
+    const homeC = [s.C.homeLat, s.C.homeLng];
+    const startC = [s.C.startLat, s.C.startLng];
+    swapMapLayers.push(
+      makeMapMarker(homeC,  COLOR_C,      'C', `<b>Domicilio de C</b><br>${s.C.nombre}<br>Nóm ${s.C.id}<br>Planta: ${s.C.planta}`, 'home').addTo(swapMap),
+      makeMapMarker(startC, COLOR_C_SOFT, 'C', `<b>Inicio actual de C</b><br>Ruta: ${s.C.ruta}<br>${s.C.horario}`, 'flag').addTo(swapMap),
+      L.polyline([homeC, startC], { color:'#9ca3af', weight:2, dashArray:'6 5', opacity:0.85 }).addTo(swapMap)
+    );
+    bounds.push(homeC, startC);
   }
-  if (rutaB) {
-    swapMapLayers.push(L.polyline(rutaB, { color: COLOR_B, weight: 4.5, opacity: 0.85 }).addTo(swapMap));
+
+  // Si es cuarteta, agregar operador D
+  const COLOR_D = '#c2410c';
+  const COLOR_D_SOFT = '#fdba74';
+  if (s.esCuarteta) {
+    const homeD = [s.D.homeLat, s.D.homeLng];
+    const startD = [s.D.startLat, s.D.startLng];
+    swapMapLayers.push(
+      makeMapMarker(homeD,  COLOR_D,      'D', `<b>Domicilio de D</b><br>${s.D.nombre}<br>Nóm ${s.D.id}<br>Planta: ${s.D.planta}`, 'home').addTo(swapMap),
+      makeMapMarker(startD, COLOR_D_SOFT, 'D', `<b>Inicio actual de D</b><br>Ruta: ${s.D.ruta}<br>${s.D.horario}`, 'flag').addTo(swapMap),
+      L.polyline([homeD, startD], { color:'#9ca3af', weight:2, dashArray:'6 5', opacity:0.85 }).addTo(swapMap)
+    );
+    bounds.push(homeD, startD);
+  }
+
+  swapMap.fitBounds(L.latLngBounds(bounds), { padding:[60,60] });
+
+  // Rutas OSRM propuestas
+  if (s.esCuarteta) {
+    const homeC = [s.C.homeLat, s.C.homeLng];
+    const homeD = [s.D.homeLat, s.D.homeLng];
+    const [rutaA, rutaB, rutaC, rutaD] = await Promise.all([
+      obtenerRutaOSRM(homeA, startDestA),
+      obtenerRutaOSRM(homeB, startDestB),
+      obtenerRutaOSRM(homeC, startDestC),
+      obtenerRutaOSRM(homeD, startDestD)
+    ]);
+    if (swapActivoIdx !== idx) return;
+
+    if (rutaA) swapMapLayers.push(L.polyline(rutaA, { color: COLOR_A, weight: 4.5, opacity: 0.85 }).addTo(swapMap));
+    else swapMapLayers.push(L.polyline([homeA, startDestA], { color: COLOR_A, weight: 3, opacity: 0.7, dashArray:'4 4' }).addTo(swapMap));
+
+    if (rutaB) swapMapLayers.push(L.polyline(rutaB, { color: COLOR_B, weight: 4.5, opacity: 0.85 }).addTo(swapMap));
+    else swapMapLayers.push(L.polyline([homeB, startDestB], { color: COLOR_B, weight: 3, opacity: 0.7, dashArray:'4 4' }).addTo(swapMap));
+
+    if (rutaC) swapMapLayers.push(L.polyline(rutaC, { color: COLOR_C, weight: 4.5, opacity: 0.85 }).addTo(swapMap));
+    else swapMapLayers.push(L.polyline([homeC, startDestC], { color: COLOR_C, weight: 3, opacity: 0.7, dashArray:'4 4' }).addTo(swapMap));
+
+    if (rutaD) swapMapLayers.push(L.polyline(rutaD, { color: COLOR_D, weight: 4.5, opacity: 0.85 }).addTo(swapMap));
+    else swapMapLayers.push(L.polyline([homeD, startDestD], { color: COLOR_D, weight: 3, opacity: 0.7, dashArray:'4 4' }).addTo(swapMap));
+  } else if (s.esTripleta) {
+    const homeC = [s.C.homeLat, s.C.homeLng];
+    const [rutaA, rutaB, rutaC] = await Promise.all([
+      obtenerRutaOSRM(homeA, startDestA),
+      obtenerRutaOSRM(homeB, startDestB),
+      obtenerRutaOSRM(homeC, startDestC)
+    ]);
+    if (swapActivoIdx !== idx) return;
+
+    if (rutaA) swapMapLayers.push(L.polyline(rutaA, { color: COLOR_A, weight: 4.5, opacity: 0.85 }).addTo(swapMap));
+    else swapMapLayers.push(L.polyline([homeA, startDestA], { color: COLOR_A, weight: 3, opacity: 0.7, dashArray:'4 4' }).addTo(swapMap));
+
+    if (rutaB) swapMapLayers.push(L.polyline(rutaB, { color: COLOR_B, weight: 4.5, opacity: 0.85 }).addTo(swapMap));
+    else swapMapLayers.push(L.polyline([homeB, startDestB], { color: COLOR_B, weight: 3, opacity: 0.7, dashArray:'4 4' }).addTo(swapMap));
+
+    if (rutaC) swapMapLayers.push(L.polyline(rutaC, { color: COLOR_C, weight: 4.5, opacity: 0.85 }).addTo(swapMap));
+    else swapMapLayers.push(L.polyline([homeC, startDestC], { color: COLOR_C, weight: 3, opacity: 0.7, dashArray:'4 4' }).addTo(swapMap));
   } else {
-    swapMapLayers.push(L.polyline([homeB, startA], { color: COLOR_B, weight: 3, opacity: 0.7, dashArray:'4 4' }).addTo(swapMap));
+    const [rutaA, rutaB] = await Promise.all([
+      obtenerRutaOSRM(homeA, startB),
+      obtenerRutaOSRM(homeB, startA)
+    ]);
+    if (swapActivoIdx !== idx) return;
+
+    if (rutaA) swapMapLayers.push(L.polyline(rutaA, { color: COLOR_A, weight: 4.5, opacity: 0.85 }).addTo(swapMap));
+    else swapMapLayers.push(L.polyline([homeA, startB], { color: COLOR_A, weight: 3, opacity: 0.7, dashArray:'4 4' }).addTo(swapMap));
+
+    if (rutaB) swapMapLayers.push(L.polyline(rutaB, { color: COLOR_B, weight: 4.5, opacity: 0.85 }).addTo(swapMap));
+    else swapMapLayers.push(L.polyline([homeB, startA], { color: COLOR_B, weight: 3, opacity: 0.7, dashArray:'4 4' }).addTo(swapMap));
   }
 }
 
@@ -3904,12 +5611,10 @@ document.getElementById('btnDescargarExcel').addEventListener('click', descargar
 // Interceptamos esa función global y capturamos los datos.
 // Los <script> tags NO tienen restricción de CORS, por eso funciona con doble-click.
 async function cargarDesdeGoogleSheet() {
-  const btn = document.getElementById('btnCargarSheet');
-  const status = document.getElementById('uploadStatus');
-  const origText = btn.textContent;
-  btn.textContent = '⏳ Cargando desde Sheet...';
-  btn.disabled = true;
-  status.textContent = '⏳ Descargando datos remotos...';
+  const btn = document.getElementById('btnCargarSheet');  // Puede ser null (ya no existe)
+  const origText = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = '⏳ Cargando desde Sheet...'; btn.disabled = true; }
+  setStatus('Descargando datos remotos...', 'loading');
 
   return new Promise((resolve, reject) => {
     // Preparar el receptor global de la respuesta
@@ -3921,9 +5626,8 @@ async function cargarDesdeGoogleSheet() {
     const timeout = setTimeout(() => {
       if (respondido) return;
       respondido = true;
-      btn.textContent = '❌ Timeout';
-      setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500);
-      status.textContent = '❌ Sin respuesta del Sheet';
+      if (btn) { btn.textContent = '❌ Timeout'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500); }
+      setStatus('Sin respuesta del Sheet', 'error');
       alert('El Google Sheet no respondió en 30 segundos.\n\nVerifica:\n' +
             '1. Que el sheet esté compartido como "Cualquier persona con el enlace puede ver"\n' +
             '2. Que la hoja se llame exactamente "' + GOOGLE_SHEET_NAME + '"\n' +
@@ -3975,13 +5679,15 @@ async function cargarDesdeGoogleSheet() {
           procesarCSV(csvText);
         }
 
-        btn.textContent = '✓ Cargado desde Sheet';
-        setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000);
+        if (btn) { btn.textContent = '✓ Cargado desde Sheet'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000); }
+
+        // Cargar facturación (segunda hoja) en background - no bloquea la UI
+        cargarFacturacion().catch(e => console.warn('Facturación no disponible:', e));
+
         resolve();
       } catch (e) {
-        btn.textContent = '❌ Error';
-        setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500);
-        status.textContent = '❌ Error al procesar';
+        if (btn) { btn.textContent = '❌ Error'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500); }
+        setStatus('Error al procesar', 'error');
         alert('Error procesando la respuesta del Sheet:\n\n' + e.message);
         console.error(e);
         reject(e);
@@ -3995,9 +5701,8 @@ async function cargarDesdeGoogleSheet() {
       if (respondido) return;
       respondido = true;
       clearTimeout(timeout);
-      btn.textContent = '❌ Error';
-      setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500);
-      status.textContent = '❌ No se pudo descargar';
+      if (btn) { btn.textContent = '❌ Error'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500); }
+      setStatus('No se pudo descargar', 'error');
       alert('No se pudo descargar el Google Sheet.\n\nCausas posibles:\n' +
             '1. El sheet NO está compartido como "Cualquier persona con el enlace puede ver"\n' +
             '2. No hay conexión a internet\n' +
@@ -4010,7 +5715,129 @@ async function cargarDesdeGoogleSheet() {
   });
 }
 
-document.getElementById('btnCargarSheet').addEventListener('click', cargarDesdeGoogleSheet);
+// Botón "Cargar desde Sheet" (opcional - puede no estar en el DOM)
+const btnCargarSheetEl = document.getElementById('btnCargarSheet');
+if (btnCargarSheetEl) btnCargarSheetEl.addEventListener('click', cargarDesdeGoogleSheet);
+
+// =========================================================
+// CARGAR SEGUNDA HOJA: "facturacion" (viajes reales)
+// =========================================================
+async function cargarFacturacion() {
+  return new Promise((resolve) => {
+    window.google = window.google || {};
+    window.google.visualization = window.google.visualization || {};
+    window.google.visualization.Query = window.google.visualization.Query || {};
+
+    let respondido = false;
+    const timeout = setTimeout(() => {
+      if (respondido) return;
+      respondido = true;
+      console.warn('Timeout al cargar hoja de facturación (opcional)');
+      resolve();
+    }, 20000);
+
+    window.google.visualization.Query.setResponse = function(data) {
+      if (respondido) return;
+      respondido = true;
+      clearTimeout(timeout);
+
+      try {
+        if (!data || !data.table || data.status === 'error') {
+          console.warn('Hoja de facturación no disponible o vacía');
+          resolve();
+          return;
+        }
+
+        const cols = data.table.cols;
+        const rows = data.table.rows;
+        const header = cols.map(c => (c.label || c.id || '').trim());
+        const idx = {};
+        header.forEach((h, i) => { idx[h] = i; });
+
+        // Índices de columnas relevantes
+        const iNomina = idx['no. de nomina'] ?? idx['worker_id'];
+        const iOperador = idx['operador'] ?? idx['driver'];
+        const iRuta = idx['des'];  // descripción de ruta
+        const iIdRuta = idx['ID Ruta'];
+        const iPlanta = idx['business_unit'];
+        const iCarro = idx['car'];
+        const iShift = idx['shift'];
+        const iGrupo = idx['group'];
+        const iStartDate = idx['start_date'];
+        const iStartTime = idx['start_time'];
+        const iEndTime = idx['end_time'];
+        const iSemVia = idx['Sem Via'];
+        const iDiagnostico = idx['Diagnostico Viaje'];
+        const iSolViaje = idx['Sol Viaje'];
+        const iMomento = idx['momento'];
+        const iTipoViaje = idx['Tipo de Viaje'];
+        const iKmPromedio = idx['km promedio'];
+        const iStatus = idx['status'];
+
+        if (iNomina === undefined) {
+          console.warn('Hoja facturación no tiene columna de nómina');
+          resolve();
+          return;
+        }
+
+        viajesFacturacion = new Map();
+
+        rows.forEach(r => {
+          const c = r.c;
+          const nomina = String(c[iNomina]?.v ?? c[iNomina]?.f ?? '').replace('.0', '').trim();
+          if (!nomina) return;
+
+          const viaje = {
+            operador: String(c[iOperador]?.v || ''),
+            ruta: String(c[iRuta]?.v || ''),
+            idRuta: c[iIdRuta]?.v || '',
+            planta: String(c[iPlanta]?.v || ''),
+            carro: String(c[iCarro]?.v || ''),
+            shift: String(c[iShift]?.v || ''),
+            grupo: String(c[iGrupo]?.v || ''),
+            fecha: String(c[iStartDate]?.f || c[iStartDate]?.v || ''),
+            horaInicio: String(c[iStartTime]?.f || c[iStartTime]?.v || ''),
+            horaFin: String(c[iEndTime]?.f || c[iEndTime]?.v || ''),
+            semana: c[iSemVia]?.v || '',
+            diagnostico: String(c[iDiagnostico]?.v || ''),
+            solViaje: String(c[iSolViaje]?.v || ''),
+            momento: String(c[iMomento]?.v || ''),
+            tipoViaje: String(c[iTipoViaje]?.v || ''),
+            kmPromedio: c[iKmPromedio]?.v || '',
+            status: c[iStatus]?.v || ''
+          };
+
+          if (!viajesFacturacion.has(nomina)) viajesFacturacion.set(nomina, []);
+          viajesFacturacion.get(nomina).push(viaje);
+        });
+
+        viajesFactCargados = true;
+        const totalOps = viajesFacturacion.size;
+        const totalViajes = [...viajesFacturacion.values()].reduce((s, arr) => s + arr.length, 0);
+        console.log(`✓ Facturación cargada: ${totalOps} operadores, ${totalViajes} viajes`);
+
+        // Re-renderizar la tabla si ya hay operadores cargados (para mostrar los botones)
+        if (operadores.length && typeof renderTabla === 'function') renderTabla();
+        if (typeof renderSwaps === 'function') renderSwaps();
+      } catch (e) {
+        console.error('Error procesando facturación:', e);
+      }
+      resolve();
+    };
+
+    const script = document.createElement('script');
+    script.src = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(GOOGLE_SHEET_NAME_FACT)}&t=${Date.now()}`;
+    script.onerror = () => {
+      if (respondido) return;
+      respondido = true;
+      clearTimeout(timeout);
+      console.warn('No se pudo cargar hoja de facturación (opcional)');
+      resolve();
+    };
+    document.head.appendChild(script);
+    setTimeout(() => script.remove(), 60000);
+  });
+}
 
 // Filtro de semana - al cambiar, re-procesa desde el raw
 document.getElementById('semanaFilter').addEventListener('change', (e) => {
@@ -4028,8 +5855,7 @@ document.getElementById('csvInput').addEventListener('change', async e => {
   if (!f) return;
   const ext = f.name.split('.').pop().toLowerCase();
 
-  const status = document.getElementById('uploadStatus');
-  status.textContent = '⏳ Procesando archivo...';
+  setStatus('Procesando archivo...', 'loading');
 
   try {
     if (ext === 'xlsx' || ext === 'xls') {
@@ -4053,7 +5879,7 @@ document.getElementById('csvInput').addEventListener('change', async e => {
       procesarCSV(text);
     }
   } catch (err) {
-    status.textContent = '❌ Error al procesar';
+    setStatus('Error al procesar', 'error');
     alert('Error procesando el archivo:\n\n' + err.message);
     console.error(err);
   }
@@ -4372,9 +6198,9 @@ document.addEventListener('click', (e) => {
 // Stubs para no romper llamadas antiguas
 function renderChipsOperadores() { actualizarBadgesSeleccion(); }
 
-document.querySelectorAll('.menu-btn[data-tab]').forEach(b => {
+document.querySelectorAll('.side-item[data-tab]').forEach(b => {
   b.addEventListener('click', () => {
-    document.querySelectorAll('.menu-btn[data-tab]').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.side-item[data-tab]').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.getElementById('tab-' + b.dataset.tab).classList.add('active');
@@ -4824,7 +6650,7 @@ function renderPanelCuadrantes(stats) {
 function seleccionarDesdeCuadrantes(workerId) {
   const op = operadores.find(o => o.id === workerId);
   if (!op) return;
-  document.querySelector('.menu-btn[data-tab="km"]').click();
+  document.querySelector('.side-item[data-tab="km"]').click();
   setTimeout(() => seleccionarOperador(op), 100);
 }
 window.seleccionarDesdeCuadrantes = seleccionarDesdeCuadrantes;
@@ -5437,7 +7263,7 @@ document.getElementById('cuadResetSource').addEventListener('click', () => {
   poblarCuadrantesDesdeCsv();
 });
 
-document.querySelector('.menu-btn[data-tab="cuadrantes"]').addEventListener('click', () => {
+document.querySelector('.side-item[data-tab="cuadrantes"]').addEventListener('click', () => {
   // Si tenemos operadores en el CSV pero no en cuadrantes, poblar automáticamente
   if (operadores.length && (!operadoresCuad.length || !inicioCuad.length)) {
     poblarCuadrantesDesdeCsv();
@@ -5452,8 +7278,619 @@ document.querySelector('.menu-btn[data-tab="cuadrantes"]').addEventListener('cli
 });
 
 // =========================================================
+// TAB "PROGRAMACIÓN IDEAL" — asignación óptima greedy
+// =========================================================
+let idealAsignaciones = [];
+let idealOpsSinAsignar = [];
+let idealRutasSinCubrir = [];
+let rutasElegiblesGlobal = [];
+
+function calcularProgramacionIdeal() {
+  const jefeSel = document.getElementById('idealFiltroJefe').value;
+  const coordSel = document.getElementById('idealFiltroCoord').value;
+  const plantaSel = document.getElementById('idealFiltroPlanta').value;
+
+  if (!operadores.length) {
+    alert('Primero carga los datos (BAU) para calcular la programación ideal.');
+    return;
+  }
+
+  // 1. Filtrar operadores según filtros
+  let opsElegibles = operadores.filter(o => o.diasEntreSemana.size >= 3);
+  if (jefeSel) opsElegibles = opsElegibles.filter(o => o.jefe === jefeSel);
+  if (coordSel) opsElegibles = opsElegibles.filter(o => o.coordinador === coordSel);
+  if (plantaSel) opsElegibles = opsElegibles.filter(o => o.planta === plantaSel);
+
+  // 2. Rutas a cubrir = rutas de operadores válidos + rutas VACANTE (plazas abiertas)
+  //    Las VACANTE son rutas registradas en el CSV pero cuyo operador es "VACANTE" o "C."
+  //    → son plazas abiertas que necesitan operador y deben participar en el ejercicio.
+  const rutasElegiblesMap = new Map();
+
+  // 2a. Rutas actualmente asignadas a operadores válidos
+  opsElegibles.forEach(op => {
+    if (!op.ruta || rutasElegiblesMap.has(op.ruta)) return;
+    rutasElegiblesMap.set(op.ruta, {
+      ruta: op.ruta,
+      planta: op.planta,
+      jefe: op.jefe,
+      gerente: op.gerente,
+      lat: op.startLat,
+      lng: op.startLng,
+      inicio: op.horario,
+      esVacante: false
+    });
+  });
+
+  // 2b. Rutas VACANTE (plazas abiertas)
+  //     Aplicamos los mismos filtros de jefe/coord/planta que a los operadores
+  rutasVacantes.forEach(r => {
+    if (rutasElegiblesMap.has(r.ruta)) return;  // Evitar duplicados con las de arriba
+    if (jefeSel && r.jefe !== jefeSel) return;
+    if (coordSel && coordinadorDe(r.planta, r.ruta) !== coordSel) return;
+    if (plantaSel && r.planta !== plantaSel) return;
+    rutasElegiblesMap.set(r.ruta, r);
+  });
+
+  const rutasElegibles = Array.from(rutasElegiblesMap.values());
+  rutasElegiblesGlobal = rutasElegibles;  // Para uso en renderProgramacionIdeal
+
+  if (!opsElegibles.length || !rutasElegibles.length) {
+    idealAsignaciones = [];
+    idealOpsSinAsignar = opsElegibles;
+    idealRutasSinCubrir = rutasElegibles;
+    renderProgramacionIdeal();
+    return;
+  }
+
+  // 3. Calcular TODOS los pares (operador × ruta) con distancia haversine (línea recta)
+  const pares = [];
+  opsElegibles.forEach(op => {
+    rutasElegibles.forEach(ru => {
+      const dKm = distMetros(op.homeLat, op.homeLng, ru.lat, ru.lng) / 1000;
+      pares.push({ op, ru, dist: dKm });
+    });
+  });
+
+  // 4. Ordenar por distancia ascendente
+  pares.sort((a, b) => a.dist - b.dist);
+
+  // 5. Greedy: ir asignando el par más corto que aún tenga ambos libres
+  const opUsados = new Set();
+  const ruUsadas = new Set();
+  idealAsignaciones = [];
+
+  for (const p of pares) {
+    if (opUsados.has(p.op.id) || ruUsadas.has(p.ru.ruta)) continue;
+    opUsados.add(p.op.id);
+    ruUsadas.add(p.ru.ruta);
+    idealAsignaciones.push({
+      op: p.op,
+      ru: p.ru,
+      kmIdeal: p.dist,
+      kmActual: p.op.kmVacio,
+      delta: p.op.kmVacio - p.dist
+    });
+    if (opUsados.size === opsElegibles.length || ruUsadas.size === rutasElegibles.length) break;
+  }
+
+  // 6. Los que quedaron fuera
+  idealOpsSinAsignar = opsElegibles.filter(o => !opUsados.has(o.id));
+  idealRutasSinCubrir = rutasElegibles.filter(r => !ruUsadas.has(r.ruta));
+
+  // 7. Ordenar asignaciones por km ideal ascendente
+  idealAsignaciones.sort((a, b) => a.kmIdeal - b.kmIdeal);
+
+  renderProgramacionIdeal();
+}
+
+function renderProgramacionIdeal() {
+  // KPIs superiores
+  const totalOps = idealAsignaciones.length;
+  const totalKmIdeal = idealAsignaciones.reduce((s, a) => s + a.kmIdeal, 0);
+  const totalKmActual = idealAsignaciones.reduce((s, a) => s + a.kmActual, 0);
+  const ahorro = totalKmActual - totalKmIdeal;
+  const promedioIdeal = totalOps ? totalKmIdeal / totalOps : 0;
+  const vacantesCubiertas = idealAsignaciones.filter(a => a.ru.esVacante).length;
+  const totalRutasVacantes = rutasElegiblesGlobal.filter(r => r.esVacante).length;
+
+  document.getElementById('idealKpis').innerHTML = `
+    <div class="ideal-kpi">
+      <div class="num">${totalOps}</div>
+      <div class="lbl">Operadores asignados</div>
+      ${vacantesCubiertas > 0 ? `<div class="sub" style="color:#92400e; font-weight:700">🔓 ${vacantesCubiertas} a vacantes</div>` : ''}
+    </div>
+    <div class="ideal-kpi">
+      <div class="num">${idealOpsSinAsignar.length}</div>
+      <div class="lbl">Operadores sin asignar</div>
+    </div>
+    <div class="ideal-kpi">
+      <div class="num">${idealRutasSinCubrir.length}</div>
+      <div class="lbl">Rutas sin cubrir</div>
+      ${totalRutasVacantes > 0 ? `<div class="sub">${totalRutasVacantes} vacantes en total</div>` : ''}
+    </div>
+    <div class="ideal-kpi">
+      <div class="num">${totalKmIdeal.toFixed(0)}</div>
+      <div class="lbl">KM total ideal</div>
+      <div class="sub">${promedioIdeal.toFixed(2)} km promedio</div>
+    </div>
+    <div class="ideal-kpi">
+      <div class="num" style="color:${ahorro > 0 ? '#16a34a' : '#dc2626'}">${ahorro > 0 ? '−' : '+'}${Math.abs(ahorro).toFixed(0)}</div>
+      <div class="lbl">Ahorro vs actual</div>
+      <div class="sub">${totalKmActual > 0 ? ((ahorro / totalKmActual) * 100).toFixed(1) : 0}% menos</div>
+    </div>
+  `;
+
+  // Distribución por rangos
+  const r1 = idealAsignaciones.filter(a => a.kmIdeal < 5).length;
+  const r2 = idealAsignaciones.filter(a => a.kmIdeal >= 5 && a.kmIdeal < 10).length;
+  const r3 = idealAsignaciones.filter(a => a.kmIdeal >= 10 && a.kmIdeal <= 15).length;
+  const r4 = idealAsignaciones.filter(a => a.kmIdeal > 15).length;
+
+  const pct = (n) => totalOps ? ((n / totalOps) * 100).toFixed(1) : '0.0';
+
+  document.getElementById('idealRangos').innerHTML = `
+    <div class="ideal-rango ok">
+      <div class="top"><div class="num">${r1}</div><div class="pct">${pct(r1)}%</div></div>
+      <div class="lbl">Menos de 5 km</div>
+    </div>
+    <div class="ideal-rango mid">
+      <div class="top"><div class="num">${r2}</div><div class="pct">${pct(r2)}%</div></div>
+      <div class="lbl">5 a 10 km</div>
+    </div>
+    <div class="ideal-rango warn">
+      <div class="top"><div class="num">${r3}</div><div class="pct">${pct(r3)}%</div></div>
+      <div class="lbl">10 a 15 km</div>
+    </div>
+    <div class="ideal-rango bad">
+      <div class="top"><div class="num">${r4}</div><div class="pct">${pct(r4)}%</div></div>
+      <div class="lbl">Más de 15 km</div>
+    </div>
+  `;
+
+  // Comparativa
+  document.getElementById('idealCompare').innerHTML = `
+    <div class="ideal-compare-block">
+      <div class="lbl">Actual (con asignación vigente)</div>
+      <div class="val">${totalKmActual.toFixed(0)} km</div>
+    </div>
+    <div class="ideal-compare-arrow">→</div>
+    <div class="ideal-compare-block">
+      <div class="lbl">Ideal (asignación óptima)</div>
+      <div class="val">${totalKmIdeal.toFixed(0)} km</div>
+    </div>
+    <div class="ideal-compare-arrow">=</div>
+    <div class="ideal-compare-block saving">
+      <div class="lbl">${ahorro >= 0 ? 'Ahorro potencial' : 'Aumento'}</div>
+      <div class="val">${ahorro >= 0 ? '−' : '+'}${Math.abs(ahorro).toFixed(0)} km/día</div>
+    </div>
+  `;
+
+  // Tabla de asignación
+  const tbody = document.getElementById('idealTableBody');
+  document.getElementById('idealAsignCount').textContent = `${idealAsignaciones.length} asignaciones`;
+  if (!idealAsignaciones.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="ideal-empty">Sin asignaciones. Presiona ⚡ Calcular con datos cargados.</td></tr>';
+  } else {
+    tbody.innerHTML = idealAsignaciones.map((a, i) => {
+      const deltaCls = a.delta > 0.5 ? 'good' : (a.delta < -0.5 ? 'bad' : 'same');
+      const deltaSym = a.delta > 0 ? '−' : (a.delta < 0 ? '+' : '=');
+      const kmCls = colorKm(a.kmIdeal);
+      const kmActCls = colorKm(a.kmActual);
+      const home = `${a.op.homeLat.toFixed(4)}, ${a.op.homeLng.toFixed(4)}`;
+      const rutaLabel = a.ru.esVacante
+        ? `${a.ru.ruta}<span class="vacante-badge" title="Ruta plaza vacante — sin operador asignado actualmente">🔓 VACANTE</span>`
+        : a.ru.ruta;
+      return `
+        <tr class="${a.ru.esVacante ? 'row-vacante' : ''}">
+          <td class="rank">${i + 1}</td>
+          <td class="op-name">${a.op.nombre}</td>
+          <td class="nom">${a.op.id}</td>
+          <td class="nom">${home}</td>
+          <td>${a.ru.planta}</td>
+          <td>${rutaLabel}</td>
+          <td class="km-val ${kmCls}">${a.kmIdeal.toFixed(2)}</td>
+          <td class="km-val ${kmActCls}">${a.kmActual.toFixed(2)}</td>
+          <td class="delta ${deltaCls}">${deltaSym}${Math.abs(a.delta).toFixed(2)}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // Operadores sin asignar
+  const opsSinBody = document.getElementById('idealOpsSinBody');
+  document.getElementById('idealOpsSinCount').textContent = `${idealOpsSinAsignar.length} operadores`;
+  if (!idealOpsSinAsignar.length) {
+    opsSinBody.innerHTML = '<tr><td colspan="6" class="ideal-empty">Todos los operadores fueron asignados ✓</td></tr>';
+  } else {
+    opsSinBody.innerHTML = idealOpsSinAsignar.map(o => `
+      <tr>
+        <td class="op-name">${o.nombre}</td>
+        <td class="nom">${o.id}</td>
+        <td>${o.planta}</td>
+        <td>${o.ruta}</td>
+        <td class="km-val ${colorKm(o.kmVacio)}">${o.kmVacio.toFixed(2)}</td>
+        <td>Más rutas que operadores en el filtro</td>
+      </tr>
+    `).join('');
+  }
+
+  // Rutas sin cubrir
+  const rutSinBody = document.getElementById('idealRutSinBody');
+  document.getElementById('idealRutSinCount').textContent = `${idealRutasSinCubrir.length} rutas`;
+  if (!idealRutasSinCubrir.length) {
+    rutSinBody.innerHTML = '<tr><td colspan="5" class="ideal-empty">Todas las rutas fueron cubiertas ✓</td></tr>';
+  } else {
+    rutSinBody.innerHTML = idealRutasSinCubrir.map(r => {
+      const rutaLabel = r.esVacante
+        ? `${r.ruta}<span class="vacante-badge" title="Ruta plaza vacante">🔓 VACANTE</span>`
+        : r.ruta;
+      return `
+        <tr class="${r.esVacante ? 'row-vacante' : ''}">
+          <td class="op-name">${rutaLabel}</td>
+          <td>${r.planta}</td>
+          <td>${r.jefe}</td>
+          <td>${coordinadorDe(r.planta, r.ruta)}</td>
+          <td>${r.inicio || '—'}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+}
+
+function poblarFiltrosIdeal() {
+  const jefes = [...new Set(operadores.map(o => o.jefe).filter(x => x && x !== 'SIN ASIGNAR'))].sort();
+  const coords = [...new Set(operadores.map(o => o.coordinador).filter(x => x && x !== 'SIN ASIGNAR'))].sort();
+  const plantas = [...new Set(operadores.map(o => o.planta).filter(x => x && x !== 'SIN ASIGNAR'))].sort();
+
+  document.getElementById('idealFiltroJefe').innerHTML =
+    '<option value="">Todos los jefes</option>' +
+    jefes.map(j => `<option value="${j}">${j}</option>`).join('');
+  document.getElementById('idealFiltroCoord').innerHTML =
+    '<option value="">Todos los coordinadores</option>' +
+    coords.map(c => `<option value="${c}">${c}</option>`).join('');
+  document.getElementById('idealFiltroPlanta').innerHTML =
+    '<option value="">Todas las plantas</option>' +
+    plantas.map(p => `<option value="${p}">${p}</option>`).join('');
+}
+
+// Descargar Excel de la asignación ideal
+function descargarExcelIdeal() {
+  if (!idealAsignaciones.length) {
+    alert('Primero calcula la programación ideal');
+    return;
+  }
+  const wb = XLSX.utils.book_new();
+
+  // Hoja 1: Asignación óptima
+  const filas = [['#','Operador','Nómina','Planta actual','Lat casa','Long casa','Planta ideal','Ruta ideal','Lat inicio','Long inicio','KM propuesto','KM actual','Ahorro']];
+  idealAsignaciones.forEach((a, i) => {
+    filas.push([
+      i + 1,
+      a.op.nombre,
+      a.op.id,
+      a.op.planta,
+      Number(a.op.homeLat.toFixed(6)),
+      Number(a.op.homeLng.toFixed(6)),
+      a.ru.planta,
+      a.ru.ruta,
+      Number(a.ru.lat.toFixed(6)),
+      Number(a.ru.lng.toFixed(6)),
+      Number(a.kmIdeal.toFixed(2)),
+      Number(a.kmActual.toFixed(2)),
+      Number(a.delta.toFixed(2))
+    ]);
+  });
+  const ws1 = XLSX.utils.aoa_to_sheet(filas);
+  ws1['!cols'] = [{wch:5},{wch:35},{wch:12},{wch:18},{wch:12},{wch:12},{wch:18},{wch:32},{wch:12},{wch:12},{wch:12},{wch:12},{wch:10}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Asignación');
+
+  // Hoja 2: Operadores sin asignar
+  if (idealOpsSinAsignar.length) {
+    const fSin = [['Operador','Nómina','Planta','Ruta actual','KM actual','Lat casa','Long casa']];
+    idealOpsSinAsignar.forEach(o => {
+      fSin.push([o.nombre, o.id, o.planta, o.ruta, Number(o.kmVacio.toFixed(2)),
+        Number(o.homeLat.toFixed(6)), Number(o.homeLng.toFixed(6))]);
+    });
+    const ws2 = XLSX.utils.aoa_to_sheet(fSin);
+    ws2['!cols'] = [{wch:35},{wch:12},{wch:18},{wch:32},{wch:12},{wch:12},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, ws2, 'Operadores sin asignar');
+  }
+
+  // Hoja 3: Rutas sin cubrir
+  if (idealRutasSinCubrir.length) {
+    const fRut = [['Ruta','Planta','Jefe','Coordinador','Hora inicio','Lat','Long']];
+    idealRutasSinCubrir.forEach(r => {
+      fRut.push([r.ruta, r.planta, r.jefe, coordinadorDe(r.planta, r.ruta), r.inicio || '',
+        Number(r.lat.toFixed(6)), Number(r.lng.toFixed(6))]);
+    });
+    const ws3 = XLSX.utils.aoa_to_sheet(fRut);
+    ws3['!cols'] = [{wch:32},{wch:18},{wch:20},{wch:20},{wch:10},{wch:12},{wch:12}];
+    XLSX.utils.book_append_sheet(wb, ws3, 'Rutas sin cubrir');
+  }
+
+  const fecha = new Date().toISOString().slice(0, 10);
+  const jefe = document.getElementById('idealFiltroJefe').value;
+  const coord = document.getElementById('idealFiltroCoord').value;
+  const sufijo = jefe ? `_${jefe.split(' ')[0]}` : (coord ? `_${coord.split(' ')[0]}` : '');
+  XLSX.writeFile(wb, `programacion_ideal_${fecha}${sufijo}.xlsx`);
+}
+
+// Listeners del tab ideal
+document.getElementById('idealBtnCalc').addEventListener('click', calcularProgramacionIdeal);
+document.getElementById('idealBtnReset').addEventListener('click', () => {
+  document.getElementById('idealFiltroJefe').value = '';
+  document.getElementById('idealFiltroCoord').value = '';
+  document.getElementById('idealFiltroPlanta').value = '';
+  calcularProgramacionIdeal();
+});
+document.getElementById('btnDescargarIdeal').addEventListener('click', descargarExcelIdeal);
+
+document.querySelector('.side-item[data-tab="ideal"]').addEventListener('click', () => {
+  if (operadores.length) {
+    poblarFiltrosIdeal();
+    // Auto-calcular en la primera visita
+    if (!idealAsignaciones.length) {
+      setTimeout(() => calcularProgramacionIdeal(), 100);
+    }
+  }
+});
+
+// =========================================================
 // AUTO-CARGA DESDE GOOGLE SHEET AL ABRIR LA PÁGINA
 // =========================================================
+// =========================================================
+// MODAL DE FACTURACIÓN — muestra viajes reales del operador
+// =========================================================
+let factState = { nomina: null, nombre: '', vista: 'dias', semana: '', search: '' };
+
+function abrirModalFacturacion(nomina, nombre) {
+  factState = { nomina: String(nomina), nombre, vista: 'dias', semana: '', search: '' };
+  const viajes = viajesFacturacion.get(String(nomina)) || [];
+
+  document.getElementById('factModalTitle').textContent = nombre;
+  document.getElementById('factModalSubtitle').textContent =
+    `Nómina ${nomina} · ${viajes.length} viaje${viajes.length === 1 ? '' : 's'} registrado${viajes.length === 1 ? '' : 's'}`;
+
+  // Poblar selector de semanas
+  const semanas = [...new Set(viajes.map(v => v.semana).filter(s => s !== '' && s != null))].sort((a, b) => b - a);
+  const selSem = document.getElementById('factSemFilter');
+  selSem.innerHTML = '<option value="">Todas las semanas</option>' +
+    semanas.map(s => `<option value="${s}">Semana ${s}</option>`).join('');
+
+  // Reset búsqueda
+  document.getElementById('factSearchInput').value = '';
+
+  // Reset tabs
+  document.querySelectorAll('.fact-tab').forEach(t => t.classList.toggle('active', t.dataset.vista === 'dias'));
+
+  renderFactKpis(viajes);
+  renderFactBody();
+
+  document.getElementById('factModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarModalFacturacion() {
+  document.getElementById('factModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function renderFactKpis(viajes) {
+  const rutasUnicas = new Set(viajes.map(v => v.ruta).filter(x => x));
+  const plantasUnicas = new Set(viajes.map(v => v.planta).filter(x => x));
+  const diasUnicos = new Set(viajes.map(v => v.fecha).filter(x => x));
+
+  const html = `
+    <div class="fact-kpi total">
+      <div class="fact-kpi-num">${viajes.length}</div>
+      <div class="fact-kpi-lbl">Viajes totales</div>
+    </div>
+    <div class="fact-kpi rutas">
+      <div class="fact-kpi-num">${rutasUnicas.size}</div>
+      <div class="fact-kpi-lbl">Rutas distintas</div>
+    </div>
+    <div class="fact-kpi plantas">
+      <div class="fact-kpi-num">${plantasUnicas.size}</div>
+      <div class="fact-kpi-lbl">Plantas atendidas</div>
+    </div>
+    <div class="fact-kpi dias">
+      <div class="fact-kpi-num">${diasUnicos.size}</div>
+      <div class="fact-kpi-lbl">Días trabajados</div>
+    </div>
+  `;
+  document.getElementById('factKpis').innerHTML = html;
+}
+
+function getViajesFiltrados() {
+  let viajes = viajesFacturacion.get(factState.nomina) || [];
+  if (factState.semana) {
+    viajes = viajes.filter(v => String(v.semana) === String(factState.semana));
+  }
+  if (factState.search) {
+    const q = factState.search.toLowerCase();
+    viajes = viajes.filter(v =>
+      (v.ruta || '').toLowerCase().includes(q) ||
+      (v.planta || '').toLowerCase().includes(q) ||
+      (v.carro || '').toLowerCase().includes(q) ||
+      (v.grupo || '').toLowerCase().includes(q)
+    );
+  }
+  return viajes;
+}
+
+function renderFactBody() {
+  const viajes = getViajesFiltrados();
+  const body = document.getElementById('factBody');
+
+  if (!viajes.length) {
+    body.innerHTML = '<div class="fact-empty">Sin viajes que coincidan con los filtros</div>';
+    return;
+  }
+
+  if (factState.vista === 'dias') {
+    // Agrupar por fecha
+    const porDia = {};
+    viajes.forEach(v => {
+      const f = v.fecha || 'Sin fecha';
+      if (!porDia[f]) porDia[f] = [];
+      porDia[f].push(v);
+    });
+    const dias = Object.keys(porDia).sort((a, b) => b.localeCompare(a));  // Descendente
+
+    body.innerHTML = dias.map(dia => {
+      const listaOrdenada = porDia[dia].sort((a, b) => (a.horaInicio || '').localeCompare(b.horaInicio || ''));
+      return `
+        <div class="fact-day-card">
+          <div class="fact-day-header">
+            <div class="fact-day-title">${formatearFecha(dia)}</div>
+            <div class="fact-day-count">${listaOrdenada.length} viaje${listaOrdenada.length === 1 ? '' : 's'}</div>
+          </div>
+          ${listaOrdenada.map(v => {
+            const badge = badgeDiagnostico(v.diagnostico);
+            return `
+              <div class="fact-viaje">
+                <div class="fact-viaje-hora">${v.horaInicio || '—'}<br><small style="color:#94a3b8; font-weight:400">${v.horaFin || ''}</small></div>
+                <div class="fact-viaje-ruta">${v.ruta || '—'}<small>${v.grupo || ''}</small></div>
+                <div class="fact-viaje-planta">${v.planta || '—'}</div>
+                <div class="fact-viaje-unidad">${v.carro || '—'}</div>
+                <div class="fact-viaje-badge ${badge.cls}">${badge.txt}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }).join('');
+  }
+  else if (factState.vista === 'rutas') {
+    const cnt = {};
+    viajes.forEach(v => {
+      const key = v.ruta || 'Sin ruta';
+      cnt[key] = (cnt[key] || 0) + 1;
+    });
+    const ordenadas = Object.entries(cnt).sort((a, b) => b[1] - a[1]);
+    const max = ordenadas[0][1];
+
+    body.innerHTML = `
+      <div class="fact-top-list">
+        ${ordenadas.map(([ruta, n], i) => `
+          <div class="fact-top-item">
+            <div class="fact-top-rank">${i + 1}</div>
+            <div class="fact-top-name">${ruta}<small>${((n / viajes.length) * 100).toFixed(1)}% del total</small></div>
+            <div class="fact-top-count">${n}</div>
+            <div class="fact-top-bar"><div style="width:${(n / max * 100).toFixed(1)}%"></div></div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+  else if (factState.vista === 'unidades') {
+    const cnt = {};
+    viajes.forEach(v => {
+      const key = v.carro || 'Sin unidad';
+      cnt[key] = (cnt[key] || 0) + 1;
+    });
+    const ordenadas = Object.entries(cnt).sort((a, b) => b[1] - a[1]);
+    const max = ordenadas[0][1];
+
+    body.innerHTML = `
+      <div class="fact-top-list">
+        ${ordenadas.map(([u, n], i) => `
+          <div class="fact-top-item">
+            <div class="fact-top-rank">${i + 1}</div>
+            <div class="fact-top-name">Unidad ${u}<small>${((n / viajes.length) * 100).toFixed(1)}% del total</small></div>
+            <div class="fact-top-count">${n}</div>
+            <div class="fact-top-bar"><div style="width:${(n / max * 100).toFixed(1)}%"></div></div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+  else if (factState.vista === 'todo') {
+    body.innerHTML = `
+      <table class="fact-table">
+        <thead>
+          <tr>
+            <th>Fecha</th><th>Hora Ini</th><th>Hora Fin</th>
+            <th>Ruta</th><th>Planta</th><th>Unidad</th>
+            <th>Shift</th><th>Sem</th><th>Diagnóstico</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${viajes.map(v => `
+            <tr>
+              <td>${v.fecha || '—'}</td>
+              <td>${v.horaInicio || '—'}</td>
+              <td>${v.horaFin || '—'}</td>
+              <td>${v.ruta || '—'}</td>
+              <td>${v.planta || '—'}</td>
+              <td>${v.carro || '—'}</td>
+              <td>${v.shift || '—'}</td>
+              <td>${v.semana || '—'}</td>
+              <td>${v.diagnostico || '—'}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+}
+
+function badgeDiagnostico(d) {
+  const t = (d || '').toString().toLowerCase();
+  if (t.includes('retras')) return { cls: 'warn', txt: 'Retrasado' };
+  if (t.includes('adelant')) return { cls: 'info', txt: 'Adelantado' };
+  if (t.includes('cancel')) return { cls: 'bad', txt: 'Cancelado' };
+  if (t.includes('tiempo') || t.includes('ok') || t.includes('normal')) return { cls: 'ok', txt: 'En tiempo' };
+  return { cls: 'info', txt: d || 'Sin dato' };
+}
+
+function formatearFecha(f) {
+  if (!f) return '—';
+  try {
+    const [y, m, d] = f.split('-');
+    if (y && m && d) {
+      const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+      const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+      const dt = new Date(f);
+      const dow = dias[dt.getDay()];
+      return `${dow} ${parseInt(d)} de ${meses[parseInt(m) - 1]} ${y}`;
+    }
+  } catch (e) {}
+  return f;
+}
+
+// Wiring de eventos del modal
+document.getElementById('factModalClose').addEventListener('click', cerrarModalFacturacion);
+document.getElementById('factModal').addEventListener('click', (e) => {
+  if (e.target.id === 'factModal') cerrarModalFacturacion();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('factModal').classList.contains('open')) {
+    cerrarModalFacturacion();
+  }
+});
+document.getElementById('factSemFilter').addEventListener('change', (e) => {
+  factState.semana = e.target.value;
+  const viajes = getViajesFiltrados();
+  renderFactKpis(viajes);
+  renderFactBody();
+});
+document.getElementById('factSearchInput').addEventListener('input', (e) => {
+  factState.search = e.target.value;
+  const viajes = getViajesFiltrados();
+  renderFactKpis(viajes);
+  renderFactBody();
+});
+document.querySelectorAll('.fact-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.fact-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    factState.vista = tab.dataset.vista;
+    renderFactBody();
+  });
+});
+window.abrirModalFacturacion = abrirModalFacturacion;
+
 window.addEventListener('load', () => {
   // GViz funciona desde file:// (no usa fetch), así que siempre intentamos cargar
   setTimeout(() => cargarDesdeGoogleSheet(), 500);
