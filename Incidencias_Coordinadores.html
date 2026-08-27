@@ -434,6 +434,20 @@ textarea{resize:vertical;min-height:70px;}
 }
 
 /* FOLIO PHOTO IN RESULT */
+.folio-photos-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  margin-top:16px;padding-top:14px;
+  border-top:1px solid var(--border-light);
+}
+@media(max-width:520px){.folio-photos-grid{grid-template-columns:1fr;}}
+.folio-photos-grid .folio-photo{margin-top:0;padding-top:0;border-top:none;}
+.folio-photo-empty{
+  background:#fafbfc;border:1px dashed var(--border);border-radius:8px;
+  padding:14px;text-align:center;
+}
+.folio-photo-empty .folio-photo-fallback{
+  margin-bottom:0;background:transparent;border:none;padding:6px 0 0;
+}
 .folio-photo{
   margin-top:16px;padding-top:14px;
   border-top:1px solid var(--border-light);
@@ -862,7 +876,7 @@ textarea{resize:vertical;min-height:70px;}
     <span class="h-title" id="hTitle">tickets_coordinadores</span>
     <span class="h-sub" id="hSub">Captura y seguimiento</span>
   </div>
-  <span style="font-size:10px;color:#9ca3af;font-weight:500;">v2.7 · gráficas + candado</span>
+  <span style="font-size:10px;color:#9ca3af;font-weight:500;">v2.8 · editar cerrados + fotos duales</span>
 </header>
 
 <!-- LOADING INICIAL -->
@@ -1765,7 +1779,7 @@ function onFolioSearch(){
 }
 
 /* ---------- MODAL DE DETALLE + CIERRE ---------- */
-const _cierreState = { folio:'', foto:'', fotoName:'', fotoType:'', formOpen:false };
+const _cierreState = { folio:'', foto:'', fotoName:'', fotoType:'', formOpen:false, passwordOk:false };
 
 function showFolioDetail(folio){
   if(!_kpiCache.data){ toast('Aún cargando datos...', 'error'); return; }
@@ -1801,6 +1815,7 @@ function openFolioModal(opts){
   _cierreState.folio = r.folio;
   _cierreState.foto = ''; _cierreState.fotoName = ''; _cierreState.fotoType = '';
   _cierreState.formOpen = false;
+  _cierreState.passwordOk = false;   // hay que pedir contraseña de nuevo cada vez que se abre un folio
 
   const estatus = r.estatus || 'Abierta';
   const cerrado = estatus.toLowerCase().includes('cerrad');
@@ -1822,16 +1837,19 @@ function openFolioModal(opts){
   const rb = tmp.querySelector('.result-body');
   body.innerHTML = rb ? rb.innerHTML : tmp.innerHTML;
 
-  // Footer con el botón de ejecutar/cerrar
+  // Footer con el botón de ejecutar/cerrar/editar
   if(cerrado){
     footer.innerHTML = `
       <span class="cierre-cierre-info" style="margin:0;">✓ Este folio ya está cerrado</span>
       <button class="btn-cancelar-cierre" onclick="closeFolioModal()">Cerrar ventana</button>
+      <button class="btn-cerrar-folio" onclick="startCierreEdit()">
+        🔒 Editar folio
+      </button>
     `;
   } else {
     footer.innerHTML = `
       <button class="btn-cancelar-cierre" onclick="closeFolioModal()">Cerrar ventana</button>
-      <button class="btn-cerrar-folio" onclick="openCierreForm()">
+      <button class="btn-cerrar-folio" onclick="startCierreEdit()">
         🔒 Ejecutar / cerrar folio
       </button>
     `;
@@ -1845,6 +1863,16 @@ function closeFolioModal(){
   document.getElementById('folioModal').classList.remove('show');
   document.body.style.overflow = '';
   _cierreState.formOpen = false;
+  _cierreState.passwordOk = false;
+}
+
+/* Pide la contraseña ANTES de mostrar el formulario de cierre / edición.
+   Si es correcta, marca la sesión como autorizada y abre el formulario. */
+async function startCierreEdit(){
+  const ok = await requestPassword();
+  if(!ok) return;
+  _cierreState.passwordOk = true;
+  openCierreForm();
 }
 
 /* --- Formulario de cierre --- */
@@ -1858,17 +1886,23 @@ function openCierreForm(){
     responsable:  getRawField(r, 'Responsable'),
     accion:       getRawField(r, 'Accion_Tomada'),
     comentarios:  getRawField(r, 'Comentarios_Cierre'),
-    departamento: (r && r.departamento) || getRawField(r, 'Departamento_Responsable') || getRawField(r, 'Departamento Responsable')
+    departamento: (r && r.departamento) || getRawField(r, 'Departamento_Responsable') || getRawField(r, 'Departamento Responsable'),
+    estatusActual: (r && r.estatus) ? r.estatus.trim() : ''
   };
+  const esEdicion = cur.estatusActual.toLowerCase().includes('cerrad');
 
   // Opciones de Estatus final
   const estatusOpciones = ['En proceso','Cerrada','Abierta'];
   // Opciones de Departamento Responsable
   const deptoOpciones = ['RH','Combustible','Mantenimiento','Psicología','Operaciones','Relaciones Públicas','Logística'];
+  // Estatus preseleccionado: si ya estaba cerrado se mantiene "Cerrada", si no, default Cerrada
+  const estatusPre = cur.estatusActual && estatusOpciones.some(o=>o.toLowerCase()===cur.estatusActual.toLowerCase())
+    ? estatusOpciones.find(o=>o.toLowerCase()===cur.estatusActual.toLowerCase())
+    : 'Cerrada';
 
   const formHtml = `
-    <div class="cierre-form" id="cierreForm">
-      <h3>⚡ Ejecución / cierre de folio</h3>
+    <div class="cierre-form ${esEdicion?'saved':''}" id="cierreForm">
+      <h3>${esEdicion?'✏️ Editar cierre de folio':'⚡ Ejecución / cierre de folio'}</h3>
 
       <div class="cierre-two">
         <div class="cierre-field">
@@ -1878,7 +1912,7 @@ function openCierreForm(){
         <div class="cierre-field">
           <label>Estatus final</label>
           <select id="cEst">
-            ${estatusOpciones.map(op=>`<option value="${esc(op)}"${op==='Cerrada'?' selected':''}>${esc(op)}</option>`).join('')}
+            ${estatusOpciones.map(op=>`<option value="${esc(op)}"${op===estatusPre?' selected':''}>${esc(op)}</option>`).join('')}
           </select>
         </div>
       </div>
@@ -1920,9 +1954,10 @@ function openCierreForm(){
 
   // Cambia el footer
   const footer = document.getElementById('modalFooter');
+  const textoGuardar = esEdicion ? '💾 Guardar cambios' : '💾 Guardar cierre';
   footer.innerHTML = `
     <button class="btn-cancelar-cierre" onclick="cancelCierreForm()">Cancelar</button>
-    <button class="btn-guardar-cierre" onclick="submitCierre()">🔒 Guardar cierre</button>
+    <button class="btn-guardar-cierre" onclick="submitCierre()">${textoGuardar}</button>
   `;
 
   // Scroll al formulario
@@ -2045,9 +2080,13 @@ async function submitCierre(){
   if(!responsable){ toast('Escribe el nombre del responsable','error'); return; }
   if(!accion){ toast('Describe la acción tomada','error'); return; }
 
-  // Pedir contraseña antes de guardar
-  const pwdOk = await requestPassword();
-  if(!pwdOk) return;
+  // La contraseña ya se validó al abrir el formulario. Como seguridad extra,
+  // si por alguna razón el flag no está, la pedimos ahora.
+  if(!_cierreState.passwordOk){
+    const pwdOk = await requestPassword();
+    if(!pwdOk) return;
+    _cierreState.passwordOk = true;
+  }
 
   // Limpia cualquier error anterior
   const prevErr = document.getElementById('cierreErr');
@@ -2427,9 +2466,14 @@ function renderFolio(header, row, box){
     ['Comentarios cierre',   get('Comentarios_Cierre') || '—']
   ];
 
-  // Bloque de fotos: reporte inicial + evidencia del cierre
-  const fotoHtml = renderFotoBlock('Foto del reporte inicial', fotoUrl, 'fp1') +
-                   renderFotoBlock('Foto del cierre / evidencia', evidenciaUrl, 'fp2');
+  // Bloque de fotos: SIEMPRE mostramos las dos secciones (reporte inicial + cierre),
+  // aunque alguna esté vacía, para que quede claro qué foto hay y qué falta.
+  const fotoHtml = `
+    <div class="folio-photos-grid">
+      ${renderFotoBlock('Foto del reporte inicial', fotoUrl, 'fp1')}
+      ${renderFotoBlock('Foto del cierre / evidencia', evidenciaUrl, 'fp2')}
+    </div>
+  `;
 
   box.innerHTML = `
     <div class="result-header">
@@ -2446,9 +2490,16 @@ function renderFolio(header, row, box){
   `;
 }
 
-/* Renderiza una foto de Drive: thumbnail + link. Devuelve '' si no hay URL. */
+/* Renderiza una foto de Drive: thumbnail + link. Si no hay URL muestra un placeholder. */
 function renderFotoBlock(label, url, thumbId){
-  if(!url) return '';
+  if(!url){
+    return `
+      <div class="folio-photo folio-photo-empty">
+        <div class="folio-photo-label">${esc(label)}</div>
+        <div class="folio-photo-fallback">— Sin foto —</div>
+      </div>
+    `;
+  }
   const fileId = extractDriveFileId(url);
   if(fileId){
     return `
