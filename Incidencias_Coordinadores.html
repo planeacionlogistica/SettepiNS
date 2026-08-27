@@ -371,6 +371,68 @@ textarea{resize:vertical;min-height:70px;}
 }
 .kpi-loading .spinner{width:22px;height:22px;border-width:2px;margin:0 auto 8px;}
 
+/* Fila compacta: rango de fechas + selector de semana */
+.kpi-daterange-row{
+  display:grid;grid-template-columns:1fr auto;
+  gap:8px;align-items:center;margin-bottom:10px;
+}
+@media(max-width:520px){
+  .kpi-daterange-row{grid-template-columns:1fr;}
+}
+.kpi-week-sel{
+  padding:8px 26px 8px 10px;font-size:12px;font-weight:500;
+  border:1px solid var(--border);border-radius:6px;
+  background:#fff;color:var(--text);font-family:inherit;
+  -webkit-appearance:none;appearance:none;min-width:150px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%236b7280'%3E%3Cpath d='M5 8l5 5 5-5H5z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+}
+.kpi-week-sel:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(132,204,22,.12);}
+
+/* Zona de gráficas (2 pequeñas donas lado a lado) */
+.kpi-charts{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  margin-top:12px;padding-top:12px;
+  border-top:1px solid var(--border-light);
+}
+@media(max-width:480px){.kpi-charts{grid-template-columns:1fr;}}
+.mini-chart{
+  background:#fafbfc;border:1px solid var(--border-light);border-radius:8px;
+  padding:10px;
+}
+.mini-chart-title{
+  font-size:10px;font-weight:700;color:var(--muted);
+  text-transform:uppercase;letter-spacing:.06em;
+  margin-bottom:8px;text-align:center;
+}
+.mini-chart-body{
+  display:grid;grid-template-columns:88px 1fr;gap:10px;align-items:center;
+}
+.mini-donut{position:relative;width:88px;height:88px;flex-shrink:0;}
+.mini-donut svg{width:100%;height:100%;transform:rotate(-90deg);}
+.mini-donut-total{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  font-size:16px;font-weight:800;color:var(--text);line-height:1;
+}
+.mini-donut-total small{font-size:8px;font-weight:600;color:var(--muted);
+  margin-top:2px;text-transform:uppercase;letter-spacing:.05em;}
+.mini-legend{display:flex;flex-direction:column;gap:3px;font-size:10.5px;
+  max-height:88px;overflow:auto;}
+.mini-legend-item{display:flex;align-items:center;gap:5px;line-height:1.2;}
+.mini-legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.mini-legend-name{
+  flex:1;color:var(--text2);font-weight:500;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.mini-legend-count{
+  color:var(--text);font-weight:700;font-variant-numeric:tabular-nums;
+}
+.mini-empty{
+  padding:22px 6px;text-align:center;font-size:10px;color:var(--muted);
+  font-style:italic;
+}
+
 /* FOLIO PHOTO IN RESULT */
 .folio-photo{
   margin-top:16px;padding-top:14px;
@@ -753,6 +815,36 @@ textarea{resize:vertical;min-height:70px;}
 .submitting.show{display:flex;}
 .submitting .spinner{margin:0;}
 .submitting-text{font-size:14px;font-weight:600;color:var(--text2);}
+
+/* Modal de contraseña */
+.pwd-overlay{
+  position:fixed;inset:0;background:rgba(15,23,42,.55);
+  z-index:2500;display:flex;align-items:center;justify-content:center;
+  padding:20px;backdrop-filter:blur(2px);
+  animation:fadeIn .15s ease;
+}
+.pwd-panel{
+  background:var(--surface);border-radius:12px;
+  padding:20px;max-width:340px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+.pwd-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.pwd-hint{font-size:12px;color:var(--muted);margin-bottom:14px;}
+.pwd-panel input[type="password"]{
+  width:100%;padding:11px 14px;font-size:14px;
+  border:1.5px solid var(--border);border-radius:8px;
+  background:#fafbfc;color:var(--text);font-family:inherit;
+  letter-spacing:.5px;
+}
+.pwd-panel input:focus{outline:none;border-color:var(--accent);background:#fff;
+  box-shadow:0 0 0 3px rgba(132,204,22,.12);}
+.pwd-err{
+  margin-top:8px;padding:8px 12px;
+  background:var(--red-bg);color:var(--red);
+  border:1px solid var(--red-b);border-radius:6px;
+  font-size:12px;font-weight:600;
+}
+.pwd-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;}
 </style>
 </head>
 <body>
@@ -770,7 +862,7 @@ textarea{resize:vertical;min-height:70px;}
     <span class="h-title" id="hTitle">tickets_coordinadores</span>
     <span class="h-sub" id="hSub">Captura y seguimiento</span>
   </div>
-  <span style="font-size:10px;color:#9ca3af;font-weight:500;">v2.6 · departamento responsable</span>
+  <span style="font-size:10px;color:#9ca3af;font-weight:500;">v2.7 · gráficas + candado</span>
 </header>
 
 <!-- LOADING INICIAL -->
@@ -918,7 +1010,7 @@ textarea{resize:vertical;min-height:70px;}
 <div class="view" id="viewConsult">
   <div class="consult-container">
     <div class="step-title">Consulta de folios</div>
-    <div class="step-hint">Filtra por coordinador, incidencia, rango de fechas, semana o estatus — o busca por folio.</div>
+    <div class="step-hint">Filtra por rango de fechas, semana, coordinador, incidencia, estatus o departamento — o busca por folio.</div>
 
     <!-- Panel de KPIs -->
     <div class="kpi-panel">
@@ -926,17 +1018,15 @@ textarea{resize:vertical;min-height:70px;}
         <div class="kpi-head-title">Resumen</div>
         <div class="kpi-head-sub" id="kpiRangeLabel">—</div>
       </div>
-      <div class="kpi-daterange">
-        <input type="date" id="kpiFrom" title="Desde">
-        <span class="kpi-daterange-sep">→</span>
-        <input type="date" id="kpiTo" title="Hasta">
-      </div>
-      <div class="kpi-presets">
-        <button class="kpi-preset" data-preset="7d">7 días</button>
-        <button class="kpi-preset" data-preset="30d">30 días</button>
-        <button class="kpi-preset" data-preset="week">Esta semana</button>
-        <button class="kpi-preset" data-preset="month">Este mes</button>
-        <button class="kpi-preset" data-preset="all">Todo</button>
+      <div class="kpi-daterange-row">
+        <div class="kpi-daterange">
+          <input type="date" id="kpiFrom" title="Desde">
+          <span class="kpi-daterange-sep">→</span>
+          <input type="date" id="kpiTo" title="Hasta">
+        </div>
+        <select id="kpiWeek" class="kpi-week-sel" title="Semana">
+          <option value="">Todas las semanas</option>
+        </select>
       </div>
       <div id="kpiBody">
         <div class="kpi-loading"><div class="spinner"></div>Cargando resumen...</div>
@@ -981,6 +1071,7 @@ textarea{resize:vertical;min-height:70px;}
             <option value="Psicología">Psicología</option>
             <option value="Operaciones">Operaciones</option>
             <option value="Relaciones Públicas">Relaciones Públicas</option>
+            <option value="Logística">Logística</option>
           </select>
         </div>
       </div>
@@ -1299,19 +1390,9 @@ function resetPhotoUI(){
 const _kpiCache = { data: null, header: null, at: 0, loading: null };
 
 function bindKpiControls(){
-  document.querySelectorAll('.kpi-preset').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      applyPreset(btn.dataset.preset);
-      document.querySelectorAll('.kpi-preset').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      applyFilters();
-    });
-  });
-  ['kpiFrom','kpiTo'].forEach(id=>{
-    document.getElementById(id).addEventListener('change', ()=>{
-      document.querySelectorAll('.kpi-preset').forEach(b=>b.classList.remove('active'));
-      applyFilters();
-    });
+  ['kpiFrom','kpiTo','kpiWeek'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('change', applyFilters);
   });
   // Filtros de la tabla
   ['filterCoord','filterInd','filterStatus','filterWeek','filterDepto'].forEach(id=>{
@@ -1348,29 +1429,10 @@ function fmtDateShort(d){
   return `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-function applyPreset(preset){
-  const now = new Date();
-  const to = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const from = new Date(to);
-
-  if(preset === '7d')        from.setDate(from.getDate()-6);
-  else if(preset === '30d')  from.setDate(from.getDate()-29);
-  else if(preset === 'week'){ const d = from.getDay() || 7; from.setDate(from.getDate()-(d-1)); }
-  else if(preset === 'month') from.setDate(1);
-  else if(preset === 'all'){
-    document.getElementById('kpiFrom').value = '';
-    document.getElementById('kpiTo').value = '';
-    return;
-  }
-
-  document.getElementById('kpiFrom').value = fmtDateISO(from);
-  document.getElementById('kpiTo').value   = fmtDateISO(to);
-}
-
 async function loadKpis(forceReload){
   const age = Date.now() - _kpiCache.at;
-  if(!forceReload && _kpiCache.data && age < 30000){ ensureDefaultPreset(); buildFilterOptions(); applyFilters(); return; }
-  if(_kpiCache.loading){ await _kpiCache.loading; ensureDefaultPreset(); buildFilterOptions(); applyFilters(); return; }
+  if(!forceReload && _kpiCache.data && age < 30000){ buildFilterOptions(); applyFilters(); return; }
+  if(_kpiCache.loading){ await _kpiCache.loading; buildFilterOptions(); applyFilters(); return; }
 
   const body = document.getElementById('kpiBody');
   body.innerHTML = '<div class="kpi-loading"><div class="spinner"></div>Cargando resumen...</div>';
@@ -1425,7 +1487,6 @@ async function loadKpis(forceReload){
 
   try{
     await _kpiCache.loading;
-    ensureDefaultPreset();
     buildFilterOptions();
     applyFilters();
   }catch(e){
@@ -1446,6 +1507,8 @@ function buildFilterOptions(){
   fillSelectKeepValue('filterCoord', coords, 'Todos');
   fillSelectKeepValue('filterInd',   inds,   'Todas');
   fillSelectKeepValue('filterWeek',  weeks.map(w=>String(w)), 'Todas', v=>`Semana ${v}`);
+  // Selector de semana del panel de KPIs
+  fillSelectKeepValue('kpiWeek', weeks.map(w=>String(w)), 'Todas las semanas', v=>`Semana ${v}`);
 }
 function fillSelectKeepValue(id, values, allLabel, labelFn){
   const sel = document.getElementById(id);
@@ -1454,17 +1517,6 @@ function fillSelectKeepValue(id, values, allLabel, labelFn){
   sel.innerHTML = `<option value="">${allLabel}</option>` +
     values.map(v=>`<option value="${esc(v)}">${esc(labelFn?labelFn(v):v)}</option>`).join('');
   if(values.includes(cur)) sel.value = cur;
-}
-
-function ensureDefaultPreset(){
-  const fromV = document.getElementById('kpiFrom').value;
-  const toV = document.getElementById('kpiTo').value;
-  const anyActive = document.querySelector('.kpi-preset.active');
-  if(!fromV && !toV && !anyActive){
-    applyPreset('7d');
-    const b = document.querySelector('.kpi-preset[data-preset="7d"]');
-    if(b) b.classList.add('active');
-  }
 }
 
 function parseFecha(s){
@@ -1497,12 +1549,13 @@ const _shortIndName = {
 function applyFilters(){
   if(!_kpiCache.data) return;
   const {from, to} = getKpiRange();
-  const coord  = (document.getElementById('filterCoord')?.value || '').trim();
-  const ind    = (document.getElementById('filterInd')?.value   || '').trim();
-  const estF   = (document.getElementById('filterStatus')?.value|| '').trim().toLowerCase();
-  const weekF  = (document.getElementById('filterWeek')?.value  || '').trim();
-  const deptoF = (document.getElementById('filterDepto')?.value || '').trim();
-  const folioQ = (document.getElementById('fFolio')?.value      || '').trim().toUpperCase();
+  const coord   = (document.getElementById('filterCoord')?.value || '').trim();
+  const ind     = (document.getElementById('filterInd')?.value   || '').trim();
+  const estF    = (document.getElementById('filterStatus')?.value|| '').trim().toLowerCase();
+  const weekF   = (document.getElementById('filterWeek')?.value  || '').trim();
+  const kpiWeek = (document.getElementById('kpiWeek')?.value     || '').trim();
+  const deptoF  = (document.getElementById('filterDepto')?.value || '').trim();
+  const folioQ  = (document.getElementById('fFolio')?.value      || '').trim().toUpperCase();
 
   const rows = _kpiCache.data.filter(r=>{
     if(from || to){
@@ -1513,11 +1566,11 @@ function applyFilters(){
     if(coord && r.coordinador !== coord) return false;
     if(ind && r.indicador !== ind) return false;
     if(weekF && String(r.semana) !== weekF) return false;
+    if(kpiWeek && String(r.semana) !== kpiWeek) return false;
     if(estF){
       const e = r.estatus.toLowerCase();
       if(estF === 'cerrada'  && !e.includes('cerrad')) return false;
       if(estF === 'asignada' && !e.includes('asignar')) return false;
-      // "Abiertas": todo lo que no está cerrado ni asignado (folios pendientes de acción)
       if(estF === 'abierta'  && (e.includes('cerrad') || e.includes('asignar'))) return false;
     }
     if(deptoF){
@@ -1546,16 +1599,17 @@ function renderKpis(rows){
   const total = rows.length;
   let cerradas = 0;
   const porInd = {};
+  const porDepto = {};
   rows.forEach(r=>{
     const e = r.estatus.toLowerCase();
     if(e.includes('cerrad')) cerradas++;
     const ind = r.indicador || 'Sin indicador';
     porInd[ind] = (porInd[ind]||0) + 1;
+    const dep = (r.departamento && r.departamento.trim()) || 'Sin asignar';
+    porDepto[dep] = (porDepto[dep]||0) + 1;
   });
   const abiertas = total - cerradas;
 
-  const indEntries = Object.entries(porInd).sort((a,b)=>b[1]-a[1]);
-  const maxCount = indEntries[0] ? indEntries[0][1] : 1;
   const shortOf = n => _shortIndName[n] || n;
 
   const tilesHtml = `
@@ -1575,22 +1629,72 @@ function renderKpis(rows){
     </div>
   `;
 
-  const indsHtml = total > 0 ? `
-    <div class="kpi-inds">
-      <div class="kpi-inds-title">Por indicador</div>
-      ${indEntries.map(([name,count])=>`
-        <div class="kpi-ind-row">
-          <span class="kpi-ind-name">${esc(shortOf(name))}</span>
-          <div class="kpi-ind-bar">
-            <div class="kpi-ind-bar-fill" style="width:${Math.max(4,(count/maxCount*100)).toFixed(0)}%"></div>
-          </div>
-          <span class="kpi-ind-count">${count}</span>
-        </div>
-      `).join('')}
+  const indEntries = Object.entries(porInd).sort((a,b)=>b[1]-a[1]);
+  const depEntries = Object.entries(porDepto).sort((a,b)=>b[1]-a[1]);
+
+  const chartsHtml = total > 0 ? `
+    <div class="kpi-charts">
+      ${renderMiniDonut('Por indicador', indEntries.map(([n,c])=>[shortOf(n),c]), total)}
+      ${renderMiniDonut('Por departamento', depEntries, total)}
     </div>
   ` : '<div class="kpi-empty" style="margin-top:12px;">Sin incidencias en el periodo seleccionado</div>';
 
-  document.getElementById('kpiBody').innerHTML = tilesHtml + indsHtml;
+  document.getElementById('kpiBody').innerHTML = tilesHtml + chartsHtml;
+}
+
+/* Paleta cíclica para las gráficas */
+const _chartPalette = ['#84cc16','#2563eb','#ea580c','#a855f7','#0891b2','#dc2626','#ca8a04','#16a34a','#6b7280','#f472b6'];
+
+function renderMiniDonut(title, entries, totalRef){
+  if(!entries || !entries.length){
+    return `
+      <div class="mini-chart">
+        <div class="mini-chart-title">${esc(title)}</div>
+        <div class="mini-empty">Sin datos</div>
+      </div>
+    `;
+  }
+  const sum = entries.reduce((a,[,c])=>a+c,0);
+  const R = 32, C = 2*Math.PI*R;
+  // Construir los arcos de la dona
+  let acc = 0;
+  const arcs = entries.map(([name,count],i)=>{
+    const color = _chartPalette[i % _chartPalette.length];
+    const len = C * (count/sum);
+    const gap = C - len;
+    const off = -C * (acc/sum);
+    acc += count;
+    return `<circle r="${R}" cx="44" cy="44" fill="none"
+              stroke="${color}" stroke-width="14"
+              stroke-dasharray="${len.toFixed(2)} ${gap.toFixed(2)}"
+              stroke-dashoffset="${off.toFixed(2)}"></circle>`;
+  }).join('');
+  const legend = entries.map(([name,count],i)=>{
+    const color = _chartPalette[i % _chartPalette.length];
+    const pct = Math.round(count/sum*100);
+    return `
+      <div class="mini-legend-item" title="${esc(name)}: ${count} (${pct}%)">
+        <span class="mini-legend-dot" style="background:${color};"></span>
+        <span class="mini-legend-name">${esc(name)}</span>
+        <span class="mini-legend-count">${count}</span>
+      </div>
+    `;
+  }).join('');
+  return `
+    <div class="mini-chart">
+      <div class="mini-chart-title">${esc(title)}</div>
+      <div class="mini-chart-body">
+        <div class="mini-donut">
+          <svg viewBox="0 0 88 88" aria-hidden="true">
+            <circle r="${R}" cx="44" cy="44" fill="none" stroke="#e5e7eb" stroke-width="14"></circle>
+            ${arcs}
+          </svg>
+          <div class="mini-donut-total">${sum}<small>total</small></div>
+        </div>
+        <div class="mini-legend">${legend}</div>
+      </div>
+    </div>
+  `;
 }
 
 /* ---------- TABLA HORIZONTAL DE RESULTADOS ---------- */
@@ -1642,19 +1746,14 @@ function renderResultsTable(rows){
 }
 
 function clearFilters(){
-  ['filterCoord','filterInd','filterStatus','filterWeek','filterDepto'].forEach(id=>{
+  ['filterCoord','filterInd','filterStatus','filterWeek','filterDepto','kpiWeek'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.value = '';
   });
   const f = document.getElementById('fFolio');
   if(f) f.value = '';
-  // Reset del rango de fechas: vuelve al preset por defecto (7 días)
   document.getElementById('kpiFrom').value = '';
   document.getElementById('kpiTo').value = '';
-  document.querySelectorAll('.kpi-preset').forEach(b=>b.classList.remove('active'));
-  applyPreset('7d');
-  const b7 = document.querySelector('.kpi-preset[data-preset="7d"]');
-  if(b7) b7.classList.add('active');
   document.getElementById('consultResult').innerHTML = '';
   applyFilters();
 }
@@ -1733,7 +1832,7 @@ function openFolioModal(opts){
     footer.innerHTML = `
       <button class="btn-cancelar-cierre" onclick="closeFolioModal()">Cerrar ventana</button>
       <button class="btn-cerrar-folio" onclick="openCierreForm()">
-        ⚡ Ejecutar / cerrar folio
+        🔒 Ejecutar / cerrar folio
       </button>
     `;
   }
@@ -1762,19 +1861,10 @@ function openCierreForm(){
     departamento: (r && r.departamento) || getRawField(r, 'Departamento_Responsable') || getRawField(r, 'Departamento Responsable')
   };
 
-  // Opciones de Estatus final (según lo pidió el usuario)
-  const estatusOpciones = [
-    'En proceso',
-    'Cerrada',
-    'Asignar a RH',
-    'Asignar a Combustible',
-    'Asignar a Mtto',
-    'Asignar a Psicologia',
-    'Asignar a Operaciones',
-    'Asignar a Relaciones Publicas'
-  ];
+  // Opciones de Estatus final
+  const estatusOpciones = ['En proceso','Cerrada','Abierta'];
   // Opciones de Departamento Responsable
-  const deptoOpciones = ['RH','Combustible','Mantenimiento','Psicología','Operaciones','Relaciones Públicas'];
+  const deptoOpciones = ['RH','Combustible','Mantenimiento','Psicología','Operaciones','Relaciones Públicas','Logística'];
 
   const formHtml = `
     <div class="cierre-form" id="cierreForm">
@@ -1828,29 +1918,11 @@ function openCierreForm(){
   body.insertAdjacentHTML('beforeend', formHtml);
   document.getElementById('cEvi').addEventListener('change', handleEvidenciaSelect);
 
-  // Cuando el usuario elige "Asignar a X" en el estatus, autoseleccionamos el depto.
-  const estSel = document.getElementById('cEst');
-  const depSel = document.getElementById('cDepto');
-  const asignarMap = {
-    'Asignar a RH': 'RH',
-    'Asignar a Combustible': 'Combustible',
-    'Asignar a Mtto': 'Mantenimiento',
-    'Asignar a Psicologia': 'Psicología',
-    'Asignar a Operaciones': 'Operaciones',
-    'Asignar a Relaciones Publicas': 'Relaciones Públicas'
-  };
-  estSel.addEventListener('change', ()=>{
-    const v = estSel.value;
-    if(asignarMap[v]){
-      depSel.value = asignarMap[v];
-    }
-  });
-
   // Cambia el footer
   const footer = document.getElementById('modalFooter');
   footer.innerHTML = `
     <button class="btn-cancelar-cierre" onclick="cancelCierreForm()">Cancelar</button>
-    <button class="btn-guardar-cierre" onclick="submitCierre()">💾 Guardar cierre</button>
+    <button class="btn-guardar-cierre" onclick="submitCierre()">🔒 Guardar cierre</button>
   `;
 
   // Scroll al formulario
@@ -1912,6 +1984,57 @@ function removeEvidencia(){
   document.getElementById('cEvi').addEventListener('change', handleEvidenciaSelect);
 }
 
+// Contraseña requerida para cerrar folios. Cambia aquí si necesitas rotarla.
+const CIERRE_PASSWORD = 'Carlos1234';
+
+/* Muestra un mini-modal con input de contraseña y devuelve true/false */
+function requestPassword(){
+  return new Promise(resolve=>{
+    // Si ya existe uno, lo quitamos
+    const prev = document.getElementById('pwdModal');
+    if(prev) prev.remove();
+
+    const wrap = document.createElement('div');
+    wrap.id = 'pwdModal';
+    wrap.className = 'pwd-overlay';
+    wrap.innerHTML = `
+      <div class="pwd-panel">
+        <div class="pwd-title">🔒 Contraseña requerida</div>
+        <div class="pwd-hint">Solo el personal autorizado puede cerrar folios.</div>
+        <input type="password" id="pwdInput" placeholder="Contraseña" autocomplete="off">
+        <div class="pwd-err" id="pwdErr" style="display:none;">Contraseña incorrecta</div>
+        <div class="pwd-actions">
+          <button type="button" class="btn-cancelar-cierre" id="pwdCancel">Cancelar</button>
+          <button type="button" class="btn-guardar-cierre" id="pwdOk">Aceptar</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(wrap);
+
+    const input = document.getElementById('pwdInput');
+    const err   = document.getElementById('pwdErr');
+    setTimeout(()=>input.focus(), 40);
+
+    const cleanup = (val)=>{ wrap.remove(); resolve(val); };
+    const check = ()=>{
+      if(input.value === CIERRE_PASSWORD){
+        cleanup(true);
+      } else {
+        err.style.display = 'block';
+        input.select();
+        input.focus();
+      }
+    };
+    document.getElementById('pwdOk').onclick = check;
+    document.getElementById('pwdCancel').onclick = ()=>cleanup(false);
+    input.addEventListener('keydown', e=>{
+      if(e.key === 'Enter'){ e.preventDefault(); check(); }
+      else if(e.key === 'Escape'){ cleanup(false); }
+    });
+    // No cerrar clickeando fuera para evitar cierres accidentales
+  });
+}
+
 async function submitCierre(){
   const responsable = document.getElementById('cResp').value.trim();
   const accion      = document.getElementById('cAcc').value.trim();
@@ -1921,6 +2044,10 @@ async function submitCierre(){
 
   if(!responsable){ toast('Escribe el nombre del responsable','error'); return; }
   if(!accion){ toast('Describe la acción tomada','error'); return; }
+
+  // Pedir contraseña antes de guardar
+  const pwdOk = await requestPassword();
+  if(!pwdOk) return;
 
   // Limpia cualquier error anterior
   const prevErr = document.getElementById('cierreErr');
@@ -2282,7 +2409,7 @@ function renderFolio(header, row, box){
   const estatus = (get('Estatus') || 'Abierta').trim();
   const badgeCls = statusClass(estatus);
   const fotoUrl = get('Foto');
-  const fotoId = extractDriveFileId(fotoUrl);
+  const evidenciaUrl = get('Evidencia');
 
   const depto = get('Departamento_Responsable') || get('Departamento Responsable') || get('Departamento');
   const campos = [
@@ -2300,32 +2427,9 @@ function renderFolio(header, row, box){
     ['Comentarios cierre',   get('Comentarios_Cierre') || '—']
   ];
 
-  let fotoHtml = '';
-  if(fotoUrl){
-    if(fotoId){
-      fotoHtml = `
-        <div class="folio-photo">
-          <div class="folio-photo-label">Foto adjunta</div>
-          <a href="${esc(fotoUrl)}" target="_blank" rel="noopener" class="folio-photo-thumb" id="fpThumb">
-            <img src="${driveThumbUrl(fotoId, 800)}" alt="Foto de la incidencia"
-                 onerror="document.getElementById('fpThumb').outerHTML='<div class=\\'folio-photo-fallback\\'>La miniatura no cargó. Abre el link para verla.</div>';">
-          </a>
-          <div style="text-align:center;">
-            <a href="${esc(fotoUrl)}" target="_blank" rel="noopener" class="folio-photo-link">Abrir en Drive ↗</a>
-          </div>
-        </div>
-      `;
-    }else{
-      fotoHtml = `
-        <div class="folio-photo">
-          <div class="folio-photo-label">Foto adjunta</div>
-          <div style="text-align:center;">
-            <a href="${esc(fotoUrl)}" target="_blank" rel="noopener" class="folio-photo-link">Ver foto ↗</a>
-          </div>
-        </div>
-      `;
-    }
-  }
+  // Bloque de fotos: reporte inicial + evidencia del cierre
+  const fotoHtml = renderFotoBlock('Foto del reporte inicial', fotoUrl, 'fp1') +
+                   renderFotoBlock('Foto del cierre / evidencia', evidenciaUrl, 'fp2');
 
   box.innerHTML = `
     <div class="result-header">
@@ -2338,6 +2442,34 @@ function renderFolio(header, row, box){
     <div class="result-body">
       ${campos.map(([k,v])=>`<div class="summary-row"><span class="k">${k}</span><span class="v">${esc(v||'—')}</span></div>`).join('')}
       ${fotoHtml}
+    </div>
+  `;
+}
+
+/* Renderiza una foto de Drive: thumbnail + link. Devuelve '' si no hay URL. */
+function renderFotoBlock(label, url, thumbId){
+  if(!url) return '';
+  const fileId = extractDriveFileId(url);
+  if(fileId){
+    return `
+      <div class="folio-photo">
+        <div class="folio-photo-label">${esc(label)}</div>
+        <a href="${esc(url)}" target="_blank" rel="noopener" class="folio-photo-thumb" id="${thumbId}">
+          <img src="${driveThumbUrl(fileId, 800)}" alt="${esc(label)}"
+               onerror="document.getElementById('${thumbId}').outerHTML='<div class=\\'folio-photo-fallback\\'>La miniatura no cargó. Abre el link para verla.</div>';">
+        </a>
+        <div style="text-align:center;">
+          <a href="${esc(url)}" target="_blank" rel="noopener" class="folio-photo-link">Abrir en Drive ↗</a>
+        </div>
+      </div>
+    `;
+  }
+  return `
+    <div class="folio-photo">
+      <div class="folio-photo-label">${esc(label)}</div>
+      <div style="text-align:center;">
+        <a href="${esc(url)}" target="_blank" rel="noopener" class="folio-photo-link">Ver foto ↗</a>
+      </div>
     </div>
   `;
 }
