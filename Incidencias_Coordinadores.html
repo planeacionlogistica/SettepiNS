@@ -572,6 +572,13 @@ textarea{resize:vertical;min-height:70px;}
   text-align:center;padding:32px 12px;color:var(--muted);
   font-size:12px;font-style:italic;
 }
+.depto-badge{
+  display:inline-block;padding:3px 8px;border-radius:12px;
+  background:#eef2ff;color:#4338ca;
+  border:1px solid #c7d2fe;
+  font-size:10.5px;font-weight:600;
+  white-space:nowrap;
+}
 @media(max-width:640px){
   .consult-container{padding:14px 10px 40px;}
   .filters-grid{grid-template-columns:1fr 1fr;}
@@ -763,7 +770,7 @@ textarea{resize:vertical;min-height:70px;}
     <span class="h-title" id="hTitle">tickets_coordinadores</span>
     <span class="h-sub" id="hSub">Captura y seguimiento</span>
   </div>
-  <span style="font-size:10px;color:#9ca3af;font-weight:500;">v2.5 · modal + cierre logístico</span>
+  <span style="font-size:10px;color:#9ca3af;font-weight:500;">v2.6 · departamento responsable</span>
 </header>
 
 <!-- LOADING INICIAL -->
@@ -956,12 +963,25 @@ textarea{resize:vertical;min-height:70px;}
           <select id="filterStatus">
             <option value="">Todos</option>
             <option value="abierta">Abiertas</option>
+            <option value="asignada">Asignadas</option>
             <option value="cerrada">Cerradas</option>
           </select>
         </div>
         <div class="f-item">
           <label>Semana</label>
           <select id="filterWeek"><option value="">Todas</option></select>
+        </div>
+        <div class="f-item">
+          <label>Depto. Responsable</label>
+          <select id="filterDepto">
+            <option value="">Todos</option>
+            <option value="RH">RH</option>
+            <option value="Combustible">Combustible</option>
+            <option value="Mantenimiento">Mantenimiento</option>
+            <option value="Psicología">Psicología</option>
+            <option value="Operaciones">Operaciones</option>
+            <option value="Relaciones Públicas">Relaciones Públicas</option>
+          </select>
         </div>
       </div>
       <div class="folio-search">
@@ -988,11 +1008,12 @@ textarea{resize:vertical;min-height:70px;}
               <th>Carro</th>
               <th>Indicador</th>
               <th>Estatus</th>
+              <th>Depto.</th>
               <th></th>
             </tr>
           </thead>
           <tbody id="resultsBody">
-            <tr><td colspan="10" class="results-empty">Cargando incidencias...</td></tr>
+            <tr><td colspan="11" class="results-empty">Cargando incidencias...</td></tr>
           </tbody>
         </table>
       </div>
@@ -1293,7 +1314,7 @@ function bindKpiControls(){
     });
   });
   // Filtros de la tabla
-  ['filterCoord','filterInd','filterStatus','filterWeek'].forEach(id=>{
+  ['filterCoord','filterInd','filterStatus','filterWeek','filterDepto'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.addEventListener('change', applyFilters);
   });
@@ -1354,7 +1375,7 @@ async function loadKpis(forceReload){
   const body = document.getElementById('kpiBody');
   body.innerHTML = '<div class="kpi-loading"><div class="spinner"></div>Cargando resumen...</div>';
   const tbody = document.getElementById('resultsBody');
-  if(tbody) tbody.innerHTML = '<tr><td colspan="10" class="results-empty">Cargando incidencias...</td></tr>';
+  if(tbody) tbody.innerHTML = '<tr><td colspan="11" class="results-empty">Cargando incidencias...</td></tr>';
 
   _kpiCache.loading = (async ()=>{
     const res = await fetch(`${GVIZ_BASE}&sheet=Incidencias_Coordinador&t=${Date.now()}`);
@@ -1373,6 +1394,11 @@ async function loadKpis(forceReload){
     const iDesc  = idx('Descripcion');
     const iE     = idx('Estatus');
     const iFoto  = idx('Foto');
+    // Departamento Responsable — acepta con espacio o guión bajo
+    let iDepto   = header.findIndex(h=>{
+      const hl = h.toLowerCase().replace(/\s+/g,'_');
+      return hl === 'departamento_responsable' || hl === 'departamento';
+    });
     _kpiCache.data = rows
       .filter(r=>iFolio<0 || (r[iFolio]||'').trim())
       .map(r=>{
@@ -1390,6 +1416,7 @@ async function loadKpis(forceReload){
           descripcion: iDesc>=0  ? (r[iDesc]||'').trim()  : '',
           estatus:     iE>=0     ? (r[iE]||'').trim()     : '',
           fotoUrl:     iFoto>=0  ? (r[iFoto]||'').trim()  : '',
+          departamento: iDepto>=0 ? (r[iDepto]||'').trim() : '',
           _raw: r
         };
       });
@@ -1403,7 +1430,7 @@ async function loadKpis(forceReload){
     applyFilters();
   }catch(e){
     body.innerHTML = `<div class="kpi-empty">Error cargando: ${esc(e.message)}</div>`;
-    if(tbody) tbody.innerHTML = `<tr><td colspan="10" class="results-empty">Error: ${esc(e.message)}</td></tr>`;
+    if(tbody) tbody.innerHTML = `<tr><td colspan="11" class="results-empty">Error: ${esc(e.message)}</td></tr>`;
   }finally{
     _kpiCache.loading = null;
   }
@@ -1474,6 +1501,7 @@ function applyFilters(){
   const ind    = (document.getElementById('filterInd')?.value   || '').trim();
   const estF   = (document.getElementById('filterStatus')?.value|| '').trim().toLowerCase();
   const weekF  = (document.getElementById('filterWeek')?.value  || '').trim();
+  const deptoF = (document.getElementById('filterDepto')?.value || '').trim();
   const folioQ = (document.getElementById('fFolio')?.value      || '').trim().toUpperCase();
 
   const rows = _kpiCache.data.filter(r=>{
@@ -1487,8 +1515,13 @@ function applyFilters(){
     if(weekF && String(r.semana) !== weekF) return false;
     if(estF){
       const e = r.estatus.toLowerCase();
-      if(estF === 'cerrada' && !e.includes('cerrad')) return false;
-      if(estF === 'abierta' && e.includes('cerrad'))  return false;
+      if(estF === 'cerrada'  && !e.includes('cerrad')) return false;
+      if(estF === 'asignada' && !e.includes('asignar')) return false;
+      // "Abiertas": todo lo que no está cerrado ni asignado (folios pendientes de acción)
+      if(estF === 'abierta'  && (e.includes('cerrad') || e.includes('asignar'))) return false;
+    }
+    if(deptoF){
+      if(normDepto(r.departamento) !== normDepto(deptoF)) return false;
     }
     if(folioQ && !r.folio.toUpperCase().includes(folioQ)) return false;
     return true;
@@ -1572,7 +1605,7 @@ function renderResultsTable(rows){
   }
 
   if(!rows.length){
-    tbody.innerHTML = '<tr><td colspan="10" class="results-empty">Sin resultados con los filtros actuales.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" class="results-empty">Sin resultados con los filtros actuales.</td></tr>';
     return;
   }
 
@@ -1587,6 +1620,9 @@ function renderResultsTable(rows){
   tbody.innerHTML = sorted.map(r=>{
     const cls = statusClass(r.estatus);
     const fechaTxt = r.fecha ? fmtDateShort(r.fecha) : (r.fechaStr || '—');
+    const deptoBadge = r.departamento
+      ? `<span class="depto-badge">${esc(r.departamento)}</span>`
+      : '<span style="color:var(--muted2);">—</span>';
     return `
       <tr onclick="showFolioDetail('${esc(r.folio)}')">
         <td class="col-folio">${esc(r.folio||'—')}</td>
@@ -1598,6 +1634,7 @@ function renderResultsTable(rows){
         <td>${esc(r.carro||'—')}</td>
         <td>${esc(shortOf(r.indicador))}</td>
         <td><span class="badge badge-${cls}"><span class="badge-dot"></span>${esc(r.estatus||'—')}</span></td>
+        <td>${deptoBadge}</td>
         <td class="col-action"><button class="row-btn" onclick="event.stopPropagation();showFolioDetail('${esc(r.folio)}')">Ver</button></td>
       </tr>
     `;
@@ -1605,7 +1642,7 @@ function renderResultsTable(rows){
 }
 
 function clearFilters(){
-  ['filterCoord','filterInd','filterStatus','filterWeek'].forEach(id=>{
+  ['filterCoord','filterInd','filterStatus','filterWeek','filterDepto'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.value = '';
   });
@@ -1721,8 +1758,23 @@ function openCierreForm(){
   const cur = {
     responsable:  getRawField(r, 'Responsable'),
     accion:       getRawField(r, 'Accion_Tomada'),
-    comentarios:  getRawField(r, 'Comentarios_Cierre')
+    comentarios:  getRawField(r, 'Comentarios_Cierre'),
+    departamento: (r && r.departamento) || getRawField(r, 'Departamento_Responsable') || getRawField(r, 'Departamento Responsable')
   };
+
+  // Opciones de Estatus final (según lo pidió el usuario)
+  const estatusOpciones = [
+    'En proceso',
+    'Cerrada',
+    'Asignar a RH',
+    'Asignar a Combustible',
+    'Asignar a Mtto',
+    'Asignar a Psicologia',
+    'Asignar a Operaciones',
+    'Asignar a Relaciones Publicas'
+  ];
+  // Opciones de Departamento Responsable
+  const deptoOpciones = ['RH','Combustible','Mantenimiento','Psicología','Operaciones','Relaciones Públicas'];
 
   const formHtml = `
     <div class="cierre-form" id="cierreForm">
@@ -1736,10 +1788,18 @@ function openCierreForm(){
         <div class="cierre-field">
           <label>Estatus final</label>
           <select id="cEst">
-            <option value="En proceso">En proceso</option>
-            <option value="Cerrada" selected>Cerrada</option>
+            ${estatusOpciones.map(op=>`<option value="${esc(op)}"${op==='Cerrada'?' selected':''}>${esc(op)}</option>`).join('')}
           </select>
         </div>
+      </div>
+
+      <div class="cierre-field">
+        <label>Departamento Responsable</label>
+        <select id="cDepto">
+          <option value="">— Sin asignar —</option>
+          ${deptoOpciones.map(op=>`<option value="${esc(op)}"${op===cur.departamento?' selected':''}>${esc(op)}</option>`).join('')}
+        </select>
+        <div class="field-hint" style="margin-top:4px;">El departamento seleccionado podrá filtrar y ver este folio.</div>
       </div>
 
       <div class="cierre-field">
@@ -1767,6 +1827,24 @@ function openCierreForm(){
   `;
   body.insertAdjacentHTML('beforeend', formHtml);
   document.getElementById('cEvi').addEventListener('change', handleEvidenciaSelect);
+
+  // Cuando el usuario elige "Asignar a X" en el estatus, autoseleccionamos el depto.
+  const estSel = document.getElementById('cEst');
+  const depSel = document.getElementById('cDepto');
+  const asignarMap = {
+    'Asignar a RH': 'RH',
+    'Asignar a Combustible': 'Combustible',
+    'Asignar a Mtto': 'Mantenimiento',
+    'Asignar a Psicologia': 'Psicología',
+    'Asignar a Operaciones': 'Operaciones',
+    'Asignar a Relaciones Publicas': 'Relaciones Públicas'
+  };
+  estSel.addEventListener('change', ()=>{
+    const v = estSel.value;
+    if(asignarMap[v]){
+      depSel.value = asignarMap[v];
+    }
+  });
 
   // Cambia el footer
   const footer = document.getElementById('modalFooter');
@@ -1839,6 +1917,7 @@ async function submitCierre(){
   const accion      = document.getElementById('cAcc').value.trim();
   const comentarios = document.getElementById('cCom').value.trim();
   const estatus     = document.getElementById('cEst').value;
+  const departamento = (document.getElementById('cDepto')?.value || '').trim();
 
   if(!responsable){ toast('Escribe el nombre del responsable','error'); return; }
   if(!accion){ toast('Describe la acción tomada','error'); return; }
@@ -1856,6 +1935,8 @@ async function submitCierre(){
       action: 'cerrar',
       folio: _cierreState.folio,
       responsable, accion, comentarios, estatus,
+      departamento,                 // ← nuevo: se guarda en la columna Departamento_Responsable
+      departamentoResponsable: departamento, // alias por si el Apps Script prefiere otro nombre
       evidencia: _cierreState.foto,
       evidenciaName: _cierreState.fotoName,
       evidenciaType: _cierreState.fotoType
@@ -1879,10 +1960,14 @@ async function submitCierre(){
     const r = _kpiCache.data.find(x=>x.folio === _cierreState.folio);
     if(r){
       r.estatus = estatus;
+      r.departamento = departamento;
       setRawField(r, 'Responsable', responsable);
       setRawField(r, 'Accion_Tomada', accion);
       setRawField(r, 'Comentarios_Cierre', comentarios);
       setRawField(r, 'Estatus', estatus);
+      // Puede llamarse "Departamento_Responsable" o "Departamento Responsable"
+      setRawField(r, 'Departamento_Responsable', departamento);
+      setRawField(r, 'Departamento Responsable', departamento);
       if(out.fechaCierre) setRawField(r, 'Fecha_Cierre', out.fechaCierre);
       if(out.evidenciaUrl) setRawField(r, 'Evidencia', out.evidenciaUrl);
     }
@@ -2199,18 +2284,20 @@ function renderFolio(header, row, box){
   const fotoUrl = get('Foto');
   const fotoId = extractDriveFileId(fotoUrl);
 
+  const depto = get('Departamento_Responsable') || get('Departamento Responsable') || get('Departamento');
   const campos = [
-    ['Fecha del reporte', get('Fecha_Reporte')],
-    ['Coordinador',       get('Coordinador')],
-    ['Planta',            get('Planta')],
-    ['Ruta',              get('Ruta')],
-    ['Carro',             get('Carro')],
-    ['Indicador',         get('Indicador')],
-    ['Descripción',       get('Descripcion')],
-    ['Responsable',       get('Responsable') || '—'],
-    ['Acción tomada',     get('Accion_Tomada') || '—'],
-    ['Fecha cierre',      get('Fecha_Cierre') || '—'],
-    ['Comentarios cierre',get('Comentarios_Cierre') || '—']
+    ['Fecha del reporte',    get('Fecha_Reporte')],
+    ['Coordinador',          get('Coordinador')],
+    ['Planta',               get('Planta')],
+    ['Ruta',                 get('Ruta')],
+    ['Carro',                get('Carro')],
+    ['Indicador',            get('Indicador')],
+    ['Descripción',          get('Descripcion')],
+    ['Depto. Responsable',   depto || '—'],
+    ['Responsable',          get('Responsable') || '—'],
+    ['Acción tomada',        get('Accion_Tomada') || '—'],
+    ['Fecha cierre',         get('Fecha_Cierre') || '—'],
+    ['Comentarios cierre',   get('Comentarios_Cierre') || '—']
   ];
 
   let fotoHtml = '';
@@ -2258,7 +2345,7 @@ function renderFolio(header, row, box){
 function statusClass(estatus){
   const e = estatus.toLowerCase();
   if(e.includes('cerrad')) return 'green';
-  if(e.includes('proceso') || e.includes('progreso')) return 'yellow';
+  if(e.includes('asignar') || e.includes('proceso') || e.includes('progreso')) return 'yellow';
   if(e.includes('abiert') || e.includes('nuev')) return 'red';
   return 'gray';
 }
@@ -2274,6 +2361,19 @@ function toast(msg, type){
 
 function esc(s){
   return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* Normaliza un nombre de departamento: minúsculas, sin acentos, sin espacios extra.
+   Permite comparar "Psicología" con "psicologia" o "MTTO" con "mantenimiento". */
+function normDepto(s){
+  let x = (s||'').toString().toLowerCase().trim();
+  // quita diacríticos (acentos) — rango unicode 0300-036F
+  x = x.normalize('NFD').replace(/[̀-ͯ]/g,'');
+  // sinónimos comunes
+  if(x === 'mtto') x = 'mantenimiento';
+  if(x === 'rrpp') x = 'relaciones publicas';
+  if(x === 'rrhh') x = 'rh';
+  return x;
 }
 
 function debounce(fn, ms){
