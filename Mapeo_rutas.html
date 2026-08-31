@@ -2,58 +2,65 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Mapa de Rutas MAE</title>
+<title>Ruteo en mapa</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  html, body { margin:0; padding:0; height:100%; font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  nav.topnav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48px;gap:14px;position:sticky;top:0;z-index:2000;box-shadow:0 2px 8px rgba(0,0,0,.3);flex-shrink:0;}
-  nav.topnav .nav-logo{color:#84cc16;font-weight:800;font-size:16px;text-decoration:none;}
-  nav.topnav .nav-sep{color:#4b5563;font-size:14px;font-weight:300;}
-  nav.topnav .nav-page{color:#e5e7eb;font-size:13px;font-weight:600;}
-  #app { display:flex; height:calc(100vh - 48px); }
-  #map { flex:1; height:calc(100vh - 48px) !important; }
+    :root { --marker-scale: 1; }
+  html, body { margin:0; padding:0; height:100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  #app { display:flex; height:100vh; }
 
   /* Sidebar estilo Settepi */
   #sidebar {
     width: 320px;
-    background: #1f2937;
-    color: #e5e7eb;
+    background: #ffffff;
+    color: #1f2937;
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
   #sidebar header {
     padding: 16px;
-    border-bottom: 1px solid #374151;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
+    position: relative;
+  }
+  #sidebar header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #84cc16 0%, #22c55e 100%);
   }
   #sidebar h1 {
     margin: 0;
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
     color: #84cc16;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
   }
   #sidebar h1 .sub {
     display:block;
-    color:#9ca3af;
+    color:#94a3b8;
     font-size:11px;
     font-weight:400;
-    margin-top:2px;
+    margin-top:3px;
+    text-transform: none;
+    letter-spacing: 0;
   }
 
   .toolbar {
     padding: 10px 16px;
-    border-bottom: 1px solid #374151;
+    border-bottom: 1px solid #e5e7eb;
     display:flex;
     gap:6px;
     flex-wrap:wrap;
   }
   .toolbar button {
-    background: #374151;
-    color: #e5e7eb;
+    background: #f3f4f6;
+    color: #1f2937;
     border: none;
     padding: 6px 10px;
     border-radius: 4px;
@@ -61,9 +68,9 @@
     cursor: pointer;
   }
   .toolbar button:hover { background: #4b5563; }
-  .toolbar button.primary { background: #84cc16; color: #1f2937; font-weight:600; }
+  .toolbar button.primary { background: #84cc16; color: #0f172a; font-weight:600; }
   .toolbar button.primary:hover { background: #a3e635; }
-  .toolbar button.danger { background: #f59e0b; color: #1f2937; font-weight:600; }
+  .toolbar button.danger { background: #f97316; color: #0f172a; font-weight:600; }
   .toolbar button.danger:hover { background: #fbbf24; }
   .toolbar button.desvio { background: #dc2626; color: #fff; font-weight:600; }
   .toolbar button.desvio:hover { background: #ef4444; }
@@ -73,15 +80,15 @@
     50% { box-shadow: 0 0 14px #ff0000cc; }
   }
   .toolbar button:disabled { opacity: 0.4; cursor: not-allowed; }
-  .toolbar button:disabled:hover { background: #374151; }
+  .toolbar button:disabled:hover { background: #f3f4f6; }
   #badgeCambios:not(:empty) {
-    background: #1f2937; color: #fbbf24;
+    background: #ffffff; color: #fbbf24;
     border-radius: 8px; padding: 1px 5px; margin-left: 3px; font-weight:700;
   }
 
   .file-input {
     padding: 10px 16px;
-    border-bottom: 1px solid #374151;
+    border-bottom: 1px solid #e5e7eb;
     font-size: 11px;
   }
   .file-input label {
@@ -91,32 +98,196 @@
   }
   .file-input input {
     width: 100%;
-    color: #e5e7eb;
+    color: #1f2937;
     font-size: 11px;
   }
 
+  /* Área de carga de archivo — solo el botón verde */
+  #uploadZone {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f8fafc;
+  }
+  #uploadZone .upload-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 14px;
+    background: #84cc16;
+    color: #0f172a;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.05s;
+    box-shadow: 0 2px 4px rgba(132,204,22,0.25);
+  }
+  #uploadZone .upload-btn:hover { background: #a3e635; }
+  #uploadZone .upload-btn:active { transform: translateY(1px); }
+  #uploadZone .upload-btn svg { width: 18px; height: 18px; fill: #0f172a; flex-shrink: 0; }
+  #uploadZone input[type="file"] { display: none; }
+  #uploadZone.loading .upload-btn {
+    background: #4b5563;
+    color: #1f2937;
+    cursor: wait;
+  }
+  #uploadZone.loading .upload-btn svg { fill: #e5e7eb; }
+
   .search {
     padding: 10px 16px;
-    border-bottom: 1px solid #374151;
+    border-bottom: 1px solid #e5e7eb;
   }
   .search input {
     width: 100%;
     box-sizing: border-box;
-    background: #111827;
-    color: #e5e7eb;
-    border: 1px solid #374151;
+    background: #f8fafc;
+    color: #1f2937;
+    border: 1px solid #e5e7eb;
     border-radius: 4px;
     padding: 6px 8px;
     font-size: 12px;
+  }
+
+  /* Filtro de turno dentro del sidebar izquierdo (arriba de la lista) */
+  #turnoBox {
+    padding: 10px 16px 8px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #0b1220;
+  }
+  #turnoBox .turno-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #84cc16;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  #turnoBox #chipsTurnos {
+    display: flex; flex-wrap: wrap; gap: 4px;
+  }
+  #turnoBox #chipsTurnos .chip {
+    padding: 4px 8px;
+    font-size: 11px;
+    margin: 0;
+  }
+  #turnoBox .turno-hint {
+    margin-top: 6px;
+    font-size: 10px;
+    color: #64748b;
+    line-height: 1.4;
   }
 
   #counter {
     padding: 8px 16px;
     font-size: 11px;
     color: #9ca3af;
-    border-bottom: 1px solid #374151;
+    border-bottom: 1px solid #e5e7eb;
   }
   #counter b { color: #84cc16; }
+
+  /* Widget Ocupación */
+  #ocupacionBox {
+    padding: 10px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f8fafc;
+  }
+  .ocup-title {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; font-weight: 600;
+    color: #84cc16;
+    letter-spacing: 0.6px;
+    margin-bottom: 6px;
+  }
+  .ocup-total { color: #1f2937; font-size: 11px; letter-spacing: 0; }
+  .ocup-total b { color: #84cc16; font-size: 13px; }
+  .ocup-bar-wrap {
+    position: relative;
+    height: 16px;
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+  }
+  .ocup-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #84cc16, #a3e635);
+    transition: width 0.35s ease, background 0.35s ease;
+  }
+  .ocup-bar.warn { background: linear-gradient(90deg, #f97316, #fbbf24); }
+  .ocup-bar.full { background: linear-gradient(90deg, #dc2626, #ef4444); }
+  .ocup-bar-lbl {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  }
+  .ocup-turnos {
+    display: flex; flex-direction: column; gap: 3px;
+    margin-top: 8px;
+  }
+  .ocup-turno {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 10px; color: #9ca3af;
+  }
+  .ocup-turno .lbl { width: 38px; }
+  .ocup-turno .val { width: 46px; text-align: right; color: #1f2937; font-weight: 600; }
+  .mini-bar {
+    flex: 1; height: 6px;
+    background: #ffffff;
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+  }
+  .mini-bar > div {
+    height: 100%; width: 0%;
+    background: #84cc16;
+    transition: width 0.35s ease, background 0.35s ease;
+  }
+  .mini-bar > div.warn { background: #fbbf24; }
+  .mini-bar > div.full { background: #ef4444; }
+
+  /* Popup: input de beneficiados */
+  .benef-row {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #ddd;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px;
+  }
+  .benef-row label {
+    color: #0f172a; font-weight: 600; flex: 1;
+  }
+  .benef-row input {
+    width: 60px;
+    padding: 3px 6px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: center;
+  }
+  .benef-row .save-b {
+    background: #84cc16; color: #0f172a;
+    border: none; border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px; font-weight: 600;
+    cursor: pointer;
+  }
+  .benef-row .save-b:hover { background: #a3e635; }
+  .benef-row .save-b.saved { background: #22c55e; color: #fff; }
+  .benef-badge {
+    display: inline-block;
+    background: #84cc16;
+    color: #0f172a;
+    font-size: 10px; font-weight: 700;
+    border-radius: 8px;
+    padding: 1px 6px;
+    margin-left: 4px;
+  }
 
   #lista {
     flex: 1;
@@ -132,7 +303,7 @@
     border-left: 3px solid transparent;
     transition: background 0.15s;
   }
-  .ruta-item:hover { background:#374151; }
+  .ruta-item:hover { background:#f3f4f6; }
   .ruta-item.activa { border-left-color: #84cc16; }
   .ruta-item input[type="checkbox"] { cursor: pointer; accent-color: #84cc16; }
   .ruta-color {
@@ -141,7 +312,7 @@
   }
   .ruta-info { flex:1; min-width:0; }
   .ruta-id {
-    font-size: 12px; font-weight:600; color:#e5e7eb;
+    font-size: 12px; font-weight:600; color:#1f2937;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   .ruta-desc {
@@ -149,6 +320,64 @@
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
   .ruta-stops { font-size: 10px; color:#6b7280; }
+  .ruta-ocup {
+    display: flex; align-items: center; gap: 6px;
+    margin-top: 4px;
+  }
+  .ruta-ocup-bar-wrap {
+    flex: 1; height: 6px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .ruta-ocup-bar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #84cc16, #a3e635);
+    transition: width 0.3s ease, background 0.3s ease;
+  }
+  .ruta-ocup-bar.warn { background: linear-gradient(90deg, #f97316, #fbbf24); }
+  .ruta-ocup-bar.full { background: linear-gradient(90deg, #dc2626, #ef4444); }
+  .ruta-ocup-lbl {
+    font-size: 10px; color: #9ca3af;
+    white-space: nowrap;
+  }
+  .ruta-ocup-lbl b { color: #84cc16; }
+
+  /* Botón "marcar paradas con 0 beneficiados" en cada ruta-item */
+  .btn-zero-benef {
+    background: #ffffff;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    width: 22px; height: 22px;
+    padding: 0;
+    margin-left: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .btn-zero-benef:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #dc2626;
+  }
+  .btn-zero-benef.active {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #dc2626;
+    box-shadow: 0 0 6px rgba(220,38,38,0.5);
+    animation: pulseBtnZero 1.4s infinite;
+  }
+  @keyframes pulseBtnZero {
+    0%, 100% { box-shadow: 0 0 4px rgba(220,38,38,0.4); }
+    50%      { box-shadow: 0 0 10px rgba(220,38,38,0.75); }
+  }
 
   /* Mapa */
   #map { flex:1; height:100vh; }
@@ -156,14 +385,14 @@
   /* Panel filtros derecho */
   #filterPanel {
     width: 290px;
-    background: #1f2937;
-    color: #e5e7eb;
+    background: #ffffff;
+    color: #1f2937;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    border-left: 1px solid #374151;
+    border-left: 1px solid #e5e7eb;
   }
-  #filterPanel section { padding: 12px 16px; border-bottom: 1px solid #374151; }
+  #filterPanel section { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; }
   #filterPanel h2 {
     margin: 0 0 8px 0;
     font-size: 12px;
@@ -175,9 +404,9 @@
   .chip {
     display: inline-block;
     padding: 5px 10px;
-    background: #374151;
-    color: #e5e7eb;
-    border: 1px solid #4b5563;
+    background: #f3f4f6;
+    color: #1f2937;
+    border: 1px solid #d1d5db;
     border-radius: 14px;
     cursor: pointer;
     margin: 2px;
@@ -188,7 +417,7 @@
   .chip:hover { background: #4b5563; }
   .chip.active {
     background: #84cc16;
-    color: #1f2937;
+    color: #0f172a;
     border-color: #84cc16;
     font-weight: 600;
   }
@@ -205,8 +434,8 @@
   .slider-row b { color: #84cc16; min-width: 50px; text-align: right; }
   .toggle-btn {
     width: 100%;
-    background: #374151;
-    color: #e5e7eb;
+    background: #f3f4f6;
+    color: #1f2937;
     border: none;
     padding: 8px;
     border-radius: 4px;
@@ -214,7 +443,7 @@
     font-size: 12px;
     margin-bottom: 6px;
   }
-  .toggle-btn.active { background: #84cc16; color: #1f2937; font-weight: 600; }
+  .toggle-btn.active { background: #84cc16; color: #0f172a; font-weight: 600; }
   .geo-list { font-size: 11px; color: #9ca3af; line-height: 1.6; margin-top: 4px; }
   .geo-list .dot {
     display:inline-block; width:8px; height:8px;
@@ -227,7 +456,7 @@
     background: #fbbf24;
     width: 14px; height: 14px;
     border-radius: 50%;
-    border: 2px solid #1f2937;
+    border: 2px solid #0f172a;
     box-shadow: 0 1px 3px rgba(0,0,0,0.5);
     cursor: grab;
   }
@@ -236,13 +465,16 @@
   /* Marcador secuencia inicial */
   .start-marker {
     background: #84cc16;
-    color: #1f2937;
+    color: #0f172a;
     width: 26px; height: 26px;
     border-radius: 50%;
     display:flex; align-items:center; justify-content:center;
     font-weight:700; font-size:12px;
     border: 2px solid #fff;
     box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    transform: scale(var(--marker-scale, 1));
+    transform-origin: center center;
+    transition: transform 0.15s ease-out;
   }
 
   /* Marcador de parada intermedia con número */
@@ -255,6 +487,9 @@
     border: 2px solid #fff;
     box-shadow: 0 1px 3px rgba(0,0,0,0.4);
     text-shadow: 0 1px 1px rgba(0,0,0,0.5);
+    transform: scale(var(--marker-scale, 1));
+    transform-origin: center center;
+    transition: transform 0.15s ease-out;
   }
 
   /* Cursor en modo edición */
@@ -278,7 +513,7 @@
   }
   /* Tooltip desvío */
   .desvio-tooltip {
-    background: #1f2937;
+    background: #ffffff;
     color: #f87171;
     border: 1px solid #dc2626;
     border-radius: 4px;
@@ -295,11 +530,186 @@
   }
   @keyframes pulseEdit {
     0%, 100% { outline-color: #fbbf24; }
-    50% { outline-color: #f59e0b; }
+    50% { outline-color: #f97316; }
+  }
+
+  /* Marcador MARCADO manualmente en rojo (desde el popup) — borde rojo sólido */
+  .start-marker.marked-red, .stop-marker.marked-red {
+    outline: 3px solid #dc2626;
+    outline-offset: 2px;
+    box-shadow: 0 0 6px rgba(220, 38, 38, 0.85), 0 0 2px rgba(0,0,0,0.4);
+    z-index: 900 !important;
+  }
+
+  /* Botón toggle "marcar en rojo" dentro del popup */
+  .benef-row .mark-b {
+    background: #fff; color: #dc2626;
+    border: 1px solid #dc2626; border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px; font-weight: 600;
+    cursor: pointer;
+    margin-left: 4px;
+  }
+  .benef-row .mark-b:hover { background: #fef2f2; }
+  .benef-row .mark-b.active {
+    background: #dc2626; color: #fff;
+    border-color: #dc2626;
+  }
+  .benef-row .mark-b.active:hover { background: #b91c1c; }
+
+  /* ============ MODAL FUSIÓN DE RUTAS ============ */
+  #fusionModalBg {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 4000;
+    align-items: center; justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  #fusionModalBg.open { display: flex; }
+  #fusionModal {
+    background: #fff;
+    border-radius: 10px;
+    width: 460px;
+    max-width: 92vw;
+    max-height: 86vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+    overflow: hidden;
+  }
+  #fusionModal header {
+    padding: 14px 18px;
+    background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
+    color: #84cc16;
+    font-size: 14px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 3px solid #84cc16;
+  }
+  #fusionModal header .close-x {
+    background: none; border: none; color: #94a3b8;
+    font-size: 20px; cursor: pointer; padding: 0 4px;
+  }
+  #fusionModal header .close-x:hover { color: #fff; }
+  #fusionModal .body {
+    padding: 14px 18px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  #fusionModal .field {
+    margin-bottom: 12px;
+    font-size: 12px;
+  }
+  #fusionModal .field label {
+    display: block; margin-bottom: 4px;
+    font-weight: 600; color: #1f2937;
+  }
+  #fusionModal .field input[type="text"] {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    font-size: 12px;
+    box-sizing: border-box;
+  }
+  #fusionModal .search-fus {
+    margin-bottom: 8px;
+  }
+  #fusionModal .search-fus input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    font-size: 12px;
+    box-sizing: border-box;
+  }
+  #fusionList {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    max-height: 260px;
+    overflow-y: auto;
+    background: #fafafa;
+  }
+  #fusionList .fus-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  #fusionList .fus-item:last-child { border-bottom: none; }
+  #fusionList .fus-item:hover { background: #f3f4f6; }
+  #fusionList .fus-item input { cursor: pointer; accent-color: #84cc16; }
+  #fusionList .fus-color {
+    width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0;
+  }
+  #fusionList .fus-info { flex: 1; min-width: 0; }
+  #fusionList .fus-id { font-weight: 600; color: #1f2937; }
+  #fusionList .fus-desc {
+    color: #9ca3af; font-size: 10px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  #fusionList .fus-order {
+    background: #84cc16; color: #0f172a;
+    font-size: 10px; font-weight: 700;
+    border-radius: 10px; padding: 1px 7px;
+    min-width: 16px; text-align: center;
+  }
+  #fusionModal .opt-row {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; margin-top: 10px; color: #1f2937;
+  }
+  #fusionModal footer {
+    padding: 12px 18px;
+    border-top: 1px solid #e5e7eb;
+    display: flex; justify-content: flex-end; gap: 8px;
+    background: #fafafa;
+  }
+  #fusionModal footer button {
+    padding: 7px 14px;
+    border: none; border-radius: 5px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+  }
+  #fusionModal .btn-cancel {
+    background: #e5e7eb; color: #1f2937;
+  }
+  #fusionModal .btn-cancel:hover { background: #d1d5db; }
+  #fusionModal .btn-fuse {
+    background: #84cc16; color: #0f172a;
+  }
+  #fusionModal .btn-fuse:hover { background: #a3e635; }
+  #fusionModal .btn-fuse:disabled { opacity: 0.4; cursor: not-allowed; }
+  #fusionModal .hint {
+    font-size: 11px; color: #6b7280;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    padding: 6px 8px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+
+  /* Marcador con 0 beneficiados — resaltado rojo pulsante cuando se activa el botón */
+  .start-marker.zero-benef, .stop-marker.zero-benef {
+    outline: 3px solid #dc2626;
+    outline-offset: 2px;
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.7), 0 0 2px rgba(0,0,0,0.4);
+    animation: pulseZeroBenef 1.1s infinite;
+    z-index: 1000 !important;
+  }
+  @keyframes pulseZeroBenef {
+    0%, 100% {
+      outline-color: #dc2626;
+      box-shadow: 0 0 8px rgba(220, 38, 38, 0.7), 0 0 2px rgba(0,0,0,0.4);
+    }
+    50% {
+      outline-color: #ef4444;
+      box-shadow: 0 0 16px rgba(220, 38, 38, 0.95), 0 0 2px rgba(0,0,0,0.4);
+    }
   }
 
   .leaflet-popup-content { font-size: 12px; line-height: 1.5; }
-  .leaflet-popup-content b { color: #1f2937; }
+  .leaflet-popup-content b { color: #0f172a; }
 
   /* Marcador de persona (operador cargado por Excel) */
   .person-marker {
@@ -317,267 +727,499 @@
   }
   .person-marker svg { fill: #fff; width: 16px; height: 16px; }
 
-  /* ============ NUEVO: Handle intermedio para arrastrar la línea de desvío ============ */
-  .desvio-handle {
-    width: 10px; height: 10px;
-    background: rgba(255,255,255,0.9);
-    border: 2px solid #ff1a1a;
+  /* Marcador operador NUEVO — color naranja para diferenciarlos */
+  .person-marker-nuevo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px; height: 30px;
     border-radius: 50%;
-    cursor: grab;
-    opacity: 0.55;
-    transition: opacity 0.15s, transform 0.15s;
+    background: #f97316;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5), 0 0 6px rgba(249,115,22,0.55);
+    color: #fff;
+    font-size: 15px;
+    line-height: 1;
   }
-  .desvio-handle:hover { opacity: 1; transform: scale(1.35); }
-  .desvio-handle:active { cursor: grabbing; }
+  .person-marker-nuevo svg { fill: #fff; width: 16px; height: 16px; }
 
-  /* ============ NUEVO: Panel flotante del desvío activo ============ */
-  #desvioCtrl {
-    position: absolute;
-    top: 70px;
-    left: 340px;
-    z-index: 1000;
-    background: #1f2937;
-    color: #e5e7eb;
-    border: 1px solid #374151;
-    border-radius: 6px;
-    padding: 10px 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    font-size: 12px;
-    display: none;
-    min-width: 240px;
+  /* ==== Modal de indicaciones ==== */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.65);
+    z-index: 5000;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    animation: modalFadeIn 0.18s ease-out;
   }
-  #desvioCtrl.visible { display: block; }
-  #desvioCtrl h3 {
-    margin: 0 0 8px 0;
+  @keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .modal-box {
+    background: #ffffff;
+    color: #1f2937;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 85vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px;
+    background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
+    color: #fff;
+    border-bottom: 1px solid #7f1d1d;
+  }
+  .modal-title { display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 700; }
+  .modal-title .modal-icon { font-size: 20px; }
+  .modal-close {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    border: none;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .modal-close:hover { background: rgba(255,255,255,0.3); }
+  .modal-summary {
+    padding: 12px 18px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex; gap: 20px; flex-wrap: wrap;
+    font-size: 12px;
+  }
+  .modal-summary .stat {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .modal-summary .stat .lbl { font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.4px; }
+  .modal-summary .stat .val { font-size: 15px; font-weight: 700; color: #84cc16; }
+  .modal-body {
+    overflow-y: auto;
+    padding: 8px 4px 8px 4px;
+    background: #f8fafc;
+  }
+  .modal-body .leg-header {
+    padding: 10px 16px 6px 16px;
     font-size: 11px;
-    color: #f87171;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    display:flex; justify-content:space-between; align-items:center;
+    color: #fbbf24;
+    font-weight: 700;
+    border-top: 1px dashed #e5e7eb;
+    margin-top: 4px;
   }
-  #desvioCtrl h3 .close {
-    color:#9ca3af; cursor:pointer; font-size:16px; line-height:1;
-    background:none; border:none; padding:0;
+  .modal-body .leg-header:first-child { border-top: none; margin-top: 0; }
+  .step {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid #0f172a;
   }
-  #desvioCtrl .row { display:flex; align-items:center; gap:6px; margin-bottom:6px; }
-  #desvioCtrl input[type="text"] {
-    flex:1; background:#111827; color:#e5e7eb; border:1px solid #374151;
-    border-radius:4px; padding:5px 7px; font-size:12px; box-sizing:border-box;
+  .step:hover { background: #1a2333; }
+  .step-num {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    color: #1f2937;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
   }
-  #desvioCtrl input[type="color"] {
-    width: 34px; height: 30px; padding: 0; border: 1px solid #374151;
-    border-radius:4px; background:#111827; cursor:pointer;
+  .step-num.start { background: #84cc16; color: #0f172a; }
+  .step-num.end { background: #dc2626; color: #fff; }
+  .step-arrow {
+    flex-shrink: 0;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    color: #84cc16;
   }
-  #desvioCtrl button {
-    background:#374151; color:#e5e7eb; border:none; padding:6px 10px;
-    border-radius:4px; font-size:11px; cursor:pointer; font-weight:500;
-  }
-  #desvioCtrl button:hover { background:#4b5563; }
-  #desvioCtrl button.save { background:#84cc16; color:#1f2937; font-weight:600; }
-  #desvioCtrl button.save:hover { background:#a3e635; }
-  #desvioCtrl button.del { background:#dc2626; color:#fff; }
-  #desvioCtrl button.del:hover { background:#ef4444; }
-  #desvioCtrl .hint {
-    font-size:10px; color:#9ca3af; margin-top:4px; line-height:1.4;
-    border-top: 1px solid #374151; padding-top: 6px;
-  }
-
-  /* ============ NUEVO: Formulario en popup de parada ============ */
-  .parada-form { margin-top: 8px; }
-  .parada-form label {
-    display:block; font-size:10px; color:#6b7280;
-    text-transform:uppercase; letter-spacing:0.4px; margin: 6px 0 2px;
-    font-weight: 600;
-  }
-  .parada-form textarea {
-    width: 100%; box-sizing:border-box;
-    border: 1px solid #d1d5db; border-radius: 4px;
-    padding: 4px 6px; font-size: 12px; resize: vertical;
-    min-height: 40px; font-family: inherit;
-  }
-  .parada-form .aforo-grid {
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;
-  }
-  .parada-form .aforo-cell { text-align:center; }
-  .parada-form .aforo-cell .tlabel {
-    font-size: 9px; color:#6b7280; text-transform:uppercase; margin-bottom: 2px;
-  }
-  .parada-form .aforo-cell input {
-    width: 100%; box-sizing:border-box;
-    border: 1px solid #d1d5db; border-radius: 4px;
-    padding: 3px; font-size: 12px; text-align:center;
-    font-family: inherit;
-  }
-  .parada-form .aforo-cell input:focus { border-color:#84cc16; outline:none; }
-  .parada-form .saved-note {
-    font-size: 10px; color: #16a34a; margin-top: 4px;
-    opacity: 0; transition: opacity 0.3s;
-  }
-  .parada-form .saved-note.show { opacity: 1; }
-  .parada-form .cupo-info {
-    margin-top: 6px; font-size: 10px; color: #4b5563;
-    background: #f3f4f6; padding: 4px 6px; border-radius: 3px;
-  }
-
-  /* ============ NUEVO: Barra de capacidad en lista de rutas ============ */
-  .capacity-block { margin-top: 4px; }
-  .capacity-bar {
-    display: flex; align-items:center; gap: 4px; margin-top: 2px;
-    font-size: 9px;
-  }
-  .capacity-bar .tname {
-    color:#9ca3af; width: 34px; flex-shrink:0; text-transform:uppercase;
-    font-weight: 600;
-  }
-  .capacity-bar .bar {
-    flex: 1; height: 6px; background: #374151; border-radius: 3px;
-    overflow: hidden; position: relative;
-  }
-  .capacity-bar .fill {
-    height: 100%; border-radius: 3px; transition: width 0.3s;
-  }
-  .capacity-bar .fill.low { background: #22c55e; }
-  .capacity-bar .fill.mid { background: #eab308; }
-  .capacity-bar .fill.high { background: #f97316; }
-  .capacity-bar .fill.over { background: #dc2626; }
-  .capacity-bar .val {
-    color: #e5e7eb; font-weight:600; min-width: 46px; text-align:right;
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* ============ NUEVO: Lista de propuestas guardadas ============ */
-  .propuesta-item {
-    display:flex; align-items:center; gap:6px;
-    padding: 6px 8px; margin: 3px 0;
-    background: #111827; border-radius: 4px;
-    border-left: 3px solid #ff1a1a;
-    font-size: 11px;
-  }
-  .propuesta-item .swatch {
-    width: 12px; height: 12px; border-radius: 3px; flex-shrink:0;
-    border: 1px solid rgba(255,255,255,0.2);
-  }
-  .propuesta-item .name {
-    flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-    color:#e5e7eb;
-  }
-  .propuesta-item.loaded {
-    background:#1a2b1a; border-left-color:#84cc16;
-  }
-  .propuesta-item.loaded .name { color:#a3e635; }
-  .propuesta-item button.hide:hover { color:#84cc16; }
-  .propuesta-item .pts { color:#6b7280; font-size:10px; }
-  .propuesta-item button {
-    background:none; border:none; color:#9ca3af; cursor:pointer;
-    padding: 2px 5px; font-size: 13px; line-height:1;
-  }
-  .propuesta-item button:hover { color:#f87171; }
-  .propuesta-item button.load:hover { color:#84cc16; }
-  .propuesta-empty {
-    font-size: 10px; color: #6b7280; font-style: italic;
-    padding: 6px 8px;
-  }
-
-  /* ============ NUEVO: Panel de instrucciones calle por calle ============ */
-  #turnPanel {
-    position: absolute;
-    top: 70px;
-    right: 310px;
-    z-index: 1000;
-    width: 300px;
-    max-height: calc(100vh - 130px);
-    background: #1f2937;
-    color: #e5e7eb;
-    border: 1px solid #374151;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    display: none;
-    flex-direction: column;
-    overflow: hidden;
-    font-size: 12px;
-  }
-  #turnPanel.visible { display: flex; }
-  #turnPanel .tp-head {
-    padding: 10px 12px;
-    border-bottom: 1px solid #374151;
-    display:flex; justify-content:space-between; align-items:flex-start; gap:8px;
-  }
-  #turnPanel .tp-head .title {
-    font-size: 12px; font-weight: 700; color: #84cc16;
-    text-transform: uppercase; letter-spacing: 0.4px;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  }
-  #turnPanel .tp-head .sub {
-    font-size: 10px; color: #9ca3af; margin-top: 2px;
-    display:flex; gap:8px; flex-wrap:wrap;
-  }
-  #turnPanel .tp-head .sub b { color: #e5e7eb; }
-  #turnPanel .tp-close {
-    background:none; border:none; color:#9ca3af; cursor:pointer;
-    font-size:18px; line-height:1; padding:0; flex-shrink:0;
-  }
-  #turnPanel .tp-close:hover { color:#f87171; }
-  #turnPanel .tp-body { overflow-y: auto; padding: 4px 0; }
-  #turnPanel .step {
-    display: flex; align-items:flex-start; gap: 8px;
-    padding: 8px 12px; border-bottom: 1px solid #2b3542;
-    position: relative;
-  }
-  #turnPanel .step:last-child { border-bottom: none; }
-  #turnPanel .step:hover { background:#252f3f; cursor:pointer; }
-  #turnPanel .step .idx {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: #374151; color:#e5e7eb;
-    display:flex; align-items:center; justify-content:center;
-    font-size: 10px; font-weight: 700; flex-shrink:0;
-  }
-  #turnPanel .step.start .idx { background:#84cc16; color:#1f2937; }
-  #turnPanel .step.end .idx { background:#dc2626; color:#fff; }
-  #turnPanel .step .arrow {
-    width: 20px; text-align:center; font-size: 16px;
-    color: #9ca3af; flex-shrink:0; line-height: 22px;
-  }
-  #turnPanel .step.left .arrow { color: #60a5fa; }
-  #turnPanel .step.right .arrow { color: #fbbf24; }
-  #turnPanel .step.uturn .arrow { color: #f87171; }
-  #turnPanel .step .info { flex: 1; min-width:0; }
-  #turnPanel .step .maneuver {
-    font-size: 12px; color: #e5e7eb; font-weight:500;
+  .step-body { flex: 1; min-width: 0; }
+  .step-text {
+    font-size: 13px;
+    color: #1f2937;
     line-height: 1.35;
   }
-  #turnPanel .step .street {
-    font-size: 11px; color: #9ca3af; margin-top: 1px;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  .step-meta {
+    margin-top: 3px;
+    font-size: 11px;
+    color: #9ca3af;
   }
-  #turnPanel .step .dist {
-    font-size: 10px; color: #6b7280; margin-top: 2px;
-    font-variant-numeric: tabular-nums;
+  .step-meta b { color: #84cc16; font-weight: 600; }
+  .modal-footer {
+    padding: 12px 18px;
+    background: #f8fafc;
+    border-top: 1px solid #e5e7eb;
+    display: flex; justify-content: flex-end; gap: 8px;
   }
-  #turnPanel .tp-empty {
-    padding: 20px 12px; text-align:center; color:#6b7280;
-    font-size: 11px; font-style: italic;
+  .modal-btn {
+    background: #f3f4f6;
+    color: #1f2937;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
   }
-  #turnPanel .tp-loading {
-    padding: 20px 12px; text-align:center; color:#9ca3af;
+  .modal-btn:hover { background: #4b5563; }
+  .modal-btn.primary { background: #84cc16; color: #0f172a; }
+  .modal-btn.primary:hover { background: #a3e635; }
+  .modal-empty {
+    padding: 24px 18px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+
+  /* Badge "NUEVO" en el marcador */
+  .person-marker-nuevo::after {
+    content: "N";
+    position: absolute;
+    top: -4px; right: -4px;
+    background: #fbbf24;
+    color: #0f172a;
+    font-size: 9px;
+    font-weight: 700;
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid #fff;
+  }
+
+
+  /* ==== LIGHT THEME OVERRIDES ==== */
+  /* Body/container */
+  html, body { background: #f8fafc; color: #1f2937; }
+  #app { background: #f8fafc; }
+
+  /* Header keeps dark navy with green title (reference dashboard style) */
+  #sidebar header {
+    background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%) !important;
+    border-bottom: 3px solid #84cc16 !important;
+    padding: 14px 16px !important;
+  }
+  #sidebar header::before { display: none; } /* accent bar reemplazado por border-bottom */
+  #sidebar h1 {
+    color: #84cc16 !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  }
+  #sidebar h1 .sub { color: #cbd5e1 !important; }
+
+  /* Sidebar general — light */
+  #sidebar {
+    background: #ffffff !important;
+    color: #1f2937 !important;
+    border-right: 1px solid #e5e7eb;
+  }
+  #filterPanel {
+    background: #ffffff !important;
+    color: #1f2937 !important;
+    border-left: 1px solid #e5e7eb !important;
+  }
+  #filterPanel section {
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+
+  /* Section titles — dark navy uppercase on light bg */
+  #filterPanel h2 {
+    color: #0f172a !important;
+  }
+
+  /* Toolbar buttons — light with dark text */
+  .toolbar { background: #f8fafc; border-bottom: 1px solid #e5e7eb !important; }
+  .toolbar button {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+  }
+  .toolbar button:hover { background: #f3f4f6 !important; }
+  .toolbar button.primary {
+    background: #84cc16 !important;
+    color: #0f172a !important;
+    border-color: #84cc16 !important;
+  }
+  .toolbar button.primary:hover { background: #a3e635 !important; }
+  .toolbar button.danger {
+    background: #f97316 !important;
+    color: #ffffff !important;
+    border-color: #f97316 !important;
+  }
+  .toolbar button.danger:hover { background: #fb923c !important; }
+  .toolbar button.desvio {
+    background: #ffffff !important;
+    color: #dc2626 !important;
+    border: 1px solid #fca5a5 !important;
+  }
+  .toolbar button.desvio.active {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    border-color: #dc2626 !important;
+  }
+  .toolbar button:disabled {
+    background: #f3f4f6 !important;
+    color: #9ca3af !important;
+    border-color: #e5e7eb !important;
+    box-shadow: none;
+  }
+  #badgeCambios:not(:empty) {
+    background: #fef3c7 !important;
+    color: #b45309 !important;
+  }
+
+  /* Search input — white */
+  .search { border-bottom: 1px solid #e5e7eb !important; background: #ffffff; }
+  .search input {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1px solid #d1d5db !important;
+  }
+
+  /* Turno box en sidebar izquierdo — card blanca con acento verde arriba */
+  #turnoBox {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    border-top: 3px solid #84cc16;
+  }
+  #turnoBox .turno-title { color: #0f172a !important; }
+  #turnoBox .turno-hint { color: #64748b !important; }
+
+  /* Counter */
+  #counter {
+    background: #f8fafc;
+    color: #6b7280 !important;
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+  #counter b { color: #22c55e !important; }
+
+  /* Chips — light bg, dark text */
+  .chip {
+    background: #f3f4f6 !important;
+    color: #1f2937 !important;
+    border: 1px solid #e5e7eb !important;
+  }
+  .chip:hover { background: #e5e7eb !important; }
+  .chip.active {
+    background: #84cc16 !important;
+    color: #0f172a !important;
+    border-color: #84cc16 !important;
+  }
+  .chip .count {
+    background: rgba(15,23,42,0.08) !important;
+    color: #0f172a;
+  }
+  .chip.active .count {
+    background: rgba(15,23,42,0.15) !important;
+    color: #0f172a !important;
+  }
+
+  /* Toggle btns (usuarios / OP nuevos) */
+  .toggle-btn {
+    background: #f3f4f6 !important;
+    color: #1f2937 !important;
+    border: 1px solid #e5e7eb;
+  }
+  .toggle-btn.active {
+    background: #84cc16 !important;
+    color: #0f172a !important;
+    border-color: #84cc16;
+  }
+  /* ==== Panel de INDICACIONES en el sidebar (sustituye al modal) ==== */
+  #indicacionesSection {
+    padding: 0 !important;
+    background: #ffffff;
+  }
+  #indicacionesSection h2 {
+    padding: 10px 14px !important;
+    margin: 0 !important;
+    background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
+    color: #ffffff !important;
+    font-size: 12px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    display: flex; align-items: center; gap: 8px;
+  }
+  #indicacionesSection h2 .ind-icon { font-size: 15px; }
+  .ind-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e7eb;
     font-size: 11px;
   }
+  .ind-summary.empty { display: none; }
+  .ind-summary .stat {
+    display: flex; flex-direction: column;
+  }
+  .ind-summary .stat .lbl {
+    font-size: 9px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .ind-summary .stat .val {
+    font-size: 14px;
+    font-weight: 700;
+    color: #22c55e;
+  }
+  .ind-body {
+    max-height: 380px;
+    overflow-y: auto;
+    background: #ffffff;
+  }
+  .ind-body .ind-empty {
+    padding: 18px 14px;
+    font-size: 11px;
+    color: #94a3b8;
+    text-align: center;
+    line-height: 1.5;
+  }
+  .ind-body .leg-header {
+    padding: 8px 14px 4px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #b45309;
+    font-weight: 700;
+    background: #fffbeb;
+    border-top: 1px dashed #fde68a;
+  }
+  .ind-body .leg-header:first-child { border-top: none; }
+  .ind-body .step {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 8px 14px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+  .ind-body .step:hover { background: #f9fafb; }
+  .ind-body .step-num {
+    flex-shrink: 0;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    color: #0f172a;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+    border: 1px solid #e5e7eb;
+  }
+  .ind-body .step-num.start { background: #84cc16; color: #0f172a; border-color: #84cc16; }
+  .ind-body .step-num.end { background: #dc2626; color: #ffffff; border-color: #dc2626; }
+  .ind-body .step-arrow {
+    flex-shrink: 0;
+    width: 20px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    color: #22c55e;
+  }
+  .ind-body .step-body { flex: 1; min-width: 0; }
+  .ind-body .step-text {
+    font-size: 11.5px;
+    color: #0f172a;
+    line-height: 1.35;
+  }
+  .ind-body .step-meta {
+    margin-top: 2px;
+    font-size: 10px;
+    color: #94a3b8;
+  }
+  .ind-body .step-meta b { color: #22c55e; font-weight: 600; }
+  .ind-footer {
+    padding: 8px 14px;
+    background: #f8fafc;
+    border-top: 1px solid #e5e7eb;
+    display: flex; gap: 6px;
+  }
+  .ind-btn {
+    flex: 1;
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid #e5e7eb;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .ind-btn:hover:not(:disabled) { background: #f3f4f6; }
+  .ind-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .ind-btn.danger { color: #dc2626; }
+  .ind-btn.danger:hover:not(:disabled) { background: #fef2f2; border-color: #fecaca; }
+
+  /* Route items in the list — light card feel */
+  #lista { background: #ffffff; }
+  .ruta-item { border-bottom: 1px solid #f3f4f6; }
+  .ruta-item:hover { background: #f8fafc !important; }
+  .ruta-item.activa { border-left-color: #84cc16 !important; background: #f8fafc; }
+  .ruta-id { color: #0f172a !important; }
+  .ruta-desc { color: #64748b !important; }
+  .ruta-stops { color: #94a3b8 !important; }
+  .ruta-ocup-bar-wrap {
+    background: #f3f4f6 !important;
+    border: 1px solid #e5e7eb !important;
+  }
+  .ruta-ocup-lbl { color: #6b7280 !important; }
+  .ruta-ocup-lbl b { color: #22c55e !important; }
+
+  /* Ocupación mini-bar */
+  .mini-bar {
+    background: #f3f4f6 !important;
+    border: 1px solid #e5e7eb !important;
+  }
+
+  /* Upload zone permanece con bg blanco, botón verde intacto */
+  #uploadZone {
+    background: #ffffff !important;
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+
+  /* Filas KPI-style top borders (opcional, hace las secciones más "dashboard") */
+  #filterPanel section:nth-of-type(1) { border-top: 3px solid #f97316; }
+  #filterPanel section:nth-of-type(2) { border-top: 3px solid #1d4ed8; }
+  #filterPanel section:nth-of-type(3) { border-top: 3px solid #22c55e; }
+  /* Sección de indicaciones — sin top-border, ya tiene su header rojo */
+  #indicacionesSection { border-top: none !important; }
+
+  /* Slider row texto */
+  .slider-row { color: #6b7280 !important; }
+  .slider-row b { color: #22c55e !important; }
+
+  /* Modal — se queda con look dark porque destaca sobre el mapa/panel claro */
+  /* (los estilos originales permanecen)                                       */
+
+  /* Popups Leaflet — bg blanco por default, no requiere cambio */
+
+  /* Marker borders — mantén contraste (los marcadores están sobre el mapa, no sobre panel) */
 </style>
 </head>
 <body>
 
-<nav class="topnav">
-  <a class="nav-logo" href="index.html">TRAXIÓN</a>
-  <span class="nav-sep">|</span>
-  <span class="nav-page">Mapeo de rutas</span>
-</nav>
-
 <div id="app">
   <aside id="sidebar">
     <header>
-      <h1>Mapa de Rutas
-        <span class="sub">Reporte MAE — Settepi</span>
+      <h1>Rutas Stp Garcia
+        <span class="sub">Planeador de rutas</span>
       </h1>
     </header>
+
+    <div id="uploadZone">
+      <button type="button" class="upload-btn" id="btnCargarArchivo">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+        </svg>
+        <span id="btnCargarText">Cargar archivo Excel / CSV</span>
+      </button>
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv"/>
+    </div>
 
     <div class="toolbar">
       <button class="primary" id="btnAll">Mostrar todas</button>
@@ -588,15 +1230,25 @@
       <button id="btnExport" disabled>Exportar cambios <span id="badgeCambios"></span></button>
       <button id="btnDesvio">Desvío: OFF</button>
       <button id="btnClearDesvio" disabled>Borrar desvíos</button>
+      <button id="btnFusion">🔗 Fusionar rutas</button>
     </div>
 
-    <div class="file-input">
-      <label>Cargar CSV local (opcional)</label>
-      <input type="file" id="fileInput" accept=".csv"/>
-    </div>
+
 
     <div class="search">
       <input type="text" id="filtro" placeholder="Buscar ruta o descripción..."/>
+    </div>
+
+    <div id="turnoBox">
+      <div class="turno-title">Filtrar por turno</div>
+      <div id="chipsTurnos">
+        <span class="chip" data-turno="dia">Día <span class="count" id="cntDia">0</span></span>
+        <span class="chip" data-turno="tarde">Tarde <span class="count" id="cntTarde">0</span></span>
+        <span class="chip" data-turno="noche">Noche <span class="count" id="cntNoche">0</span></span>
+      </div>
+      <div class="turno-hint">
+        Día 03:00–10:00 · Tarde 10:01–19:00 · Noche 19:01–02:59
+      </div>
     </div>
 
     <div id="counter">Cargando datos...</div>
@@ -606,98 +1258,95 @@
 
   <div id="map"></div>
 
-  <!-- Panel flotante del desvío activo (color, nombre, guardar) -->
-  <div id="desvioCtrl">
-    <h3>
-      <span>Desvío activo</span>
-      <button class="close" id="desvioCtrlClose" title="Cerrar">×</button>
-    </h3>
-    <div class="row">
-      <input type="color" id="desvioColor" value="#ff1a1a" title="Color del trazo"/>
-      <input type="text" id="desvioNombre" placeholder="Nombre (ej. Propuesta A)" maxlength="60"/>
-    </div>
-    <div class="row" style="justify-content:space-between;">
-      <button class="save" id="desvioSave">Guardar propuesta</button>
-      <button class="del" id="desvioDel">Eliminar</button>
-    </div>
-    <div class="hint">
-      Arrastra los puntos rojos para reubicarlos.<br>
-      Arrastra los círculos blancos intermedios para curvar la línea.<br>
-      Click derecho en un punto rojo para eliminarlo.
-    </div>
-  </div>
-
-  <!-- Panel de instrucciones calle por calle -->
-  <div id="turnPanel">
-    <div class="tp-head">
-      <div style="flex:1; min-width:0">
-        <div class="title" id="tpTitle">Instrucciones</div>
-        <div class="sub" id="tpSub"></div>
-      </div>
-      <button class="tp-close" id="tpClose" title="Cerrar">×</button>
-    </div>
-    <div class="tp-body" id="tpBody">
-      <div class="tp-empty">Traza un desvío o haz click en una ruta para ver las instrucciones.</div>
-    </div>
-  </div>
-
   <aside id="filterPanel">
+    <section>
+      <h2>Tamaño de puntos</h2>
+      <div class="slider-row">
+        <span style="font-size:11px">🔍−</span>
+        <input type="range" id="sliderMarker" min="0.5" max="3" step="0.1" value="1"/>
+        <span style="font-size:14px">🔍+</span>
+      </div>
+      <div style="font-size:10px; color:#9ca3af; text-align:center; margin-top:4px">
+        <span id="lblMarker">100%</span>
+      </div>
+    </section>
+
     <section>
       <h2>Filtrar por planta</h2>
       <div id="chipsPlantas"></div>
     </section>
 
     <section>
-      <h2>Filtrar por turno</h2>
-      <div id="chipsTurnos">
-        <span class="chip" data-turno="dia">Día <span class="count" id="cntDia">0</span></span>
-        <span class="chip" data-turno="tarde">Tarde <span class="count" id="cntTarde">0</span></span>
-        <span class="chip" data-turno="noche">Noche <span class="count" id="cntNoche">0</span></span>
-      </div>
-      <div style="font-size:10px; color:#6b7280; margin-top:6px; line-height:1.5">
-        Día 03:00–10:00 · Tarde 10:01–19:00 · Noche 19:01–02:59
-      </div>
-    </section>
-
-    <section>
-      <h2>Geocercas</h2>
-      <button class="toggle-btn active" id="btnGeo">Mostrar geocercas</button>
-      <div class="slider-row">
-        <span>Ø</span>
-        <input type="range" id="sliderDiam" min="200" max="4000" step="100" value="1000"/>
-        <b id="lblDiam">1.0 km</b>
-      </div>
-      <div class="geo-list" id="geoList"></div>
-      <div style="font-size:10px; color:#6b7280; margin-top:6px">
-        Arrastra el punto amarillo de cada geocerca para ajustar su posición exacta.
-      </div>
-    </section>
-
-    <section>
-      <h2>Propuestas de desvío</h2>
-      <div style="font-size:11px; color:#9ca3af; margin-bottom:8px;">
-        Cada trazo rojo puede guardarse con nombre y color propios.
-      </div>
-      <div id="listaPropuestas"></div>
-    </section>
-
-    <section>
       <h2>Usuarios / Operadores</h2>
-      <div style="font-size:11px; color:#9ca3af; margin-bottom:8px;">
-        Carga un Excel (.xlsx) con columnas:<br><b style="color:#e5e7eb">Nombre, Lat, Long</b>
-      </div>
-      <input type="file" id="fileUsuarios" accept=".xlsx,.xls,.csv" style="width:100%; color:#e5e7eb; font-size:11px; margin-bottom:8px;"/>
+
+
       <button class="toggle-btn active" id="btnToggleUsuarios" disabled>Mostrar usuarios <span id="cntUsuarios" style="color:#84cc16; font-weight:700"></span></button>
-      <button class="toggle-btn" id="btnClearUsuarios" disabled style="background:#dc2626; color:#fff;">Quitar usuarios</button>
+
+    </section>
+
+    <section id="indicacionesSection">
+      <h2><span class="ind-icon">🧭</span> Indicaciones del desvío</h2>
+      <div id="indicacionesSummary" class="ind-summary"></div>
+      <div id="indicacionesBody" class="ind-body">
+        <div class="ind-empty">
+          Traza un desvío en el mapa y haz click sobre la línea roja para ver aquí las indicaciones paso a paso.
+        </div>
+      </div>
+      <div class="ind-footer">
+        <button class="ind-btn" id="btnCopiarInd" disabled>📋 Copiar</button>
+        <button class="ind-btn danger" id="btnLimpiarInd" disabled>✕ Limpiar</button>
+      </div>
     </section>
   </aside>
+</div>
+
+<!-- Modal fusión de rutas -->
+<div id="fusionModalBg">
+  <div id="fusionModal">
+    <header>
+      <span>🔗 Fusionar rutas</span>
+      <button class="close-x" id="fusionClose" title="Cerrar">×</button>
+    </header>
+    <div class="body">
+      <div class="hint">
+        Selecciona 2 o más rutas. Se creará una <b>nueva ruta</b> con todas sus paradas
+        (los números de secuencia se re-enumeran). El orden depende del orden en que las
+        marques (fíjate en el número verde).
+      </div>
+
+      <div class="field">
+        <label>ID de la ruta fusionada</label>
+        <input type="text" id="fusionNuevoId" placeholder="Ej. FUSION-001" maxlength="60"/>
+      </div>
+
+      <div class="field">
+        <label>Descripción (opcional)</label>
+        <input type="text" id="fusionNuevaDesc" placeholder="Se autocompleta si la dejas vacía" maxlength="120"/>
+      </div>
+
+      <div class="search-fus">
+        <input type="text" id="fusionFiltro" placeholder="Buscar ruta..."/>
+      </div>
+
+      <div id="fusionList"></div>
+
+      <label class="opt-row">
+        <input type="checkbox" id="fusionEliminarOrig"/>
+        Eliminar las rutas originales después de fusionar
+      </label>
+    </div>
+    <footer>
+      <button class="btn-cancel" id="fusionCancel">Cancelar</button>
+      <button class="btn-fuse" id="fusionConfirm" disabled>Fusionar (0)</button>
+    </footer>
+  </div>
 </div>
 
 <script>
 // =========================================================
 // CONFIG
 // =========================================================
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSdb1wv5_u4Q_DJLTNYzZzAnqRfugoqbE9QdrrINxU1FznE-oqaiDtRjS0OlHnFMndHNIdtPkWIpGeW/pub?output=csv";
+// Datos de John Deere — rutas y usuarios embebidos
 
 // Índices de columnas según el header real del CSV
 const COL = {
@@ -718,7 +1367,7 @@ const COL = {
 // =========================================================
 const map = L.map('map').setView([25.67, -100.30], 10);
 
-// Capas de Google Maps
+// Capas base — Google + OpenStreetMap + CartoDB
 const gMapa = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
   maxZoom: 20, subdomains: ['0','1','2','3'], attribution: '&copy; Google'
 });
@@ -728,13 +1377,23 @@ const gSatelite = L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z=
 const gHibrido = L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
   maxZoom: 20, subdomains: ['0','1','2','3'], attribution: '&copy; Google'
 });
+const osmStd = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19, subdomains: ['a','b','c'],
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+});
+const cartoClaro = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 20, subdomains: 'abcd',
+  attribution: '&copy; <a href="https://carto.com/attributions">CARTO</a> · &copy; OSM'
+});
 
 gMapa.addTo(map);
 L.control.layers({
   'Mapa': gMapa,
   'Satélite': gSatelite,
-  'Híbrido': gHibrido
-}, null, { position: 'topright' }).addTo(map);
+  'Híbrido': gHibrido,
+  'OpenStreetMap': osmStd,
+  'CartoDB Claro': cartoClaro
+}, null, { position: 'topright', collapsed: false }).addTo(map);
 
 // =========================================================
 // PARSER CSV (respeta comillas y comas internas)
@@ -961,14 +1620,15 @@ function inicializarGeocercas() {
     geocercas.push(g);
   });
 
-  // Lista en el panel
+  // Lista en el panel (si existe — el panel de geocercas fue removido)
   const lista = document.getElementById('geoList');
-  lista.innerHTML = geocercas.map(g => `<div><span class="dot"></span>${g.nombre}</div>`).join('');
+  if (lista) lista.innerHTML = geocercas.map(g => `<div><span class="dot"></span>${g.nombre}</div>`).join('');
 }
 
 function setDiametroGeocercas(m) {
   diametroGeo = m;
-  document.getElementById('lblDiam').textContent = (m/1000).toFixed(2) + ' km';
+  const lbl = document.getElementById('lblDiam');
+  if (lbl) lbl.textContent = (m/1000).toFixed(2) + ' km';
   geocercas.forEach(g => {
     g.circle.setRadius(m / 2);
     g.circle.setPopupContent(`<b>${g.nombre}</b><br><small>Ø ${(m/1000).toFixed(2)} km</small>`);
@@ -978,8 +1638,10 @@ function setDiametroGeocercas(m) {
 function toggleGeocercas() {
   geocercasVisibles = !geocercasVisibles;
   const btn = document.getElementById('btnGeo');
-  btn.textContent = geocercasVisibles ? 'Ocultar geocercas' : 'Mostrar geocercas';
-  btn.classList.toggle('active', geocercasVisibles);
+  if (btn) {
+    btn.textContent = geocercasVisibles ? 'Ocultar geocercas' : 'Mostrar geocercas';
+    btn.classList.toggle('active', geocercasVisibles);
+  }
   geocercas.forEach(g => {
     if (geocercasVisibles) { g.circle.addTo(map); g.marker.addTo(map); }
     else { map.removeLayer(g.circle); map.removeLayer(g.marker); }
@@ -996,8 +1658,6 @@ async function obtenerGeometriaCalles(idRuta, puntos) {
   const MAX_WP = 90;
   let geomTotal = [];
   let distTotal = 0;
-  let durTotal = 0;
-  let legsTotal = [];   // {distance, duration} por cada tramo entre waypoints
 
   for (let inicio = 0; inicio < puntos.length - 1; inicio += MAX_WP - 1) {
     const tramo = puntos.slice(inicio, inicio + MAX_WP);
@@ -1009,13 +1669,10 @@ async function obtenerGeometriaCalles(idRuta, puntos) {
       const resp = await fetch(url);
       const data = await resp.json();
       if (data.code === 'Ok' && data.routes && data.routes[0]) {
-        const ruta = data.routes[0];
-        const geom = ruta.geometry.coordinates.map(c => [c[1], c[0]]);
+        const geom = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
         if (geomTotal.length) geom.shift(); // evita duplicar el punto de unión
         geomTotal = geomTotal.concat(geom);
-        distTotal += ruta.distance; // metros
-        durTotal += ruta.duration || 0;
-        (ruta.legs || []).forEach(l => legsTotal.push({ distance: l.distance, duration: l.duration }));
+        distTotal += data.routes[0].distance; // metros
       } else {
         return null;
       }
@@ -1024,16 +1681,7 @@ async function obtenerGeometriaCalles(idRuta, puntos) {
     }
   }
 
-  // Adjuntar duración/distancia por tramo a cada parada (a partir de la 2a)
-  legsTotal.forEach((leg, i) => {
-    if (puntos[i + 1]) {
-      puntos[i + 1].tiempoDesdeAnterior = leg.duration;      // segundos
-      puntos[i + 1].distanciaDesdeAnterior = leg.distance;   // metros
-      puntos[i + 1].fuenteTiempo = 'osrm';
-    }
-  });
-
-  cacheCalles[idRuta] = { geom: geomTotal, distance: distTotal, duration: durTotal };
+  cacheCalles[idRuta] = { geom: geomTotal, distance: distTotal };
   return cacheCalles[idRuta];
 }
 
@@ -1099,7 +1747,7 @@ function procesarCSV(csvText) {
   dibujarTodas();
   renderLista();
   renderChipsFiltros();
-  if (!geocercas.length) inicializarGeocercas();
+  // Geocercas: panel removido de la UI, no se inicializan.
   ajustarVista();
 }
 
@@ -1117,28 +1765,14 @@ async function dibujarRuta(id) {
   // Decidir qué geometría dibujar y calcular distancia
   let geom = coordsRecto;
   let distancia = distanciaTotalRecta(r.puntos); // fallback en metros
-  let usoOSRM = false;
   if (modoCalles && r.puntos.length >= 2) {
     const result = await obtenerGeometriaCalles(id, r.puntos);
     if (result && result.geom && result.geom.length) {
       geom = result.geom;
       distancia = result.distance;
-      usoOSRM = true;
     }
   }
   r.distanciaKm = distancia / 1000;
-
-  // Si no obtuvimos datos de OSRM, estimamos tiempo/distancia por tramo con haversine + 25 km/h
-  if (!usoOSRM) {
-    const VEL_URBANA_KMH = 25;
-    for (let i = 1; i < r.puntos.length; i++) {
-      const a = r.puntos[i - 1], b = r.puntos[i];
-      const dMetros = distMetros(a.lat, a.lng, b.lat, b.lng);
-      r.puntos[i].distanciaDesdeAnterior = dMetros;
-      r.puntos[i].tiempoDesdeAnterior = (dMetros / 1000) * (3600 / VEL_URBANA_KMH); // segundos
-      r.puntos[i].fuenteTiempo = 'estimado';
-    }
-  }
 
   // Línea
   const polyline = L.polyline(geom, {
@@ -1159,20 +1793,18 @@ async function dibujarRuta(id) {
     insertarParada(id, ev.latlng);
   });
 
-  // Click en la línea = mostrar instrucciones calle por calle
-  polyline.on('click', (ev) => {
-    if (modoEdicion || modoDesvio) return;
-    L.DomEvent.stopPropagation(ev);
-    refrescarTurnosRuta(id);
-  });
-
   // Paradas (siempre en su posición original, no en la geometría OSRM)
   r.puntos.forEach((p, i) => {
     const isStart = (i === 0);
     const isMod = (p.lat !== p.latOrig || p.lng !== p.lngOrig);
     const cls = isStart ? 'start-marker' : 'stop-marker';
     const styleBg = isStart ? '' : `background:${r.color}`;
-    const extraCls = (modoEdicion ? ' draggable' : '') + (isMod ? ' modified' : '');
+    const isZeroBenef = r.highlightEmpty && !Number(p.beneficiados || 0);
+    const isMarkedRed = p.marcadoRojo === true;
+    const extraCls = (modoEdicion ? ' draggable' : '')
+                   + (isMod ? ' modified' : '')
+                   + (isZeroBenef ? ' zero-benef' : '')
+                   + (isMarkedRed ? ' marked-red' : '');
     const size = isStart ? 26 : 22;
     const anchor = isStart ? 13 : 11;
 
@@ -1184,15 +1816,13 @@ async function dibujarRuta(id) {
     });
 
     const marker = L.marker([p.lat, p.lng], { icon, draggable: modoEdicion })
-      .bindPopup(popupHTML(id, p), { maxWidth: 320, minWidth: 260 })
+      .bindPopup(popupHTML(id, p))
       .addTo(r.layer);
 
-    // Cuando se abre el popup, enganchar los inputs del formulario
-    marker.on('popupopen', (ev) => {
-      const popupEl = ev.popup.getElement();
-      if (!popupEl) return;
-      cargarValoresFormulario(popupEl, id, p);
-      engancharFormularioParada(popupEl, id, p);
+    // Regenerar contenido del popup en cada apertura, así siempre refleja
+    // el valor actual de "usuarios beneficiados" (guardado en memoria/localStorage)
+    marker.on('popupopen', () => {
+      marker.setPopupContent(popupHTML(id, p));
     });
 
     if (modoEdicion) {
@@ -1217,32 +1847,9 @@ function popupHTML(id, p) {
   const turnos = r.turnos && r.turnos.length
     ? r.turnos.map(t => t === 'dia' ? 'Día' : t === 'tarde' ? 'Tarde' : 'Noche').join(', ')
     : '—';
-
-  // Sólo se muestran inputs de aforo para los turnos que tiene la ruta
-  const turnosRuta = r.turnos && r.turnos.length ? r.turnos : ['dia','tarde','noche'];
-  const nombreTurno = t => t === 'dia' ? 'Día' : t === 'tarde' ? 'Tarde' : 'Noche';
-  const aforoCells = turnosRuta.map(t => `
-    <div class="aforo-cell">
-      <div class="tlabel">${nombreTurno(t)}</div>
-      <input type="number" min="0" max="200" step="1"
-             data-aforo-turno="${t}" placeholder="0"/>
-    </div>
-  `).join('');
-
-  const safeId = id.replace(/[^a-zA-Z0-9_-]/g,'');
-
-  // Tiempo/distancia desde la parada anterior (si está disponible)
-  let tramoHTML = '';
-  if (p.tiempoDesdeAnterior != null && p.distanciaDesdeAnterior != null) {
-    const mins = p.tiempoDesdeAnterior / 60;
-    const minsStr = mins < 1 ? '<1 min' : mins < 60 ? Math.round(mins) + ' min' : Math.floor(mins/60) + ' h ' + Math.round(mins%60) + ' min';
-    const kmStr = p.distanciaDesdeAnterior < 1000
-      ? Math.round(p.distanciaDesdeAnterior) + ' m'
-      : (p.distanciaDesdeAnterior / 1000).toFixed(2) + ' km';
-    const fuente = p.fuenteTiempo === 'osrm' ? 'según OSRM' : 'estimado a 25 km/h';
-    tramoHTML = `<small style="color:#059669"><b>↺ Desde parada anterior:</b> ${minsStr} · ${kmStr} <span style="color:#9ca3af">(${fuente})</span></small><br>`;
-  }
-
+  const benefVal = Number(p.beneficiados || 0);
+  const benefKey = benefKeyFor(id, p);
+  const isRed = p.marcadoRojo === true;
   return `
     <b>${id}</b> — ${r.descRuta}<br>
     <small>${r.planta}${r.tipServ ? ' · ' + r.tipServ : ''}</small><br>
@@ -1250,130 +1857,165 @@ function popupHTML(id, p) {
     <hr style="margin:6px 0; border:none; border-top:1px solid #ddd"/>
     <b>Sec ${p.sec}</b>${p.pos ? ' · ' + p.pos : ''}<br>
     ${p.parada}<br>
-    ${tramoHTML}
     <small><b>Horarios:</b> ${horariosStr}</small>
-
-    <div class="parada-form" data-ruta="${id}" data-sec="${p.sec}">
-      <label>Comentario</label>
-      <textarea data-comentario placeholder="Notas de esta parada..."></textarea>
-
-      <label>Aforos por turno (0–41)</label>
-      <div class="aforo-grid">${aforoCells}</div>
-      <div class="cupo-info">
-        Cupo 100% por servicio = <b>41 pasajeros/turno</b>.
-        Aforo capturado por parada; el total de la ruta se muestra en la lista.
-      </div>
-      <div class="saved-note" data-saved>✓ Guardado</div>
+    <div class="benef-row">
+      <label>👥 Usuarios beneficiados:</label>
+      <input type="number" min="0" max="41" value="${benefVal}"
+        data-benef-key="${benefKey}"
+        onclick="event.stopPropagation()"
+        onkeydown="if(event.key==='Enter'){this.nextElementSibling.click();}"/>
+      <button class="save-b" onclick="guardarBeneficiados('${benefKey}', this)">Guardar</button>
+    </div>
+    <div class="benef-row" style="margin-top:6px; padding-top:6px;">
+      <label>🔴 Marcar parada:</label>
+      <button class="mark-b ${isRed ? 'active' : ''}"
+        onclick="toggleMarcadoRojo('${benefKey}', this)">
+        ${isRed ? '✓ Marcada' : 'Marcar rojo'}
+      </button>
     </div>
   `;
 }
 
 // =========================================================
-// STORAGE — comentarios (por ruta+sec) y aforos (por ruta+turno)
+// BENEFICIADOS Y OCUPACIÓN
 // =========================================================
-const LS_COMENT = 'mae_comentarios_v1';
-const LS_AFORO  = 'mae_aforos_v1';
+const CAP_TURNO = 41;
+const CAP_TOTAL = 41;   // capacidad máxima por ruta (41 = 100%)
+const BENEF_KEY_LS = 'jd_beneficiados_v1';
 
-function _lsGet(key) {
-  try { return JSON.parse(localStorage.getItem(key)) || {}; }
-  catch (e) { return {}; }
-}
-function _lsSet(key, obj) {
-  try { localStorage.setItem(key, JSON.stringify(obj)); } catch(e) {}
+function benefKeyFor(id, p) {
+  return id + '|' + p.sec;
 }
 
-function getComentario(idRuta, sec) {
-  const all = _lsGet(LS_COMENT);
-  return (all[idRuta] && all[idRuta][sec]) || '';
-}
-function setComentario(idRuta, sec, txt) {
-  const all = _lsGet(LS_COMENT);
-  if (!all[idRuta]) all[idRuta] = {};
-  if (txt && txt.trim()) all[idRuta][sec] = txt;
-  else if (all[idRuta][sec] != null) delete all[idRuta][sec];
-  _lsSet(LS_COMENT, all);
+function cargarBeneficiadosLS() {
+  try {
+    const raw = localStorage.getItem(BENEF_KEY_LS);
+    if (!raw) return {};
+    return JSON.parse(raw) || {};
+  } catch(e) { return {}; }
 }
 
-function getAforosRuta(idRuta) {
-  // Devuelve el TOTAL sumado por turno de todas las paradas de la ruta.
-  // Estructura interna: { rutaId: { sec: { dia: N, tarde: N, noche: N } } }
-  const all = _lsGet(LS_AFORO);
-  const porParada = all[idRuta] || {};
-  const totales = {};
-  Object.values(porParada).forEach(afParada => {
-    Object.entries(afParada).forEach(([turno, val]) => {
-      totales[turno] = (totales[turno] || 0) + val;
-    });
-  });
-  return totales;   // p.ej. { dia: 25, tarde: 12 }
+function guardarBeneficiadosLS(map) {
+  try { localStorage.setItem(BENEF_KEY_LS, JSON.stringify(map)); } catch(e) {}
 }
 
-function getAforosParada(idRuta, sec) {
-  const all = _lsGet(LS_AFORO);
-  return (all[idRuta] && all[idRuta][sec]) || {};
-}
+function guardarBeneficiados(key, btn) {
+  const input = btn.parentElement.querySelector('input[data-benef-key="' + key + '"]');
+  if (!input) return;
+  let n = parseInt(input.value, 10);
+  if (isNaN(n) || n < 0) n = 0;
+  if (n > 41) n = 41;
+  input.value = n;
 
-function setAforoParada(idRuta, sec, turno, val) {
-  const all = _lsGet(LS_AFORO);
-  if (!all[idRuta]) all[idRuta] = {};
-  if (!all[idRuta][sec]) all[idRuta][sec] = {};
-  const n = parseInt(val);
-  if (!isNaN(n) && n > 0) all[idRuta][sec][turno] = n;
-  else delete all[idRuta][sec][turno];
-  // Limpieza de estructuras vacías
-  if (Object.keys(all[idRuta][sec]).length === 0) delete all[idRuta][sec];
-  if (Object.keys(all[idRuta]).length === 0) delete all[idRuta];
-  _lsSet(LS_AFORO, all);
-}
-
-// Rellenar los inputs del popup al abrirse
-function cargarValoresFormulario(popupEl, idRuta, p) {
-  const form = popupEl.querySelector('.parada-form');
-  if (!form) return;
-  const ta = form.querySelector('[data-comentario]');
-  if (ta) ta.value = getComentario(idRuta, p.sec);
-  const aforosParada = getAforosParada(idRuta, p.sec);
-  form.querySelectorAll('[data-aforo-turno]').forEach(inp => {
-    const t = inp.getAttribute('data-aforo-turno');
-    inp.value = aforosParada[t] != null ? aforosParada[t] : '';
-  });
-}
-
-// Debounce simple para autosave
-function _debounce(fn, ms) {
-  let t = null;
-  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
-}
-
-function engancharFormularioParada(popupEl, idRuta, p) {
-  const form = popupEl.querySelector('.parada-form');
-  if (!form) return;
-  const nota = form.querySelector('[data-saved]');
-  const flash = () => {
-    if (!nota) return;
-    nota.classList.add('show');
-    clearTimeout(flash._t);
-    flash._t = setTimeout(() => nota.classList.remove('show'), 900);
-  };
-
-  const ta = form.querySelector('[data-comentario]');
-  if (ta) {
-    const guardarComent = _debounce(() => {
-      setComentario(idRuta, p.sec, ta.value);
-      flash();
-    }, 350);
-    ta.addEventListener('input', guardarComent);
+  // Localizar el punto y actualizar en memoria
+  const [id, secStr] = key.split('|');
+  const sec = parseInt(secStr, 10);
+  const r = rutas[id];
+  if (r) {
+    const p = r.puntos.find(pp => pp.sec === sec);
+    if (p) p.beneficiados = n;
   }
 
-  form.querySelectorAll('[data-aforo-turno]').forEach(inp => {
-    const t = inp.getAttribute('data-aforo-turno');
-    inp.addEventListener('change', () => {
-      setAforoParada(idRuta, p.sec, t, inp.value);
-      flash();
-      // Refrescar la lista para que aparezcan/actualicen las barras de capacidad
-      renderLista(document.getElementById('filtro').value);
+  // Persistir
+  const store = cargarBeneficiadosLS();
+  if (n === 0) delete store[key]; else store[key] = n;
+  guardarBeneficiadosLS(store);
+
+  // Feedback visual
+  btn.textContent = '✓ Guardado';
+  btn.classList.add('saved');
+  setTimeout(() => {
+    btn.textContent = 'Guardar';
+    btn.classList.remove('saved');
+  }, 1200);
+
+  actualizarOcupacion();
+  renderLista(document.getElementById('filtro').value);
+}
+
+function hidratarBeneficiadosEnRutas() {
+  const store = cargarBeneficiadosLS();
+  Object.keys(rutas).forEach(id => {
+    rutas[id].puntos.forEach(p => {
+      const key = benefKeyFor(id, p);
+      if (store[key] != null) p.beneficiados = store[key];
+      else if (p.beneficiados == null) p.beneficiados = 0;
     });
   });
+  hidratarMarcadoRojoEnRutas();
+}
+
+// =========================================================
+// MARCADO ROJO MANUAL DE PARADAS
+// =========================================================
+const MARK_RED_KEY_LS = 'jd_marcado_rojo_v1';
+
+function cargarMarcadoRojoLS() {
+  try {
+    const raw = localStorage.getItem(MARK_RED_KEY_LS);
+    if (!raw) return {};
+    return JSON.parse(raw) || {};
+  } catch(e) { return {}; }
+}
+function guardarMarcadoRojoLS(map) {
+  try { localStorage.setItem(MARK_RED_KEY_LS, JSON.stringify(map)); } catch(e) {}
+}
+function hidratarMarcadoRojoEnRutas() {
+  const store = cargarMarcadoRojoLS();
+  Object.keys(rutas).forEach(id => {
+    rutas[id].puntos.forEach(p => {
+      const key = benefKeyFor(id, p);
+      p.marcadoRojo = store[key] === true;
+    });
+  });
+}
+async function toggleMarcadoRojo(key, btn) {
+  const [id, secStr] = key.split('|');
+  const sec = parseInt(secStr, 10);
+  const r = rutas[id];
+  if (!r) return;
+  const p = r.puntos.find(pp => pp.sec === sec);
+  if (!p) return;
+
+  p.marcadoRojo = !p.marcadoRojo;
+
+  // Persistir
+  const store = cargarMarcadoRojoLS();
+  if (p.marcadoRojo) store[key] = true;
+  else delete store[key];
+  guardarMarcadoRojoLS(store);
+
+  // Actualizar botón inmediatamente (feedback antes de redibujar)
+  if (p.marcadoRojo) {
+    btn.classList.add('active');
+    btn.textContent = '✓ Marcada';
+  } else {
+    btn.classList.remove('active');
+    btn.textContent = 'Marcar rojo';
+  }
+
+  // Redibujar la ruta para que el marcador refleje el borde rojo
+  await dibujarRuta(id);
+}
+window.toggleMarcadoRojo = toggleMarcadoRojo;
+
+// Total de beneficiados de UNA ruta
+function totalBeneficiadosRuta(id) {
+  const r = rutas[id];
+  if (!r) return 0;
+  return r.puntos.reduce((a, p) => a + Number(p.beneficiados || 0), 0);
+}
+
+// Ocupación (%) de UNA ruta respecto a la capacidad total (123 = 100%)
+function ocupacionRuta(id) {
+  const b = totalBeneficiadosRuta(id);
+  return Math.min(100, Math.round((b / CAP_TOTAL) * 100));
+}
+
+// Mantiene la firma anterior — ya no hay panel global,
+// solo refresca la lista para que se vean los % actualizados por ruta
+function actualizarOcupacion() {
+  try { renderLista(document.getElementById('filtro').value); } catch(e) {}
 }
 
 // =========================================================
@@ -1418,235 +2060,6 @@ function ajustarVista() {
 }
 
 // =========================================================
-// INSTRUCCIONES CALLE POR CALLE (OSRM steps)
-// =========================================================
-const MODIFIER_ARROW = {
-  'left': '←', 'slight left': '↖', 'sharp left': '⇐',
-  'right': '→', 'slight right': '↗', 'sharp right': '⇒',
-  'straight': '↑', 'uturn': '↺'
-};
-const MODIFIER_ES = {
-  'left': 'a la izquierda', 'slight left': 'ligeramente a la izquierda', 'sharp left': 'cerrada a la izquierda',
-  'right': 'a la derecha', 'slight right': 'ligeramente a la derecha', 'sharp right': 'cerrada a la derecha',
-  'straight': 'recto', 'uturn': 'en U'
-};
-
-function traducirManiobra(step) {
-  const t = step.maneuver.type;
-  const mod = step.maneuver.modifier || '';
-  const nombre = step.name || '';
-  const ref = step.ref || '';
-  const via = nombre || ref || 'vía sin nombre';
-  const dirEs = MODIFIER_ES[mod] || mod || '';
-
-  switch (t) {
-    case 'depart':      return `Comienza en <b>${via}</b>`;
-    case 'arrive':      return `Llegada`;
-    case 'turn':        return `Gira ${dirEs} hacia <b>${via}</b>`;
-    case 'new name':    return `Continúa por <b>${via}</b>`;
-    case 'continue':    return `Sigue ${dirEs} por <b>${via}</b>`;
-    case 'merge':       return `Incorpórate ${dirEs} a <b>${via}</b>`;
-    case 'on ramp':     return `Toma la rampa ${dirEs} hacia <b>${via}</b>`;
-    case 'off ramp':    return `Sal por la rampa ${dirEs} hacia <b>${via}</b>`;
-    case 'fork':        return `En la bifurcación, mantente ${dirEs} hacia <b>${via}</b>`;
-    case 'end of road': return `Al final de la calle, gira ${dirEs} hacia <b>${via}</b>`;
-    case 'roundabout':
-    case 'rotary':      return `Toma la rotonda${step.maneuver.exit ? ' (salida ' + step.maneuver.exit + ')' : ''} hacia <b>${via}</b>`;
-    case 'roundabout turn': return `En la rotonda gira ${dirEs} hacia <b>${via}</b>`;
-    default:            return `${t} ${dirEs} hacia <b>${via}</b>`;
-  }
-}
-
-function claseGiro(step) {
-  const m = step.maneuver.modifier || '';
-  if (step.maneuver.type === 'depart') return 'start';
-  if (step.maneuver.type === 'arrive') return 'end';
-  if (m === 'uturn') return 'uturn';
-  if (m.includes('left')) return 'left';
-  if (m.includes('right')) return 'right';
-  return '';
-}
-
-function flechaGiro(step) {
-  if (step.maneuver.type === 'depart') return '●';
-  if (step.maneuver.type === 'arrive') return '■';
-  return MODIFIER_ARROW[step.maneuver.modifier] || '↑';
-}
-
-function formatDist(m) {
-  if (m < 1000) return `${Math.round(m)} m`;
-  return `${(m/1000).toFixed(2)} km`;
-}
-
-function formatDur(s) {
-  if (s < 60) return `${Math.round(s)} s`;
-  const min = Math.round(s / 60);
-  if (min < 60) return `${min} min`;
-  const h = Math.floor(min / 60);
-  return `${h} h ${min % 60} min`;
-}
-
-// Pide a OSRM la ruta con steps=true y devuelve { steps, distance, duration }
-async function fetchStepsOSRM(puntos) {
-  if (!puntos || puntos.length < 2) return null;
-  const coords = puntos.map(p => `${p.lng},${p.lat}`).join(';');
-  const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=false&steps=true`;
-  try {
-    const resp = await fetch(url);
-    const data = await resp.json();
-    if (data.code !== 'Ok' || !data.routes?.[0]) return null;
-    // OSRM devuelve legs (uno por par de waypoints). Concatenamos steps.
-    const legs = data.routes[0].legs || [];
-    const steps = [];
-    legs.forEach(lg => (lg.steps || []).forEach(s => steps.push(s)));
-    return {
-      steps,
-      distance: data.routes[0].distance,
-      duration: data.routes[0].duration
-    };
-  } catch (e) { return null; }
-}
-
-let turnPanelMarker = null; // marker temporal para resaltar el step al hacer click
-
-function mostrarPanelTurnos(titulo, res) {
-  const panel = document.getElementById('turnPanel');
-  panel.classList.add('visible');
-  document.getElementById('tpTitle').textContent = titulo || 'Instrucciones';
-  const sub = document.getElementById('tpSub');
-  const body = document.getElementById('tpBody');
-  if (!res || !res.steps || !res.steps.length) {
-    sub.innerHTML = '';
-    body.innerHTML = '<div class="tp-empty">No se pudieron obtener instrucciones.<br><small>Requiere modo Calles.</small></div>';
-    return;
-  }
-  sub.innerHTML = `Distancia: <b>${formatDist(res.distance)}</b> · Tiempo: <b>${formatDur(res.duration)}</b> · Pasos: <b>${res.steps.length}</b>`;
-  body.innerHTML = res.steps.map((s, i) => {
-    const cls = claseGiro(s);
-    return `
-      <div class="step ${cls}" data-lat="${s.maneuver.location[1]}" data-lng="${s.maneuver.location[0]}">
-        <span class="idx">${i + 1}</span>
-        <span class="arrow">${flechaGiro(s)}</span>
-        <div class="info">
-          <div class="maneuver">${traducirManiobra(s)}</div>
-          ${s.name && s.maneuver.type !== 'depart' && s.maneuver.type !== 'new name' ? `<div class="street">Por ${s.name}</div>` : ''}
-          <div class="dist">${formatDist(s.distance)}${s.duration ? ' · ' + formatDur(s.duration) : ''}</div>
-        </div>
-      </div>
-    `;
-  }).join('');
-  // Click en un paso: centrar y resaltar
-  body.querySelectorAll('.step').forEach(el => {
-    el.addEventListener('click', () => {
-      const lat = parseFloat(el.dataset.lat), lng = parseFloat(el.dataset.lng);
-      if (isNaN(lat) || isNaN(lng)) return;
-      map.setView([lat, lng], Math.max(map.getZoom(), 16));
-      if (turnPanelMarker) map.removeLayer(turnPanelMarker);
-      turnPanelMarker = L.circleMarker([lat, lng], {
-        radius: 10, color: '#84cc16', fillColor: '#84cc16', fillOpacity: 0.4, weight: 3
-      }).addTo(map);
-      setTimeout(() => { if (turnPanelMarker) { map.removeLayer(turnPanelMarker); turnPanelMarker = null; } }, 3500);
-    });
-  });
-}
-
-function ocultarPanelTurnos() {
-  document.getElementById('turnPanel').classList.remove('visible');
-  if (turnPanelMarker) { map.removeLayer(turnPanelMarker); turnPanelMarker = null; }
-}
-document.getElementById('tpClose').addEventListener('click', ocultarPanelTurnos);
-
-// Actualiza el panel para el desvío dado (si es el activo del panel)
-async function refrescarTurnosDesvio(d) {
-  if (!d || d.puntos.length < 2) return;
-  document.getElementById('turnPanel').classList.add('visible');
-  document.getElementById('tpTitle').textContent = d.nombre || 'Desvío';
-  document.getElementById('tpSub').innerHTML = '';
-  // Si ya tenemos steps cacheados por dibujarLineasDesvio, usarlos directo
-  if (d.osrmSteps && d.osrmSteps.length) {
-    mostrarPanelTurnos(d.nombre || 'Desvío', {
-      steps: d.osrmSteps,
-      distance: d.osrmDistance,
-      duration: d.osrmDuration
-    });
-    return;
-  }
-  // Si no hay cache y no estamos en modo calles, avisar
-  if (!modoCalles) {
-    document.getElementById('tpBody').innerHTML = '<div class="tp-empty">Activa <b>Modo: Calles</b> para ver las instrucciones.</div>';
-    return;
-  }
-  document.getElementById('tpBody').innerHTML = '<div class="tp-loading">Calculando instrucciones...</div>';
-  const res = await fetchStepsOSRM(d.puntos);
-  if (res) {
-    d.osrmSteps = res.steps;
-    d.osrmDistance = res.distance;
-    d.osrmDuration = res.duration;
-  }
-  mostrarPanelTurnos(d.nombre || 'Desvío', res);
-}
-
-// Actualiza el panel para una ruta completa (al hacer click en su línea)
-async function refrescarTurnosRuta(id) {
-  const r = rutas[id];
-  if (!r || r.puntos.length < 2) return;
-  document.getElementById('turnPanel').classList.add('visible');
-  document.getElementById('tpTitle').textContent = `${id} — ${r.descRuta}`;
-  document.getElementById('tpSub').innerHTML = '';
-  // Reusar cache si existe
-  const cache = cacheCalles[id];
-  if (cache && cache.steps && cache.steps.length) {
-    mostrarPanelTurnos(`${id} — ${r.descRuta}`, {
-      steps: cache.steps,
-      distance: cache.distance,
-      duration: cache.duration
-    });
-    return;
-  }
-  if (!modoCalles) {
-    document.getElementById('tpBody').innerHTML = '<div class="tp-empty">Activa <b>Modo: Calles</b> para ver las instrucciones.</div>';
-    return;
-  }
-  document.getElementById('tpBody').innerHTML = '<div class="tp-loading">Calculando instrucciones...</div>';
-  const res = await fetchStepsOSRM(r.puntos);
-  if (res && cache) {
-    cache.steps = res.steps;
-    cache.duration = res.duration;
-  }
-  mostrarPanelTurnos(`${id} — ${r.descRuta}`, res);
-}
-
-// =========================================================
-// CAPACIDAD (por ruta+turno). Cupo 100% = 41 por turno
-// =========================================================
-const CUPO_MAX_TURNO = 41;
-
-function renderCapacidadHTML(id, r) {
-  const aforos = getAforosRuta(id);
-  const turnos = Object.keys(aforos);
-  if (!turnos.length) return '';
-  const labels = { dia: 'Día', tarde: 'Tarde', noche: 'Noche' };
-  const orden = ['dia', 'tarde', 'noche'].filter(t => aforos[t] != null);
-  const rows = orden.map(t => {
-    const val = aforos[t];
-    const pct = Math.round((val / CUPO_MAX_TURNO) * 100);
-    let cls = 'low';
-    if (pct >= 100) cls = 'over';
-    else if (pct >= 85) cls = 'high';
-    else if (pct >= 60) cls = 'mid';
-    const w = Math.min(100, pct);
-    return `
-      <div class="capacity-bar">
-        <span class="tname">${labels[t]}</span>
-        <span class="bar"><span class="fill ${cls}" style="width:${w}%"></span></span>
-        <span class="val">${val}/${CUPO_MAX_TURNO} · ${pct}%</span>
-      </div>
-    `;
-  }).join('');
-  return `<div class="capacity-block">${rows}</div>`;
-}
-
-// =========================================================
 // LISTA DE RUTAS (panel)
 // =========================================================
 function renderLista(filtroTxt = '') {
@@ -1654,10 +2067,20 @@ function renderLista(filtroTxt = '') {
   cont.innerHTML = '';
   const ids = Object.keys(rutas).sort();
   const f = filtroTxt.toLowerCase();
+  const hayFiltrosPlantaTurno = (typeof plantasActivas !== 'undefined' && plantasActivas.size > 0)
+    || (typeof turnosActivos !== 'undefined' && turnosActivos.size > 0);
 
   ids.forEach(id => {
     const r = rutas[id];
     if (f && !id.toLowerCase().includes(f) && !r.descRuta.toLowerCase().includes(f)) return;
+
+    // Filtro por chips de planta / turno: si hay al menos uno activo,
+    // sólo se muestran las rutas que coincidan.
+    if (hayFiltrosPlantaTurno) {
+      const matchPlanta = (plantasActivas.size === 0) || plantasActivas.has(r.planta);
+      const matchTurno  = (turnosActivos.size === 0)  || (r.turnos || []).some(t => turnosActivos.has(t));
+      if (!(matchPlanta && matchTurno)) return;
+    }
 
     const div = document.createElement('div');
     div.className = 'ruta-item' + (r.visible ? ' activa' : '');
@@ -1665,10 +2088,27 @@ function renderLista(filtroTxt = '') {
       <input type="checkbox" ${r.visible ? 'checked' : ''}/>
       <div class="ruta-color" style="background:${r.color}"></div>
       <div class="ruta-info">
-        <div class="ruta-id">${r.descRuta}</div>
-        <div class="ruta-desc">${id}</div>
+        <div class="ruta-id">${id}</div>
+        <div class="ruta-desc">${r.descRuta}</div>
         <div class="ruta-stops">${r.puntos.length} paradas${r.distanciaKm != null ? ' · <b style="color:#84cc16">'+r.distanciaKm.toFixed(2)+' km</b>' : ''}</div>
-        ${renderCapacidadHTML(id, r)}
+        ${(() => {
+          const tb = totalBeneficiadosRuta(id);
+          const pct = ocupacionRuta(id);
+          const cls = pct >= 100 ? 'full' : (pct >= 80 ? 'warn' : '');
+          const zeroCount = r.puntos.filter(p => !Number(p.beneficiados || 0)).length;
+          const btnTitle = 'Marcar paradas con 0 beneficiados (' + zeroCount + ')';
+          return `
+            <div class="ruta-ocup">
+              <div class="ruta-ocup-bar-wrap">
+                <div class="ruta-ocup-bar ${cls}" style="width:${pct}%"></div>
+              </div>
+              <span class="ruta-ocup-lbl">👥 ${tb}/${CAP_TOTAL} · <b>${pct}%</b></span>
+              <button type="button"
+                      class="btn-zero-benef${r.highlightEmpty ? ' active' : ''}"
+                      data-ruta-id="${id}"
+                      title="${btnTitle}">🎯</button>
+            </div>`;
+        })()}
       </div>
     `;
     const chk = div.querySelector('input');
@@ -1677,8 +2117,29 @@ function renderLista(filtroTxt = '') {
       toggleRuta(id, chk.checked);
       div.classList.toggle('activa', chk.checked);
     });
+    // Botón para marcar en rojo las paradas con 0 beneficiados
+    const btnZero = div.querySelector('.btn-zero-benef');
+    if (btnZero) {
+      btnZero.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const rr = rutas[id];
+        if (!rr) return;
+        rr.highlightEmpty = !rr.highlightEmpty;
+        btnZero.classList.toggle('active', rr.highlightEmpty);
+        // Redibujar los marcadores de esta ruta con el nuevo estado
+        await dibujarRuta(id);
+        // Asegurar que la ruta esté visible al activar la marca
+        if (rr.highlightEmpty && !rr.visible) {
+          toggleRuta(id, true);
+          div.classList.add('activa');
+          const c = div.querySelector('input[type="checkbox"]');
+          if (c) c.checked = true;
+        }
+      });
+    }
     div.addEventListener('click', e => {
       if (e.target === chk) return;
+      if (e.target.closest && e.target.closest('.btn-zero-benef')) return;
       // click en el item: hacer zoom a esa ruta
       const coords = r.puntos.map(p => [p.lat, p.lng]);
       if (coords.length) map.fitBounds(coords, { padding: [40, 40] });
@@ -1768,6 +2229,173 @@ document.getElementById('btnClearDesvio').addEventListener('click', () => {
   }
 });
 
+// =========================================================
+// FUSIÓN DE RUTAS
+// =========================================================
+// seleccion es un array ordenado de IDs (el orden importa: define
+// el orden de las paradas en la ruta fusionada).
+const fusionSel = [];
+
+function abrirModalFusion() {
+  if (!Object.keys(rutas).length) {
+    alert('Primero carga un archivo de rutas.');
+    return;
+  }
+  fusionSel.length = 0;
+  document.getElementById('fusionNuevoId').value = '';
+  document.getElementById('fusionNuevaDesc').value = '';
+  document.getElementById('fusionFiltro').value = '';
+  document.getElementById('fusionEliminarOrig').checked = false;
+  renderFusionList();
+  document.getElementById('fusionModalBg').classList.add('open');
+}
+
+function cerrarModalFusion() {
+  document.getElementById('fusionModalBg').classList.remove('open');
+}
+
+function renderFusionList() {
+  const cont = document.getElementById('fusionList');
+  const filtro = (document.getElementById('fusionFiltro').value || '').toLowerCase().trim();
+  const ids = Object.keys(rutas).sort();
+  cont.innerHTML = '';
+  ids.forEach(id => {
+    const r = rutas[id];
+    const desc = (r.descRuta || '').toLowerCase();
+    if (filtro && !id.toLowerCase().includes(filtro) && !desc.includes(filtro)) return;
+    const orden = fusionSel.indexOf(id);
+    const isSel = orden >= 0;
+    const div = document.createElement('div');
+    div.className = 'fus-item';
+    div.innerHTML = `
+      <input type="checkbox" ${isSel ? 'checked' : ''}/>
+      <div class="fus-color" style="background:${r.color || '#888'}"></div>
+      <div class="fus-info">
+        <div class="fus-id">${id}</div>
+        <div class="fus-desc">${r.descRuta || ''} · ${r.puntos.length} paradas</div>
+      </div>
+      ${isSel ? `<div class="fus-order">${orden + 1}</div>` : ''}
+    `;
+    div.addEventListener('click', (e) => {
+      e.preventDefault();
+      const i = fusionSel.indexOf(id);
+      if (i >= 0) fusionSel.splice(i, 1);
+      else fusionSel.push(id);
+      renderFusionList();
+      actualizarBtnFusion();
+    });
+    cont.appendChild(div);
+  });
+  if (!cont.children.length) {
+    cont.innerHTML = '<div style="padding:14px; text-align:center; color:#9ca3af; font-size:12px">Sin resultados</div>';
+  }
+}
+
+function actualizarBtnFusion() {
+  const btn = document.getElementById('fusionConfirm');
+  btn.textContent = `Fusionar (${fusionSel.length})`;
+  btn.disabled = fusionSel.length < 2;
+}
+
+function ejecutarFusion() {
+  if (fusionSel.length < 2) return;
+  let nuevoId = (document.getElementById('fusionNuevoId').value || '').trim();
+  if (!nuevoId) {
+    nuevoId = 'FUSION-' + fusionSel.join('_').slice(0, 40);
+  }
+  if (rutas[nuevoId]) {
+    alert('Ya existe una ruta con el ID "' + nuevoId + '". Elige otro.');
+    return;
+  }
+  const eliminarOrig = document.getElementById('fusionEliminarOrig').checked;
+
+  // Construir puntos fusionados en el orden seleccionado, re-enumerando sec
+  const puntosFusion = [];
+  let secCounter = 1;
+  const turnosSet = new Set();
+  const plantasSet = new Set();
+  const tipServSet = new Set();
+  const descPartes = [];
+
+  fusionSel.forEach(id => {
+    const r = rutas[id];
+    if (!r) return;
+    if (r.planta) plantasSet.add(r.planta);
+    if (r.tipServ) tipServSet.add(r.tipServ);
+    if (r.descRuta) descPartes.push(r.descRuta);
+    (r.turnos || []).forEach(t => turnosSet.add(t));
+
+    // Copiar los puntos en el orden actual (por sec ascendente)
+    const pts = r.puntos.slice().sort((a, b) => a.sec - b.sec);
+    pts.forEach(p => {
+      puntosFusion.push({
+        sec: secCounter++,
+        pos: p.pos || '',
+        parada: p.parada + ' [' + id + ']',
+        lat: p.lat,
+        lng: p.lng,
+        latOrig: p.lat,
+        lngOrig: p.lng,
+        horarios: (p.horarios || []).slice(),
+        beneficiados: Number(p.beneficiados || 0),
+        marcadoRojo: p.marcadoRojo === true,
+        nuevo: true,       // se contará como cambio nuevo al exportar
+        _origenRuta: id,
+        _origenSec: p.sec
+      });
+    });
+  });
+
+  const descNueva = (document.getElementById('fusionNuevaDesc').value || '').trim()
+                 || ('FUSIÓN: ' + descPartes.join(' + '));
+
+  rutas[nuevoId] = {
+    puntos: puntosFusion,
+    descRuta: descNueva,
+    planta: Array.from(plantasSet).join(' + '),
+    tipServ: Array.from(tipServSet).join(' + '),
+    turnos: Array.from(turnosSet),
+    color: '#dc2626',   // rojo distintivo para la fusión
+    layer: L.layerGroup(),
+    visible: true,
+    esFusion: true,
+    rutasOrigen: fusionSel.slice()
+  };
+
+  // Eliminar originales si se pidió
+  if (eliminarOrig) {
+    fusionSel.forEach(id => {
+      if (rutas[id] && rutas[id].layer) {
+        map.removeLayer(rutas[id].layer);
+      }
+      delete rutas[id];
+    });
+  }
+
+  // Redibujar todo
+  dibujarRuta(nuevoId);
+  if (rutas[nuevoId].visible) rutas[nuevoId].layer.addTo(map);
+  renderLista(document.getElementById('filtro').value);
+  renderChipsFiltros();
+  actualizarBadgeCambios();
+  actualizarOcupacion();
+
+  cerrarModalFusion();
+
+  // Zoom a la nueva ruta
+  const pts = puntosFusion.map(p => [p.lat, p.lng]);
+  if (pts.length) map.fitBounds(pts, { padding: [40, 40] });
+}
+
+document.getElementById('btnFusion').addEventListener('click', abrirModalFusion);
+document.getElementById('fusionClose').addEventListener('click', cerrarModalFusion);
+document.getElementById('fusionCancel').addEventListener('click', cerrarModalFusion);
+document.getElementById('fusionConfirm').addEventListener('click', ejecutarFusion);
+document.getElementById('fusionFiltro').addEventListener('input', renderFusionList);
+document.getElementById('fusionModalBg').addEventListener('click', (e) => {
+  if (e.target.id === 'fusionModalBg') cerrarModalFusion();
+});
+
 // Chips de turno
 document.querySelectorAll('#chipsTurnos .chip').forEach(chip => {
   chip.addEventListener('click', () => {
@@ -1779,11 +2407,25 @@ document.querySelectorAll('#chipsTurnos .chip').forEach(chip => {
   });
 });
 
-// Geocercas
-document.getElementById('btnGeo').addEventListener('click', toggleGeocercas);
-document.getElementById('sliderDiam').addEventListener('input', e => {
-  setDiametroGeocercas(parseInt(e.target.value));
-});
+// Geocercas — panel removido; los listeners solo se enganchan si los elementos existen.
+(function(){
+  const bGeo = document.getElementById('btnGeo');
+  if (bGeo) bGeo.addEventListener('click', toggleGeocercas);
+  const sDiam = document.getElementById('sliderDiam');
+  if (sDiam) sDiam.addEventListener('input', e => setDiametroGeocercas(parseInt(e.target.value)));
+})();
+
+// Slider de tamaño de puntos: usa una variable CSS que escala los marcadores.
+(function(){
+  const s = document.getElementById('sliderMarker');
+  const lbl = document.getElementById('lblMarker');
+  if (!s) return;
+  s.addEventListener('input', e => {
+    const v = parseFloat(e.target.value);
+    document.documentElement.style.setProperty('--marker-scale', v);
+    if (lbl) lbl.textContent = Math.round(v * 100) + '%';
+  });
+})();
 
 // =========================================================
 // HELPERS DE CAMBIOS
@@ -1842,62 +2484,271 @@ function exportarCambios() {
 }
 
 // =========================================================
-// DESVÍOS — trazo brillante con handles intermedios y color personalizable
+// INDICACIONES (turn-by-turn) — traductor OSRM → español + modal
 // =========================================================
-const DESVIO_COLOR_DEFAULT = '#ff1a1a';
+const OSRM_MODIFIER_ES = {
+  'uturn': 'Dar vuelta en U',
+  'sharp right': 'Girar cerrado a la derecha',
+  'right': 'Girar a la derecha',
+  'slight right': 'Girar ligeramente a la derecha',
+  'straight': 'Continuar recto',
+  'slight left': 'Girar ligeramente a la izquierda',
+  'left': 'Girar a la izquierda',
+  'sharp left': 'Girar cerrado a la izquierda'
+};
+const OSRM_MODIFIER_ARROW = {
+  'uturn': '↩',
+  'sharp right': '⤵',
+  'right': '➡',
+  'slight right': '↗',
+  'straight': '⬆',
+  'slight left': '↖',
+  'left': '⬅',
+  'sharp left': '⤴'
+};
 
-function crearDesvio(opts = {}) {
+function traducirManeuver(step, esUltimo) {
+  const m = step.maneuver || {};
+  const t = m.type || '';
+  const mod = m.modifier || '';
+  const via = step.name || step.ref || '';
+  const enVia = via ? ' por <b>' + via + '</b>' : '';
+  const haciaVia = via ? ' a <b>' + via + '</b>' : '';
+
+  switch (t) {
+    case 'depart':
+      return 'Salir' + enVia;
+    case 'arrive':
+      return esUltimo ? 'Llegar a tu destino' : 'Llegar al waypoint';
+    case 'new name':
+      return 'Continuar' + enVia;
+    case 'continue':
+      return (mod && OSRM_MODIFIER_ES[mod] ? OSRM_MODIFIER_ES[mod] : 'Continuar') + enVia;
+    case 'turn':
+      return (OSRM_MODIFIER_ES[mod] || 'Girar') + haciaVia;
+    case 'merge':
+      return 'Incorporarse' + haciaVia;
+    case 'on ramp':
+      return 'Tomar la rampa' + haciaVia;
+    case 'off ramp':
+      return 'Tomar la salida' + haciaVia;
+    case 'fork':
+      return (mod && OSRM_MODIFIER_ES[mod] ? OSRM_MODIFIER_ES[mod] : 'Tomar la bifurcación') + haciaVia;
+    case 'end of road':
+      return 'Al final del camino, ' + (OSRM_MODIFIER_ES[mod] || 'continuar').toLowerCase() + haciaVia;
+    case 'roundabout':
+    case 'rotary':
+      const exit = m.exit ? ' — tomar la salida ' + m.exit : '';
+      return 'Entrar a la glorieta' + exit + haciaVia;
+    case 'roundabout turn':
+      return 'En la glorieta, ' + (OSRM_MODIFIER_ES[mod] || 'girar').toLowerCase() + haciaVia;
+    case 'notification':
+      return 'Continuar' + enVia;
+    case 'exit roundabout':
+    case 'exit rotary':
+      return 'Salir de la glorieta' + haciaVia;
+    default:
+      return (OSRM_MODIFIER_ES[mod] || 'Continuar') + enVia;
+  }
+}
+
+function iconoManeuver(step) {
+  const t = step.maneuver?.type;
+  const mod = step.maneuver?.modifier;
+  if (t === 'depart') return '🚗';
+  if (t === 'arrive') return '🏁';
+  if (t === 'roundabout' || t === 'rotary' || t === 'roundabout turn') return '🔄';
+  return OSRM_MODIFIER_ARROW[mod] || '⬆';
+}
+
+function formatMts(m) {
+  if (m == null) return '—';
+  if (m < 1000) return Math.round(m) + ' m';
+  return (m / 1000).toFixed(m < 10000 ? 2 : 1) + ' km';
+}
+function formatMinutos(seg) {
+  if (seg == null) return '—';
+  const min = Math.round(seg / 60);
+  if (min < 60) return min + ' min';
+  const h = Math.floor(min / 60);
+  const r = min % 60;
+  return h + ' h ' + (r ? r + ' min' : '');
+}
+
+function construirHTMLIndicaciones(d) {
+  if (!d.legs || !d.legs.length) {
+    return `
+      <div class="modal-empty">
+        No se pudieron obtener indicaciones por calles.<br>
+        Verifica tu conexión o activa el modo "Calles" en la barra superior,<br>
+        luego vuelve a trazar el desvío.
+      </div>`;
+  }
+
+  const numPuntos = d.puntos.length;
+  const partes = [];
+
+  d.legs.forEach((leg, iLeg) => {
+    // Header de tramo (Punto N → Punto N+1)
+    partes.push(`
+      <div class="leg-header">
+        Tramo ${iLeg + 1} · Punto ${iLeg === 0 ? 'inicio' : iLeg} → Punto ${iLeg + 1 === numPuntos - 1 ? 'final' : iLeg + 1}
+        &nbsp;·&nbsp; ${formatMts(leg.distance)} · ${formatMinutos(leg.duration)}
+      </div>
+    `);
+
+    const steps = leg.steps || [];
+    steps.forEach((step, iStep) => {
+      const esUltimoStep = (iLeg === d.legs.length - 1) && (iStep === steps.length - 1);
+      const esPrimerStep = (iLeg === 0) && (iStep === 0);
+      const txt = traducirManeuver(step, esUltimoStep);
+      const icon = iconoManeuver(step);
+      const meta = (step.distance != null || step.duration != null)
+        ? `<div class="step-meta"><b>${formatMts(step.distance)}</b> · ${formatMinutos(step.duration)}</div>`
+        : '';
+      let numCls = '';
+      let numTxt = String(iStep + 1);
+      if (esPrimerStep) { numCls = ' start'; numTxt = 'A'; }
+      else if (esUltimoStep) { numCls = ' end'; numTxt = 'B'; }
+
+      partes.push(`
+        <div class="step">
+          <div class="step-num${numCls}">${numTxt}</div>
+          <div class="step-arrow">${icon}</div>
+          <div class="step-body">
+            <div class="step-text">${txt}</div>
+            ${meta}
+          </div>
+        </div>
+      `);
+    });
+  });
+
+  return partes.join('');
+}
+
+function textoIndicacionesPlano(d) {
+  if (!d.legs || !d.legs.length) return 'Sin indicaciones disponibles.';
+  const out = [];
+  out.push(`Desvío — ${d.puntos.length} puntos`);
+  out.push(`Distancia: ${formatMts(d.distanciaMt)} · Duración: ${formatMinutos(d.duracionSeg)}`);
+  out.push('');
+  d.legs.forEach((leg, iLeg) => {
+    out.push(`— Tramo ${iLeg + 1} · ${formatMts(leg.distance)} · ${formatMinutos(leg.duration)} —`);
+    (leg.steps || []).forEach((s, iS) => {
+      const esUlt = (iLeg === d.legs.length - 1) && (iS === (leg.steps || []).length - 1);
+      const txt = traducirManeuver(s, esUlt).replace(/<[^>]+>/g, '');
+      out.push(`  ${iS + 1}. ${txt} (${formatMts(s.distance)} · ${formatMinutos(s.duration)})`);
+    });
+    out.push('');
+  });
+  return out.join('\n');
+}
+
+let desvioActivoIndicaciones = null;
+
+// Se llama al hacer click sobre la línea de un desvío — llena el panel del sidebar
+function abrirModalIndicaciones(d) { abrirIndicaciones(d); }
+
+function abrirIndicaciones(d) {
+  desvioActivoIndicaciones = d;
+  const summary = document.getElementById('indicacionesSummary');
+  const body = document.getElementById('indicacionesBody');
+  const btnCopiar = document.getElementById('btnCopiarInd');
+  const btnLimpiar = document.getElementById('btnLimpiarInd');
+
+  summary.classList.remove('empty');
+  summary.innerHTML = `
+    <div class="stat"><span class="lbl">Puntos</span><span class="val">${d.puntos.length}</span></div>
+    <div class="stat"><span class="lbl">Distancia</span><span class="val">${formatMts(d.distanciaMt)}</span></div>
+    <div class="stat"><span class="lbl">Duración</span><span class="val">${formatMinutos(d.duracionSeg)}</span></div>
+    <div class="stat"><span class="lbl">Tramos</span><span class="val">${(d.legs || []).length}</span></div>
+  `;
+  body.innerHTML = construirHTMLIndicaciones(d);
+  body.scrollTop = 0;
+  if (btnCopiar) btnCopiar.disabled = false;
+  if (btnLimpiar) btnLimpiar.disabled = false;
+
+  // Auto-scroll del panel derecho hasta la sección
+  const sec = document.getElementById('indicacionesSection');
+  if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function limpiarIndicaciones() {
+  desvioActivoIndicaciones = null;
+  const summary = document.getElementById('indicacionesSummary');
+  const body = document.getElementById('indicacionesBody');
+  const btnCopiar = document.getElementById('btnCopiarInd');
+  const btnLimpiar = document.getElementById('btnLimpiarInd');
+  if (summary) { summary.innerHTML = ''; summary.classList.add('empty'); }
+  if (body) body.innerHTML = `
+    <div class="ind-empty">
+      Traza un desvío en el mapa y haz click sobre la línea roja para ver aquí las indicaciones paso a paso.
+    </div>`;
+  if (btnCopiar) btnCopiar.disabled = true;
+  if (btnLimpiar) btnLimpiar.disabled = true;
+}
+
+// Wire up del panel de indicaciones
+(function(){
+  const copiarBtn = document.getElementById('btnCopiarInd');
+  const limpiarBtn = document.getElementById('btnLimpiarInd');
+  if (limpiarBtn) limpiarBtn.addEventListener('click', limpiarIndicaciones);
+  if (copiarBtn) copiarBtn.addEventListener('click', () => {
+    if (!desvioActivoIndicaciones) return;
+    const txt = textoIndicacionesPlano(desvioActivoIndicaciones);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(() => {
+        copiarBtn.textContent = '✓ Copiado';
+        setTimeout(() => copiarBtn.textContent = '📋 Copiar', 1500);
+      }).catch(() => alert(txt));
+    } else {
+      alert(txt);
+    }
+  });
+})();
+
+// =========================================================
+// DESVÍOS — trazo rojo brillante arrastrable
+// =========================================================
+const DESVIO_COLOR = '#ff1a1a';
+const DESVIO_SHADOW = '#ff000066';
+
+function crearDesvio() {
   const d = {
-    id: opts.id || ('d_' + Date.now() + '_' + Math.random().toString(36).slice(2,6)),
-    nombre: opts.nombre || '',
-    color: opts.color || DESVIO_COLOR_DEFAULT,
+    id: Date.now(),
     puntos: [],         // [{lat, lng}] — waypoints del usuario
-    polyline: null,     // línea principal (recta o OSRM)
-    guidePoly: null,    // línea guía punteada de los waypoints
-    markers: [],        // markers rojos (puntos del usuario)
-    midHandles: [],     // handles blancos intermedios (para arrastrar la línea)
-    osrmGeom: null
+    polyline: null,     // línea roja de desvío (recta o OSRM)
+    markers: [],        // markers de los puntos
+    osrmGeom: null,     // geometría OSRM cacheada
+    osrmPoly: null      // polyline OSRM
   };
   desvios.push(d);
   return d;
 }
 
-function markerDesvioIcon(isAnchor, color) {
+function markerDesvioIcon(isAnchor) {
   const cls = 'desvio-point' + (isAnchor ? ' anchor' : '');
   const sz = isAnchor ? 18 : 14;
   const anc = isAnchor ? 9 : 7;
-  const bg = color || DESVIO_COLOR_DEFAULT;
-  const style = `background:${bg}; box-shadow: 0 0 8px ${bg}aa, 0 0 2px rgba(0,0,0,0.6);`;
-  return L.divIcon({ className: '', html: `<div class="${cls}" style="${style}"></div>`, iconSize:[sz,sz], iconAnchor:[anc,anc] });
-}
-
-function midHandleIcon(color) {
-  const border = color || DESVIO_COLOR_DEFAULT;
-  return L.divIcon({
-    className: '',
-    html: `<div class="desvio-handle" style="border-color:${border}"></div>`,
-    iconSize:[10,10], iconAnchor:[5,5]
-  });
-}
-
-// Repinta todos los markers/handles del desvío con su color actual
-function repintarMarkersDesvio(d) {
-  d.markers.forEach((m, i) => m.setIcon(markerDesvioIcon(i === 0, d.color)));
-  d.midHandles.forEach(mh => mh.marker.setIcon(midHandleIcon(d.color)));
+  return L.divIcon({ className: '', html: `<div class="${cls}"></div>`, iconSize:[sz,sz], iconAnchor:[anc,anc] });
 }
 
 async function dibujarLineasDesvio(d) {
-  // Limpiar capas anteriores
+  // Quitar capas anteriores
+  if (d.osrmPoly) { map.removeLayer(d.osrmPoly); d.osrmPoly = null; }
   if (d.polyline)  { map.removeLayer(d.polyline);  d.polyline = null; }
-  if (d.guidePoly) { map.removeLayer(d.guidePoly); d.guidePoly = null; }
-  d.midHandles.forEach(mh => map.removeLayer(mh.marker));
-  d.midHandles = [];
+
+  // Reset info de indicaciones (se rellena si OSRM responde con steps)
+  d.legs = null;
+  d.distanciaMt = null;
+  d.duracionSeg = null;
 
   if (d.puntos.length < 2) return;
 
   const coords = d.puntos.map(p => [p.lat, p.lng]);
 
-  // Intentar OSRM si modo calles activo — pedimos geometría Y steps en una sola llamada
+  // Intentar OSRM si modo calles activo — incluye steps=true para instrucciones
   if (modoCalles) {
     const wayCoords = d.puntos.map(p => `${p.lng},${p.lat}`).join(';');
     const url = `https://router.project-osrm.org/route/v1/driving/${wayCoords}?overview=full&geometries=geojson&steps=true`;
@@ -1908,161 +2759,49 @@ async function dibujarLineasDesvio(d) {
         const ruta = data.routes[0];
         const geom = ruta.geometry.coordinates.map(c => [c[1], c[0]]);
         d.osrmGeom = geom;
-        // Cachear steps del OSRM para reusarlos en el panel de instrucciones
-        const allSteps = [];
-        (ruta.legs || []).forEach(lg => (lg.steps || []).forEach(s => allSteps.push(s)));
-        d.osrmSteps = allSteps;
-        d.osrmDistance = ruta.distance;
-        d.osrmDuration = ruta.duration;
+        d.legs = ruta.legs || [];
+        d.distanciaMt = ruta.distance || 0;
+        d.duracionSeg = ruta.duration || 0;
 
-        d.polyline = L.polyline(geom, {
-          color: d.color, weight: 5, opacity: 0.92
-        }).bindTooltip(d.nombre || 'Desvío', { className: 'desvio-tooltip', sticky: true })
+        d.osrmPoly = L.polyline(geom, {
+          color: DESVIO_COLOR,
+          weight: 5,
+          opacity: 0.92,
+          className: 'desvio-osrm'
+        }).bindTooltip('Click para ver indicaciones', { className: 'desvio-tooltip', sticky: true })
           .addTo(map);
-        d.guidePoly = L.polyline(coords, {
-          color: d.color, weight: 1.5, opacity: 0.4, dashArray: '6 6'
+        d.osrmPoly.on('click', (ev) => {
+          L.DomEvent.stopPropagation(ev);
+          abrirModalIndicaciones(d);
+        });
+        // También dibujar línea fina de los waypoints como referencia
+        d.polyline = L.polyline(coords, {
+          color: DESVIO_COLOR,
+          weight: 1.5,
+          opacity: 0.4,
+          dashArray: '6 6'
         }).addTo(map);
-        agregarMidHandles(d);
-        engancharDobleClickPolyline(d);
-        if (d === desvioActivoPanel) refrescarTurnosDesvio(d);
         return;
       }
     } catch (e) { /* fallback a recta */ }
   }
 
-  // Fallback: línea recta brillante (sin steps disponibles)
-  d.osrmSteps = null;
+  // Fallback: línea recta brillante — sin indicaciones OSRM
   d.polyline = L.polyline(coords, {
-    color: d.color, weight: 5, opacity: 0.92
-  }).bindTooltip(d.nombre || 'Desvío', { className: 'desvio-tooltip', sticky: true })
+    color: DESVIO_COLOR,
+    weight: 5,
+    opacity: 0.92
+  }).bindTooltip('Click para ver indicaciones', { className: 'desvio-tooltip', sticky: true })
     .addTo(map);
-  agregarMidHandles(d);
-  engancharDobleClickPolyline(d);
-  if (d === desvioActivoPanel) refrescarTurnosDesvio(d);
-}
-
-// Handles intermedios: uno a mitad de cada segmento entre waypoints.
-// Al arrastrarlos, se insertan como waypoint real y se re-rutea.
-function agregarMidHandles(d) {
-  for (let i = 0; i < d.puntos.length - 1; i++) {
-    const a = d.puntos[i], b = d.puntos[i+1];
-    const mid = { lat: (a.lat + b.lat)/2, lng: (a.lng + b.lng)/2 };
-    const m = L.marker([mid.lat, mid.lng], {
-      icon: midHandleIcon(d.color),
-      draggable: true,
-      zIndexOffset: -100
-    }).addTo(map);
-
-    const segmentoIdx = i;   // se convertirá en índice de inserción
-    let inserted = false;
-    let insertedIdx = -1;
-
-    m.on('dragstart', () => { inserted = false; });
-    m.on('drag', (e) => {
-      const nl = e.target.getLatLng();
-      if (!inserted) {
-        // Insertar nuevo waypoint entre i e i+1
-        insertedIdx = segmentoIdx + 1;
-        d.puntos.splice(insertedIdx, 0, { lat: nl.lat, lng: nl.lng });
-        inserted = true;
-      } else {
-        d.puntos[insertedIdx].lat = nl.lat;
-        d.puntos[insertedIdx].lng = nl.lng;
-      }
-      // Actualizar sólo la guía punteada mientras arrastra (barato)
-      if (d.guidePoly) d.guidePoly.setLatLngs(d.puntos.map(p => [p.lat, p.lng]));
-    });
-    m.on('dragend', async () => {
-      d.osrmGeom = null;
-      await dibujarLineasDesvio(d);
-      // Añadir un marker rojo real donde quedó el nuevo waypoint
-      if (inserted && insertedIdx > 0 && insertedIdx < d.puntos.length) {
-        crearMarkerDesvioEnPunto(d, insertedIdx);
-      }
-    });
-
-    d.midHandles.push({ marker: m, segmentIdx: segmentoIdx });
-  }
-}
-
-// Crea un marker rojo persistente para un waypoint ya existente en d.puntos[idx]
-function crearMarkerDesvioEnPunto(d, idx) {
-  const punto = d.puntos[idx];
-  const m = L.marker([punto.lat, punto.lng], {
-    icon: markerDesvioIcon(false, d.color),
-    draggable: true
-  }).bindTooltip(`Punto`, { className: 'desvio-tooltip', direction:'top' })
-    .addTo(map);
-
-  m.on('dragend', async (e) => {
-    const nl = e.target.getLatLng();
-    punto.lat = nl.lat;
-    punto.lng = nl.lng;
-    d.osrmGeom = null;
-    await dibujarLineasDesvio(d);
-  });
-
-  m.on('contextmenu', (e) => {
-    L.DomEvent.stopPropagation(e);
-    const i = d.puntos.indexOf(punto);
-    if (i !== -1) {
-      d.puntos.splice(i, 1);
-      map.removeLayer(m);
-      const mi = d.markers.indexOf(m);
-      if (mi !== -1) d.markers.splice(mi, 1);
-      d.osrmGeom = null;
-      dibujarLineasDesvio(d);
-    }
-    if (d.puntos.length === 0) {
-      eliminarDesvio(d);
-      if (d === desvioActivoPanel) ocultarPanelDesvio();
-    }
-    actualizarBtnClearDesvio();
-  });
-
-  // Click en el marker: activar el panel de control para este desvío
-  m.on('click', (e) => {
-    L.DomEvent.stopPropagation(e);
-    mostrarPanelDesvio(d);
-  });
-
-  d.markers.push(m);
-  return m;
-}
-
-// Al hacer doble-click en la polyline, insertar un waypoint en ese punto
-function engancharDobleClickPolyline(d) {
-  const insertar = (ev) => {
+  d.polyline.on('click', (ev) => {
     L.DomEvent.stopPropagation(ev);
-    const p = { lat: ev.latlng.lat, lng: ev.latlng.lng };
-    // Buscar mejor segmento (entre qué dos waypoints insertar)
-    let mejorIdx = 0, mejorDist = Infinity;
-    for (let i = 0; i < d.puntos.length - 1; i++) {
-      const d1 = distMetros(p.lat, p.lng, d.puntos[i].lat, d.puntos[i].lng);
-      const d2 = distMetros(p.lat, p.lng, d.puntos[i+1].lat, d.puntos[i+1].lng);
-      const total = d1 + d2;
-      if (total < mejorDist) { mejorDist = total; mejorIdx = i; }
-    }
-    d.puntos.splice(mejorIdx + 1, 0, p);
-    d.osrmGeom = null;
-    dibujarLineasDesvio(d).then(() => {
-      crearMarkerDesvioEnPunto(d, mejorIdx + 1);
-    });
-  };
-  if (d.polyline)  d.polyline.on('dblclick', insertar);
-  if (d.guidePoly) d.guidePoly.on('dblclick', insertar);
-  // Click en la línea → activar panel
-  const activar = (ev) => {
-    L.DomEvent.stopPropagation(ev);
-    mostrarPanelDesvio(d);
-  };
-  if (d.polyline) d.polyline.on('click', activar);
+    abrirModalIndicaciones(d);
+  });
 }
 
 function agregarPuntoDesvio(latlng) {
   if (!desvioActual) {
     desvioActual = crearDesvio();
-    mostrarPanelDesvio(desvioActual);
   }
   const d = desvioActual;
   const punto = { lat: latlng.lat, lng: latlng.lng };
@@ -2070,7 +2809,7 @@ function agregarPuntoDesvio(latlng) {
   const idx = d.puntos.length - 1;
 
   const m = L.marker([latlng.lat, latlng.lng], {
-    icon: markerDesvioIcon(idx === 0, d.color),
+    icon: markerDesvioIcon(idx === 0),
     draggable: true
   }).bindTooltip(idx === 0 ? 'Inicio desvío' : `Punto ${idx}`, { className: 'desvio-tooltip', direction:'top' })
     .addTo(map);
@@ -2079,12 +2818,13 @@ function agregarPuntoDesvio(latlng) {
     const nl = e.target.getLatLng();
     punto.lat = nl.lat;
     punto.lng = nl.lng;
-    d.osrmGeom = null;
+    d.osrmGeom = null; // invalidar cache
     await dibujarLineasDesvio(d);
     actualizarBtnClearDesvio();
   });
 
   m.on('contextmenu', (e) => {
+    // Click derecho en un punto de desvío: eliminar ese punto
     L.DomEvent.stopPropagation(e);
     const i = d.puntos.indexOf(punto);
     if (i !== -1) {
@@ -2096,14 +2836,8 @@ function agregarPuntoDesvio(latlng) {
     }
     if (d.puntos.length === 0) {
       eliminarDesvio(d);
-      if (d === desvioActivoPanel) ocultarPanelDesvio();
     }
     actualizarBtnClearDesvio();
-  });
-
-  m.on('click', (e) => {
-    L.DomEvent.stopPropagation(e);
-    mostrarPanelDesvio(d);
   });
 
   d.markers.push(m);
@@ -2112,229 +2846,23 @@ function agregarPuntoDesvio(latlng) {
 }
 
 function eliminarDesvio(d) {
+  if (d.osrmPoly) map.removeLayer(d.osrmPoly);
   if (d.polyline)  map.removeLayer(d.polyline);
-  if (d.guidePoly) map.removeLayer(d.guidePoly);
   d.markers.forEach(m => map.removeLayer(m));
-  d.midHandles.forEach(mh => map.removeLayer(mh.marker));
   const idx = desvios.indexOf(d);
   if (idx !== -1) desvios.splice(idx, 1);
   if (desvioActual === d) desvioActual = null;
-  if (desvioActivoPanel === d) ocultarPanelDesvio();
-  renderListaPropuestas();
 }
 
 function limpiarDesvios() {
+  // Clonar array para iterar sin problema al eliminar
   [...desvios].forEach(d => eliminarDesvio(d));
   desvioActual = null;
-  ocultarPanelDesvio();
   actualizarBtnClearDesvio();
 }
 
 function actualizarBtnClearDesvio() {
   document.getElementById('btnClearDesvio').disabled = (desvios.length === 0);
-}
-
-// ============ Panel flotante de control del desvío ============
-let desvioActivoPanel = null;
-
-function mostrarPanelDesvio(d) {
-  desvioActivoPanel = d;
-  const panel = document.getElementById('desvioCtrl');
-  panel.classList.add('visible');
-  document.getElementById('desvioColor').value = colorToHex(d.color);
-  document.getElementById('desvioNombre').value = d.nombre || '';
-  // Mostrar también las instrucciones calle por calle
-  if (d.puntos.length >= 2) refrescarTurnosDesvio(d);
-}
-
-function ocultarPanelDesvio() {
-  desvioActivoPanel = null;
-  document.getElementById('desvioCtrl').classList.remove('visible');
-}
-
-// Convierte cualquier color a #rrggbb (para el input type=color)
-function colorToHex(c) {
-  if (!c) return '#ff1a1a';
-  if (/^#[0-9a-f]{6}$/i.test(c)) return c;
-  // Usar un canvas para normalizar
-  const ctx = document.createElement('canvas').getContext('2d');
-  ctx.fillStyle = '#000';
-  ctx.fillStyle = c;
-  return ctx.fillStyle;
-}
-
-// Handlers del panel
-document.getElementById('desvioColor').addEventListener('input', (e) => {
-  if (!desvioActivoPanel) return;
-  desvioActivoPanel.color = e.target.value;
-  if (desvioActivoPanel.polyline)  desvioActivoPanel.polyline.setStyle({ color: desvioActivoPanel.color });
-  if (desvioActivoPanel.guidePoly) desvioActivoPanel.guidePoly.setStyle({ color: desvioActivoPanel.color });
-  repintarMarkersDesvio(desvioActivoPanel);
-});
-document.getElementById('desvioNombre').addEventListener('input', (e) => {
-  if (!desvioActivoPanel) return;
-  desvioActivoPanel.nombre = e.target.value;
-  const nm = desvioActivoPanel.nombre || 'Desvío';
-  if (desvioActivoPanel.polyline && desvioActivoPanel.polyline.getTooltip()) {
-    desvioActivoPanel.polyline.setTooltipContent(nm);
-  }
-});
-document.getElementById('desvioSave').addEventListener('click', () => {
-  if (!desvioActivoPanel) return;
-  guardarPropuesta(desvioActivoPanel);
-});
-document.getElementById('desvioDel').addEventListener('click', () => {
-  if (!desvioActivoPanel) return;
-  if (confirm('¿Eliminar este desvío del mapa?')) {
-    eliminarDesvio(desvioActivoPanel);
-    actualizarBtnClearDesvio();
-  }
-});
-document.getElementById('desvioCtrlClose').addEventListener('click', ocultarPanelDesvio);
-
-// ============ Propuestas guardadas (localStorage) ============
-const LS_PROPUESTAS = 'mae_propuestas_v1';
-
-function _getPropuestas() {
-  try { return JSON.parse(localStorage.getItem(LS_PROPUESTAS)) || []; }
-  catch (e) { return []; }
-}
-function _setPropuestas(arr) {
-  try { localStorage.setItem(LS_PROPUESTAS, JSON.stringify(arr)); } catch(e) {}
-}
-
-function guardarPropuesta(d) {
-  if (d.puntos.length < 2) {
-    alert('El desvío necesita al menos 2 puntos para guardarse.');
-    return;
-  }
-  let nombre = (d.nombre || '').trim();
-  if (!nombre) {
-    nombre = prompt('Nombre de la propuesta:', 'Propuesta ' + (_getPropuestas().length + 1));
-    if (!nombre) return;
-    nombre = nombre.trim();
-    d.nombre = nombre;
-    document.getElementById('desvioNombre').value = nombre;
-  }
-  const propuestas = _getPropuestas();
-  // Si ya existe una con el mismo nombre, sobrescribir
-  const existente = propuestas.findIndex(p => p.nombre === nombre);
-  const item = {
-    nombre,
-    color: d.color,
-    puntos: d.puntos.map(p => ({ lat: p.lat, lng: p.lng })),
-    guardadoEn: new Date().toISOString()
-  };
-  if (existente !== -1) {
-    if (!confirm(`Ya existe "${nombre}". ¿Sobrescribir?`)) return;
-    propuestas[existente] = item;
-  } else {
-    propuestas.push(item);
-  }
-  _setPropuestas(propuestas);
-  renderListaPropuestas();
-  alert(`Propuesta "${nombre}" guardada.`);
-}
-
-function eliminarPropuesta(nombre) {
-  if (!confirm(`¿Eliminar la propuesta "${nombre}"?\n\nSe borrará de la lista y se quitará su trazo del mapa.`)) return;
-  const propuestas = _getPropuestas().filter(p => p.nombre !== nombre);
-  _setPropuestas(propuestas);
-  // Quitar también del mapa cualquier desvío cargado con ese nombre
-  [...desvios].filter(d => d.nombre === nombre).forEach(d => eliminarDesvio(d));
-  actualizarBtnClearDesvio();
-  renderListaPropuestas();
-}
-
-function cargarPropuesta(nombre) {
-  const p = _getPropuestas().find(x => x.nombre === nombre);
-  if (!p) return;
-  // Si ya está en el mapa, sólo centrarlo y activar su panel — no duplicar
-  const yaCargado = desvios.find(d => d.nombre === nombre);
-  if (yaCargado) {
-    const b = L.latLngBounds(yaCargado.puntos.map(x => [x.lat, x.lng]));
-    map.fitBounds(b, { padding: [40, 40] });
-    mostrarPanelDesvio(yaCargado);
-    return;
-  }
-  // Crear desvío nuevo con los datos guardados
-  const d = crearDesvio({ nombre: p.nombre, color: p.color });
-  p.puntos.forEach((pt, idx) => {
-    d.puntos.push({ lat: pt.lat, lng: pt.lng });
-    const m = L.marker([pt.lat, pt.lng], {
-      icon: markerDesvioIcon(idx === 0, d.color),
-      draggable: true
-    }).bindTooltip(idx === 0 ? 'Inicio desvío' : `Punto ${idx}`, { className: 'desvio-tooltip', direction:'top' })
-      .addTo(map);
-
-    m.on('dragend', async (e) => {
-      const nl = e.target.getLatLng();
-      d.puntos[idx].lat = nl.lat;
-      d.puntos[idx].lng = nl.lng;
-      d.osrmGeom = null;
-      await dibujarLineasDesvio(d);
-    });
-    m.on('contextmenu', (e) => {
-      L.DomEvent.stopPropagation(e);
-      const i = d.puntos.findIndex(x => x.lat === d.puntos[idx].lat && x.lng === d.puntos[idx].lng);
-      if (i !== -1) {
-        d.puntos.splice(i, 1);
-        map.removeLayer(m);
-        d.markers.splice(d.markers.indexOf(m), 1);
-        d.osrmGeom = null;
-        dibujarLineasDesvio(d);
-      }
-      if (d.puntos.length === 0) eliminarDesvio(d);
-      actualizarBtnClearDesvio();
-    });
-    m.on('click', (e) => { L.DomEvent.stopPropagation(e); mostrarPanelDesvio(d); });
-
-    d.markers.push(m);
-  });
-  dibujarLineasDesvio(d).then(() => {
-    // Centrar mapa en la propuesta
-    const b = L.latLngBounds(p.puntos.map(x => [x.lat, x.lng]));
-    map.fitBounds(b, { padding: [40, 40] });
-    mostrarPanelDesvio(d);
-  });
-  actualizarBtnClearDesvio();
-}
-
-function renderListaPropuestas() {
-  const cont = document.getElementById('listaPropuestas');
-  if (!cont) return;
-  const propuestas = _getPropuestas();
-  if (!propuestas.length) {
-    cont.innerHTML = '<div class="propuesta-empty">Sin propuestas guardadas.</div>';
-    return;
-  }
-  cont.innerHTML = propuestas.map(p => {
-    const enMapa = desvios.some(d => d.nombre === p.nombre);
-    return `
-    <div class="propuesta-item${enMapa ? ' loaded' : ''}" data-nombre="${p.nombre.replace(/"/g,'&quot;')}">
-      <span class="swatch" style="background:${p.color}"></span>
-      <span class="name" title="${p.nombre}">${p.nombre}</span>
-      <span class="pts">${p.puntos.length} pts</span>
-      <button class="${enMapa ? 'hide' : 'load'}" title="${enMapa ? 'Quitar del mapa' : 'Cargar en el mapa'}">${enMapa ? '👁' : '▶'}</button>
-      <button class="del" title="Eliminar propuesta">×</button>
-    </div>
-  `;}).join('');
-  cont.querySelectorAll('.propuesta-item').forEach(el => {
-    const nombre = el.dataset.nombre;
-    const btnAccion = el.querySelector('.load, .hide');
-    btnAccion.addEventListener('click', () => {
-      const yaCargado = desvios.find(d => d.nombre === nombre);
-      if (yaCargado) {
-        eliminarDesvio(yaCargado);
-        actualizarBtnClearDesvio();
-        renderListaPropuestas();
-      } else {
-        cargarPropuesta(nombre);
-        renderListaPropuestas();
-      }
-    });
-    el.querySelector('.del').addEventListener('click', () => eliminarPropuesta(nombre));
-  });
 }
 
 // Click en el mapa para agregar puntos de desvío
@@ -2399,20 +2927,7 @@ document.getElementById('filtro').addEventListener('input', e => {
   renderLista(e.target.value);
 });
 
-// Cargar archivo local
-document.getElementById('fileInput').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  document.getElementById('counter').textContent = 'Procesando archivo local...';
-  const reader = new FileReader();
-  reader.onload = ev => {
-    // Limpiar capas previas
-    Object.values(rutas).forEach(r => map.removeLayer(r.layer));
-    procesarCSV(ev.target.result);
-  };
-  // Leer como Latin1 por si el CSV viene del export en ese encoding
-  reader.readAsText(file, 'ISO-8859-1');
-});
+
 
 // =========================================================
 // USUARIOS / OPERADORES — carga desde Excel
@@ -2432,109 +2947,6 @@ function personIcon() {
   });
 }
 
-function cargarUsuariosExcel(file) {
-  if (typeof XLSX === 'undefined') {
-    alert('Error: la librería de lectura de Excel no cargó.\nRevisa tu conexión a internet y recarga la página.');
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const wb = XLSX.read(new Uint8Array(e.target.result), { type: 'array' });
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      if (!ws) { alert('El archivo no tiene hojas legibles.'); return; }
-      const data = XLSX.utils.sheet_to_json(ws, { defval: '', raw: false });
-      if (!data.length) { alert('El archivo está vacío o no tiene datos.'); return; }
-
-      // Normalizar: quitar acentos y pasar a minúsculas
-      const norm = s => String(s || '').trim().toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      const keys = Object.keys(data[0]);
-
-      // Búsqueda flexible: primero coincidencia exacta, luego "contiene"
-      const findCol = (opts) => {
-        const nopts = opts.map(norm);
-        let f = keys.find(k => nopts.includes(norm(k)));
-        if (f) return f;
-        return keys.find(k => nopts.some(o => norm(k).includes(o)));
-      };
-
-      const colNombre = findCol(['nombre','name','operador','operator','usuario','empleado']);
-      const colLat    = findCol(['latitud','lat','latitude','y']);
-      const colLng    = findCol(['longitud','long','lng','longitude','lon','x']);
-
-      if (!colNombre || !colLat || !colLng) {
-        alert(
-          'No se encontraron las columnas requeridas.\n\n' +
-          'Se esperan encabezados como: Nombre, Lat, Long (o Latitud/Longitud).\n\n' +
-          'Encabezados del archivo:\n  ' + keys.join('\n  ') + '\n\n' +
-          'Detectado:\n' +
-          '  Nombre → ' + (colNombre || 'NO ENCONTRADO') + '\n' +
-          '  Lat    → ' + (colLat    || 'NO ENCONTRADO') + '\n' +
-          '  Long   → ' + (colLng    || 'NO ENCONTRADO')
-        );
-        return;
-      }
-
-      // Limpiar anteriores
-      limpiarUsuarios(false);
-
-      // Aceptar coma decimal (25,6789) y punto (25.6789)
-      const toNum = v => {
-        const s = String(v == null ? '' : v).trim().replace(/,/g, '.');
-        const n = parseFloat(s);
-        return isNaN(n) ? null : n;
-      };
-
-      let ignoradas = 0;
-      data.forEach(row => {
-        const nombre = String(row[colNombre] || '').trim();
-        const lat = toNum(row[colLat]);
-        const lng = toNum(row[colLng]);
-        if (!nombre || lat == null || lng == null) { ignoradas++; return; }
-        usuariosCargados.push({ nombre, lat, lng });
-      });
-
-      if (!usuariosCargados.length) {
-        alert('No se encontraron registros válidos.\nFilas totales: ' + data.length + '\nIgnoradas: ' + ignoradas + '\n\nRevisa que cada fila tenga nombre y coordenadas numéricas.');
-        return;
-      }
-
-      // Crear markers
-      usuariosCargados.forEach(u => {
-        const m = L.marker([u.lat, u.lng], { icon: personIcon() })
-          .bindPopup(`<b>${u.nombre}</b><br><small>${u.lat.toFixed(5)}, ${u.lng.toFixed(5)}</small>`)
-          .bindTooltip(u.nombre, { direction: 'top', offset: [0, -18] });
-        u.marker = m;
-        m.addTo(usuariosLayer);
-      });
-
-      actualizarUIUsuarios();
-
-      // Encuadrar la vista sobre los usuarios cargados
-      if (usuariosCargados.length > 1) {
-        try {
-          const b = L.latLngBounds(usuariosCargados.map(u => [u.lat, u.lng]));
-          map.fitBounds(b, { padding: [40, 40], maxZoom: 15 });
-        } catch(_) {}
-      }
-
-      // Permitir volver a subir el mismo archivo
-      document.getElementById('fileUsuarios').value = '';
-
-      let msg = usuariosCargados.length + ' usuarios cargados correctamente.';
-      if (ignoradas > 0) msg += '\n' + ignoradas + ' filas ignoradas por datos inválidos.';
-      console.log(msg);
-    } catch (err) {
-      alert('Error al leer el archivo:\n' + err.message);
-      console.error(err);
-    }
-  };
-  reader.onerror = function() {
-    alert('Error al leer el archivo (FileReader).');
-  };
-  reader.readAsArrayBuffer(file);
-}
 
 function actualizarUIUsuarios() {
   const n = usuariosCargados.length;
@@ -2542,7 +2954,6 @@ function actualizarUIUsuarios() {
   const cnt = document.getElementById('cntUsuarios');
   cnt.textContent = n > 0 ? `(${n})` : '';
   btn.disabled = (n === 0);
-  document.getElementById('btnClearUsuarios').disabled = (n === 0);
   if (n > 0 && usuariosVisibles) {
     btn.classList.add('active');
     btn.innerHTML = 'Ocultar usuarios <span id="cntUsuarios" style="color:#84cc16; font-weight:700">(' + n + ')</span>';
@@ -2571,32 +2982,157 @@ function limpiarUsuarios(resetInput) {
   usuariosCargados = [];
   usuariosVisibles = true;
   actualizarUIUsuarios();
-  if (resetInput !== false) document.getElementById('fileUsuarios').value = '';
 }
 
 // Eventos
-document.getElementById('fileUsuarios').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (file) cargarUsuariosExcel(file);
-});
+
 document.getElementById('btnToggleUsuarios').addEventListener('click', toggleUsuarios);
-document.getElementById('btnClearUsuarios').addEventListener('click', () => {
-  if (confirm('¿Quitar todos los usuarios del mapa?')) limpiarUsuarios();
-});
 
 // =========================================================
-// CARGA INICIAL desde Google Sheets
+// OP NUEVOS — operadores recién agregados (semana 25)
 // =========================================================
-renderListaPropuestas();
-document.getElementById('counter').textContent = 'Cargando desde Google Sheets...';
-fetch(SHEET_URL)
-  .then(r => r.text())
-  .then(csv => procesarCSV(csv))
-  .catch(err => {
-    document.getElementById('counter').innerHTML =
-      '<span style="color:#f87171">Error al cargar Sheet. Usa el botón de CSV local.</span>';
-    console.error(err);
+const opNuevosLayer = L.layerGroup().addTo(map);
+let opNuevosCargados = [];
+let opNuevosVisibles = true;
+
+function personIconNuevo() {
+  return L.divIcon({
+    className: '',
+    html: `<div class="person-marker-nuevo">${personSVG}</div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -18]
   });
+}
+
+function actualizarUIOpNuevos() {
+  const n = opNuevosCargados.length;
+  const btn = document.getElementById('btnToggleOpNuevos');
+  if (!btn) return;
+  btn.disabled = (n === 0);
+  if (n > 0 && opNuevosVisibles) {
+    btn.style.background = '#f97316';
+    btn.style.color = '#0f172a';
+    btn.innerHTML = 'Ocultar OP nuevos <span id="cntOpNuevos" style="color:#0f172a; font-weight:700">(' + n + ')</span>';
+  } else if (n > 0) {
+    btn.style.background = '#1e293b';
+    btn.style.color = '#e5e7eb';
+    btn.innerHTML = 'Mostrar OP nuevos <span id="cntOpNuevos" style="color:#f97316; font-weight:700">(' + n + ')</span>';
+  } else {
+    btn.style.background = '#1e293b';
+    btn.style.color = '#e5e7eb';
+    btn.innerHTML = 'Mostrar OP nuevos <span id="cntOpNuevos" style="color:#f97316; font-weight:700"></span>';
+  }
+}
+
+function toggleOpNuevos() {
+  if (!opNuevosCargados.length) return;
+  opNuevosVisibles = !opNuevosVisibles;
+  if (opNuevosVisibles) {
+    opNuevosLayer.addTo(map);
+  } else {
+    map.removeLayer(opNuevosLayer);
+  }
+  actualizarUIOpNuevos();
+}
+
+// OP NUEVOS botón removido — guard por si algún día se re-agrega
+(function(){
+  const b = document.getElementById('btnToggleOpNuevos');
+  if (b) b.addEventListener('click', toggleOpNuevos);
+})();
+
+// =========================================================
+// CARGA DE ARCHIVO (Excel / CSV)  — reemplaza los datos hardcodeados
+// =========================================================
+// Convierte una hoja XLSX a CSV con el formato que espera procesarCSV().
+function xlsxToCSV(workbook) {
+  const sheetName = workbook.SheetNames[0];
+  const ws = workbook.Sheets[sheetName];
+  // Forzamos strings para que las horas (H1..H10) lleguen tal cual estén formateadas.
+  return XLSX.utils.sheet_to_csv(ws, { blankrows: false, rawNumbers: false });
+}
+
+// Formatea una celda "hora" que Excel/SheetJS puede haber devuelto de varias formas
+// (Date, "HH:MM:SS", fracción de día, etc.) al string "HH:MM" que el parser usa.
+function normalizarHorasEnCSV(csv) {
+  // SheetJS ya nos da strings; sólo recortamos los ":SS" sobrantes.
+  return csv.replace(/(\b\d{1,2}:\d{2}):\d{2}\b/g, '$1');
+}
+
+function resetEstadoRutas() {
+  // Quitar layers previos del mapa
+  Object.values(rutas).forEach(r => {
+    if (r.layer) map.removeLayer(r.layer);
+  });
+  rutas = {};
+  Object.keys(cacheCalles).forEach(k => delete cacheCalles[k]);
+  plantasActivas.clear();
+  turnosActivos.clear();
+  // Limpiar desvíos y usuarios cargados previamente
+  try { limpiarDesvios(); } catch(e) {}
+  try { limpiarUsuarios(); } catch(e) {}
+  actualizarBadgeCambios();
+}
+
+async function cargarArchivo(file) {
+  const zone = document.getElementById('uploadZone');
+  const txt = document.getElementById('btnCargarText');
+  const counter = document.getElementById('counter');
+  const originalTxt = 'Cargar archivo Excel / CSV';
+  zone.classList.add('loading');
+  txt.textContent = 'Leyendo ' + file.name + '...';
+  counter.textContent = 'Procesando archivo...';
+
+  try {
+    const name = file.name.toLowerCase();
+    let csvText;
+
+    if (name.endsWith('.xlsx') || name.endsWith('.xls')) {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array', cellDates: false });
+      csvText = xlsxToCSV(wb);
+      csvText = normalizarHorasEnCSV(csvText);
+    } else {
+      // CSV texto plano (UTF-8 con o sin BOM)
+      csvText = await file.text();
+      if (csvText.charCodeAt(0) === 0xFEFF) csvText = csvText.slice(1);
+    }
+
+    // Reset y llamamos al MISMO algoritmo que se usaba antes con los datos embebidos.
+    resetEstadoRutas();
+    procesarCSV(csvText);
+    hidratarBeneficiadosEnRutas();
+    actualizarOcupacion();
+
+    txt.textContent = '✓ ' + file.name;
+    setTimeout(() => { txt.textContent = originalTxt; }, 3000);
+  } catch (err) {
+    console.error(err);
+    txt.textContent = '⚠️ Error al leer el archivo';
+    counter.textContent = 'Error: ' + (err.message || err);
+    setTimeout(() => { txt.textContent = originalTxt; }, 3500);
+    alert('No se pudo procesar el archivo:\n' + (err.message || err));
+  } finally {
+    zone.classList.remove('loading');
+  }
+}
+
+// Wire up del botón y del input
+document.getElementById('btnCargarArchivo').addEventListener('click', () => {
+  document.getElementById('fileInput').click();
+});
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (f) cargarArchivo(f);
+  // Reset del value para que se pueda re-seleccionar el mismo archivo
+  e.target.value = '';
+});
+
+// Estado inicial de la interfaz — vacía hasta que el usuario cargue un archivo.
+document.getElementById('counter').innerHTML =
+  '📂 Carga un archivo Excel/CSV para comenzar';
+
 </script>
 </body>
 </html>
