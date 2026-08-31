@@ -11,21 +11,12 @@
   html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #0f172a; }
   #app { display: flex; height: 100vh; overflow: hidden; }
 
-  /* ============ SIDEBAR ============ */
-  #sidebar { width: 340px; background: #f5f7fa; border-right: 1px solid #d5dae1; overflow-y: auto; flex-shrink: 0; display: flex; flex-direction: column; }
-
-  .sb-header {
-    padding: 16px 18px;
-    background: linear-gradient(180deg, #0b1524 0%, #0f1c30 100%);
-    color: #fff;
-    display: flex; flex-direction: column; gap: 4px;
-  }
-  .sb-header h1 {
-    margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.5px;
-    display: flex; align-items: center; gap: 8px;
-  }
+  /* SIDEBAR */
+  #sidebar { width: 340px; background: #f5f7fa; border-right: 1px solid #d5dae1; overflow-y: auto; flex-shrink: 0; }
+  .sb-header { padding: 16px 18px; background: linear-gradient(180deg, #0b1524 0%, #0f1c30 100%); color: #fff; }
+  .sb-header h1 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
   .sb-header h1 .accent { color: #22c55e; }
-  .sb-header .status-line { font-size: 11px; opacity: 0.75; display: flex; align-items: center; gap: 6px; }
+  .sb-header .status-line { font-size: 11px; opacity: 0.75; display: flex; align-items: center; gap: 6px; margin-top: 4px; }
   .sb-header .status-line .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e; }
   .sb-header .status-line .dot.err { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
   .sb-header .status-line .dot.load { background: #fbbf24; box-shadow: 0 0 6px #fbbf24; }
@@ -33,25 +24,22 @@
   .sb-section { padding: 14px 18px; border-bottom: 1px solid #dde2ea; }
   .sb-section h2 { margin: 0 0 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: #64748b; font-weight: 800; }
 
-  /* ============ LEGEND ============ */
+  /* LEGEND */
   .legend-item { display: flex; align-items: center; gap: 10px; padding: 5px 0; font-size: 13px; cursor: pointer; user-select: none; }
   .legend-item input { margin: 0; cursor: pointer; accent-color: #22c55e; }
   .legend-swatch { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.25); flex-shrink: 0; }
   .legend-item .count { margin-left: auto; font-size: 11px; color: #94a3b8; font-weight: 700; background: #fff; padding: 2px 7px; border-radius: 999px; border: 1px solid #e2e8f0; min-width: 26px; text-align: center; }
 
-  /* ============ BUTTONS ============ */
-  .btn { display: block; width: 100%; padding: 9px 12px; background: #22c55e; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; transition: background 0.15s, transform 0.05s; }
+  /* BUTTONS */
+  .btn { display: block; width: 100%; padding: 9px 12px; background: #22c55e; color: #fff; border: none; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; transition: background 0.15s; }
   .btn:hover { background: #16a34a; }
-  .btn:active { transform: scale(0.98); }
   .btn-navy { background: #0f1c30; }
   .btn-navy:hover { background: #1a2a45; }
   .btn-ghost { background: #fff; color: #0f1c30; border: 1px solid #cbd5e1; }
   .btn-ghost:hover { background: #f1f5f9; }
-  .btn-red { background: #dc2626; }
-  .btn-red:hover { background: #b91c1c; }
   .btn + .btn { margin-top: 6px; }
 
-  /* ============ FORMS ============ */
+  /* FORMS */
   .form-group { margin-bottom: 9px; }
   .form-group label { display: block; font-size: 11px; color: #475569; margin-bottom: 3px; font-weight: 700; }
   .form-group input, .form-group select { width: 100%; padding: 7px 9px; border: 1px solid #cbd5e1; border-radius: 5px; font-size: 13px; background: #fff; font-family: inherit; }
@@ -59,99 +47,88 @@
   .form-group input[readonly] { background: #f1f5f9; color: #64748b; }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 
-  /* ============ ROUTE INFO ============ */
-  .route-info { padding: 12px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
-  .metric { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; align-items: center; }
+  /* ROUTE INFO */
+  .route-info { padding: 12px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 8px; }
+  .metric { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; }
   .metric span { color: #64748b; }
   .metric strong { color: #0f172a; font-weight: 700; text-align: right; max-width: 65%; word-break: break-word; }
   .metric.big { padding: 8px 0; border-top: 1px dashed #e2e8f0; margin-top: 4px; }
   .metric.big strong { font-size: 18px; color: #22c55e; }
 
-  /* ============ SELECTION SLOTS ============ */
+  /* SELECTION SLOTS */
   .sel-slot { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #fff; border: 1px dashed #cbd5e1; border-radius: 6px; margin-bottom: 6px; font-size: 12px; color: #94a3b8; }
   .sel-slot.filled { background: #ecfdf5; border-color: #22c55e; border-style: solid; color: #0f172a; }
-  .sel-slot .idx { background: #cbd5e1; color: #fff; width: 20px; height: 20px; border-radius: 50%; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
+  .sel-slot .idx { background: #cbd5e1; color: #fff; width: 20px; height: 20px; border-radius: 50%; font-size: 11px; display: flex; align-items: center; justify-content: center; font-weight: 800; }
   .sel-slot.filled .idx { background: #22c55e; }
 
-  /* ============ STATUS BAR ============ */
-  #status-panel { padding: 10px 14px; margin: 10px 18px; border-radius: 6px; font-size: 12px; display: none; line-height: 1.5; }
+  /* STATUS */
+  #status-panel { padding: 10px 14px; margin: 10px 18px; border-radius: 6px; font-size: 12px; display: none; line-height: 1.5; white-space: pre-wrap; }
   #status-panel.info { background: #dbeafe; color: #1e40af; border-left: 3px solid #3b82f6; }
   #status-panel.error { background: #fee2e2; color: #7f1d1d; border-left: 3px solid #dc2626; }
   #status-panel.success { background: #d1fae5; color: #065f46; border-left: 3px solid #22c55e; }
   #status-panel.warning { background: #fef3c7; color: #78350f; border-left: 3px solid #f59e0b; }
 
-  /* ============ MAP ============ */
+  /* MAP */
   #map-container { flex: 1; position: relative; }
   #map { width: 100%; height: 100%; }
   #add-mode-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: #22c55e; color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 700; font-size: 13px; z-index: 1000; box-shadow: 0 4px 14px rgba(0,0,0,0.25); display: none; }
 
-  /* ============ POPUPS ============ */
+  /* POPUPS */
   .leaflet-popup-content-wrapper { border-radius: 8px; }
-  .leaflet-popup-content { margin: 12px 14px; font-size: 12px; line-height: 1.55; }
+  .leaflet-popup-content { margin: 12px 14px; font-size: 12px; line-height: 1.55; min-width: 220px; }
   .popup-title { font-weight: 800; font-size: 13px; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0; }
   .popup-title.ruta { color: #1E40FF; }
   .popup-title.vacante { color: #EA580C; }
   .popup-title.asignacion { color: #0284c7; }
+  .popup-title.sitio { color: #a16207; }
   .popup-btn { display: inline-block; margin-top: 8px; padding: 6px 12px; background: #22c55e; color: #fff !important; text-decoration: none; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer; border: none; }
   .popup-btn:hover { background: #16a34a; }
 
-  /* ============ HELPERS ============ */
-  .helper-text { font-size: 11px; color: #94a3b8; margin-top: 6px; line-height: 1.4; }
-  details summary { cursor: pointer; font-size: 12px; color: #22c55e; padding: 4px 0; font-weight: 700; }
-  details pre { background: #0b1524; color: #e2e8f0; padding: 10px; border-radius: 5px; font-size: 10px; overflow-x: auto; line-height: 1.4; }
+  /* KM VACÍO CHIP */
+  .km-row { margin: 8px 0 2px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .km-row .lbl { color: #64748b; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+  .km-chip { display: inline-block; padding: 3px 10px; border-radius: 6px; font-weight: 800; font-size: 12px; }
+  .km-chip.green  { background: #dcfce7; color: #166534; }
+  .km-chip.yellow { background: #fde68a; color: #78350f; }
+  .km-chip.red    { background: #fee2e2; color: #991b1b; }
+  .km-chip.empty  { background: transparent; color: #94a3b8; }
+  .km-sub { font-size: 11px; color: #64748b; }
 
-  /* ============ SPINNER ============ */
+  /* HELPERS */
+  .helper-text { font-size: 11px; color: #94a3b8; margin-top: 6px; line-height: 1.4; }
+
+  /* SPINNER */
   .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #22c55e; border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ============ CUSTOM PIN ============ */
+  /* PIN */
   .custom-pin { background: transparent; border: none; }
   .custom-pin svg { display: block; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.35)); transition: transform 0.15s; }
   .custom-pin:hover svg { transform: scale(1.15); }
   .pin-selected svg { transform: scale(1.35) !important; filter: drop-shadow(0 0 8px #dc2626) drop-shadow(0 2px 3px rgba(0,0,0,0.35)) !important; }
   .pin-new svg { animation: bounce-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
   @keyframes bounce-in { 0% { transform: scale(0) translateY(-20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
-  @keyframes pulse-ring {
-    0%   { transform: scale(0.6); opacity: 0.9; }
-    100% { transform: scale(2.2); opacity: 0; }
-  }
+  @keyframes pulse-ring { 0% { transform: scale(0.6); opacity: 0.9; } 100% { transform: scale(2.2); opacity: 0; } }
   .temp-tip { background: #0f1c30 !important; color: #fff !important; border: none !important; font-size: 11px !important; font-weight: 700 !important; padding: 4px 10px !important; border-radius: 6px !important; }
   .temp-tip::before { border-top-color: #0f1c30 !important; }
 
-  /* Debug panel */
-  #debug { position: absolute; bottom: 8px; left: 8px; z-index: 500; background: rgba(11, 21, 36, 0.9); color: #22c55e; font-family: monospace; font-size: 10px; padding: 6px 10px; border-radius: 4px; max-width: 60vw; max-height: 30vh; overflow: auto; display: none; }
+  /* DEBUG */
+  #debug { position: absolute; bottom: 8px; left: 8px; z-index: 500; background: rgba(11, 21, 36, 0.9); color: #22c55e; font-family: monospace; font-size: 10px; padding: 6px 10px; border-radius: 4px; max-width: 60vw; max-height: 30vh; overflow: auto; display: none; white-space: pre-wrap; }
   #debug.show { display: block; }
 
-  /* Buscador flotante top-right */
-  #geo-search {
-    position: absolute; top: 12px; right: 60px; z-index: 800;
-    width: 300px; background: #fff; border-radius: 10px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
-    padding: 10px 12px;
-    font-family: inherit;
-  }
-  #geo-search h3 {
-    margin: 0 0 8px; font-size: 10px; font-weight: 800;
-    letter-spacing: 1px; text-transform: uppercase; color: #0f1c30;
-    display: flex; align-items: center; gap: 6px;
-  }
+  /* GEO SEARCH */
+  #geo-search { position: absolute; top: 12px; right: 60px; z-index: 800; width: 300px; background: #fff; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.18); padding: 10px 12px; }
+  #geo-search h3 { margin: 0 0 8px; font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #0f1c30; display: flex; align-items: center; gap: 6px; }
   #geo-search h3 .badge { background: #22c55e; color: #fff; padding: 2px 6px; border-radius: 999px; font-size: 9px; }
   #geo-search .geo-row { display: flex; gap: 6px; }
-  #geo-search input {
-    flex: 1; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px;
-    font-size: 13px; font-family: inherit;
-  }
+  #geo-search input { flex: 1; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; font-family: inherit; }
   #geo-search input:focus { outline: none; border-color: #22c55e; box-shadow: 0 0 0 2px rgba(34,197,94,0.2); }
   #geo-search button.go { background: #22c55e; color: #fff; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 700; cursor: pointer; }
   #geo-search button.go:hover { background: #16a34a; }
   #geo-search button.clear { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; cursor: pointer; font-size: 12px; margin-top: 6px; width: 100%; }
-  #geo-search button.clear:hover { background: #e2e8f0; }
   #geo-results { margin-top: 8px; max-height: 220px; overflow-y: auto; display: none; }
   #geo-results.show { display: block; }
-  #geo-results .item {
-    padding: 7px 9px; border-radius: 5px; cursor: pointer; font-size: 12px;
-    border-bottom: 1px solid #eef2f6;
-  }
+  #geo-results .item { padding: 7px 9px; border-radius: 5px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #eef2f6; }
   #geo-results .item:hover { background: #ecfdf5; }
   #geo-results .item.selected { background: #dcfce7; border-left: 3px solid #22c55e; padding-left: 6px; }
   #geo-results .item.selected strong::after { content: " ✓"; color: #16a34a; font-weight: 900; }
@@ -160,43 +137,20 @@
   #geo-status { font-size: 11px; color: #64748b; margin-top: 6px; display: none; }
   #geo-status.show { display: block; }
 
-  /* Modal de guardado */
-  #save-modal-bg {
-    position: fixed; inset: 0; background: rgba(11, 21, 36, 0.65);
-    z-index: 3000; display: none; align-items: center; justify-content: center;
-  }
+  /* MODAL */
+  #save-modal-bg { position: fixed; inset: 0; background: rgba(11, 21, 36, 0.65); z-index: 3000; display: none; align-items: center; justify-content: center; }
   #save-modal-bg.show { display: flex; }
-  #save-modal {
-    background: #fff; border-radius: 12px; width: min(560px, 92vw); max-height: 90vh;
-    overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  }
-  #save-modal header {
-    padding: 16px 20px; background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff;
-    border-radius: 12px 12px 0 0; display: flex; align-items: center; gap: 10px;
-  }
+  #save-modal { background: #fff; border-radius: 12px; width: min(560px, 92vw); max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  #save-modal header { padding: 16px 20px; background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; border-radius: 12px 12px 0 0; display: flex; align-items: center; gap: 10px; }
   #save-modal header h3 { margin: 0; font-size: 16px; font-weight: 800; }
   #save-modal .body { padding: 18px 20px; }
   #save-modal .body p { margin: 0 0 12px; font-size: 13px; line-height: 1.55; color: #334155; }
-  #save-modal .preview {
-    background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px;
-    padding: 10px 12px; font-family: monospace; font-size: 11px; color: #0f1c30;
-    overflow-x: auto; white-space: nowrap; margin-bottom: 12px;
-  }
+  #save-modal .preview { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px 12px; font-family: monospace; font-size: 11px; color: #0f1c30; overflow-x: auto; white-space: nowrap; margin-bottom: 12px; }
   #save-modal .steps { background: #ecfdf5; border-left: 3px solid #22c55e; padding: 12px 14px; border-radius: 4px; font-size: 13px; margin-bottom: 12px; }
   #save-modal .steps ol { margin: 0; padding-left: 20px; }
   #save-modal .steps li { margin-bottom: 6px; line-height: 1.5; }
   #save-modal .steps kbd { background: #0f1c30; color: #fff; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-family: monospace; }
   #save-modal footer { padding: 12px 20px 20px; display: flex; flex-direction: column; gap: 8px; }
-  #save-modal .btn-row { display: flex; gap: 8px; }
-  #save-modal .btn-row > * { flex: 1; }
-
-  /* Badge de estado webhook */
-  #webhook-status {
-    display: inline-flex; align-items: center; gap: 6px;
-    font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; margin-left: 8px;
-  }
-  #webhook-status.ok  { background: #d1fae5; color: #065f46; }
-  #webhook-status.off { background: #fee2e2; color: #991b1b; }
 </style>
 </head>
 <body>
@@ -238,6 +192,12 @@
         <span>Operadores prospectos</span>
         <span class="count" id="cnt-asig">–</span>
       </label>
+      <label class="legend-item">
+        <input type="checkbox" data-layer="sitiosCap" checked>
+        <span class="legend-swatch" style="background:#FACC15"></span>
+        <span>Sitios de cap</span>
+        <span class="count" id="cnt-sit">–</span>
+      </label>
     </div>
 
     <div class="sb-section">
@@ -273,7 +233,7 @@
       </div>
       <div id="route-info-container"></div>
       <button class="btn btn-ghost" id="clear-route">Limpiar selección</button>
-      <p class="helper-text">Da clic en cualquier pin y usa <b>“Usar para ruta”</b>.</p>
+      <p class="helper-text">Da clic en cualquier pin y usa <b>"Usar para ruta"</b>.</p>
     </div>
 
     <div class="sb-section">
@@ -306,15 +266,17 @@
         </div>
         <div class="form-group">
           <label>Asignado a JO (F)</label>
-          <input type="text" id="f-jo" placeholder="JO responsable">
+          <select id="f-jo">
+            <option value="">-- Selecciona JO --</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Planta (G) <small style="color:#94a3b8;font-weight:500;">▼ todas del sheet</small></label>
           <select id="f-planta"><option value="">-- Selecciona planta --</option></select>
         </div>
         <div class="form-group">
-          <label>Ruta (H) <small style="color:#94a3b8;font-weight:500;">▼ todas del sheet</small></label>
-          <select id="f-ruta"><option value="">-- Selecciona ruta --</option></select>
+          <label>Ruta (H) <small id="f-ruta-hint" style="color:#94a3b8;font-weight:500;">▼ elige planta primero</small></label>
+          <select id="f-ruta"><option value="">-- Elige planta primero --</option></select>
         </div>
         <div class="form-group">
           <label>Semana (I)</label>
@@ -326,16 +288,17 @@
     </div>
 
     <div class="sb-section" style="padding: 10px 18px;">
+      <a href="https://planeacionlogistica.github.io/SettepiNS/Dashboard_NS.html" target="_blank" rel="noopener" class="btn" style="text-decoration:none; margin-bottom:6px; display:block; font-size:12px; padding:7px;">📊 Abrir Dashboard NS</a>
       <button class="btn btn-navy" id="reload-data" style="font-size: 12px; padding: 7px;">🔄 Recargar datos del Sheet</button>
+      <button class="btn btn-ghost" id="toggle-debug" style="font-size: 11px; padding: 6px; margin-top: 6px;">🐛 Ver diagnóstico</button>
     </div>
 
     <!-- Elementos ocultos que el JS necesita internamente -->
     <div style="display:none;">
-      <span id="webhook-status" class="ok">✓ Preconfigurado</span>
+      <span id="webhook-status"></span>
       <input type="text" id="webhook-url">
       <button id="save-webhook"></button>
       <button id="paste-data"></button>
-      <button id="toggle-debug"></button>
     </div>
   </aside>
 
@@ -350,33 +313,20 @@
           <h3 id="sm-title">Fila copiada al portapapeles</h3>
         </header>
         <div class="body">
-          <p id="sm-msg">La fila del nuevo operador ya está en tu portapapeles. Se agregó como pin en el mapa, pero para que quede guardada en el Google Sheet tienes 2 opciones:</p>
+          <p id="sm-msg">La fila del nuevo operador ya está en tu portapapeles.</p>
           <div class="preview" id="sm-preview"></div>
           <div class="steps">
-            <b>Opción A · Pega ahora (30 seg)</b>
+            <b>Pega en tu Sheet:</b>
             <ol>
-              <li>Abre tu Google Sheet en otra pestaña.</li>
-              <li>Ve a la pestaña <b>asignaciones</b>.</li>
-              <li>Clic en la primera celda vacía de la columna A.</li>
-              <li>Presiona <kbd>Ctrl</kbd>+<kbd>V</kbd> — se pegan las 9 columnas en una sola fila.</li>
-            </ol>
-          </div>
-          <div class="steps" style="background:#eff6ff; border-left-color:#3b82f6;">
-            <b>Opción B · Guardado automático permanente (Apps Script, 3 min)</b>
-            <ol>
-              <li>Google Sheet → <b>Extensiones → Apps Script</b>.</li>
-              <li>Pega el código de "Datos → 📖 Apps Script" y guarda.</li>
-              <li><b>Deploy</b> → Nueva implementación → Aplicación web → Acceso: <b>Cualquiera</b>.</li>
-              <li>Copia el URL <code>/exec</code> y pégalo en "Apps Script Webhook" de esta app.</li>
+              <li>Abre Google Sheet → pestaña <b>asignaciones</b></li>
+              <li>Clic en la primera celda vacía</li>
+              <li>Presiona <kbd>Ctrl</kbd>+<kbd>V</kbd></li>
             </ol>
           </div>
         </div>
         <footer>
-          <div class="btn-row">
-            <button class="btn" id="sm-copy">📋 Copiar de nuevo</button>
-            <button class="btn btn-navy" id="sm-setup">⚙️ Ir a configurar Apps Script</button>
-          </div>
-          <button class="btn btn-ghost" id="sm-close">Cerrar (ya lo pegué / lo haré después)</button>
+          <button class="btn" id="sm-copy">📋 Copiar de nuevo</button>
+          <button class="btn btn-ghost" id="sm-close">Cerrar</button>
         </footer>
       </div>
     </div>
@@ -406,18 +356,30 @@
    CONFIG
    ============================================================ */
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSh0OfSU2phQY6hfHFPTnxJq_R99mTP0XYyIkZurda-2-DSgk2d-J9Q-2N-kuy-DfD16hNsqfOlmFq3/pubhtml";
-// Webhook Apps Script fijo — se usa automáticamente sin pegar nada
-const DEFAULT_WEBHOOK = "https://script.google.com/macros/s/AKfycbx-kgPFKlCPjG8LXe847u2MXsLSY0VgG4zzid9_vH2kaSTFICBo55nocTPQ2tG4Y-dmWA/exec";
+const DEFAULT_WEBHOOK = "https://script.google.com/macros/s/AKfycbxBTki5XduyWyk8hLS5zNTohwdXZ9URV_az9zgeErHGeBm94lMGnphLKHEkatPXbKWXFg/exec";
 const COLORS = {
   rutas: "#1E40FF",
   vacantesCienega: "#EA580C",
   vacantesGarcia: "#FDBA74",
-  asignaciones: "#38BDF8"
+  asignaciones: "#38BDF8",
+  sitiosCap: "#FACC15"
 };
+// JO permitidos — únicos 6 nombres autorizados
+const JO_OPTIONS = [
+  "Joel Mena",
+  "Miguel Granados",
+  "Humberto Palomares",
+  "Raul Martinez",
+  "Julio Gandara",
+  "Abraham Cobos"
+];
 
 const state = {
   webhook: DEFAULT_WEBHOOK,
-  data: { rutas: [], vacantes: [], asignaciones: [] },
+  data: { rutas: [], vacantes: [], asignaciones: [], sitiosCap: [] },
+  extra: { ubicaciones: [], NS: [] },
+  kmVacio: {},
+  plantaRutas: {},  // { "PLANTA X": ["Ruta A", "Ruta B"] }
   selection: [],
   addMode: false,
   layers: {},
@@ -425,108 +387,10 @@ const state = {
   markerById: new Map(),
   nextId: 1,
   debugLog: [],
-  filters: { semana: "", zona: "", planta: "", search: "" }
-};
-
-/* ============================================================
-   DATOS EMBEBIDOS (respaldo cuando la red bloquea al Sheet)
-   Fuente: pestañas rutas / vacantes / asignaciones al 01-ago-2026
-   ============================================================ */
-const EMBEDDED = {
-  vacantes: [
-    { Planta:"CON-CONMET", Ruta:"F2-FRESNOS COSMOPOLIS N", lat:"25.772332", long:"-100.260541", Semana:"31", Zona:"Cienega" },
-    { Planta:"NAV-NAVISTAR", Ruta:"N1-ACUEDUCTO AUX", lat:"25.735161", long:"-100.332864", Semana:"31", Zona:"Cienega" },
-    { Planta:"NAV-NAVISTAR", Ruta:"N3-COAHUILA MTTO", lat:"25.666232", long:"-100.12808", Semana:"31", Zona:"Cienega" },
-    { Planta:"DND-DONALSON", Ruta:"PABLO LIVAS PTE 1", lat:"25.664221", long:"-100.1618963", Semana:"31", Zona:"Cienega" },
-    { Planta:"NAV-NAVISTAR", Ruta:"N2-SANTA CRUZ F2", lat:"25.66620296", long:"-100.1283009", Semana:"31", Zona:"Cienega" },
-    { Planta:"CON-CONMET", Ruta:"F2-SOLIDARIDAD", lat:"25.77346442", long:"-100.4265747", Semana:"31", Zona:"Cienega" },
-    { Planta:"NAV-NAVISTAR", Ruta:"N2-COLON F2", lat:"25.70912678", long:"-100.3276418", Semana:"31", Zona:"Cienega" },
-    { Planta:"CON-CONMET", Ruta:"F1-SALTILLO ORIENTE", lat:"25.419542", long:"-100.909141", Semana:"31", Zona:"Cienega" },
-    { Planta:"CON-CONMET", Ruta:"F1-SALTILLO PONIENTE", lat:"25.4035", long:"-100.98742", Semana:"31", Zona:"Cienega" },
-    { Planta:"NEM-NEMAK", Ruta:"F2-BALCONES A - 1", lat:"25.791294", long:"-100.26331", Semana:"31", Zona:"Garcia" },
-    { Planta:"NEM-NEMAK", Ruta:"F2-BALCONES B - 1", lat:"25.764181", long:"-100.322617", Semana:"31", Zona:"Garcia" },
-    { Planta:"NEM-NEMAK", Ruta:"F1-SAN FRANCISCO A - 1", lat:"25.83642", long:"-100.36706", Semana:"31", Zona:"Garcia" },
-    { Planta:"NEM-NEMAK", Ruta:"F1-SAN FRANCISCO B - 1", lat:"25.85839", long:"-100.37678", Semana:"31", Zona:"Garcia" },
-    { Planta:"NEM-NEMAK", Ruta:"F3-JULIO ROCA - 1", lat:"25.74357189", long:"-100.3425761", Semana:"31", Zona:"Garcia" },
-    { Planta:"NEM-NEMAK", Ruta:"F3-SAN BERNABE A - 1", lat:"25.730601", long:"-100.346139", Semana:"31", Zona:"Garcia" },
-    { Planta:"GAL-GRUPO ALEN", Ruta:"VILLA AZUL-SOR JUANA", lat:"25.819249", long:"-100.616348", Semana:"31", Zona:"Garcia" },
-    { Planta:"GAL-GRUPO ALEN", Ruta:"LOMAS Y HDA. DE SANTA CATARINA", lat:"25.687471", long:"-100.495809", Semana:"31", Zona:"Garcia" },
-    { Planta:"EMC-EMPAQUES CARVAJAL", Ruta:"CAPELLANIA-HEROES (STA C)", lat:"25.80634162", long:"-100.6123755", Semana:"31", Zona:"Garcia" },
-    { Planta:"ALC-ALCALI", Ruta:"SANTA CATARINA ROTATIVO", lat:"25.696178", long:"-100.46702", Semana:"31", Zona:"Garcia" },
-    { Planta:"ALC-ALCALI", Ruta:"SANTA CATARINA FIJO", lat:"25.6743403", long:"-100.4573227", Semana:"31", Zona:"Garcia" },
-    { Planta:"ALC-ALCALI", Ruta:"ESCOBEDO FIJO", lat:"25.7801285", long:"-100.2922425", Semana:"31", Zona:"Garcia" },
-    { Planta:"GON-GONHER", Ruta:"MONTERREY", lat:"25.684173", long:"-100.296987", Semana:"31", Zona:"Garcia" },
-    { Planta:"LBL-LUBRAL", Ruta:"LOS PARQUES VALLE DE LINCOLN", lat:"25.783839", long:"-100.465357", Semana:"31", Zona:"Garcia" },
-    { Planta:"LBL-LUBRAL", Ruta:"SAN PEDRO", lat:"25.68143", long:"-100.411887", Semana:"31", Zona:"Garcia" },
-    { Planta:"LBL-LUBRAL", Ruta:"VISTA BELLA - ENCINOS", lat:"25.822511", long:"-100.535702", Semana:"31", Zona:"Garcia" },
-    { Planta:"GON-GONHER", Ruta:"GARCIA 1 VILLA AZUL", lat:"25.81927", long:"-100.616332", Semana:"31", Zona:"Garcia" },
-    { Planta:"REG-MARATHON", Ruta:"LOMAS", lat:"25.692919", long:"-100.4897", Semana:"31", Zona:"Garcia" },
-    { Planta:"REG-MARATHON", Ruta:"SANTA", lat:"25.681225", long:"-100.484194", Semana:"31", Zona:"Garcia" },
-    { Planta:"REG-MARATHON", Ruta:"VIÑEDOS", lat:"25.712795", long:"-100.508116", Semana:"31", Zona:"Garcia" },
-    { Planta:"REG-MARATHON", Ruta:"PORTAL DE LINCOLN", lat:"25.8239", long:"-100.537656", Semana:"31", Zona:"Garcia" }
-  ],
-  asignaciones: [
-    { "Nombre / Prospecto":"OSCAR HERNANDEZ PEREZ", Col:"HEROES DE LINCOLN", Municipio:"GARCIA", Lat:"25.61546189", Long:"-100.5558826", "Asignado a Jo":"", Planta:"", Ruta:"", Semana:"31" },
-    { "Nombre / Prospecto":"FRANCISCO JAVIER VALENZUELA GARCIA", Col:"VISTAS DEL RIO", Municipio:"JUAREZ", Lat:"25.66349224", Long:"-100.0994155", "Asignado a Jo":"", Planta:"", Ruta:"", Semana:"31" },
-    { "Nombre / Prospecto":"HERNAN URIEL LUGO GARCIA", Col:"OPORTO", Municipio:"JUAREZ", Lat:"25.68523246", Long:"-100.0816163", "Asignado a Jo":"", Planta:"", Ruta:"", Semana:"31" },
-    { "Nombre / Prospecto":"ADRIAN MENDEZ TORRES", Col:"VILLAS DE ALCALI SEC", Municipio:"GARCIA", Lat:"25.78476352", Long:"-100.5672184", "Asignado a Jo":"", Planta:"", Ruta:"", Semana:"31" },
-    { "Nombre / Prospecto":"ANDRES CRUZ GONZALEZ", Col:"ALIANZA REAL", Municipio:"ESCOBEDO", Lat:"25.84537076", Long:"-100.3982234", "Asignado a Jo":"", Planta:"", Ruta:"", Semana:"31" },
-    { "Nombre / Prospecto":"CRISTIAN EDGAR RODRIGUEZ VILLARREAL", Col:"HDA STA MARIA", Municipio:"ZUAZUA", Lat:"25.90866042", Long:"-100.1577133", "Asignado a Jo":"", Planta:"", Ruta:"", Semana:"31" },
-    { "Nombre / Prospecto":"JUAN ANGEL HERNANDEZ REYES", Col:"HEROES DE CAPELLAN", Municipio:"GARCIA", Lat:"25.79171678", Long:"-100.5596897", "Asignado a Jo":"", Planta:"", Ruta:"", Semana:"31" },
-    { "Nombre / Prospecto":"GUSTAVO ADOLFO HERNANDEZ ALANIS", Col:"VALLE DE SAN FELIPE", Municipio:"GARCIA", Lat:"25.81408951", Long:"-100.6361929", "Asignado a Jo":"", Planta:"", Ruta:"", Semana:"31" },
-    { "Nombre / Prospecto":"MARY FLOR PALMA RINCON", Col:"PALMIRAS", Municipio:"ESCOBEDO", Lat:"25.84325134", Long:"-100.4242783", "Asignado a Jo":"", Planta:"", Ruta:"", Semana:"31" },
-    { "Nombre / Prospecto":"ROSENDO ESPINOZA RIVERA", Col:"NUEVA ESPERANZA", Municipio:"ESCOBEDO", Lat:"25.79804924", Long:"-100.3931404", "Asignado a Jo":"", Planta:"", Ruta:"", Semana:"31" },
-    { "Nombre / Prospecto":"ALFONSO ALEJANDRO ALONSO MARTINEZ", Col:"LOPEZ MATEOS", Municipio:"SANTA CATARINA", Lat:"25.69198204", Long:"-100.4496029", "Asignado a Jo":"", Planta:"", Ruta:"", Semana:"31" }
-  ],
-  rutas: [
-    { Planta:"JOH-JOHN DEE", Ruta:"J1-BUENA VISTA", LatSt:"25.852547", LongSt:"-100.36516", "1ª parada":"OXXO AV. VISTA REGIA" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J1-ZUAZUA BAL", LatSt:"25.900058", LongSt:"-100.165309", "1ª parada":"AVE.REAL DE PALMAS Y CALLE DEL ESTADO (FERRETERIA LA REYNA)" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J1-LOS PARQUES", LatSt:"25.790024", LongSt:"-100.468521", "1ª parada":"AV. LOS PARQUES SUPER7" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J2-SAN MARTIN", LatSt:"25.756006", LongSt:"-100.10563", "1ª parada":"PARABUS AV LUCCA Y CANTAUTORES MEXICANOS" },
-    { Planta:"EMC-EMPAQUE", Ruta:"FUSION - PORT", LatSt:"25.823992", LongSt:"-100.541527", "1ª parada":"GABRIEL GARCIA MARQUEZ (OXXO ISABEL)" },
-    { Planta:"EMC-EMPAQUE", Ruta:"URBI SIERRA C", LatSt:"25.79978902", LongSt:"-100.6083228", "1ª parada":"LA SIBERIA OXXO (FRENTE A TOSTADAS LA SIBERIA)" },
-    { Planta:"EMC-EMPAQUE", Ruta:"MONTERREY", LatSt:"25.815063", LongSt:"-100.612286", "1ª parada":"AV. MONTERREY CRUZ CON PRADERAS DE CANTILLANA" },
-    { Planta:"AMD-AMD", Ruta:"CLOUTHIER - H", LatSt:"25.68027603", LongSt:"-100.4136485", "1ª parada":"GIMNASIO 400" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J2-VISTAS DEL", LatSt:"25.66616089", LongSt:"-100.1034449", "1ª parada":"VISTA DEL HUIZACHE" },
-    { Planta:"LBL-LUBRAL", Ruta:"VISTA BELLA - I", LatSt:"25.822511", LongSt:"-100.535702", "1ª parada":"FRACCIONAMIENTO NUEVO" },
-    { Planta:"ACU-ACUMENT", Ruta:"GARCIA", LatSt:"25.80716967", LongSt:"-100.6337132", "1ª parada":"HDA DEL RENACIMIENTO OXXO" },
-    { Planta:"JOH-JOHN DEE", Ruta:"GARCIA MINA", LatSt:"25.8310728", LongSt:"-100.5925255", "1ª parada":"AV. LAS BRISAS Y CALLE LAZADA SUR" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J1-PARAJE LA I", LatSt:"25.799073", LongSt:"-100.429867", "1ª parada":"PARABUS SECU RIOS" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J2-COSMOPOLI", LatSt:"25.815716", LongSt:"-100.245363", "1ª parada":"DIONE Y AV. ANDROMEDA" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J2-SAN JAVIER", LatSt:"25.743998", LongSt:"-100.152469", "1ª parada":"PARQUE SANTO DOMINGO-SAN JAVIER" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J2-SANTA MON", LatSt:"25.627132", LongSt:"-100.154585", "1ª parada":"COMERCIAL TREVIÑO" },
-    { Planta:"EMC-EMPAQUE", Ruta:"CAPELLANIA-H", LatSt:"25.80634162", LongSt:"-100.6123755", "1ª parada":"AV. SAN SEBASTIAN Y SAN FRANCISCO DE ASIS COL. RIVERA DE CAPELLANAS" },
-    { Planta:"EMC-EMPAQUE", Ruta:"VALLE DE LINC", LatSt:"25.79313331", LongSt:"-100.4741973", "1ª parada":"ANTIGUO CAMINO A SAN JOSE Y AV DEL FRAILE (OXXO)" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J2-ALAMOS NO", LatSt:"25.738911", LongSt:"-100.189255", "1ª parada":"ANT.CAMINO A HUINALA Y 16 DE SEP (OXXO)" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J2-MARGARITA", LatSt:"25.697363", LongSt:"-100.105006", "1ª parada":"VIA MARCO POLO (GAS LP GASA)" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J2-VILLAS DE S", LatSt:"25.68619176", LongSt:"-100.087548", "1ª parada":"PASEO DEL REAL" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J2-VIÑEDOS SA", LatSt:"25.70458701", LongSt:"-100.5121101", "1ª parada":"DEPOSITO CASTILLO" },
-    { Planta:"LBL-LUBRAL", Ruta:"ZAPATA PRIVAD", LatSt:"25.800781", LongSt:"-100.593191", "1ª parada":"PLAZA DE LA MUJER" },
-    { Planta:"ACU-ACUMENT", Ruta:"SANTA CATARINA", LatSt:"25.703433", LongSt:"-100.462283", "1ª parada":"SEVEN" },
-    { Planta:"GRA-ARTIGRAF", Ruta:"SIERRA - PRIV.", LatSt:"25.79601", LongSt:"-100.595695", "1ª parada":"16 DE SEPT Y SOR JUANA (GASERA)" },
-    { Planta:"GON-GONHER", Ruta:"GARCIA 2 SAN", LatSt:"25.805437", LongSt:"-100.56452", "1ª parada":"LOS ARCOS ENTRADA A SAN BLAS OXXO" },
-    { Planta:"GON-GONHER", Ruta:"GARCIA 3 URBI", LatSt:"25.782927", LongSt:"-100.590707", "1ª parada":"PLAZA URBI" },
-    { Planta:"AMD-AMD", Ruta:"PANTEONES", LatSt:"25.818646", LongSt:"-100.616767", "1ª parada":"OXXO VILLA AZUL" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J1-GARCIA 1 IM", LatSt:"25.824266", LongSt:"-100.591581", "1ª parada":"FERRETERIA SIMOZA" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J1-GARCIA 2 CO", LatSt:"25.82423243", LongSt:"-100.5915985", "1ª parada":"FERRETERIA SIMOZA" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J1-SIERRA REA", LatSt:"25.799405", LongSt:"-100.611986", "1ª parada":"AV. MARAVILLAS" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J2-FRESNOS N", LatSt:"25.768845", LongSt:"-100.261551", "1ª parada":"AV. INTERNACIONAL DE LA MUJER Y AV. CONCEPCION BARRAGAN" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J2-LOS ENCING", LatSt:"25.620566", LongSt:"-100.122959", "1ª parada":"VISTAS DEL SEMINARIO" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J2-LOS PORTAL", LatSt:"25.630051", LongSt:"-100.10056", "1ª parada":"FARMACIA GUADALAJARA" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J2-UNIDAD MO", LatSt:"25.746482", LongSt:"-100.359496", "1ª parada":"AV. TLATELOLCO" },
-    { Planta:"LBL-LUBRAL", Ruta:"LOS PARQUES", LatSt:"25.783839", LongSt:"-100.465357", "1ª parada":"ROTONDA DE MISION SAN JUAN" },
-    { Planta:"MOL-MOLISABA", Ruta:"RENACIMIENTO", LatSt:"25.811601", LongSt:"-100.635296", "1ª parada":"OXXO STA SOFIA" },
-    { Planta:"CON-CONMET", Ruta:"F1-SALTILLO O", LatSt:"25.419542", LongSt:"-100.909141", "1ª parada":"MODELORAMA" },
-    { Planta:"GARCIA 4 VISTAS", Ruta:"VISTAS", LatSt:"25.770627", LongSt:"-100.601082", "1ª parada":"ABARROTES LA MONTAÑA" },
-    { Planta:"EYA-ENERYA", Ruta:"VALLE DE LINC", LatSt:"25.805296", LongSt:"-100.485362", "1ª parada":"AV CORDILLERA Y LA CIMA SUPER 7EXPRESS MINAS" },
-    { Planta:"HAR-HARIMASA", Ruta:"PRIVADAS", LatSt:"25.80147356", LongSt:"-100.6113534", "1ª parada":"FERRETERIA LOZANO" },
-    { Planta:"HAR-HARIMASA", Ruta:"VILLA AZUL", LatSt:"25.829117", LongSt:"-100.593348", "1ª parada":"BRISAS" },
-    { Planta:"GON-GONHER", Ruta:"GARCIA 1 VILL", LatSt:"25.81927", LongSt:"-100.616332", "1ª parada":"OXXO VILLA AZUL" },
-    { Planta:"LBL-LUBRAL", Ruta:"RENACIMIENTO", LatSt:"25.819158", LongSt:"-100.618401", "1ª parada":"OXXO VILLA AZUL" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J1-PANTEONES", LatSt:"25.815499", LongSt:"-100.623386", "1ª parada":"PARABUS SANTA LUCIA" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J1-PANTEONES B", LatSt:"25.823264", LongSt:"-100.629607", "1ª parada":"PARABUS SANTA LUCIA" },
-    { Planta:"JOH-JOHN DEE", Ruta:"J2-SAN NICOLA", LatSt:"25.734269", LongSt:"-100.270582", "1ª parada":"CALLE 4 (SUPER 7)" }
-  ]
+  filters: { semana: "", zona: "", planta: "", search: "" },
+  tempMarker: null,
+  _editingRow: undefined,
+  _boundsFit: false
 };
 
 /* ============================================================
@@ -547,35 +411,26 @@ document.getElementById("toggle-debug").addEventListener("click", () => {
    MAP
    ============================================================ */
 const map = L.map("map", { zoomControl: true }).setView([25.72, -100.30], 11);
-
 const baseLayers = {
-  "Google Maps": L.tileLayer("https://mt{s}.google.com/vt/lyrs=m&hl=es&x={x}&y={y}&z={z}", {
-    subdomains: ["0", "1", "2", "3"], maxZoom: 20, attribution: "© Google"
-  }),
-  "Google Satélite": L.tileLayer("https://mt{s}.google.com/vt/lyrs=y&hl=es&x={x}&y={y}&z={z}", {
-    subdomains: ["0", "1", "2", "3"], maxZoom: 20, attribution: "© Google"
-  }),
-  "Google Terreno": L.tileLayer("https://mt{s}.google.com/vt/lyrs=p&hl=es&x={x}&y={y}&z={z}", {
-    subdomains: ["0", "1", "2", "3"], maxZoom: 20, attribution: "© Google"
-  }),
-  "Mapa Simple": L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-    subdomains: "abcd", maxZoom: 20, attribution: "© CartoDB · OpenStreetMap"
-  }),
-  "OpenStreetMap": L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 19, attribution: "© OpenStreetMap"
-  })
+  "Google Maps": L.tileLayer("https://mt{s}.google.com/vt/lyrs=m&hl=es&x={x}&y={y}&z={z}", { subdomains: ["0","1","2","3"], maxZoom: 20, attribution: "© Google" }),
+  "Google Satélite": L.tileLayer("https://mt{s}.google.com/vt/lyrs=y&hl=es&x={x}&y={y}&z={z}", { subdomains: ["0","1","2","3"], maxZoom: 20, attribution: "© Google" }),
+  "Google Terreno": L.tileLayer("https://mt{s}.google.com/vt/lyrs=p&hl=es&x={x}&y={y}&z={z}", { subdomains: ["0","1","2","3"], maxZoom: 20, attribution: "© Google" }),
+  "Mapa Simple": L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", { subdomains: "abcd", maxZoom: 20, attribution: "© CartoDB · OSM" }),
+  "OpenStreetMap": L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" })
 };
 baseLayers["Google Maps"].addTo(map);
 L.control.layers(baseLayers, null, { position: "topright", collapsed: true }).addTo(map);
 
 map.createPane("rutas-pane"); map.getPane("rutas-pane").style.zIndex = 450;
-map.createPane("vac-pane");   map.getPane("vac-pane").style.zIndex   = 470;
-map.createPane("asig-pane");  map.getPane("asig-pane").style.zIndex  = 490;
+map.createPane("vac-pane");   map.getPane("vac-pane").style.zIndex = 470;
+map.createPane("asig-pane");  map.getPane("asig-pane").style.zIndex = 490;
+map.createPane("sit-pane");   map.getPane("sit-pane").style.zIndex = 480;
 
 state.layers.rutas             = L.layerGroup().addTo(map);
 state.layers.vacantesCienega   = L.layerGroup().addTo(map);
 state.layers.vacantesGarcia    = L.layerGroup().addTo(map);
 state.layers.asignaciones      = L.layerGroup().addTo(map);
+state.layers.sitiosCap         = L.layerGroup().addTo(map);
 
 /* ============================================================
    PIN FACTORY (SVG teardrop)
@@ -585,86 +440,27 @@ function makePin(color, size) {
   const h = Math.round(size * 1.35);
   const html =
     '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 24 32">' +
-      '<path d="M12 0.5 C5.65 0.5 0.5 5.65 0.5 12 C0.5 20.5 12 31.5 12 31.5 C12 31.5 23.5 20.5 23.5 12 C23.5 5.65 18.35 0.5 12 0.5 Z" ' +
-        'fill="' + color + '" stroke="#ffffff" stroke-width="1.5"/>' +
+      '<path d="M12 0.5 C5.65 0.5 0.5 5.65 0.5 12 C0.5 20.5 12 31.5 12 31.5 C12 31.5 23.5 20.5 23.5 12 C23.5 5.65 18.35 0.5 12 0.5 Z" fill="' + color + '" stroke="#ffffff" stroke-width="1.5"/>' +
       '<circle cx="12" cy="12" r="4.5" fill="#ffffff"/>' +
     '</svg>';
   return L.divIcon({
-    html: html,
-    className: "custom-pin",
-    iconSize: [w, h],
-    iconAnchor: [w/2, h - 1],
-    popupAnchor: [0, -h + 5]
+    html: html, className: "custom-pin",
+    iconSize: [w, h], iconAnchor: [w/2, h - 1], popupAnchor: [0, -h + 5]
   });
 }
 
 /* ============================================================
-   FETCH con múltiples fallbacks
+   FETCH via JSONP + fallback
    ============================================================ */
-async function fetchWithFallback(url) {
-  const strategies = [
-    { name: "directo",        build: u => u,
-      opts: { cache: "no-store", mode: "cors", credentials: "omit" } },
-    { name: "corsproxy.io",   build: u => "https://corsproxy.io/?" + encodeURIComponent(u) },
-    { name: "allorigins.win", build: u => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u) },
-    { name: "codetabs",       build: u => "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(u) },
-    { name: "thingproxy",     build: u => "https://thingproxy.freeboard.io/fetch/" + u }
-  ];
-  const errors = [];
-  for (const s of strategies) {
-    try {
-      log("fetch → " + s.name);
-      const r = await fetch(s.build(url), s.opts || { cache: "no-store" });
-      if (!r.ok) { errors.push(s.name + ": HTTP " + r.status); log(" ✗ " + s.name + " HTTP " + r.status); continue; }
-      const text = await r.text();
-      if (text && text.length > 500) {
-        log(" ✓ " + s.name + " → " + text.length + " bytes");
-        return { text, via: s.name };
-      }
-      errors.push(s.name + ": vacío (" + text.length + " b)");
-      log(" ✗ " + s.name + " vacío");
-    } catch (e) {
-      errors.push(s.name + ": " + e.message);
-      log(" ✗ " + s.name + " " + e.message);
-    }
-  }
-  throw new Error("Todos los métodos fallaron:\n• " + errors.join("\n• "));
-}
-
-/* ============================================================
-   LOAD DATA
-   ============================================================ */
-function useEmbedded(reason) {
-  state.data.rutas        = EMBEDDED.rutas.slice();
-  state.data.vacantes     = EMBEDDED.vacantes.slice();
-  state.data.asignaciones = EMBEDDED.asignaciones.slice();
-  renderAll();
-  setHeaderStatus("ok", "Datos locales (" + EMBEDDED.rutas.length + "+" + EMBEDDED.vacantes.length + "+" + EMBEDDED.asignaciones.length + ")");
-  showStatus("📦 Usando datos embebidos. " + (reason || "") + "\n→ Para sync en vivo instala el Apps Script (ver Datos → 📖).", "warning", 0);
-  log("datos embebidos aplicados: " + (reason || ""));
-}
-
-// JSONP: agrega <script src=".../exec?callback=cb"> — bypassa el sandbox
 function loadViaJSONP(url, timeoutMs) {
   return new Promise((resolve, reject) => {
     const cbName = "appsScriptCb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
     const script = document.createElement("script");
-    let done = false;
-    let timer = null;
-    const cleanup = () => {
-      try { delete window[cbName]; } catch {}
-      if (script.parentNode) script.parentNode.removeChild(script);
-      if (timer) clearTimeout(timer);
-    };
+    let done = false, timer = null;
+    const cleanup = () => { try { delete window[cbName]; } catch {} if (script.parentNode) script.parentNode.removeChild(script); if (timer) clearTimeout(timer); };
     window[cbName] = (data) => { done = true; cleanup(); resolve(data); };
-    script.onerror = () => {
-      if (done) return; cleanup();
-      reject(new Error("JSONP: no se pudo cargar el script (¿Apps Script no soporta callback?)"));
-    };
-    timer = setTimeout(() => {
-      if (done) return; cleanup();
-      reject(new Error("JSONP: timeout 20s — probablemente el Apps Script no está devolviendo el callback"));
-    }, timeoutMs || 20000);
+    script.onerror = () => { if (done) return; cleanup(); reject(new Error("JSONP script error")); };
+    timer = setTimeout(() => { if (done) return; cleanup(); reject(new Error("JSONP timeout")); }, timeoutMs || 25000);
     const sep = url.includes("?") ? "&" : "?";
     script.src = url + sep + "callback=" + cbName + "&_=" + Date.now();
     document.body.appendChild(script);
@@ -677,25 +473,21 @@ async function tryWebhookLoad() {
   try {
     const data = await loadViaJSONP(state.webhook);
     applyAppsScriptData(data);
-    setHeaderStatus("ok", "Sync en vivo · Apps Script · " + new Date().toLocaleTimeString("es-MX"));
-    showStatus("✓ Datos en vivo desde el Google Sheet (JSONP OK)", "success", 4000);
-    updateWebhookStatus(true);
+    setHeaderStatus("ok", "Sync en vivo · " + new Date().toLocaleTimeString("es-MX"));
+    showStatus("✓ Datos en vivo desde el Google Sheet", "success", 4000);
     return true;
   } catch (err) {
     log("JSONP falló: " + err.message);
-    // Fallback: fetch directo (funciona si el HTML se abre fuera del artifact)
     try {
       const r = await fetch(state.webhook, { cache: "no-store" });
       if (!r.ok) throw new Error("HTTP " + r.status);
       const data = await r.json();
       applyAppsScriptData(data);
-      setHeaderStatus("ok", "Sync en vivo · Apps Script · " + new Date().toLocaleTimeString("es-MX"));
-      showStatus("✓ Datos en vivo (fetch directo)", "success", 4000);
-      updateWebhookStatus(true);
+      setHeaderStatus("ok", "Sync en vivo · " + new Date().toLocaleTimeString("es-MX"));
+      showStatus("✓ Datos en vivo (fetch)", "success", 4000);
       return true;
     } catch (err2) {
       log("fetch fallback también falló: " + err2.message);
-      updateWebhookStatus(false);
       return false;
     }
   }
@@ -703,39 +495,10 @@ async function tryWebhookLoad() {
 
 async function loadData() {
   setHeaderStatus("load", "Sincronizando…");
-
-  // 1) Intenta primero por webhook Apps Script (siempre funciona sin CORS)
-  if (await tryWebhookLoad()) return;
-
-  // 2) Si no hay webhook o falló, intenta el pubhtml con proxies
-  try {
-    const { text, via } = await fetchWithFallback(SHEET_URL);
-
-    log("respuesta empieza con: " + text.substring(0, 80).replace(/\s+/g, " "));
-    log("¿contiene 'Planta'?: " + text.includes("Planta"));
-    log("¿contiene 'LatSt'?: " + text.includes("LatSt"));
-    log("¿contiene '<table'?: " + text.includes("<table"));
-
-    const doc = new DOMParser().parseFromString(text, "text/html");
-    log("body.children: " + doc.body.children.length + ", tables total: " + doc.querySelectorAll("table").length);
-
-    const sheets = parsePublishedSheet(doc, text);
-    const names = Object.keys(sheets);
-    log("hojas parseadas: " + names.join(", "));
-    if (!names.length) throw new Error("HTML llegó pero sin tablas parseables");
-
-    state.data.rutas        = sheets.rutas        || [];
-    state.data.vacantes     = sheets.vacantes     || [];
-    state.data.asignaciones = sheets.asignaciones || [];
-
-    log("filas → rutas:" + state.data.rutas.length + " vacantes:" + state.data.vacantes.length + " asig:" + state.data.asignaciones.length);
-
-    renderAll();
-    setHeaderStatus("ok", "Actualizado " + new Date().toLocaleTimeString("es-MX") + " · vía " + via);
-    showStatus("✓ Sync en vivo · " + state.data.rutas.length + " rutas · " + state.data.vacantes.length + " vacantes · " + state.data.asignaciones.length + " prospectos", "success", 4000);
-  } catch (err) {
-    log("Fetch en vivo falló: " + err.message);
-    useEmbedded("El sandbox bloqueó el acceso al Sheet: " + err.message.split(":")[0]);
+  const ok = await tryWebhookLoad();
+  if (!ok) {
+    setHeaderStatus("err", "Error de conexión");
+    showStatus("⚠ No se pudo conectar al Apps Script. Revisa 🐛 diagnóstico.", "error", 0);
   }
 }
 
@@ -748,122 +511,98 @@ function setHeaderStatus(kind, msg) {
 }
 
 /* ============================================================
-   PARSE
+   APPLY DATA
    ============================================================ */
-function parsePublishedSheet(doc, rawText) {
-  const out = {};
-
-  // 1) recolectar TODAS las tablas del documento (incluso anidadas)
-  let tables = Array.from(doc.querySelectorAll("table"));
-  log("tables via DOMParser: " + tables.length);
-
-  // 1.5) si DOMParser no encontró, extraer manualmente con regex sobre el texto
-  if (tables.length === 0 && rawText) {
-    log("→ fallback: extrayendo tables por regex");
-    const holder = document.createElement("div");
-    const matches = rawText.match(/<table[\s\S]*?<\/table>/gi) || [];
-    log("tables via regex: " + matches.length);
-    matches.forEach(m => {
-      const wrap = document.createElement("div");
-      wrap.innerHTML = m;
-      const t = wrap.querySelector("table");
-      if (t) tables.push(t);
+function applyAppsScriptData(obj) {
+  const toObjects = (arr) => {
+    if (!Array.isArray(arr) || arr.length < 2) return [];
+    const heads = arr[0].map(String);
+    return arr.slice(1).map(row => {
+      const o = {}; heads.forEach((h, i) => o[h] = row[i] != null ? String(row[i]) : ""); return o;
     });
-  }
-
-  if (tables.length === 0) return out;
-
-  // 2) intentar mapear nombre por menú
-  const nameById = {};
-  doc.querySelectorAll("[id^='sheet-button-']").forEach(li => {
-    const id = li.id.replace("sheet-button-", "");
-    const name = (li.textContent || "").trim().toLowerCase();
-    if (id && name) nameById[id] = name;
+  };
+  Object.keys(obj).forEach(k => {
+    const key = k.toLowerCase();
+    if (key === "ubicaciones" || key.includes("ubicac")) { state.extra.ubicaciones = obj[k]; return; }
+    if (key === "ns" || key.includes("nivel de serv")) { state.extra.NS = obj[k]; return; }
+    if (key.includes("sitio") || key.includes("cap")) { state.data.sitiosCap = toObjects(obj[k]); return; }
+    if (key.includes("ruta")) { state.data.rutas = toObjects(obj[k]); return; }
+    if (key.includes("vacante")) { state.data.vacantes = toObjects(obj[k]); return; }
+    if (key.includes("asignac")) { state.data.asignaciones = toObjects(obj[k]); return; }
   });
-  log("menu detectado: " + JSON.stringify(nameById));
-
-  // 3) para cada tabla → clasificar por firma de encabezados
-  tables.forEach((t, idx) => {
-    const rows = tableToObjects(t);
-    if (!rows.length) return;
-    const headers = Object.keys(rows[0]).map(h => norm(h));
-    const has = (needle) => headers.some(h => h.includes(norm(needle)));
-
-    let kind = null;
-    // asignaciones tiene "Nombre / Prospecto" o "Asignado a Jo"
-    if (has("nombreprospecto") || has("prospecto") || has("asignadoajo") || has("asignado")) {
-      kind = "asignaciones";
-    }
-    // vacantes tiene "Zona" + "Semana" pero NO "Nombre"
-    else if (has("zona") && (has("semana") || has("planta"))) {
-      kind = "vacantes";
-    }
-    // rutas tiene "LatSt" o "1a parada"
-    else if (has("latst") || has("longst") || has("1parada") || has("parada")) {
-      kind = "rutas";
-    }
-    // fallback por posición (rutas suele ser la última en el sheet)
-    else if (has("planta") && has("ruta")) {
-      // Si no cae en ninguna, elige por orden
-      const guessByPos = ["rutas", "vacantes", "asignaciones"][idx];
-      kind = guessByPos || ("sheet_" + idx);
-    }
-
-    if (kind && !out[kind]) {
-      out[kind] = rows;
-      log("tabla #" + idx + " (" + headers.slice(0,4).join(",") + ") → " + kind + " [" + rows.length + " filas]");
-    } else if (kind) {
-      log("tabla #" + idx + " duplicada como " + kind + ", ignorada");
-    } else {
-      log("tabla #" + idx + " sin firma reconocida: " + headers.join(","));
-    }
-  });
-
-  return out;
-}
-
-function tableToObjects(table) {
-  // Toma todas las filas dentro de tbody (o de la tabla si no hay tbody)
-  let rows = Array.from(table.querySelectorAll("tbody tr"));
-  if (!rows.length) rows = Array.from(table.querySelectorAll("tr"));
-  if (rows.length < 2) return [];
-
-  // La primera fila de datos = encabezados del usuario (sus <td>)
-  let headers = Array.from(rows[0].querySelectorAll("td")).map(c => c.textContent.trim());
-  // Algunos publicados usan <th> para los headers dentro de tbody
-  if (headers.length === 0) headers = Array.from(rows[0].querySelectorAll("th")).map(c => c.textContent.trim());
-  if (!headers.length) return [];
-
-  const data = [];
-  for (let i = 1; i < rows.length; i++) {
-    let cells = Array.from(rows[i].querySelectorAll("td")).map(c => c.textContent.trim());
-    if (!cells.length) cells = Array.from(rows[i].querySelectorAll("th, td")).map(c => c.textContent.trim());
-    if (!cells.length || cells.every(c => c === "")) continue;
-    const obj = {};
-    headers.forEach((h, idx) => { obj[h || ("col_" + idx)] = cells[idx] != null ? cells[idx] : ""; });
-    data.push(obj);
-  }
-  return data;
-}
-
-function pickSheet(sheets, candidates) {
-  const keys = Object.keys(sheets);
-  for (const c of candidates) {
-    for (const k of keys) if (k.toLowerCase().includes(c)) return sheets[k];
-  }
-  return null;
+  log("filas → rutas:" + state.data.rutas.length + " vacantes:" + state.data.vacantes.length + " asig:" + state.data.asignaciones.length + " sitios:" + state.data.sitiosCap.length);
+  buildKmVacioLookup();
+  renderAll();
 }
 
 /* ============================================================
-   FUZZY HELPERS
+   KM VACÍO join
    ============================================================ */
-function num(v) {
-  if (v == null) return NaN;
-  const s = String(v).replace(/,/g, "").trim();
-  const n = parseFloat(s);
-  return isFinite(n) ? n : NaN;
+function buildKmVacioLookup() {
+  state.kmVacio = {};
+  const ns = state.extra.NS, ubi = state.extra.ubicaciones;
+  if (!Array.isArray(ns) || ns.length < 2) { log("NS no cargado"); return; }
+  if (!Array.isArray(ubi) || ubi.length < 2) { log("ubicaciones no cargado"); return; }
+
+  const findIdx = (headers, patterns) => {
+    for (const p of patterns) {
+      const idx = headers.findIndex(h => norm(h) === norm(p));
+      if (idx !== -1) return idx;
+    }
+    for (const p of patterns) {
+      const idx = headers.findIndex(h => norm(h).includes(norm(p)));
+      if (idx !== -1) return idx;
+    }
+    return -1;
+  };
+
+  const nsHead = ns[0].map(h => String(h));
+  const rutaCol = findIdx(nsHead, ["ruta"]);
+  const fechaCol = findIdx(nsHead, ["fecha", "date", "dia"]);
+  const empCol = 29; // AD
+  log("NS cols: ruta=" + rutaCol + " fecha=" + fechaCol);
+  if (rutaCol < 0) return;
+
+  const rutaLatest = {};
+  for (let i = 1; i < ns.length; i++) {
+    const row = ns[i]; if (!row) continue;
+    const ruta = String(row[rutaCol] || "").trim();
+    const emp = String(row[empCol] || "").trim();
+    if (!ruta || !emp) continue;
+    const fecha = fechaCol >= 0 ? row[fechaCol] : null;
+    const t = fecha ? (new Date(fecha)).getTime() : 0;
+    const cur = rutaLatest[ruta];
+    if (!cur || t >= cur.t) rutaLatest[ruta] = { emp, t, fecha };
+  }
+
+  const ubiHead = ubi[0].map(h => String(h));
+  const ubiEmp = findIdx(ubiHead, ["empleado", "nomina", "numeroempleado", "num"]);
+  const ubiKm = findIdx(ubiHead, ["kmvacio", "vacio", "kmvacios"]);
+  const ubiCol = findIdx(ubiHead, ["colonia", "col"]);
+  log("ubicaciones cols: emp=" + ubiEmp + " km=" + ubiKm + " col=" + ubiCol);
+  if (ubiEmp < 0 || ubiKm < 0) return;
+
+  const empData = {};
+  for (let i = 1; i < ubi.length; i++) {
+    const row = ubi[i]; if (!row) continue;
+    const emp = String(row[ubiEmp] || "").trim();
+    if (!emp) continue;
+    empData[emp] = { km: row[ubiKm], colonia: ubiCol >= 0 ? row[ubiCol] : "" };
+  }
+
+  Object.keys(rutaLatest).forEach(ruta => {
+    const rec = rutaLatest[ruta];
+    const info = empData[rec.emp] || {};
+    state.kmVacio[ruta] = { empleado: rec.emp, km: info.km != null ? info.km : null, colonia: info.colonia || "" };
+  });
+  log("KM VACÍO resuelto: " + Object.keys(state.kmVacio).length + " rutas");
 }
-function norm(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, ""); }
+
+/* ============================================================
+   HELPERS
+   ============================================================ */
+function num(v) { if (v == null) return NaN; const s = String(v).replace(/,/g,"").trim(); const n = parseFloat(s); return isFinite(n) ? n : NaN; }
+function norm(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]/g,""); }
 function fuzzy(row, patterns) {
   const keys = Object.keys(row);
   for (const p of patterns) {
@@ -877,11 +616,22 @@ function detectCoords(row) {
   const vals = Object.values(row);
   for (let i = 0; i < vals.length - 1; i++) {
     const a = num(vals[i]), b = num(vals[i + 1]);
-    if (isFinite(a) && isFinite(b) && Math.abs(a) <= 90 && Math.abs(b) <= 180 && Math.abs(a) > 1 && Math.abs(b) > 1) {
-      return { lat: a, lng: b };
-    }
+    if (isFinite(a) && isFinite(b) && Math.abs(a) <= 90 && Math.abs(b) <= 180 && Math.abs(a) > 1 && Math.abs(b) > 1) return { lat: a, lng: b };
   }
   return null;
+}
+function escapeAttr(s) { return String(s).replace(/"/g, "&quot;"); }
+function escapeHTML(s) { return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function kmChip(kmValue) {
+  if (kmValue == null || kmValue === "" || isNaN(Number(kmValue))) {
+    return '<span class="km-chip empty">—</span>';
+  }
+  const v = Number(kmValue);
+  let cls = "green";
+  if (v > 15) cls = "red";
+  else if (v > 5) cls = "yellow";
+  return '<span class="km-chip ' + cls + '">' + v.toFixed(1) + ' km</span>';
 }
 
 /* ============================================================
@@ -892,41 +642,35 @@ function renderAll() {
   state.markerById.clear();
 
   const F = state.filters;
-  // Las rutas activas siempre se muestran (solo respetan planta y búsqueda);
-  // los filtros de semana y zona sólo aplican a vacantes y asignaciones.
   const matchesFilters = (d) => {
     const isRuta = d.type === "ruta";
-    if (!isRuta && F.semana && String(d.semana || "") !== F.semana) return false;
-    if (!isRuta && F.zona && d.zona && !norm(d.zona).startsWith(norm(F.zona))) return false;
-    if (F.planta && !norm(d.planta || "").includes(norm(F.planta))) return false;
+    const isSitio = d.type === "sitio";
+    if (!isRuta && !isSitio && F.semana && String(d.semana || "") !== F.semana) return false;
+    if (!isRuta && !isSitio && F.zona && d.zona && !norm(d.zona).startsWith(norm(F.zona))) return false;
+    if (!isSitio && F.planta && !norm(d.planta || "").includes(norm(F.planta))) return false;
     if (F.search) {
       const q = norm(F.search);
-      const hay = [d.ruta, d.planta, d.nombre, d.col, d.municipio, d.parada, d.zona, d.jo]
-        .map(norm).join(" ");
+      const hay = [d.ruta, d.planta, d.nombre, d.col, d.municipio, d.parada, d.zona, d.jo, d.sitio, d.direccion].map(norm).join(" ");
       if (!hay.includes(q)) return false;
     }
     return true;
   };
 
-  // RUTAS (siempre visibles ante filtros de semana/zona)
+  // RUTAS
   state.data.rutas.forEach(row => {
     let lat = num(fuzzy(row, ["LatSt", "Lat", "latitud"]));
     let lng = num(fuzzy(row, ["LongSt", "Long", "Lng", "longitud"]));
     if (!isFinite(lat) || !isFinite(lng)) { const c = detectCoords(row); if (c) { lat = c.lat; lng = c.lng; } }
     if (!isFinite(lat) || !isFinite(lng)) return;
-    const d = {
-      id: state.nextId++, type: "ruta", lat, lng,
+    const d = { id: state.nextId++, type: "ruta", lat, lng,
       planta: fuzzy(row, ["Planta"]),
-      ruta:   fuzzy(row, ["Ruta"]),
+      ruta: fuzzy(row, ["Ruta"]),
       parada: fuzzy(row, ["1ª parada", "1a parada", "1ra parada", "parada"]),
       semana: fuzzy(row, ["Semana"])
     };
     if (!matchesFilters(d)) return;
     const m = L.marker([lat, lng], { icon: makePin(COLORS.rutas, 22), pane: "rutas-pane" });
-    m.__d = d;
-    bindPinPopup(m);
-    state.markerById.set(d.id, m);
-    state.layers.rutas.addLayer(m);
+    m.__d = d; bindPinPopup(m); state.markerById.set(d.id, m); state.layers.rutas.addLayer(m);
   });
 
   // VACANTES
@@ -936,22 +680,15 @@ function renderAll() {
     if (!isFinite(lat) || !isFinite(lng)) { const c = detectCoords(row); if (c) { lat = c.lat; lng = c.lng; } }
     if (!isFinite(lat) || !isFinite(lng)) return;
     const zona = (fuzzy(row, ["Zona"]) || "").trim();
-    const d = {
-      id: state.nextId++, type: "vacante", lat, lng,
-      planta: fuzzy(row, ["Planta"]),
-      ruta:   fuzzy(row, ["Ruta"]),
-      zona,
-      semana: fuzzy(row, ["Semana"])
+    const d = { id: state.nextId++, type: "vacante", lat, lng,
+      planta: fuzzy(row, ["Planta"]), ruta: fuzzy(row, ["Ruta"]), zona, semana: fuzzy(row, ["Semana"])
     };
     if (!matchesFilters(d)) return;
     const isCienega = norm(zona).startsWith("cien");
     const layerKey = isCienega ? "vacantesCienega" : "vacantesGarcia";
-    const color    = isCienega ? COLORS.vacantesCienega : COLORS.vacantesGarcia;
+    const color = isCienega ? COLORS.vacantesCienega : COLORS.vacantesGarcia;
     const m = L.marker([lat, lng], { icon: makePin(color, 30), pane: "vac-pane" });
-    m.__d = d;
-    bindPinPopup(m);
-    state.markerById.set(d.id, m);
-    state.layers[layerKey].addLayer(m);
+    m.__d = d; bindPinPopup(m); state.markerById.set(d.id, m); state.layers[layerKey].addLayer(m);
   });
 
   // ASIGNACIONES
@@ -960,52 +697,70 @@ function renderAll() {
     let lng = num(fuzzy(row, ["Long", "Lng", "longitud"]));
     if (!isFinite(lat) || !isFinite(lng)) { const c = detectCoords(row); if (c) { lat = c.lat; lng = c.lng; } }
     if (!isFinite(lat) || !isFinite(lng)) return;
-    const d = {
-      id: state.nextId++, type: "asignacion", lat, lng,
-      __row: idx,  // índice en state.data.asignaciones para edición
-      nombre:    fuzzy(row, ["Nombre / Prospecto", "Nombre/Prospecto", "Nombre", "Prospecto"]),
-      col:       fuzzy(row, ["Col", "Colonia"]),
+    const d = { id: state.nextId++, type: "asignacion", lat, lng, __row: idx,
+      nombre: fuzzy(row, ["Nombre / Prospecto", "Nombre/Prospecto", "Nombre", "Prospecto"]),
+      col: fuzzy(row, ["Col", "Colonia"]),
       municipio: fuzzy(row, ["Municipio"]),
-      jo:        fuzzy(row, ["Asignado a Jo", "Asignado a JO", "Asignado"]),
-      planta:    fuzzy(row, ["Planta"]),
-      ruta:      fuzzy(row, ["Ruta"]),
-      semana:    fuzzy(row, ["Semana"])
+      jo: fuzzy(row, ["Asignado a Jo", "Asignado a JO", "Asignado"]),
+      planta: fuzzy(row, ["Planta"]),
+      ruta: fuzzy(row, ["Ruta"]),
+      semana: fuzzy(row, ["Semana"])
     };
     if (!matchesFilters(d)) return;
     const m = L.marker([lat, lng], { icon: makePin(COLORS.asignaciones, 26), pane: "asig-pane" });
-    m.__d = d;
-    bindPinPopup(m);
-    state.markerById.set(d.id, m);
-    state.layers.asignaciones.addLayer(m);
+    m.__d = d; bindPinPopup(m); state.markerById.set(d.id, m); state.layers.asignaciones.addLayer(m);
   });
 
-  // Contadores
-  document.getElementById("cnt-rutas").textContent = state.layers.rutas.getLayers().length;
-  document.getElementById("cnt-vc").textContent    = state.layers.vacantesCienega.getLayers().length;
-  document.getElementById("cnt-vg").textContent    = state.layers.vacantesGarcia.getLayers().length;
-  document.getElementById("cnt-asig").textContent  = state.layers.asignaciones.getLayers().length;
+  // SITIOS DE CAP
+  state.data.sitiosCap.forEach(row => {
+    let lat = num(fuzzy(row, ["lat", "Lat", "latitud"]));
+    let lng = num(fuzzy(row, ["long", "Long", "Lng", "longitud"]));
+    if (!isFinite(lat) || !isFinite(lng)) { const c = detectCoords(row); if (c) { lat = c.lat; lng = c.lng; } }
+    if (!isFinite(lat) || !isFinite(lng)) return;
+    const d = { id: state.nextId++, type: "sitio", lat, lng,
+      sitio: fuzzy(row, ["Sitio", "sitio", "nombre"]),
+      direccion: fuzzy(row, ["Direccion", "Dirección", "direccion"])
+    };
+    if (!matchesFilters(d)) return;
+    const m = L.marker([lat, lng], { icon: makePin(COLORS.sitiosCap, 20), pane: "sit-pane" });
+    m.__d = d; bindPinPopup(m); state.markerById.set(d.id, m); state.layers.sitiosCap.addLayer(m);
+  });
 
-  // Poblar filtros (solo semanas válidas > 0)
+  // Counters
+  document.getElementById("cnt-rutas").textContent = state.layers.rutas.getLayers().length;
+  document.getElementById("cnt-vc").textContent = state.layers.vacantesCienega.getLayers().length;
+  document.getElementById("cnt-vg").textContent = state.layers.vacantesGarcia.getLayers().length;
+  document.getElementById("cnt-asig").textContent = state.layers.asignaciones.getLayers().length;
+  document.getElementById("cnt-sit").textContent = state.layers.sitiosCap.getLayers().length;
+
+  // Filtros semanas y plantas
   const semanas = new Set();
   [...state.data.vacantes, ...state.data.asignaciones].forEach(r => {
     const s = fuzzy(r, ["Semana"]);
     if (s && !isNaN(Number(s)) && Number(s) > 0) semanas.add(String(Number(s)));
   });
-  // El filtro Planta usa SOLO las plantas de la pestaña rutas
   const plantasFiltro = new Set();
   state.data.rutas.forEach(r => { const p = fuzzy(r, ["Planta"]); if (p) plantasFiltro.add(p); });
-  // Los selects del formulario prospecto sí usan TODAS las plantas y rutas de todo el sheet
-  const plantasForm = new Set(), rutasForm = new Set();
-  [...state.data.rutas, ...state.data.vacantes, ...state.data.asignaciones].forEach(r => {
-    const p = fuzzy(r, ["Planta"]); if (p) plantasForm.add(p);
-    const ru = fuzzy(r, ["Ruta"]);  if (ru) rutasForm.add(ru);
-  });
   fillSelect("filter-semana", Array.from(semanas).sort((a,b) => Number(a) - Number(b)).map(s => "Semana " + s), F.semana ? "Semana " + F.semana : "");
   fillSelect("filter-planta", Array.from(plantasFiltro).sort(), F.planta);
-  fillFormSelect("f-planta", Array.from(plantasForm).sort(), "-- Selecciona planta --");
-  fillFormSelect("f-ruta", Array.from(rutasForm).sort(), "-- Selecciona ruta --");
 
-  // Fit bounds (una sola vez al primer load)
+  // Selects del formulario: TODAS las plantas + mapa planta→rutas
+  const plantasForm = new Set();
+  state.plantaRutas = {};
+  [...state.data.rutas, ...state.data.vacantes, ...state.data.asignaciones].forEach(r => {
+    const p = fuzzy(r, ["Planta"]);
+    const ru = fuzzy(r, ["Ruta"]);
+    if (p) plantasForm.add(p);
+    if (p && ru) {
+      if (!state.plantaRutas[p]) state.plantaRutas[p] = new Set();
+      state.plantaRutas[p].add(ru);
+    }
+  });
+  fillFormSelect("f-planta", Array.from(plantasForm).sort(), "-- Selecciona planta --");
+  // JO fijo
+  fillFormSelect("f-jo", JO_OPTIONS.slice(), "-- Selecciona JO --");
+
+  // Fit bounds solo la primera vez
   if (!state._boundsFit) {
     const all = [];
     Object.values(state.layers).forEach(g => g.eachLayer(m => all.push(m)));
@@ -1024,7 +779,6 @@ function fillSelect(id, values, keepValue) {
   if (first) el.appendChild(first);
   values.forEach(v => {
     const opt = document.createElement("option");
-    // Si el label empieza con "Semana " extraemos solo el número como valor
     if (String(v).startsWith("Semana ")) { opt.value = String(v).replace("Semana ", ""); opt.textContent = v; }
     else { opt.value = v; opt.textContent = v; }
     el.appendChild(opt);
@@ -1043,28 +797,58 @@ function fillFormSelect(id, values, placeholder) {
   if (prev && values.includes(prev)) el.value = prev;
 }
 
-function escapeAttr(s) { return String(s).replace(/"/g, "&quot;"); }
-function escapeHTML(s) { return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+// Cuando cambia la planta en el form → filtra las rutas
+document.getElementById("f-planta").addEventListener("change", (e) => {
+  const p = e.target.value;
+  const el = document.getElementById("f-ruta");
+  el.innerHTML = '<option value="">-- Selecciona ruta --</option>';
+  if (!p) {
+    document.getElementById("f-ruta-hint").textContent = "▼ elige planta primero";
+    el.innerHTML = '<option value="">-- Elige planta primero --</option>';
+    return;
+  }
+  const rutas = state.plantaRutas[p] ? Array.from(state.plantaRutas[p]).sort() : [];
+  rutas.forEach(r => {
+    const opt = document.createElement("option");
+    opt.value = r; opt.textContent = r;
+    el.appendChild(opt);
+  });
+  document.getElementById("f-ruta-hint").textContent = "▼ " + rutas.length + " rutas de " + p;
+});
 
 /* ============================================================
-   POPUPS + SELECCIÓN DE RUTA
+   POPUPS
    ============================================================ */
 function bindPinPopup(marker) {
   const d = marker.__d;
   let html = "";
   if (d.type === "ruta") {
+    let kmBlock = "";
+    const km = state.kmVacio && state.kmVacio[d.ruta];
+    if (km) {
+      kmBlock =
+        '<div class="km-row"><span class="lbl">KM VACÍO</span>' + kmChip(km.km) + '</div>' +
+        '<div class="km-sub">Operador #' + escapeHTML(km.empleado) + (km.colonia ? ' · ' + escapeHTML(km.colonia) : '') + '</div>';
+    }
     html =
       '<div class="popup-title ruta">🚌 ' + escapeHTML(d.ruta) + '</div>' +
       '<b>Planta:</b> ' + escapeHTML(d.planta) + '<br>' +
       '<b>1ª parada:</b> ' + escapeHTML(d.parada) + '<br>' +
       '<b>Coords:</b> ' + d.lat.toFixed(5) + ", " + d.lng.toFixed(5) +
-      '<br><button class="popup-btn" data-select="' + d.id + '">🔗 Usar para ruta</button>';
+      kmBlock +
+      '<button class="popup-btn" data-select="' + d.id + '">🔗 Usar para ruta</button>';
   } else if (d.type === "vacante") {
     html =
       '<div class="popup-title vacante">🎯 VACANTE · ' + escapeHTML(d.ruta) + '</div>' +
       '<b>Planta:</b> ' + escapeHTML(d.planta) + '<br>' +
       '<b>Zona:</b> ' + escapeHTML(d.zona) + '<br>' +
       '<b>Semana:</b> ' + escapeHTML(d.semana) + '<br>' +
+      '<b>Coords:</b> ' + d.lat.toFixed(5) + ", " + d.lng.toFixed(5) +
+      '<br><button class="popup-btn" data-select="' + d.id + '">🔗 Usar para ruta</button>';
+  } else if (d.type === "sitio") {
+    html =
+      '<div class="popup-title sitio">📍 ' + escapeHTML(d.sitio) + '</div>' +
+      '<b>Dirección:</b> ' + escapeHTML(d.direccion) + '<br>' +
       '<b>Coords:</b> ' + d.lat.toFixed(5) + ", " + d.lng.toFixed(5) +
       '<br><button class="popup-btn" data-select="' + d.id + '">🔗 Usar para ruta</button>';
   } else {
@@ -1098,7 +882,6 @@ function selectForRoute(marker) {
   refreshSlots();
   if (state.selection.length === 2) computeRoute();
 }
-
 function resetSelection() {
   state.selection.forEach(m => highlightMarker(m, false));
   state.selection = [];
@@ -1106,67 +889,57 @@ function resetSelection() {
   document.getElementById("route-info-container").innerHTML = "";
   refreshSlots();
 }
-
 function highlightMarker(marker, on) {
   const el = marker.getElement();
-  if (!el) return;
-  el.classList.toggle("pin-selected", on);
+  if (el) el.classList.toggle("pin-selected", on);
 }
-
 function refreshSlots() {
   for (let i = 0; i < 2; i++) {
     const slot = document.getElementById("slot-" + (i + 1));
     const m = state.selection[i];
     if (m) {
       slot.className = "sel-slot filled";
-      slot.innerHTML = '<span class="idx">' + (i + 1) + '</span><span>' + escapeHTML(labelFor(m.__d)) + '</span>';
+      slot.innerHTML = '<span class="idx">' + (i+1) + '</span><span>' + escapeHTML(labelFor(m.__d)) + '</span>';
     } else {
       slot.className = "sel-slot";
-      slot.innerHTML = '<span class="idx">' + (i + 1) + '</span><span>' + (i === 0 ? "Selecciona el primer pin…" : "Selecciona el segundo pin…") + '</span>';
+      slot.innerHTML = '<span class="idx">' + (i+1) + '</span><span>' + (i === 0 ? "Selecciona el primer pin…" : "Selecciona el segundo pin…") + '</span>';
     }
   }
 }
-
 function labelFor(d) {
   if (d.type === "ruta") return (d.planta + " · " + d.ruta).trim();
   if (d.type === "vacante") return "VAC · " + d.ruta + " (" + d.zona + ")";
+  if (d.type === "sitio") return "SITIO · " + d.sitio;
   return d.nombre;
 }
-
 function computeRoute() {
   const [a, b] = state.selection;
   if (state.routingControl) map.removeControl(state.routingControl);
   const container = document.getElementById("route-info-container");
   container.innerHTML = '<div class="route-info"><span class="spinner"></span>&nbsp; Calculando ruta…</div>';
-
   state.routingControl = L.Routing.control({
     waypoints: [L.latLng(a.__d.lat, a.__d.lng), L.latLng(b.__d.lat, b.__d.lng)],
     router: L.Routing.osrmv1({ serviceUrl: "https://router.project-osrm.org/route/v1", profile: "driving" }),
     show: false, addWaypoints: false, routeWhileDragging: false, draggableWaypoints: false,
-    fitSelectedRoutes: true,
-    lineOptions: { styles: [{ color: "#dc2626", weight: 5, opacity: 0.85 }] },
-    createMarker: () => null
+    fitSelectedRoutes: true, createMarker: () => null,
+    lineOptions: { styles: [{ color: "#dc2626", weight: 5, opacity: 0.85 }] }
   }).addTo(map);
-
   state.routingControl.on("routesfound", (e) => {
     const r = e.routes[0];
-    const km  = (r.summary.totalDistance / 1000).toFixed(1);
+    const km = (r.summary.totalDistance / 1000).toFixed(1);
     const min = Math.round(r.summary.totalTime / 60);
-    const hrs = Math.floor(min / 60), rem = min % 60;
+    const hrs = Math.floor(min/60), rem = min%60;
     const dur = hrs > 0 ? (hrs + " h " + rem + " min") : (min + " min");
-    container.innerHTML =
-      '<div class="route-info">' +
-        '<div class="metric"><span>Origen</span><strong>' + escapeHTML(labelFor(a.__d)) + '</strong></div>' +
-        '<div class="metric"><span>Destino</span><strong>' + escapeHTML(labelFor(b.__d)) + '</strong></div>' +
-        '<div class="metric big"><span>Distancia</span><strong>' + km + ' km</strong></div>' +
-        '<div class="metric big"><span>Tiempo</span><strong>' + dur + '</strong></div>' +
-      '</div>';
+    container.innerHTML = '<div class="route-info">' +
+      '<div class="metric"><span>Origen</span><strong>' + escapeHTML(labelFor(a.__d)) + '</strong></div>' +
+      '<div class="metric"><span>Destino</span><strong>' + escapeHTML(labelFor(b.__d)) + '</strong></div>' +
+      '<div class="metric big"><span>Distancia</span><strong>' + km + ' km</strong></div>' +
+      '<div class="metric big"><span>Tiempo</span><strong>' + dur + '</strong></div></div>';
   });
   state.routingControl.on("routingerror", () => {
-    container.innerHTML = '<div class="route-info" style="color:#b91c1c">No se pudo calcular la ruta. Intenta con otro par.</div>';
+    container.innerHTML = '<div class="route-info" style="color:#b91c1c">No se pudo calcular la ruta.</div>';
   });
 }
-
 document.getElementById("clear-route").addEventListener("click", resetSelection);
 
 /* ============================================================
@@ -1179,8 +952,7 @@ document.getElementById("clear-route").addEventListener("click", resetSelection)
   });
 });
 document.getElementById("filter-search").addEventListener("input", (e) => {
-  state.filters.search = e.target.value;
-  renderAll();
+  state.filters.search = e.target.value; renderAll();
 });
 document.getElementById("reset-filters").addEventListener("click", () => {
   state.filters = { semana: "", zona: "", planta: "", search: "" };
@@ -1198,12 +970,12 @@ document.querySelectorAll("input[data-layer]").forEach(cb => {
   cb.addEventListener("change", () => {
     const k = cb.dataset.layer;
     if (cb.checked) map.addLayer(state.layers[k]);
-    else            map.removeLayer(state.layers[k]);
+    else map.removeLayer(state.layers[k]);
   });
 });
 
 /* ============================================================
-   ADD OPERATOR
+   ADD OPERATOR + EDIT
    ============================================================ */
 document.getElementById("btn-add-mode").addEventListener("click", () => {
   state.addMode = true;
@@ -1217,27 +989,21 @@ map.on("click", async (e) => {
   document.getElementById("add-mode-banner").style.display = "none";
   map.getContainer().style.cursor = "";
 
-  // Coloca pin temporal INMEDIATAMENTE (celeste con anillo pulsante)
-  if (state.tempMarker) { map.removeLayer(state.tempMarker); }
+  if (state.tempMarker) map.removeLayer(state.tempMarker);
   const tempIcon = L.divIcon({
-    html:
-      '<div style="position:relative;width:34px;height:46px;">' +
-        '<div style="position:absolute;top:8px;left:2px;width:30px;height:30px;border-radius:50%;background:rgba(56,189,248,0.35);animation:pulse-ring 1.4s ease-out infinite;"></div>' +
-        '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="35" viewBox="0 0 24 32" style="position:absolute;top:4px;left:4px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));">' +
-          '<path d="M12 0.5 C5.65 0.5 0.5 5.65 0.5 12 C0.5 20.5 12 31.5 12 31.5 C12 31.5 23.5 20.5 23.5 12 C23.5 5.65 18.35 0.5 12 0.5 Z" fill="#38BDF8" stroke="#ffffff" stroke-width="1.5"/>' +
-          '<circle cx="12" cy="12" r="4.5" fill="#ffffff"/>' +
-        '</svg>' +
-      '</div>',
-    className: "temp-pin",
-    iconSize: [34, 46],
-    iconAnchor: [17, 42],
-    popupAnchor: [0, -42]
+    html: '<div style="position:relative;width:34px;height:46px;">' +
+      '<div style="position:absolute;top:8px;left:2px;width:30px;height:30px;border-radius:50%;background:rgba(56,189,248,0.35);animation:pulse-ring 1.4s ease-out infinite;"></div>' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="35" viewBox="0 0 24 32" style="position:absolute;top:4px;left:4px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));">' +
+        '<path d="M12 0.5 C5.65 0.5 0.5 5.65 0.5 12 C0.5 20.5 12 31.5 12 31.5 C12 31.5 23.5 20.5 23.5 12 C23.5 5.65 18.35 0.5 12 0.5 Z" fill="#38BDF8" stroke="#ffffff" stroke-width="1.5"/>' +
+        '<circle cx="12" cy="12" r="4.5" fill="#ffffff"/>' +
+      '</svg></div>',
+    className: "temp-pin", iconSize: [34, 46], iconAnchor: [17, 42], popupAnchor: [0, -42]
   });
   state.tempMarker = L.marker([e.latlng.lat, e.latlng.lng], { icon: tempIcon, pane: "asig-pane", zIndexOffset: 2000 }).addTo(map);
-  state.tempMarker.bindTooltip("📍 Nuevo prospecto — completa el formulario", { permanent: true, direction: "top", offset: [0, -30], className: "temp-tip" }).openTooltip();
+  state.tempMarker.bindTooltip("📍 Nuevo prospecto — completa el formulario", { permanent: true, direction: "top", offset: [0,-30], className: "temp-tip" }).openTooltip();
   map.setView([e.latlng.lat, e.latlng.lng], Math.max(map.getZoom(), 15));
 
-  document.getElementById("f-lat").value  = e.latlng.lat.toFixed(6);
+  document.getElementById("f-lat").value = e.latlng.lat.toFixed(6);
   document.getElementById("f-long").value = e.latlng.lng.toFixed(6);
   document.getElementById("f-semana").value = getISOWeek(new Date());
   document.getElementById("add-form").style.display = "block";
@@ -1256,10 +1022,26 @@ map.on("click", async (e) => {
 });
 
 function removeTempMarker() {
-  if (state.tempMarker) {
-    map.removeLayer(state.tempMarker);
-    state.tempMarker = null;
-  }
+  if (state.tempMarker) { map.removeLayer(state.tempMarker); state.tempMarker = null; }
+}
+
+function openEditForm(marker) {
+  const d = marker.__d;
+  state._editingRow = d.__row;
+  document.getElementById("f-nombre").value = d.nombre || "";
+  document.getElementById("f-col").value = d.col || "";
+  document.getElementById("f-municipio").value = d.municipio || "";
+  document.getElementById("f-lat").value = d.lat.toFixed(6);
+  document.getElementById("f-long").value = d.lng.toFixed(6);
+  document.getElementById("f-jo").value = d.jo || "";
+  document.getElementById("f-planta").value = d.planta || "";
+  // Disparar cambio para poblar rutas
+  document.getElementById("f-planta").dispatchEvent(new Event("change"));
+  setTimeout(() => { document.getElementById("f-ruta").value = d.ruta || ""; }, 50);
+  document.getElementById("f-semana").value = d.semana || "";
+  document.getElementById("add-form").style.display = "block";
+  document.querySelector('#add-form button[type="submit"]').textContent = "💾 Guardar cambios";
+  document.getElementById("add-form").scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 document.getElementById("cancel-add").addEventListener("click", () => {
@@ -1272,48 +1054,34 @@ document.getElementById("cancel-add").addEventListener("click", () => {
 
 document.getElementById("add-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  const editingRow = state._editingRow; // undefined si es nuevo
+  const editingRow = state._editingRow;
   const payload = {
-    nombre:    document.getElementById("f-nombre").value.trim(),
-    col:       document.getElementById("f-col").value.trim(),
+    nombre: document.getElementById("f-nombre").value.trim(),
+    col: document.getElementById("f-col").value.trim(),
     municipio: document.getElementById("f-municipio").value.trim(),
-    lat:       document.getElementById("f-lat").value.trim(),
-    long:      document.getElementById("f-long").value.trim(),
-    jo:        document.getElementById("f-jo").value.trim(),
-    planta:    document.getElementById("f-planta").value.trim(),
-    ruta:      document.getElementById("f-ruta").value.trim(),
-    semana:    document.getElementById("f-semana").value.trim(),
-    __action:  editingRow != null ? "update" : "insert",
-    __row:     editingRow != null ? (editingRow + 2) : undefined  // +2 = fila real en Sheet (header + 1-based)
+    lat: document.getElementById("f-lat").value.trim(),
+    long: document.getElementById("f-long").value.trim(),
+    jo: document.getElementById("f-jo").value.trim(),
+    planta: document.getElementById("f-planta").value.trim(),
+    ruta: document.getElementById("f-ruta").value.trim(),
+    semana: document.getElementById("f-semana").value.trim(),
+    __action: editingRow != null ? "update" : "insert",
+    __row: editingRow != null ? (editingRow + 2) : undefined
   };
-
   const lat = +payload.lat, lng = +payload.long;
-
-  // Al guardar, quita el pin temporal (será reemplazado por el permanente)
   removeTempMarker();
 
   if (editingRow != null) {
-    // ACTUALIZAR: reemplazar en state.data y re-render
     state.data.asignaciones[editingRow] = {
       "Nombre / Prospecto": payload.nombre, Col: payload.col, Municipio: payload.municipio,
       Lat: payload.lat, Long: payload.long, "Asignado a Jo": payload.jo,
       Planta: payload.planta, Ruta: payload.ruta, Semana: payload.semana
     };
     renderAll();
-    // Reabrir popup del pin editado
-    setTimeout(() => {
-      state.markerById.forEach(m => {
-        if (m.__d && m.__d.type === "asignacion" && m.__d.__row === editingRow) {
-          map.setView([lat, lng], Math.max(map.getZoom(), 14));
-          m.openPopup();
-        }
-      });
-    }, 200);
   } else {
-    // INSERTAR: nuevo pin + push a data
     const id = state.nextId++;
     const m = L.marker([lat, lng], { icon: makePin(COLORS.asignaciones, 26), pane: "asig-pane" });
-    m.__d = { id, type: "asignacion", lat, lng, __row: state.data.asignaciones.length,
+    m.__d = { id, type: "asignacion", lat, lng,
       nombre: payload.nombre, col: payload.col, municipio: payload.municipio,
       jo: payload.jo, planta: payload.planta, ruta: payload.ruta, semana: payload.semana };
     bindPinPopup(m);
@@ -1324,38 +1092,21 @@ document.getElementById("add-form").addEventListener("submit", async (e) => {
       Lat: payload.lat, Long: payload.long, "Asignado a Jo": payload.jo,
       Planta: payload.planta, Ruta: payload.ruta, Semana: payload.semana
     });
-    const chk = document.querySelector('input[data-layer="asignaciones"]');
-    if (chk && !chk.checked) { chk.checked = true; map.addLayer(state.layers.asignaciones); }
     document.getElementById("cnt-asig").textContent = state.layers.asignaciones.getLayers().length;
     map.setView([lat, lng], Math.max(map.getZoom(), 14));
-    setTimeout(() => {
-      const el = m.getElement();
-      if (el) el.classList.add("pin-new");
-      m.openPopup();
-    }, 150);
+    setTimeout(() => { const el = m.getElement(); if (el) el.classList.add("pin-new"); m.openPopup(); }, 150);
   }
   state._editingRow = undefined;
 
-  const tsv = [payload.nombre, payload.col, payload.municipio, payload.lat, payload.long,
-               payload.jo, payload.planta, payload.ruta, payload.semana].join("\t");
+  const tsv = [payload.nombre, payload.col, payload.municipio, payload.lat, payload.long, payload.jo, payload.planta, payload.ruta, payload.semana].join("\t");
   const isUpdate = payload.__action === "update";
 
   if (state.webhook) {
-    // Preferir submit vía form → evita CORS del sandbox
-    try {
-      submitViaForm(state.webhook, payload);
-      showStatus("✓ " + (isUpdate ? "Actualización enviada" : "Fila enviada") + " al Google Sheet vía Apps Script", "success", 5000);
-    } catch (err) {
-      copyRow(payload);
-      openSaveModal(tsv, "❌ Webhook falló", "El envío al Apps Script falló, pero la fila quedó en tu portapapeles. " + err.message);
-    }
+    submitViaForm(state.webhook, payload);
+    showStatus("✓ " + (isUpdate ? "Actualización enviada" : "Fila enviada") + " al Sheet", "success", 5000);
   } else {
     copyRow(payload);
-    openSaveModal(tsv,
-      isUpdate ? "📋 Fila editada copiada" : "📋 Fila nueva copiada",
-      isUpdate
-        ? "Sin Apps Script, la edición se guarda solo en el mapa. Para reflejarla en el Sheet: reemplaza la fila del operador (fila " + (payload.__row) + " de asignaciones) con esta o configura Apps Script."
-        : "El operador ya está como pin en el mapa. Sin Apps Script configurado, la fila NO se escribe sola en el Sheet — hay que pegarla o instalar el webhook una vez.");
+    openSaveModal(tsv, "📋 Fila copiada", "Sin webhook: pega en la pestaña asignaciones.");
   }
 
   document.getElementById("add-form").reset();
@@ -1363,110 +1114,23 @@ document.getElementById("add-form").addEventListener("submit", async (e) => {
   document.querySelector('#add-form button[type="submit"]').textContent = "💾 Guardar en Google Sheet";
 });
 
-/* ============================================================
-   ENVÍO POR MÚLTIPLES CANALES — se disparan todos, gana el que pase el sandbox
-   ============================================================ */
 function submitViaForm(url, payload) {
   const body = JSON.stringify(payload);
-
-  // Canal 1: sendBeacon (POST fire-and-forget, típicamente atraviesa sandbox)
-  try {
-    if (navigator.sendBeacon) {
-      const blob = new Blob([body], { type: "text/plain;charset=utf-8" });
-      const ok = navigator.sendBeacon(url, blob);
-      log("sendBeacon → " + (ok ? "encolado" : "rechazado"));
-    }
-  } catch (e) { log("sendBeacon err: " + e.message); }
-
-  // Canal 2: form submit a iframe oculto
+  try { if (navigator.sendBeacon) navigator.sendBeacon(url, new Blob([body], { type: "text/plain;charset=utf-8" })); } catch (e) { log("beacon err:" + e.message); }
   try {
     let iframe = document.getElementById("hidden-post-iframe");
-    if (!iframe) {
-      iframe = document.createElement("iframe");
-      iframe.name = "hidden-post-iframe";
-      iframe.id = "hidden-post-iframe";
-      iframe.style.display = "none";
-      document.body.appendChild(iframe);
-    }
+    if (!iframe) { iframe = document.createElement("iframe"); iframe.name = iframe.id = "hidden-post-iframe"; iframe.style.display = "none"; document.body.appendChild(iframe); }
     const form = document.createElement("form");
-    form.method = "POST";
-    form.action = url;
-    form.target = "hidden-post-iframe";
-    form.enctype = "text/plain";
-    form.style.display = "none";
+    form.method = "POST"; form.action = url; form.target = "hidden-post-iframe";
+    form.enctype = "text/plain"; form.style.display = "none";
     const input = document.createElement("textarea");
-    input.name = "payload";
-    input.value = body;
-    form.appendChild(input);
-    document.body.appendChild(form);
-    form.submit();
-    setTimeout(() => form.remove(), 2000);
-    log("form submit → " + payload.__action);
-  } catch (e) { log("form err: " + e.message); }
-
-  // Canal 3: fetch con no-cors (opaco, pero puede llegar)
-  try {
-    fetch(url, {
-      method: "POST", mode: "no-cors",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: body
-    }).then(() => log("fetch no-cors enviado")).catch(e => log("fetch err: " + e.message));
-  } catch (e) { log("fetch outer err: " + e.message); }
-
-  // Canal 4: GET vía image beacon con params (para debug si sendBeacon falla)
-  // NOTA: no funciona para escritura, solo para tracking
+    input.name = "payload"; input.value = body;
+    form.appendChild(input); document.body.appendChild(form);
+    form.submit(); setTimeout(() => form.remove(), 2000);
+  } catch (e) { log("form err:" + e.message); }
+  try { fetch(url, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: body }).catch(() => {}); } catch {}
+  log("submit → " + payload.__action);
 }
-
-/* ============================================================
-   EDITAR PROSPECTO
-   ============================================================ */
-function openEditForm(marker) {
-  const d = marker.__d;
-  state._editingRow = d.__row;
-  document.getElementById("f-nombre").value    = d.nombre || "";
-  document.getElementById("f-col").value       = d.col || "";
-  document.getElementById("f-municipio").value = d.municipio || "";
-  document.getElementById("f-lat").value       = d.lat.toFixed(6);
-  document.getElementById("f-long").value      = d.lng.toFixed(6);
-  document.getElementById("f-jo").value        = d.jo || "";
-  document.getElementById("f-planta").value    = d.planta || "";
-  document.getElementById("f-ruta").value      = d.ruta || "";
-  document.getElementById("f-semana").value    = d.semana || "";
-  document.getElementById("add-form").style.display = "block";
-  document.querySelector('#add-form button[type="submit"]').textContent = "💾 Guardar cambios";
-  document.getElementById("add-form").scrollIntoView({ behavior: "smooth", block: "center" });
-  showStatus("✏️ Editando: " + d.nombre + " · cambia lo que necesites y presiona Guardar", "info", 4500);
-}
-
-/* ============================================================
-   MODAL DE GUARDADO
-   ============================================================ */
-function openSaveModal(tsv, title, msg) {
-  document.getElementById("sm-title").textContent = title;
-  document.getElementById("sm-msg").textContent = msg;
-  const preview = tsv.split("\t").map((v, i) =>
-    '<span style="color:#22c55e;">' + String.fromCharCode(65 + i) + ':</span> ' + (v || '<i style="color:#94a3b8;">vacío</i>')
-  ).join(" &nbsp;|&nbsp; ");
-  document.getElementById("sm-preview").innerHTML = preview;
-  document.getElementById("save-modal-bg").classList.add("show");
-  window._lastTsv = tsv;
-}
-document.getElementById("sm-close").addEventListener("click", () => {
-  document.getElementById("save-modal-bg").classList.remove("show");
-});
-document.getElementById("sm-copy").addEventListener("click", () => {
-  try { navigator.clipboard.writeText(window._lastTsv || ""); showStatus("✓ Copiado", "success", 2000); }
-  catch { alert("Copia manual:\n\n" + (window._lastTsv || "")); }
-});
-document.getElementById("sm-setup").addEventListener("click", () => {
-  document.getElementById("save-modal-bg").classList.remove("show");
-  document.getElementById("webhook-url").focus();
-  document.getElementById("webhook-url").scrollIntoView({ behavior: "smooth", block: "center" });
-});
-document.getElementById("save-modal-bg").addEventListener("click", (e) => {
-  if (e.target.id === "save-modal-bg") document.getElementById("save-modal-bg").classList.remove("show");
-});
-
 function copyRow(p) {
   const tsv = [p.nombre, p.col, p.municipio, p.lat, p.long, p.jo, p.planta, p.ruta, p.semana].join("\t");
   try { navigator.clipboard.writeText(tsv); } catch {}
@@ -1479,201 +1143,52 @@ function getISOWeek(d) {
 }
 
 /* ============================================================
-   MANUAL PASTE (respaldo si CORS falla)
+   MODAL
    ============================================================ */
-document.getElementById("paste-data").addEventListener("click", () => {
-  const txt = prompt("Pega aquí el contenido de una pestaña en formato TSV (Copiar del Sheet). Primera línea = encabezados.\nSi tienes JSON de Apps Script pega tal cual.\n\nEspecifica al principio qué pestaña es: RUTAS: … / VACANTES: … / ASIGNACIONES: …");
-  if (!txt) return;
-  try {
-    // Detecta JSON del Apps Script (objeto con arrays)
-    const trimmed = txt.trim();
-    if (trimmed.startsWith("{")) {
-      const obj = JSON.parse(trimmed);
-      applyAppsScriptData(obj);
-      return;
-    }
-    // Detecta TSV con marcador
-    const marker = trimmed.match(/^(RUTAS|VACANTES|ASIGNACIONES)\s*:/i);
-    if (!marker) { alert("Prefija con RUTAS: / VACANTES: / ASIGNACIONES:"); return; }
-    const kind = marker[1].toLowerCase();
-    const body = trimmed.substring(marker[0].length).trim();
-    const lines = body.split(/\r?\n/).filter(Boolean);
-    const heads = lines[0].split("\t");
-    const rows = lines.slice(1).map(ln => {
-      const cells = ln.split("\t");
-      const o = {};
-      heads.forEach((h, i) => o[h.trim()] = (cells[i] || "").trim());
-      return o;
-    });
-    if (kind === "rutas") state.data.rutas = rows;
-    if (kind === "vacantes") state.data.vacantes = rows;
-    if (kind === "asignaciones") state.data.asignaciones = rows;
-    renderAll();
-    setHeaderStatus("ok", "Datos manuales cargados");
-    showStatus("✓ " + rows.length + " filas cargadas en " + kind, "success", 4000);
-  } catch (err) {
-    alert("Error al parsear: " + err.message);
-  }
-});
-
-function applyAppsScriptData(obj) {
-  // { "rutas": [[headers], [row], ...], "vacantes": [[..]], "asignaciones": [[..]] }
-  const toObjects = (arr) => {
-    if (!Array.isArray(arr) || arr.length < 2) return [];
-    const heads = arr[0].map(String);
-    return arr.slice(1).map(row => {
-      const o = {}; heads.forEach((h, i) => o[h] = row[i] != null ? String(row[i]) : ""); return o;
-    });
-  };
-  Object.keys(obj).forEach(k => {
-    const key = k.toLowerCase();
-    if (key.includes("ruta")) state.data.rutas = toObjects(obj[k]);
-    if (key.includes("vacante")) state.data.vacantes = toObjects(obj[k]);
-    if (key.includes("asignac")) state.data.asignaciones = toObjects(obj[k]);
-  });
-  renderAll();
-  setHeaderStatus("ok", "Datos cargados desde Apps Script");
-  showStatus("✓ Datos aplicados", "success", 4000);
+function openSaveModal(tsv, title, msg) {
+  document.getElementById("sm-title").textContent = title;
+  document.getElementById("sm-msg").textContent = msg;
+  const preview = tsv.split("\t").map((v, i) => '<span style="color:#22c55e;">' + String.fromCharCode(65+i) + ':</span> ' + (v || '<i style="color:#94a3b8;">vacío</i>')).join(" &nbsp;|&nbsp; ");
+  document.getElementById("sm-preview").innerHTML = preview;
+  document.getElementById("save-modal-bg").classList.add("show");
+  window._lastTsv = tsv;
 }
+document.getElementById("sm-close").addEventListener("click", () => document.getElementById("save-modal-bg").classList.remove("show"));
+document.getElementById("sm-copy").addEventListener("click", () => { try { navigator.clipboard.writeText(window._lastTsv || ""); showStatus("✓ Copiado", "success", 2000); } catch {} });
+document.getElementById("save-modal-bg").addEventListener("click", (e) => { if (e.target.id === "save-modal-bg") document.getElementById("save-modal-bg").classList.remove("show"); });
 
 /* ============================================================
-   CONFIG BUTTONS
-   ============================================================ */
-document.getElementById("save-webhook").addEventListener("click", () => {
-  const url = document.getElementById("webhook-url").value.trim();
-
-  // Validar formato de URL: debe ser un Apps Script /exec, NO un Google Sheet
-  if (!url) {
-    state.webhook = "";
-    updateWebhookStatus();
-    showStatus("Webhook eliminado.", "info", 3000);
-    return;
-  }
-
-  if (url.includes("docs.google.com/spreadsheets") || url.includes("/d/1")) {
-    updateWebhookStatus("wrong-url");
-    showStatus(
-      "❌ Ese es el URL de tu GOOGLE SHEET, no del Apps Script.\n\n" +
-      "Necesitas primero:\n" +
-      "1) En tu Sheet: Extensiones → Apps Script\n" +
-      "2) Pega el código (Datos → 📖)\n" +
-      "3) Deploy → Nueva implementación → Aplicación web → Acceso: Cualquiera\n" +
-      "4) Copia el URL que empieza con https://script.google.com/macros/s/…/exec\n" +
-      "5) Pega ESE URL aquí, no el de docs.google.com",
-      "error", 0);
-    return;
-  }
-
-  if (!url.includes("script.google.com/macros/") || !url.includes("/exec")) {
-    updateWebhookStatus("wrong-url");
-    showStatus(
-      "❌ URL con formato inesperado.\n\n" +
-      "Debe ser algo como:\n" +
-      "https://script.google.com/macros/s/AKfyc.../exec",
-      "error", 0);
-    return;
-  }
-
-  state.webhook = url;
-  updateWebhookStatus();
-  showStatus("Webhook guardado. Probando lectura GET del Sheet…", "info", 3000);
-
-  // Probar GET vía fetch
-  fetch(url)
-    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-    .then(data => {
-      applyAppsScriptData(data);
-      updateWebhookStatus(true);
-      showStatus("✓ Apps Script conectado. Datos sincronizados desde el Sheet.", "success", 5000);
-    })
-    .catch(err => {
-      updateWebhookStatus(false);
-      showStatus(
-        "⚠ URL válida pero GET falló: " + err.message + "\n\n" +
-        "Causas comunes:\n" +
-        "• El Apps Script no está desplegado como \"Aplicación web\"\n" +
-        "• El acceso no está en \"Cualquiera\" (debe ser público)\n" +
-        "• Falta la función doGet() en el código (revisa Datos → 📖)\n\n" +
-        "Aun así, el POST vía form-submit (guardar operador) puede funcionar. Prueba agregando uno.",
-        "warning", 0);
-    });
-});
-
-function updateWebhookStatus(state_) {
-  const el = document.getElementById("webhook-status");
-  if (!state.webhook && state_ !== "wrong-url") { el.className = "off"; el.textContent = "✕ Sin configurar"; return; }
-  if (state_ === "wrong-url") { el.className = "off"; el.textContent = "❌ URL incorrecta"; return; }
-  if (state_ === true)  { el.className = "ok";  el.textContent = "✓ Activo (GET+POST)"; return; }
-  if (state_ === false) { el.className = "off"; el.textContent = "⚠ GET falló, POST puede funcionar"; return; }
-  el.className = "ok"; el.textContent = "✓ Guardado (probando…)";
-}
-document.getElementById("reload-data").addEventListener("click", loadData);
-
-/* ============================================================
-   STATUS
-   ============================================================ */
-let statusTimer = null;
-function showStatus(msg, type, autoHideMs) {
-  const el = document.getElementById("status-panel");
-  el.textContent = msg;
-  el.className = type || "info";
-  el.style.display = "block";
-  clearTimeout(statusTimer);
-  if (autoHideMs && autoHideMs > 0) {
-    statusTimer = setTimeout(() => { el.style.display = "none"; }, autoHideMs);
-  }
-}
-
-/* ============================================================
-   BUSCADOR (colonia + municipio con cuadrante)
+   GEO SEARCH
    ============================================================ */
 let geoLayer = null;
-
 async function geoSearch() {
   const col = document.getElementById("geo-col").value.trim();
   const mun = document.getElementById("geo-mun").value.trim();
   if (!col && !mun) { showGeoStatus("Escribe colonia y/o municipio", true); return; }
-
   const q = [col, mun, "Nuevo Leon", "Mexico"].filter(Boolean).join(", ");
-  showGeoStatus('<span class="spinner" style="border-top-color:#22c55e"></span>&nbsp; Buscando “' + escapeHTML(q) + '”…');
+  showGeoStatus('<span class="spinner" style="border-top-color:#22c55e"></span>&nbsp; Buscando…');
   document.getElementById("geo-results").classList.remove("show");
-  document.getElementById("geo-results").innerHTML = "";
-
-  const url = "https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&countrycodes=mx&q=" + encodeURIComponent(q);
   try {
-    const r = await fetch(url, { headers: { "Accept": "application/json" } });
+    const url = "https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&countrycodes=mx&q=" + encodeURIComponent(q);
+    const r = await fetch(url);
     if (!r.ok) throw new Error("HTTP " + r.status);
     const results = await r.json();
     hideGeoStatus();
-    if (!results.length) {
-      // Reintenta más laxo si no hubo hits
-      const url2 = "https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&countrycodes=mx&q=" + encodeURIComponent([col || mun, "Nuevo Leon"].filter(Boolean).join(", "));
-      const r2 = await fetch(url2);
-      const alt = r2.ok ? await r2.json() : [];
-      if (!alt.length) { showGeoStatus("Sin resultados. Prueba con otra colonia o municipio.", true); return; }
-      renderGeoResults(alt);
-    } else {
-      renderGeoResults(results);
-    }
-  } catch (err) {
-    showGeoStatus("Error de búsqueda: " + err.message, true);
-    log("geoSearch error: " + err.message);
-  }
+    if (!results.length) { showGeoStatus("Sin resultados", true); return; }
+    renderGeoResults(results);
+  } catch (err) { showGeoStatus("Error: " + err.message, true); }
 }
-
 function renderGeoResults(results) {
   const list = document.getElementById("geo-results");
   list.innerHTML = "";
   results.forEach((r, idx) => {
     const item = document.createElement("div");
     item.className = "item";
-    item.dataset.idx = String(idx);
     const a = r.address || {};
     const primary = a.suburb || a.neighbourhood || a.hamlet || a.quarter || r.name || r.display_name.split(",")[0];
     const secondary = [a.city || a.town || a.municipality, a.state].filter(Boolean).join(" · ");
     item.innerHTML = "<strong>" + escapeHTML(primary) + "</strong><span>" + escapeHTML(secondary || r.display_name) + "</span>";
     item.addEventListener("click", () => {
-      // marca este como seleccionado y quita el resto
       list.querySelectorAll(".item").forEach(el => el.classList.remove("selected"));
       item.classList.add("selected");
       selectGeoResult(r);
@@ -1681,80 +1196,60 @@ function renderGeoResults(results) {
     list.appendChild(item);
   });
   list.classList.add("show");
-  // Si solo hay 1 resultado, seleccionar automático
-  if (results.length === 1) {
-    list.firstChild.classList.add("selected");
-    selectGeoResult(results[0]);
-  }
+  if (results.length === 1) { list.firstChild.classList.add("selected"); selectGeoResult(results[0]); }
 }
-
 function selectGeoResult(r) {
   const lat = parseFloat(r.lat), lon = parseFloat(r.lon);
   const bb = r.boundingbox && r.boundingbox.map(Number);
-  // boundingbox = [south, north, west, east]
   let bounds;
-  if (bb && bb.length === 4) {
-    bounds = L.latLngBounds([bb[0], bb[2]], [bb[1], bb[3]]);
-  } else {
-    // Fallback: cuadrante fijo ~1km alrededor
-    const d = 0.008;
-    bounds = L.latLngBounds([lat - d, lon - d], [lat + d, lon + d]);
-  }
-  // Elimina cuadrante previo
+  if (bb && bb.length === 4) bounds = L.latLngBounds([bb[0], bb[2]], [bb[1], bb[3]]);
+  else { const d = 0.008; bounds = L.latLngBounds([lat-d, lon-d], [lat+d, lon+d]); }
   if (geoLayer) { map.removeLayer(geoLayer); geoLayer = null; }
-  // Dibuja cuadrante verde translúcido + marcador de referencia
-  const rect = L.rectangle(bounds, {
-    color: "#22c55e", weight: 3, fillColor: "#22c55e", fillOpacity: 0.12, dashArray: "6 4"
-  });
-  const ping = L.circleMarker([lat, lon], {
-    radius: 8, color: "#16a34a", weight: 2, fillColor: "#22c55e", fillOpacity: 0.9
-  });
+  const rect = L.rectangle(bounds, { color: "#22c55e", weight: 3, fillColor: "#22c55e", fillOpacity: 0.12, dashArray: "6 4" });
+  const ping = L.circleMarker([lat, lon], { radius: 8, color: "#16a34a", weight: 2, fillColor: "#22c55e", fillOpacity: 0.9 });
   const label = L.marker([lat, lon], {
-    icon: L.divIcon({
-      className: "geo-label",
-      html: '<div style="background:#0f1c30;color:#fff;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.3);">📍 ' +
-            escapeHTML((r.address && (r.address.suburb || r.address.neighbourhood)) || r.display_name.split(",")[0]) + '</div>',
-      iconSize: null, iconAnchor: [0, -8]
-    })
+    icon: L.divIcon({ className: "geo-label", html: '<div style="background:#0f1c30;color:#fff;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.3);">📍 ' + escapeHTML((r.address && (r.address.suburb || r.address.neighbourhood)) || r.display_name.split(",")[0]) + '</div>', iconSize: null, iconAnchor: [0, -8] })
   });
   geoLayer = L.layerGroup([rect, ping, label]).addTo(map);
   map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
   document.getElementById("geo-clear").style.display = "block";
-  // La lista se queda visible para poder cambiar de resultado con un clic
-  showGeoStatus("✓ Cuadrante marcado — puedes elegir otro de la lista", false);
+  showGeoStatus("✓ Cuadrante marcado", false);
   setTimeout(hideGeoStatus, 2200);
 }
-
 function clearGeoSearch() {
   if (geoLayer) { map.removeLayer(geoLayer); geoLayer = null; }
-  document.getElementById("geo-col").value = "";
-  document.getElementById("geo-mun").value = "";
+  document.getElementById("geo-col").value = ""; document.getElementById("geo-mun").value = "";
   document.getElementById("geo-results").innerHTML = "";
   document.getElementById("geo-results").classList.remove("show");
   document.getElementById("geo-clear").style.display = "none";
   hideGeoStatus();
 }
-
 function showGeoStatus(msg, isError) {
   const el = document.getElementById("geo-status");
-  el.innerHTML = msg;
-  el.style.color = isError ? "#b91c1c" : "#64748b";
+  el.innerHTML = msg; el.style.color = isError ? "#b91c1c" : "#64748b";
   el.classList.add("show");
 }
 function hideGeoStatus() { document.getElementById("geo-status").classList.remove("show"); }
-
 document.getElementById("geo-go").addEventListener("click", geoSearch);
 document.getElementById("geo-clear").addEventListener("click", clearGeoSearch);
 ["geo-col", "geo-mun"].forEach(id => {
-  document.getElementById(id).addEventListener("keydown", (e) => {
-    if (e.key === "Enter") { e.preventDefault(); geoSearch(); }
-  });
+  document.getElementById(id).addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); geoSearch(); } });
 });
 
 /* ============================================================
-   GO
+   MISC
    ============================================================ */
-// Prellena el input con el webhook fijo para transparencia
+document.getElementById("reload-data").addEventListener("click", loadData);
+
+let statusTimer = null;
+function showStatus(msg, type, autoHideMs) {
+  const el = document.getElementById("status-panel");
+  el.textContent = msg; el.className = type || "info"; el.style.display = "block";
+  clearTimeout(statusTimer);
+  if (autoHideMs && autoHideMs > 0) statusTimer = setTimeout(() => { el.style.display = "none"; }, autoHideMs);
+}
+
+/* GO */
 document.getElementById("webhook-url").value = DEFAULT_WEBHOOK;
 loadData();
 </script>
