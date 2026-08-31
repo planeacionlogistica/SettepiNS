@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#1f2937">
 <title>tickets_coordinadores — TRAXIÓN</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -602,9 +603,19 @@ textarea{resize:vertical;min-height:70px;}
   padding:10px 14px;background:#fafbfc;
   border-bottom:1px solid var(--border);
   display:flex;justify-content:space-between;align-items:center;
+  gap:10px;flex-wrap:wrap;
   font-size:11px;color:var(--muted);font-weight:600;
 }
 .results-count b{color:var(--text);}
+.btn-export-excel{
+  background:#16a34a;color:#fff;border:none;border-radius:6px;
+  padding:7px 14px;font-size:11.5px;font-weight:700;cursor:pointer;
+  font-family:inherit;transition:all .12s;display:inline-flex;
+  align-items:center;gap:5px;letter-spacing:.02em;
+}
+.btn-export-excel:hover{background:#15803d;transform:translateY(-1px);box-shadow:0 4px 10px rgba(22,163,74,.25);}
+.btn-export-excel:active{transform:translateY(0);}
+.btn-export-excel:disabled{background:#d1d5db;color:#9ca3af;cursor:not-allowed;transform:none;box-shadow:none;}
 .results-table-wrap{overflow-x:auto;max-height:560px;overflow-y:auto;}
 .results-table{
   width:100%;border-collapse:collapse;font-size:12px;
@@ -1099,6 +1110,9 @@ textarea{resize:vertical;min-height:70px;}
     <div class="results-panel">
       <div class="results-head">
         <div class="results-count" id="resultsCount">—</div>
+        <button class="btn-export-excel" id="btnExportExcel" onclick="exportToExcel()" title="Exportar los resultados filtrados a Excel">
+          📊 Exportar Excel
+        </button>
       </div>
       <div class="results-table-wrap">
         <table class="results-table">
@@ -1402,6 +1416,7 @@ function resetPhotoUI(){
 
 /* ---------- KPIs + FILTROS + TABLA ---------- */
 const _kpiCache = { data: null, header: null, at: 0, loading: null };
+let _lastFilteredRows = []; // filas visibles actualmente (usadas por Exportar Excel)
 
 function bindKpiControls(){
   ['kpiFrom','kpiTo','kpiWeek'].forEach(id=>{
@@ -1603,8 +1618,93 @@ function applyFilters(){
     else label.textContent = `Hasta ${fmtDateShort(to)}`;
   }
 
+  _lastFilteredRows = rows; // guardar para Exportar Excel
   renderKpis(rows);
   renderResultsTable(rows);
+}
+
+/* ---------- EXPORTAR A EXCEL ---------- */
+function exportToExcel(){
+  if(typeof XLSX === 'undefined'){
+    toast('La librería de Excel no cargó. Revisa tu conexión.', 'error');
+    return;
+  }
+  if(!_kpiCache.data){
+    toast('Aún cargando datos...', 'error');
+    return;
+  }
+  const rows = _lastFilteredRows || [];
+  if(!rows.length){
+    toast('No hay resultados para exportar', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btnExportExcel');
+  if(btn){ btn.disabled = true; btn.textContent = '⏳ Generando...'; }
+
+  try{
+    const wb = XLSX.utils.book_new();
+
+    // Ordenar más reciente primero (igual que la tabla)
+    const sorted = rows.slice().sort((a,b)=>{
+      const ta = a.fecha ? a.fecha.getTime() : 0;
+      const tb = b.fecha ? b.fecha.getTime() : 0;
+      return tb - ta;
+    });
+
+    /* Hoja 1: Resumen — las mismas columnas que se ven en la tabla filtrada */
+    const shortOf = n => _shortIndName[n] || n || '';
+    const resumen = sorted.map(r=>({
+      'Folio':        r.folio || '',
+      'Fecha':        r.fecha ? fmtDateShort(r.fecha) : (r.fechaStr || ''),
+      'Semana':       r.semana || '',
+      'Coordinador':  r.coordinador || '',
+      'Planta':       r.planta || '',
+      'Ruta':         r.ruta || '',
+      'Carro':        r.carro || '',
+      'Indicador':    r.indicador || '',
+      'Estatus':      r.estatus || '',
+      'Departamento': r.departamento || ''
+    }));
+    const ws1 = XLSX.utils.json_to_sheet(resumen);
+    // Anchos de columna cómodos
+    ws1['!cols'] = [
+      {wch:12},{wch:14},{wch:8},{wch:22},{wch:16},{wch:14},{wch:12},
+      {wch:24},{wch:14},{wch:18}
+    ];
+    XLSX.utils.book_append_sheet(wb, ws1, 'Resumen');
+
+    /* Hoja 2: Detalle — TODAS las columnas del Sheet original para cada folio filtrado */
+    const header = (_kpiCache.header || []).slice();
+    const detalle = [header];
+    sorted.forEach(r=>{
+      const row = new Array(header.length).fill('');
+      if(r._raw){
+        for(let i=0;i<header.length;i++){
+          const v = r._raw[i];
+          row[i] = (v === undefined || v === null) ? '' : String(v);
+        }
+      }
+      detalle.push(row);
+    });
+    const ws2 = XLSX.utils.aoa_to_sheet(detalle);
+    // Anchos automáticos aprox. (por longitud del header)
+    ws2['!cols'] = header.map(h=>({wch: Math.min(Math.max(String(h).length + 2, 12), 40)}));
+    XLSX.utils.book_append_sheet(wb, ws2, 'Detalle');
+
+    // Nombre de archivo con fecha y hora
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    const fname = `Incidencias_${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}.xlsx`;
+
+    XLSX.writeFile(wb, fname);
+    toast('✓ Excel generado (' + sorted.length + ' folios)');
+  }catch(e){
+    console.error('[exportToExcel]', e);
+    toast('Error generando Excel: ' + e.message, 'error');
+  }finally{
+    if(btn){ btn.disabled = false; btn.innerHTML = '📊 Exportar Excel'; }
+  }
 }
 
 function renderKpis(rows){
