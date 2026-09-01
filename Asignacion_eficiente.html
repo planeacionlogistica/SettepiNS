@@ -290,6 +290,7 @@
     <div class="sb-section" style="padding: 10px 18px;">
       <a href="https://planeacionlogistica.github.io/SettepiNS/Dashboard_NS.html" target="_blank" rel="noopener" class="btn" style="text-decoration:none; margin-bottom:6px; display:block; font-size:12px; padding:7px;">📊 Abrir Dashboard NS</a>
       <button class="btn btn-navy" id="reload-data" style="font-size: 12px; padding: 7px;">🔄 Recargar datos del Sheet</button>
+      <button class="btn btn-ghost" id="test-webhook" style="font-size: 11px; padding: 6px; margin-top: 6px;">🔗 Probar webhook en nueva pestaña</button>
       <button class="btn btn-ghost" id="toggle-debug" style="font-size: 11px; padding: 6px; margin-top: 6px;">🐛 Ver diagnóstico</button>
     </div>
 
@@ -469,25 +470,27 @@ function loadViaJSONP(url, timeoutMs) {
 
 async function tryWebhookLoad() {
   if (!state.webhook) return false;
-  log("intentando cargar vía JSONP…");
+  log("URL webhook: " + state.webhook);
+  log("cargando pestañas del sheet…");
+  setHeaderStatus("load", "Cargando (puede tardar ~30s la 1ra vez)…");
   try {
-    const data = await loadViaJSONP(state.webhook);
+    const data = await loadViaJSONP(state.webhook, 120000);
     applyAppsScriptData(data);
-    setHeaderStatus("ok", "Sync en vivo · " + new Date().toLocaleTimeString("es-MX"));
-    showStatus("✓ Datos en vivo desde el Google Sheet", "success", 4000);
+    setHeaderStatus("ok", "Sync · " + new Date().toLocaleTimeString("es-MX"));
+    showStatus("✓ Datos cargados desde el Google Sheet", "success", 4000);
     return true;
   } catch (err) {
-    log("JSONP falló: " + err.message);
+    log("JSONP falló: " + err.message + ". Probando fetch…");
     try {
       const r = await fetch(state.webhook, { cache: "no-store" });
       if (!r.ok) throw new Error("HTTP " + r.status);
       const data = await r.json();
       applyAppsScriptData(data);
-      setHeaderStatus("ok", "Sync en vivo · " + new Date().toLocaleTimeString("es-MX"));
-      showStatus("✓ Datos en vivo (fetch)", "success", 4000);
+      setHeaderStatus("ok", "Sync (fetch) · " + new Date().toLocaleTimeString("es-MX"));
+      showStatus("✓ Datos cargados (vía fetch)", "success", 4000);
       return true;
     } catch (err2) {
-      log("fetch fallback también falló: " + err2.message);
+      log("fetch también falló: " + err2.message);
       return false;
     }
   }
@@ -498,9 +501,21 @@ async function loadData() {
   const ok = await tryWebhookLoad();
   if (!ok) {
     setHeaderStatus("err", "Error de conexión");
-    showStatus("⚠ No se pudo conectar al Apps Script. Revisa 🐛 diagnóstico.", "error", 0);
+    showStatus(
+      "⚠ El Apps Script no responde a tiempo.\n\n" +
+      "POSIBLES CAUSAS:\n" +
+      "1) El código Apps Script actual todavía intenta leer las hojas externas (NS, Inputs) que son lentas.\n" +
+      "   → Reemplaza el código con el .gs simplificado que te mandé y REIMPLEMENTA (Gestionar implementaciones → Editar → Nueva versión).\n\n" +
+      "2) El deployment expiró o la URL cambió.\n" +
+      "   → Abre esta URL directamente en tu navegador para probar:\n" +
+      state.webhook +
+      "\n\nSi ves JSON crudo, funciona. Si ves error o tarda mucho, revisa Apps Script.",
+      "error", 0);
   }
 }
+
+// Botón para abrir el webhook directo en una pestaña nueva
+window.testWebhook = () => { window.open(state.webhook, '_blank'); };
 
 function setHeaderStatus(kind, msg) {
   const dot = document.querySelector("#header-status .dot");
@@ -523,79 +538,13 @@ function applyAppsScriptData(obj) {
   };
   Object.keys(obj).forEach(k => {
     const key = k.toLowerCase();
-    if (key === "ubicaciones" || key.includes("ubicac")) { state.extra.ubicaciones = obj[k]; return; }
-    if (key === "ns" || key.includes("nivel de serv")) { state.extra.NS = obj[k]; return; }
     if (key.includes("sitio") || key.includes("cap")) { state.data.sitiosCap = toObjects(obj[k]); return; }
     if (key.includes("ruta")) { state.data.rutas = toObjects(obj[k]); return; }
     if (key.includes("vacante")) { state.data.vacantes = toObjects(obj[k]); return; }
     if (key.includes("asignac")) { state.data.asignaciones = toObjects(obj[k]); return; }
   });
   log("filas → rutas:" + state.data.rutas.length + " vacantes:" + state.data.vacantes.length + " asig:" + state.data.asignaciones.length + " sitios:" + state.data.sitiosCap.length);
-  buildKmVacioLookup();
   renderAll();
-}
-
-/* ============================================================
-   KM VACÍO join
-   ============================================================ */
-function buildKmVacioLookup() {
-  state.kmVacio = {};
-  const ns = state.extra.NS, ubi = state.extra.ubicaciones;
-  if (!Array.isArray(ns) || ns.length < 2) { log("NS no cargado"); return; }
-  if (!Array.isArray(ubi) || ubi.length < 2) { log("ubicaciones no cargado"); return; }
-
-  const findIdx = (headers, patterns) => {
-    for (const p of patterns) {
-      const idx = headers.findIndex(h => norm(h) === norm(p));
-      if (idx !== -1) return idx;
-    }
-    for (const p of patterns) {
-      const idx = headers.findIndex(h => norm(h).includes(norm(p)));
-      if (idx !== -1) return idx;
-    }
-    return -1;
-  };
-
-  const nsHead = ns[0].map(h => String(h));
-  const rutaCol = findIdx(nsHead, ["ruta"]);
-  const fechaCol = findIdx(nsHead, ["fecha", "date", "dia"]);
-  const empCol = 29; // AD
-  log("NS cols: ruta=" + rutaCol + " fecha=" + fechaCol);
-  if (rutaCol < 0) return;
-
-  const rutaLatest = {};
-  for (let i = 1; i < ns.length; i++) {
-    const row = ns[i]; if (!row) continue;
-    const ruta = String(row[rutaCol] || "").trim();
-    const emp = String(row[empCol] || "").trim();
-    if (!ruta || !emp) continue;
-    const fecha = fechaCol >= 0 ? row[fechaCol] : null;
-    const t = fecha ? (new Date(fecha)).getTime() : 0;
-    const cur = rutaLatest[ruta];
-    if (!cur || t >= cur.t) rutaLatest[ruta] = { emp, t, fecha };
-  }
-
-  const ubiHead = ubi[0].map(h => String(h));
-  const ubiEmp = findIdx(ubiHead, ["empleado", "nomina", "numeroempleado", "num"]);
-  const ubiKm = findIdx(ubiHead, ["kmvacio", "vacio", "kmvacios"]);
-  const ubiCol = findIdx(ubiHead, ["colonia", "col"]);
-  log("ubicaciones cols: emp=" + ubiEmp + " km=" + ubiKm + " col=" + ubiCol);
-  if (ubiEmp < 0 || ubiKm < 0) return;
-
-  const empData = {};
-  for (let i = 1; i < ubi.length; i++) {
-    const row = ubi[i]; if (!row) continue;
-    const emp = String(row[ubiEmp] || "").trim();
-    if (!emp) continue;
-    empData[emp] = { km: row[ubiKm], colonia: ubiCol >= 0 ? row[ubiCol] : "" };
-  }
-
-  Object.keys(rutaLatest).forEach(ruta => {
-    const rec = rutaLatest[ruta];
-    const info = empData[rec.emp] || {};
-    state.kmVacio[ruta] = { empleado: rec.emp, km: info.km != null ? info.km : null, colonia: info.colonia || "" };
-  });
-  log("KM VACÍO resuelto: " + Object.keys(state.kmVacio).length + " rutas");
 }
 
 /* ============================================================
@@ -823,20 +772,12 @@ function bindPinPopup(marker) {
   const d = marker.__d;
   let html = "";
   if (d.type === "ruta") {
-    let kmBlock = "";
-    const km = state.kmVacio && state.kmVacio[d.ruta];
-    if (km) {
-      kmBlock =
-        '<div class="km-row"><span class="lbl">KM VACÍO</span>' + kmChip(km.km) + '</div>' +
-        '<div class="km-sub">Operador #' + escapeHTML(km.empleado) + (km.colonia ? ' · ' + escapeHTML(km.colonia) : '') + '</div>';
-    }
     html =
       '<div class="popup-title ruta">🚌 ' + escapeHTML(d.ruta) + '</div>' +
       '<b>Planta:</b> ' + escapeHTML(d.planta) + '<br>' +
       '<b>1ª parada:</b> ' + escapeHTML(d.parada) + '<br>' +
       '<b>Coords:</b> ' + d.lat.toFixed(5) + ", " + d.lng.toFixed(5) +
-      kmBlock +
-      '<button class="popup-btn" data-select="' + d.id + '">🔗 Usar para ruta</button>';
+      '<br><button class="popup-btn" data-select="' + d.id + '">🔗 Usar para ruta</button>';
   } else if (d.type === "vacante") {
     html =
       '<div class="popup-title vacante">🎯 VACANTE · ' + escapeHTML(d.ruta) + '</div>' +
@@ -1240,6 +1181,7 @@ document.getElementById("geo-clear").addEventListener("click", clearGeoSearch);
    MISC
    ============================================================ */
 document.getElementById("reload-data").addEventListener("click", loadData);
+document.getElementById("test-webhook").addEventListener("click", () => window.open(state.webhook, '_blank'));
 
 let statusTimer = null;
 function showStatus(msg, type, autoHideMs) {
