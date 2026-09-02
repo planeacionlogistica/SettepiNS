@@ -6,6 +6,7 @@
 <title>TRAXIÓN — Calidad MAE</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   * { box-sizing: border-box; }
   html, body {
@@ -22,30 +23,32 @@
     background: #0d1421;
     color: #ffffff;
     padding: 14px 24px;
-    display: flex; align-items: center; gap: 16px;
+    display: flex; align-items: center; gap: 12px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.08);
     position: sticky; top: 0; z-index: 1000;
+    flex-wrap: wrap;
   }
   header .logo {
     font-weight: 800; font-size: 22px;
     color: #22c55e; letter-spacing: 1px;
   }
-  header .divider {
-    width: 1px; height: 24px; background: #334155;
-  }
+  header .divider { width: 1px; height: 24px; background: #334155; }
   header .title { font-weight: 500; font-size: 15px; color: #cbd5e1; }
   header .spacer { flex: 1; }
   header .status-badge {
-    font-size: 12px; color: #94a3b8; margin-right: 12px;
+    font-size: 12px; color: #94a3b8; margin-right: 4px;
     max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  header .refresh-btn {
+  header .hbtn {
     background: transparent; color: #22c55e; border: 1px solid #22c55e;
     padding: 6px 12px; border-radius: 8px; font-weight: 600;
     font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
     transition: background .15s, color .15s;
+    white-space: nowrap;
   }
-  header .refresh-btn:hover { background: #22c55e; color: #0d1421; }
+  header .hbtn:hover { background: #22c55e; color: #0d1421; }
+  header .hbtn.primary { background: #22c55e; color: #0d1421; }
+  header .hbtn.primary:hover { background: #16a34a; color: white; border-color: #16a34a; }
   header .semana-select-wrap {
     display: flex; align-items: center; gap: 8px;
     background: #1e293b; border-radius: 8px;
@@ -65,18 +68,44 @@
   /* ---------- Layout ---------- */
   main { padding: 20px 24px; max-width: 1600px; margin: 0 auto; }
 
-  /* ---------- Breadcrumbs ---------- */
+  /* ---------- Breadcrumbs (buttons) ---------- */
   .breadcrumb {
     display: flex; align-items: center; gap: 8px;
-    margin-bottom: 16px; font-size: 14px;
-    color: #64748b;
+    margin-bottom: 16px; font-size: 13px; flex-wrap: wrap;
   }
-  .breadcrumb .crumb {
-    cursor: pointer; color: #0d1421; font-weight: 600;
+  .breadcrumb .back-btn {
+    background: white; color: #0d1421; border: 1px solid #cbd5e1;
+    padding: 6px 12px 6px 10px; border-radius: 8px; font-weight: 600;
+    font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+    transition: background .15s, color .15s, border-color .15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
   }
-  .breadcrumb .crumb:hover { color: #22c55e; }
-  .breadcrumb .crumb.current { color: #64748b; cursor: default; font-weight: 500; }
-  .breadcrumb .sep { color: #cbd5e1; }
+  .breadcrumb .back-btn:hover:not(:disabled) {
+    background: #0d1421; color: white; border-color: #0d1421;
+  }
+  .breadcrumb .back-btn:disabled {
+    opacity: 0.4; cursor: not-allowed;
+  }
+  .breadcrumb .separator-arrow {
+    color: #94a3b8; margin-left: 4px; margin-right: 2px; font-weight: 700;
+  }
+  .breadcrumb .crumb-btn {
+    background: white; color: #0d1421; border: 1px solid #cbd5e1;
+    padding: 6px 14px; border-radius: 999px; font-weight: 600;
+    font-size: 13px; cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .breadcrumb .crumb-btn:hover {
+    background: #22c55e; color: #0d1421; border-color: #22c55e;
+  }
+  .breadcrumb .crumb-btn.current {
+    background: #0d1421; color: white; border-color: #0d1421; cursor: default;
+  }
+  .breadcrumb .crumb-btn.current:hover {
+    background: #0d1421; color: white; border-color: #0d1421;
+  }
 
   /* ---------- KPI Row ---------- */
   .kpi-row {
@@ -110,12 +139,18 @@
   /* ---------- Section / search ---------- */
   .section-title {
     font-size: 16px; font-weight: 700; color: #0d1421;
-    margin: 8px 0 12px; display: flex; align-items: center; gap: 8px;
+    margin: 8px 0 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   }
   .section-title .count-badge {
     background: #e2e8f0; color: #475569; font-size: 12px;
     padding: 2px 8px; border-radius: 999px; font-weight: 600;
   }
+  .section-title .na-hint {
+    background: #fef3c7; color: #92400e; font-size: 11px;
+    padding: 3px 10px; border-radius: 999px; font-weight: 600;
+    cursor: pointer; user-select: none;
+  }
+  .section-title .na-hint:hover { background: #fde68a; }
   .search-row { display: flex; gap: 10px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
   .search-row input {
     flex: 1; max-width: 320px;
@@ -131,38 +166,29 @@
     vertical-align: middle;
   }
 
-  /* ---------- Plant TABLE (new main view) ---------- */
+  /* ---------- Plant TABLE ---------- */
   .plants-table-wrap {
     background: white; border-radius: 12px; overflow: hidden;
     box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   }
-  table.plants-table {
-    width: 100%; border-collapse: collapse; font-size: 13px;
-  }
+  table.plants-table { width: 100%; border-collapse: collapse; font-size: 13px; }
   table.plants-table thead th {
     background: #0d1421; color: #ffffff;
     text-transform: uppercase; font-size: 11px; letter-spacing: 0.6px;
     padding: 14px 14px; text-align: left; font-weight: 600;
     position: sticky; top: 0; z-index: 5;
-    border-bottom: 2px solid #22c55e00;
   }
   table.plants-table thead th.num { text-align: center; }
   table.plants-table thead th.right { text-align: right; }
-  table.plants-table thead th.sortable {
-    cursor: pointer; user-select: none;
-  }
+  table.plants-table thead th.sortable { cursor: pointer; user-select: none; }
   table.plants-table thead th.sortable:hover { color: #22c55e; }
   table.plants-table thead th.sortable .sort-ind { opacity: 0.5; font-size: 10px; margin-left: 4px; }
   table.plants-table thead th.sortable.active .sort-ind { opacity: 1; color: #22c55e; }
   table.plants-table tbody tr {
-    border-bottom: 1px solid #f1f5f9;
-    transition: background .1s;
-    cursor: pointer;
+    border-bottom: 1px solid #f1f5f9; transition: background .1s; cursor: pointer;
   }
   table.plants-table tbody tr:hover { background: #f8fafc; }
-  table.plants-table tbody td {
-    padding: 12px 14px; vertical-align: middle;
-  }
+  table.plants-table tbody td { padding: 12px 14px; vertical-align: middle; }
   table.plants-table tbody td.num { text-align: center; }
   table.plants-table tbody td.right { text-align: right; font-weight: 700; }
   table.plants-table .rank-badge {
@@ -172,20 +198,14 @@
   }
   table.plants-table .rank-badge.rk-red { background: #ef4444; }
   table.plants-table .rank-badge.rk-amber { background: #f59e0b; }
-  table.plants-table .rank-badge.rk-neutral {
-    background: #e2e8f0; color: #64748b;
-  }
+  table.plants-table .rank-badge.rk-neutral { background: #e2e8f0; color: #64748b; }
   table.plants-table .plant-name {
     font-weight: 700; color: #0d1421;
     text-decoration: underline; text-decoration-color: #cbd5e1;
     text-underline-offset: 3px;
   }
-  table.plants-table tr:hover .plant-name {
-    color: #22c55e; text-decoration-color: #22c55e;
-  }
-  table.plants-table .plant-name .arrow {
-    font-size: 10px; color: #94a3b8; margin-left: 4px;
-  }
+  table.plants-table tr:hover .plant-name { color: #22c55e; text-decoration-color: #22c55e; }
+  table.plants-table .plant-name .arrow { font-size: 10px; color: #94a3b8; margin-left: 4px; }
   table.plants-table td.txt-green { color: #22c55e; }
   table.plants-table td.txt-amber { color: #f59e0b; }
   table.plants-table td.txt-red { color: #ef4444; }
@@ -195,7 +215,7 @@
     padding: 10px 14px; background: #f8fafc; font-size: 12px; color: #64748b;
   }
 
-  /* ---------- Route cards (unchanged) ---------- */
+  /* ---------- Route cards ---------- */
   .cards-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -234,6 +254,18 @@
     display: flex; justify-content: space-between;
   }
   .card .c-meta strong { color: #1e293b; font-weight: 700; }
+
+  /* Section separator for routes by severity */
+  .routes-severity-header {
+    grid-column: 1 / -1;
+    font-size: 12px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.6px; color: #475569;
+    padding: 12px 4px 4px; border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .routes-severity-header .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
 
   /* ---------- Map View ---------- */
   .map-layout {
@@ -328,6 +360,16 @@
   }
   .loading-error a { color: #fca5a5; text-decoration: underline; }
 
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #0d1421; color: white; padding: 10px 16px; border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25); font-size: 13px; z-index: 6000;
+    display: flex; align-items: center; gap: 8px;
+    animation: toastIn .2s ease-out;
+  }
+  @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
   .hidden { display: none !important; }
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: #f1f5f9; }
@@ -339,6 +381,8 @@
     #map { height: 400px; }
     .stops-panel { height: 400px; }
     table.plants-table thead th, table.plants-table tbody td { padding: 8px 8px; }
+    header { padding: 10px 12px; gap: 8px; }
+    header .title { display: none; }
   }
 </style>
 </head>
@@ -353,7 +397,8 @@
     <select id="semanaFilter"><option value="__ALL__">Todas</option></select>
   </div>
   <div class="status-badge" id="statusBadge">Cargando…</div>
-  <button class="refresh-btn" id="refreshBtn" title="Recargar datos del Sheet">↻ Actualizar</button>
+  <button class="hbtn primary" id="exportBtn" title="Descargar los datos que se están viendo en formato Excel">⬇ Excel</button>
+  <button class="hbtn" id="refreshBtn" title="Recargar datos del Sheet">↻ Actualizar</button>
 </header>
 
 <main>
@@ -384,13 +429,10 @@
 /* ===================== CONFIG ===================== */
 const SHEET_ID = "1pM6VXlIwDYfH-A-1C6KR0SZZ2EQ50oZ9tbHZIJOQ1Zs";
 const SHEET_GID = "0";
-// We load via gviz JSON with a JSONP callback (script-tag). This sidesteps
-// CORS entirely — needed because the Cowork artifact iframe runs with a
-// sandbox that blocks cross-origin fetch to Google's CSV endpoint.
 
 /* ===================== STATE ===================== */
-let RECORDS_ALL = []; // full parsed dataset (all E rows, all weeks)
-let RECORDS = [];     // filtered by selected week
+let RECORDS_ALL = [];
+let RECORDS = [];
 const STATE = {
   view: 'plants',
   planta: null,
@@ -398,6 +440,7 @@ const STATE = {
   search: '',
   semana: '__ALL__',
   plantsSort: {key: 'cal_pd', dir: 'asc'},
+  showNoData: false,   // routes with both Cal Rt & Cal Pd null
 };
 let mapInstance = null;
 let mapMarkers = [];
@@ -410,6 +453,13 @@ function colorClassForScore(v) {
   if (v >= 98) return 'green';
   if (v >= 90) return 'amber';
   return 'red';
+}
+/** Ordinal used to group routes: reds first, then ambers, then greens, then no-data */
+function severityOrder(v) {
+  if (v == null || isNaN(v)) return 3;
+  if (v < 90) return 0;
+  if (v < 98) return 1;
+  return 2;
 }
 function badgeClassForScore(v) { return 'badge-' + colorClassForScore(v); }
 function fmtScore(v) {
@@ -439,46 +489,6 @@ function escapeHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 function escapeAttr(s) { return escapeHtml(s); }
-
-/* ===================== CSV parser ===================== */
-function parseCSV(text) {
-  let i = 0, field = '', row = [], inQ = false;
-  const rowsRaw = [];
-  while (i < text.length) {
-    const ch = text[i];
-    if (inQ) {
-      if (ch === '"') {
-        if (text[i+1] === '"') { field += '"'; i += 2; continue; }
-        inQ = false; i++; continue;
-      }
-      field += ch; i++;
-    } else {
-      if (ch === '"') { inQ = true; i++; continue; }
-      if (ch === ',') { row.push(field); field=''; i++; continue; }
-      if (ch === '\r') { i++; continue; }
-      if (ch === '\n') { row.push(field); rowsRaw.push(row); row=[]; field=''; i++; continue; }
-      field += ch; i++;
-    }
-  }
-  if (field.length || row.length) { row.push(field); rowsRaw.push(row); }
-  if (rowsRaw.length === 0) return [];
-  const headers = rowsRaw[0].map(h => h.trim());
-  const out = [];
-  for (let r = 1; r < rowsRaw.length; r++) {
-    const rr = rowsRaw[r];
-    if (rr.length === 1 && rr[0] === '') continue;
-    const obj = {};
-    for (let c = 0; c < headers.length; c++) obj[headers[c]] = rr[c] == null ? '' : rr[c];
-    out.push(obj);
-  }
-  return out;
-}
-
-/**
- * The gviz CSV endpoint always returns UTF-8, but a header called "Semana"
- * may live under one of several capitalizations/accentuations. Find the key
- * in `row` whose normalized name matches any of `candidates`.
- */
 function pickField(row, candidates) {
   const keys = Object.keys(row);
   const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'');
@@ -488,13 +498,16 @@ function pickField(row, candidates) {
   }
   return null;
 }
+function toast(msg, ms) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), ms || 2500);
+}
 
-/* ===================== DATA LOAD (JSONP via script tag) ===================== */
-/**
- * Convert a gviz JSON response into an array of plain-object rows keyed by
- * column label — matches what the CSV parser used to produce, so downstream
- * code (pickField, filtering, aggregations) needs no changes.
- */
+/* ===================== DATA LOAD (JSONP) ===================== */
 function gvizToRows(response) {
   if (!response || !response.table) throw new Error('Respuesta gviz vacía');
   const cols = response.table.cols.map(c => (c.label || c.id || '').trim());
@@ -502,8 +515,6 @@ function gvizToRows(response) {
     const obj = {};
     for (let i = 0; i < cols.length; i++) {
       const cell = r.c ? r.c[i] : null;
-      // Prefer .v (raw value) for numbers; use .f only when it's a plain-text
-      // header we want to preserve verbatim.
       if (cell == null) { obj[cols[i]] = ''; continue; }
       if (cell.v == null) { obj[cols[i]] = cell.f || ''; continue; }
       obj[cols[i]] = String(cell.v);
@@ -514,7 +525,6 @@ function gvizToRows(response) {
 
 function processRows(rows) {
   if (rows.length === 0) throw new Error('El Sheet no devolvió filas');
-
   const sample = rows[0];
   const kPlanta   = pickField(sample, ['Planta']);
   const kTipSer   = pickField(sample, ['Tip. Ser.', 'Tip Ser', 'TipSer', 'Tipo Servicio', 'TipoServicio', 'Tip']);
@@ -548,7 +558,6 @@ function processRows(rows) {
     semana: kSemana ? (r[kSemana] || '').trim() : '',
   }));
 
-  // Populate Semana dropdown
   const semanas = [...new Set(RECORDS_ALL.map(r => r.semana).filter(s => s !== ''))];
   semanas.sort((a,b) => {
     const na = parseFloat(a), nb = parseFloat(b);
@@ -559,12 +568,8 @@ function processRows(rows) {
   const prev = STATE.semana;
   sel.innerHTML = '<option value="__ALL__">Todas</option>' +
     semanas.map(s => `<option value="${escapeAttr(s)}">${escapeHtml(s)}</option>`).join('');
-  if (prev !== '__ALL__' && semanas.includes(prev)) {
-    sel.value = prev;
-  } else {
-    sel.value = '__ALL__';
-    STATE.semana = '__ALL__';
-  }
+  if (prev !== '__ALL__' && semanas.includes(prev)) sel.value = prev;
+  else { sel.value = '__ALL__'; STATE.semana = '__ALL__'; }
 
   document.getElementById('statusBadge').textContent =
     RECORDS_ALL.length.toLocaleString('es-MX') + ' paradas E · ' +
@@ -634,11 +639,8 @@ function loadSheet() {
 }
 
 function applySemanaFilter() {
-  if (STATE.semana === '__ALL__' || !STATE.semana) {
-    RECORDS = RECORDS_ALL.slice();
-  } else {
-    RECORDS = RECORDS_ALL.filter(r => r.semana === STATE.semana);
-  }
+  if (STATE.semana === '__ALL__' || !STATE.semana) RECORDS = RECORDS_ALL.slice();
+  else RECORDS = RECORDS_ALL.filter(r => r.semana === STATE.semana);
 }
 
 /* ===================== AGGREGATIONS ===================== */
@@ -672,7 +674,7 @@ function routeSummary(planta) {
     paradas: x.records.length,
     cal_rt: avg(x.records.map(r => r.cal_rt)),
     cal_pd: avg(x.records.map(r => r.cal_pd)),
-  })).sort((a,b) => a.desc_ruta.localeCompare(b.desc_ruta));
+  }));
 }
 
 function stopsForRoute(planta, id_ruta) {
@@ -681,27 +683,56 @@ function stopsForRoute(planta, id_ruta) {
     .sort((a,b) => (parseInt(a.sec)||0) - (parseInt(b.sec)||0));
 }
 
-/* ===================== RENDER: BREADCRUMB ===================== */
+/* ===================== RENDER: BREADCRUMB (buttons + back) ===================== */
 function renderBreadcrumb() {
   const el = document.getElementById('breadcrumb');
   const parts = [];
-  parts.push(`<span class="crumb" data-nav="plants">Plantas</span>`);
+
+  // Back button (always visible; disabled at root)
+  const canBack = STATE.view !== 'plants';
+  parts.push(
+    `<button class="back-btn" id="backBtn" ${canBack ? '' : 'disabled'} title="Regresar">← Atrás</button>`
+  );
+
+  // Root crumb
+  parts.push(`<span class="separator-arrow">›</span>`);
+  parts.push(
+    STATE.view === 'plants'
+      ? `<span class="crumb-btn current">Plantas</span>`
+      : `<button class="crumb-btn" data-nav="plants">Plantas</button>`
+  );
+
+  // Planta crumb
   if (STATE.view !== 'plants') {
-    parts.push(`<span class="sep">›</span>`);
-    parts.push(`<span class="crumb" data-nav="routes">${escapeHtml(STATE.planta)}</span>`);
+    parts.push(`<span class="separator-arrow">›</span>`);
+    parts.push(
+      STATE.view === 'routes'
+        ? `<span class="crumb-btn current">${escapeHtml(STATE.planta)}</span>`
+        : `<button class="crumb-btn" data-nav="routes">${escapeHtml(STATE.planta)}</button>`
+    );
   }
+
+  // Route crumb
   if (STATE.view === 'stops') {
     const routeName = RECORDS.find(r => r.planta===STATE.planta && r.id_ruta===STATE.ruta)?.desc_ruta || STATE.ruta;
-    parts.push(`<span class="sep">›</span>`);
-    parts.push(`<span class="crumb current">${escapeHtml(routeName)}</span>`);
+    parts.push(`<span class="separator-arrow">›</span>`);
+    parts.push(`<span class="crumb-btn current">${escapeHtml(routeName)}</span>`);
   }
+
   el.innerHTML = parts.join('');
-  el.querySelectorAll('.crumb[data-nav]').forEach(c => {
-    c.addEventListener('click', () => {
-      if (c.dataset.nav === 'plants') { STATE.view='plants'; STATE.planta=null; STATE.ruta=null; }
-      if (c.dataset.nav === 'routes') { STATE.view='routes'; STATE.ruta=null; }
-      STATE.search = '';
-      document.getElementById('searchInput').value = '';
+
+  const back = document.getElementById('backBtn');
+  if (back) back.addEventListener('click', () => {
+    if (STATE.view === 'stops') { STATE.view = 'routes'; STATE.ruta = null; }
+    else if (STATE.view === 'routes') { STATE.view = 'plants'; STATE.planta = null; }
+    STATE.search = ''; document.getElementById('searchInput').value = '';
+    render();
+  });
+  el.querySelectorAll('button.crumb-btn[data-nav]').forEach(b => {
+    b.addEventListener('click', () => {
+      if (b.dataset.nav === 'plants') { STATE.view='plants'; STATE.planta=null; STATE.ruta=null; }
+      if (b.dataset.nav === 'routes') { STATE.view='routes'; STATE.ruta=null; }
+      STATE.search = ''; document.getElementById('searchInput').value = '';
       render();
     });
   });
@@ -754,14 +785,12 @@ function renderKPIs() {
   ).join('');
 }
 
-/* ===================== RENDER: PLANTS (table) ===================== */
+/* ===================== RENDER: PLANTS ===================== */
 function renderPlants() {
   const container = document.getElementById('viewContainer');
   let plants = plantSummary().filter(p =>
     !STATE.search || p.planta.toLowerCase().includes(STATE.search.toLowerCase())
   );
-
-  // Sort
   const {key, dir} = STATE.plantsSort;
   const s = dir === 'asc' ? 1 : -1;
   plants.sort((a, b) => {
@@ -769,7 +798,6 @@ function renderPlants() {
     if (typeof av === 'string' || typeof bv === 'string') {
       return s * String(av||'').localeCompare(String(bv||''));
     }
-    // Nulls at bottom in ascending, top in descending
     if (av == null && bv == null) return 0;
     if (av == null) return 1;
     if (bv == null) return -1;
@@ -849,7 +877,7 @@ function renderPlants() {
         STATE.plantsSort.dir = STATE.plantsSort.dir === 'asc' ? 'desc' : 'asc';
       } else {
         STATE.plantsSort.key = k;
-        STATE.plantsSort.dir = (k === 'planta' ? 'asc' : 'asc');
+        STATE.plantsSort.dir = 'asc';
       }
       renderPlants();
     });
@@ -859,42 +887,91 @@ function labelForSortKey(k) {
   return {planta:'planta', rutas:'rutas', paradas:'paradas', cal_rt:'Cal Ruta', cal_pd:'Cal Parada'}[k] || k;
 }
 
-/* ===================== RENDER: ROUTES ===================== */
+/* ===================== RENDER: ROUTES (severity groups, hide N/A) ===================== */
 function renderRoutes() {
   const container = document.getElementById('viewContainer');
-  const routes = routeSummary(STATE.planta).filter(r =>
+  const all = routeSummary(STATE.planta);
+
+  // No-data = both scores null (nothing measured)
+  const noDataCount = all.filter(r => r.cal_rt == null && r.cal_pd == null).length;
+
+  let routes = all.filter(r => STATE.showNoData || !(r.cal_rt == null && r.cal_pd == null));
+
+  // Search
+  routes = routes.filter(r =>
     !STATE.search ||
-    r.desc_ruta.toLowerCase().includes(STATE.search.toLowerCase()) ||
-    r.id_ruta.toLowerCase().includes(STATE.search.toLowerCase())
+    (r.desc_ruta||'').toLowerCase().includes(STATE.search.toLowerCase()) ||
+    (r.id_ruta||'').toLowerCase().includes(STATE.search.toLowerCase())
   );
+
+  // Sort: reds (<90) → ambers (90-97.99) → greens (>=98) → no-data;
+  // within each group ascending by Cal Pd (worst first inside each group)
+  routes.sort((a, b) => {
+    const oa = severityOrder(a.cal_pd), ob = severityOrder(b.cal_pd);
+    if (oa !== ob) return oa - ob;
+    if (a.cal_pd == null && b.cal_pd == null) return (a.desc_ruta||'').localeCompare(b.desc_ruta||'');
+    if (a.cal_pd == null) return 1;
+    if (b.cal_pd == null) return -1;
+    return a.cal_pd - b.cal_pd;
+  });
+
   if (routes.length === 0) {
-    container.innerHTML = '<div class="empty"><h3>Sin resultados</h3></div>';
+    container.innerHTML = '<div class="empty"><h3>Sin resultados</h3>' +
+      (noDataCount ? '<p>' + noDataCount + ' ruta(s) sin datos ocultas.</p>' : '') + '</div>';
     return;
   }
-  const cards = routes.map(r => `
-    <div class="card g-${colorClassForScore(r.cal_pd)}" data-ruta="${escapeAttr(r.id_ruta)}">
-      <div class="c-title"><span>${escapeHtml(r.desc_ruta)}</span></div>
-      <div class="c-code">${escapeHtml(r.id_ruta)}</div>
-      <div class="c-stats">
-        <div class="stat s-${colorClassForScore(r.cal_rt)}">
-          <div class="s-label">Cal Ruta</div>
-          <div class="s-value">${fmtScore(r.cal_rt)}</div>
+
+  // Build cards, injecting section headers when severity changes
+  let lastOrder = -1;
+  const sectionLabels = {
+    0: {label: 'Rutas con calidad baja (< 90%)', color: '#ef4444'},
+    1: {label: 'Rutas con calidad media (90 – 97.99%)', color: '#f59e0b'},
+    2: {label: 'Rutas dentro de meta (≥ 98%)', color: '#22c55e'},
+    3: {label: 'Rutas sin datos (N/A)', color: '#94a3b8'},
+  };
+  const cardsHTML = routes.map(r => {
+    const ord = severityOrder(r.cal_pd);
+    let sectionHTML = '';
+    if (ord !== lastOrder) {
+      lastOrder = ord;
+      const sec = sectionLabels[ord];
+      sectionHTML = `<div class="routes-severity-header"><span class="dot" style="background:${sec.color}"></span>${sec.label}</div>`;
+    }
+    return sectionHTML + `
+      <div class="card g-${colorClassForScore(r.cal_pd)}" data-ruta="${escapeAttr(r.id_ruta)}">
+        <div class="c-title"><span>${escapeHtml(r.desc_ruta)}</span></div>
+        <div class="c-code">${escapeHtml(r.id_ruta)}</div>
+        <div class="c-stats">
+          <div class="stat s-${colorClassForScore(r.cal_rt)}">
+            <div class="s-label">Cal Ruta</div>
+            <div class="s-value">${fmtScore(r.cal_rt)}</div>
+          </div>
+          <div class="stat s-${colorClassForScore(r.cal_pd)}">
+            <div class="s-label">Cal Parada</div>
+            <div class="s-value">${fmtScore(r.cal_pd)}</div>
+          </div>
         </div>
-        <div class="stat s-${colorClassForScore(r.cal_pd)}">
-          <div class="s-label">Cal Parada</div>
-          <div class="s-value">${fmtScore(r.cal_pd)}</div>
+        <div class="c-meta">
+          <span><strong>${r.paradas}</strong> paradas</span>
+          <span>Ver mapa →</span>
         </div>
       </div>
-      <div class="c-meta">
-        <span><strong>${r.paradas}</strong> paradas</span>
-        <span>Ver mapa →</span>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
+
+  const naHint = noDataCount
+    ? `<span class="na-hint" id="toggleNAHint">${STATE.showNoData ? 'Ocultar' : 'Mostrar'} ${noDataCount} sin datos</span>`
+    : '';
+
   container.innerHTML = `
-    <div class="section-title">Rutas de ${escapeHtml(STATE.planta)} <span class="count-badge">${routes.length}</span></div>
-    <div class="cards-grid">${cards}</div>
+    <div class="section-title">
+      Rutas de ${escapeHtml(STATE.planta)}
+      <span class="count-badge">${routes.length}</span>
+      ${naHint}
+    </div>
+    <div class="cards-grid">${cardsHTML}</div>
   `;
+
   container.querySelectorAll('.card').forEach(c => {
     c.addEventListener('click', () => {
       STATE.ruta = c.dataset.ruta;
@@ -903,6 +980,11 @@ function renderRoutes() {
       document.getElementById('searchInput').value = '';
       render();
     });
+  });
+  const toggle = document.getElementById('toggleNAHint');
+  if (toggle) toggle.addEventListener('click', () => {
+    STATE.showNoData = !STATE.showNoData;
+    renderRoutes();
   });
 }
 
@@ -963,7 +1045,6 @@ function initMap(stops, list) {
   ];
   mapInstance = L.map('map', {zoomControl: true}).setView(center, 12);
 
-  // Google Maps tiles (roadmap style). Uses mt0-mt3 subdomains.
   L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
     maxZoom: 20,
     subdomains: ['mt0','mt1','mt2','mt3'],
@@ -1019,15 +1100,10 @@ function initMap(stops, list) {
   });
 }
 
-/**
- * Fetch driving route between waypoints from OSRM public demo and redraw as
- * dashed polyline that follows real streets. Silent fallback on error.
- */
 async function fetchAndDrawRoadRoute(latlngs) {
   if (!latlngs || latlngs.length < 2) return;
   const token = ++mapFetchToken;
   const mapAtStart = mapInstance;
-
   const CHUNK = 100;
   const segments = [];
   for (let i = 0; i < latlngs.length - 1; i += (CHUNK - 1)) {
@@ -1058,6 +1134,135 @@ async function fetchAndDrawRoadRoute(latlngs) {
   } catch (err) {
     console.warn('Road route unavailable, keeping straight-line fallback:', err);
   }
+}
+
+/* ===================== EXCEL EXPORT ===================== */
+function safeSheetName(name) {
+  // Excel sheet names ≤ 31 chars, no : \ / ? * [ ]
+  return String(name || 'Datos').replace(/[:\\\/\?\*\[\]]/g,'_').slice(0, 31) || 'Datos';
+}
+
+function currentSemanaLabel() {
+  return STATE.semana === '__ALL__' ? 'Todas' : STATE.semana;
+}
+
+function exportCurrentView() {
+  if (typeof XLSX === 'undefined') {
+    toast('La librería de Excel aún no carga, intenta en un segundo.'); return;
+  }
+  if (RECORDS.length === 0) { toast('No hay datos para exportar.'); return; }
+
+  const wb = XLSX.utils.book_new();
+  const sem = currentSemanaLabel();
+  const stamp = new Date().toISOString().slice(0,10).replace(/-/g,'');
+
+  let fileName = 'MAE_Calidad';
+
+  if (STATE.view === 'plants') {
+    // Sheet 1: Resumen por Planta
+    const plants = plantSummary().sort((a,b) => {
+      // reds first, then ambers, greens, then nulls (as shown in table default)
+      const oa = severityOrder(a.cal_pd), ob = severityOrder(b.cal_pd);
+      if (oa !== ob) return oa - ob;
+      if (a.cal_pd == null && b.cal_pd == null) return a.planta.localeCompare(b.planta);
+      if (a.cal_pd == null) return 1;
+      if (b.cal_pd == null) return -1;
+      return a.cal_pd - b.cal_pd;
+    });
+    const rows1 = plants.map((p, i) => ({
+      '#': i + 1,
+      'Planta / Grupo': p.planta,
+      'Rutas': p.rutas,
+      'Paradas': p.paradas,
+      'Cal Ruta (%)': p.cal_rt == null ? '' : Number(p.cal_rt.toFixed(2)),
+      'Cal Parada (%)': p.cal_pd == null ? '' : Number(p.cal_pd.toFixed(2)),
+      'Semana': sem,
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows1), 'Resumen Plantas');
+
+    // Sheet 2: Detalle de todas las paradas (contexto)
+    const rows2 = RECORDS.map(r => ({
+      'Semana': r.semana,
+      'Planta': r.planta,
+      'ID Ruta': r.id_ruta,
+      'Desc Ruta': r.desc_ruta,
+      'Sec': r.sec,
+      'Pos': r.pos,
+      'Parada': r.parada,
+      'Lat': r.lat,
+      'Lng': r.lng,
+      'Hora (H1)': r.h1,
+      'Cal Rt': r.cal_rt,
+      'Cal Pd': r.cal_pd,
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows2), 'Paradas (detalle)');
+
+    fileName = `MAE_Plantas_Sem-${sem}_${stamp}.xlsx`;
+  }
+  else if (STATE.view === 'routes') {
+    const routes = routeSummary(STATE.planta);
+    // Same order as UI: severity groups then Cal Pd asc
+    routes.sort((a,b) => {
+      const oa = severityOrder(a.cal_pd), ob = severityOrder(b.cal_pd);
+      if (oa !== ob) return oa - ob;
+      if (a.cal_pd == null && b.cal_pd == null) return (a.desc_ruta||'').localeCompare(b.desc_ruta||'');
+      if (a.cal_pd == null) return 1;
+      if (b.cal_pd == null) return -1;
+      return a.cal_pd - b.cal_pd;
+    });
+    const rows1 = routes.map((r, i) => ({
+      '#': i + 1,
+      'Planta': STATE.planta,
+      'ID Ruta': r.id_ruta,
+      'Desc Ruta': r.desc_ruta,
+      'Paradas': r.paradas,
+      'Cal Ruta (%)': r.cal_rt == null ? '' : Number(r.cal_rt.toFixed(2)),
+      'Cal Parada (%)': r.cal_pd == null ? '' : Number(r.cal_pd.toFixed(2)),
+      'Semana': sem,
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows1), 'Rutas ' + safeSheetName(STATE.planta));
+
+    // Detail sheet for paradas de esta planta
+    const rows2 = RECORDS.filter(r => r.planta === STATE.planta).map(r => ({
+      'Semana': r.semana,
+      'ID Ruta': r.id_ruta,
+      'Desc Ruta': r.desc_ruta,
+      'Sec': r.sec,
+      'Pos': r.pos,
+      'Parada': r.parada,
+      'Lat': r.lat,
+      'Lng': r.lng,
+      'Hora (H1)': r.h1,
+      'Cal Rt': r.cal_rt,
+      'Cal Pd': r.cal_pd,
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows2), 'Paradas (detalle)');
+
+    fileName = `MAE_${safeSheetName(STATE.planta)}_Sem-${sem}_${stamp}.xlsx`;
+  }
+  else if (STATE.view === 'stops') {
+    const stops = stopsForRoute(STATE.planta, STATE.ruta);
+    const routeName = stops[0]?.desc_ruta || STATE.ruta;
+    const rows1 = stops.map(r => ({
+      'Sec': r.sec,
+      'Pos': r.pos,
+      'Parada': r.parada,
+      'Hora (H1)': r.h1,
+      'Lat': r.lat,
+      'Lng': r.lng,
+      'Cal Rt (%)': r.cal_rt == null ? '' : Number(r.cal_rt.toFixed(2)),
+      'Cal Pd (%)': r.cal_pd == null ? '' : Number(r.cal_pd.toFixed(2)),
+      'Planta': r.planta,
+      'ID Ruta': r.id_ruta,
+      'Desc Ruta': r.desc_ruta,
+      'Semana': r.semana,
+    }));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows1), safeSheetName(routeName));
+    fileName = `MAE_${safeSheetName(STATE.planta)}_${safeSheetName(routeName)}_Sem-${sem}_${stamp}.xlsx`;
+  }
+
+  XLSX.writeFile(wb, fileName);
+  toast('Excel descargado: ' + fileName, 3000);
 }
 
 /* ===================== ORCHESTRATOR ===================== */
@@ -1092,6 +1297,15 @@ document.getElementById('semanaFilter').addEventListener('change', (e) => {
   render();
 });
 document.getElementById('refreshBtn').addEventListener('click', () => loadSheet());
+document.getElementById('exportBtn').addEventListener('click', () => exportCurrentView());
+
+// Keyboard: Alt+← as back shortcut
+document.addEventListener('keydown', (e) => {
+  if (e.altKey && e.key === 'ArrowLeft' && STATE.view !== 'plants') {
+    e.preventDefault();
+    document.getElementById('backBtn')?.click();
+  }
+});
 
 /* ===================== INIT ===================== */
 loadSheet();
