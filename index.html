@@ -979,6 +979,14 @@ async function loadKpis(){
     item.addEventListener('click', function(e){
       if(e.target.closest('.trx-dock-item-close')) return;
       const r = modals.get(id); if(!r) return;
+      // Si hay OTRO tablero en modo maximizado, restaurarlo primero para que el
+      // clic en un item distinto realmente muestre el otro tablero
+      if(activeId && activeId !== id){
+        const a = modals.get(activeId);
+        if(a && a.state === 'maximized'){
+          toggleMaximize(activeId);   // vuelve a tamaño normal
+        }
+      }
       if(r.state === 'minimized'){
         // Esta minimizado -> abrir
         restoreFromMin(id);
@@ -989,6 +997,8 @@ async function loadKpis(){
         // Esta visible pero no activo -> traer al frente
         bringToFront(id);
       }
+      // Ocultar la banda inferior por si estaba mostrandose el dock flotante
+      document.body.classList.remove('trx-hover-bottom');
       // Scroll horizontal para que el item quede visible
       setTimeout(()=>item.scrollIntoView({behavior:'smooth', inline:'nearest', block:'nearest'}), 50);
     });
