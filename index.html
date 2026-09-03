@@ -15,12 +15,24 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 .login-card .sub{text-align:center;color:#6b7280;font-size:13px;margin-bottom:26px;font-weight:500}
 .login-card label{display:block;font-size:12px;font-weight:700;color:#1f2937;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
 .login-card input{width:100%;padding:12px 14px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:15px;outline:none;transition:border-color .2s;font-family:inherit;}
-.login-card input:focus{border-color:#84cc16}
+.login-card input:focus{border-color:#84cc16;box-shadow:0 0 0 4px rgba(132,204,22,.18)}
 .login-card button{width:100%;margin-top:18px;padding:13px;border:0;border-radius:8px;background:#84cc16;color:#1f2937;font-weight:800;font-size:14px;letter-spacing:1px;cursor:pointer;transition:background .2s;text-transform:uppercase;}
 .login-card button:hover{background:#65a30d}
 .login-card button:disabled{background:#9ca3af;cursor:wait}
 .login-err{margin-top:12px;color:#b91c1c;font-size:13px;text-align:center;font-weight:600;display:none}
 .login-err.show{display:block}
+/* ---- Efecto de acceso ---- */
+#login{transition:opacity .55s ease, transform .75s cubic-bezier(.16,1,.3,1)}
+#login.trx-hide{opacity:0;transform:scale(1.09);pointer-events:none}
+.login-card{animation:trxCardIn .6s cubic-bezier(.16,1,.3,1) both;transition:opacity .45s ease, transform .55s cubic-bezier(.16,1,.3,1)}
+#login.trx-hide .login-card{opacity:0;transform:translateY(-24px) scale(.93)}
+@keyframes trxCardIn{from{opacity:0;transform:translateY(28px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.login-card h1{animation:trxLogoGlow .9s ease-out both}
+@keyframes trxLogoGlow{0%{opacity:0;transform:translateY(-6px);text-shadow:0 0 0 rgba(132,204,22,0)}55%{text-shadow:0 0 22px rgba(132,204,22,.65)}100%{opacity:1;transform:translateY(0);text-shadow:0 0 0 rgba(132,204,22,0)}}
+.login-card button{transition:background .2s, box-shadow .3s, transform .15s}
+.login-card button.ok{background:#16a34a!important;color:#fff!important;cursor:default;box-shadow:0 0 0 4px rgba(22,163,74,.22),0 8px 22px rgba(22,163,74,.35)}
+.login-card.shake{animation:trxShake .5s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes trxShake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-9px)}40%,60%{transform:translateX(9px)}}
 #menu{display:none}
 #menu.show{display:flex;height:100vh}
 .sidebar{width:260px;background:#1f2937;color:#fff;padding:20px;overflow-y:auto;display:flex;flex-direction:column;}
@@ -485,12 +497,6 @@ a.kpi-card.kpi-link:hover .kpi-arrow{transform:translateX(2px)}
     <div class="hero">
       <h2>TRAXION</h2>
       <p>Logistica &middot; Operaciones &middot; Seguridad</p>
-      <div class="kpi-section">
-        <div class="kpi-section-title"><span>Indicadores Semana</span><span class="kpi-week" id="kpiWeek">--</span></div>
-        <div class="kpi-grid" id="kpiGrid">
-          <div class="kpi-loading">Cargando KPIs...</div>
-        </div>
-      </div>
       <p class="tagline">Movemos lo mas valioso, conectamos destinos</p>
     </div>
   </main>
@@ -514,7 +520,7 @@ const VALIDATOR_EXPECTED = "trx-settepi-garcia-ok";
   try{
     const blob = document.getElementById('trx-validator').textContent.trim();
     const txt = await trxDecrypt(blob, pwd);
-    if(txt === VALIDATOR_EXPECTED){ showMenu(); }
+    if(txt === VALIDATOR_EXPECTED){ showMenu(true); }
     else{ sessionStorage.removeItem('trx_auth'); }
   }catch(e){ sessionStorage.removeItem('trx_auth'); }
 })();
@@ -531,12 +537,16 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     const txt = await trxDecrypt(blob, pwd);
     if(txt !== VALIDATOR_EXPECTED) throw new Error('mismatch');
     sessionStorage.setItem('trx_auth', pwd);
-    showMenu();
+    // Exito: efecto de acceso concedido y luego revelado del hero
+    btn.classList.add('ok');
+    btn.textContent = 'Acceso concedido';
+    setTimeout(function(){ showMenu(); }, 420);
   }catch(e){
     err.classList.add('show');
+    const card = document.querySelector('.login-card');
+    if(card){ card.classList.remove('shake'); void card.offsetWidth; card.classList.add('shake'); }
     document.getElementById('pwd').value = '';
     document.getElementById('pwd').focus();
-  }finally{
     btn.disabled = false;
     btn.textContent = 'Entrar';
   }
@@ -545,12 +555,16 @@ document.getElementById('logoutBtn').addEventListener('click', function(){
   sessionStorage.removeItem('trx_auth');
   location.reload();
 });
-function showMenu(){
-  document.getElementById('login').style.display = 'none';
-  document.getElementById('menu').classList.add('show');
-  loadKpis();
-  if(window._kpiTimer) clearInterval(window._kpiTimer);
-  window._kpiTimer = setInterval(loadKpis, 5*60*1000);
+function showMenu(instant){
+  const login = document.getElementById('login');
+  const menu  = document.getElementById('menu');
+  menu.classList.add('show');           // dispara las animaciones de entrada del hero
+  if(instant){
+    login.style.display = 'none';
+  }else{
+    login.classList.add('trx-hide');    // fade + zoom que revela la foto detras
+    setTimeout(function(){ login.style.display = 'none'; }, 720);
+  }
   logVisit();
 }
 /* ============ Contador de visitas -> Inputs!P3 ============
