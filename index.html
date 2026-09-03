@@ -42,10 +42,13 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 .login-card h1{animation:trxLogoGlow 1.2s ease-out both}
 @keyframes trxLogoGlow{0%{opacity:0;transform:translateY(-10px) scale(.85);text-shadow:0 0 0 rgba(132,204,22,0)}45%{text-shadow:0 0 30px rgba(132,204,22,.85),0 0 8px rgba(132,204,22,.6)}100%{opacity:1;transform:translateY(0) scale(1);text-shadow:0 0 0 rgba(132,204,22,0)}}
 .login-card .sub,.login-card label,.login-card input,.login-card button{animation:trxSlideUp .55s cubic-bezier(.16,1,.3,1) both}
-.login-card .sub{animation-delay:.15s}
-.login-card label{animation-delay:.28s}
-.login-card input{animation-delay:.38s}
-.login-card button{animation-delay:.5s}
+.login-card .sub{animation-delay:.12s}
+.login-card label{animation-delay:.22s}
+.login-card label.lbl-second{animation-delay:.32s;margin-top:14px}
+.login-card input{animation-delay:.3s}
+.login-card input+label{margin-top:14px}
+.login-card input:nth-of-type(2){animation-delay:.4s}
+.login-card button{animation-delay:.52s}
 @keyframes trxSlideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 /* Verificando: barra de escaneo en el boton */
 .login-card button.checking{background:#65a30d;color:rgba(255,255,255,.9)}
@@ -106,6 +109,17 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 .sidebar-footer .sf-phone{color:#9ca3af;font-variant-numeric:tabular-nums;font-size:10px;white-space:nowrap}
 .main{flex:1;background:#fff;position:relative;overflow:hidden}
 .main::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.75),rgba(255,255,255,.75)),url("fondotraxion.jpeg");background-size:cover;background-position:center;}
+/* ---- Saludo en la esquina superior derecha ---- */
+.trx-welcome{position:absolute;top:18px;right:22px;z-index:5;display:none;align-items:center;gap:12px;background:rgba(31,41,55,.92);backdrop-filter:blur(10px);color:#fff;padding:10px 16px 10px 12px;border-radius:999px;box-shadow:0 8px 22px rgba(0,0,0,.22),0 0 0 1px rgba(132,204,22,.35);opacity:0;transform:translateY(-14px);transition:opacity .5s ease,transform .5s cubic-bezier(.16,1,.3,1)}
+.trx-welcome.ready{display:flex;animation:trxWelcomeIn .8s cubic-bezier(.16,1,.3,1) .3s both}
+@keyframes trxWelcomeIn{0%{opacity:0;transform:translateY(-18px) scale(.9)}60%{opacity:1;transform:translateY(2px) scale(1.02)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.trx-welcome-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#84cc16,#65a30d);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;color:#1f2937;flex-shrink:0;letter-spacing:.5px;text-transform:uppercase;box-shadow:inset 0 0 0 2px rgba(255,255,255,.15),0 0 16px rgba(132,204,22,.35)}
+.trx-welcome-text{display:flex;flex-direction:column;line-height:1.15;min-width:0}
+.trx-welcome-hi{font-size:10.5px;color:#9ca3af;font-weight:600;letter-spacing:.7px;text-transform:uppercase}
+.trx-welcome-name{font-size:14px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;margin-top:1px}
+.trx-welcome-type{font-size:9.5px;color:#84cc16;font-weight:700;letter-spacing:.7px;text-transform:uppercase;margin-top:2px}
+@media (max-width:900px){.trx-welcome{top:14px;right:64px;padding:8px 14px 8px 10px;gap:10px}.trx-welcome-avatar{width:30px;height:30px;font-size:12px}.trx-welcome-name{font-size:12.5px;max-width:150px}.trx-welcome-hi{font-size:9.5px}.trx-welcome-type{font-size:9px}}
+@media (max-width:480px){.trx-welcome .trx-welcome-hi{display:none}.trx-welcome-name{max-width:100px;font-size:12px}}
 .hero{position:relative;min-height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:30px 40px}
 .hero h2{font-size:48px;letter-spacing:6px;font-weight:900;color:#1f2937;margin-bottom:6px}
 .hero p{margin-top:6px;font-size:16px;color:#6b7280;font-weight:500}
@@ -292,10 +306,12 @@ body.trx-has-maximized .trx-hover-strip{display:block}
   <form class="login-card" id="loginForm" autocomplete="off">
     <h1>TRAXION</h1>
     <div class="sub">Acceso restringido</div>
-    <label for="pwd">Contrasena</label>
-    <input type="password" id="pwd" autofocus required>
+    <label for="usr">Usuario</label>
+    <input type="text" id="usr" autofocus required autocomplete="username" spellcheck="false" autocapitalize="none">
+    <label for="pwd" class="lbl-second">Contrase&ntilde;a</label>
+    <input type="password" id="pwd" required autocomplete="current-password">
     <button type="submit" id="btn">Entrar</button>
-    <div class="login-err" id="err">Contrasena incorrecta</div>
+    <div class="login-err" id="err">Usuario o contrase&ntilde;a incorrectos</div>
   </form>
 </div>
 <div id="menu">
@@ -308,7 +324,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
     <div class="menu-categories">
 
       <!-- ============ LOGISTICA ============ -->
-      <div class="menu-category" data-cat="logistica">
+      <div class="menu-category" data-cat="logistica" data-trx-menu="Logistica">
         <button type="button" class="menu-category-header">
           <span class="cat-left">
             <svg class="cat-icon" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></svg>
@@ -317,49 +333,49 @@ body.trx-has-maximized .trx-hover-strip{display:block}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-          <a href="#" class="menu-item" data-trx-modal="Dashboard_NS.html" data-trx-title="Nivel de Servicio">
+          <a href="#" class="menu-item" data-trx-modal="Dashboard_NS.html" data-trx-slug="NS" data-trx-title="Nivel de Servicio">
             <!-- Escudo con check: Nivel de servicio -->
             <svg viewBox="0 0 24 24"><path d="M12 2L3 6v6c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V6l-9-4z"/><polyline points="9 12 11 14 15 10"/></svg>
             Nivel de Servicio
           </a>
-           <a href="#" class="menu-item" data-trx-modal="https://traxionmonterrey.github.io/Ranking/index.html" data-trx-title="Dashboard Coordinador y Operador">
+           <a href="#" class="menu-item" data-trx-modal="https://traxionmonterrey.github.io/Ranking/index.html" data-trx-slug="Ranking" data-trx-title="Dashboard Coordinador y Operador">
             <!-- Escudo con check: Nivel de servicio -->
             <svg viewBox="0 0 24 24"><path d="M12 2L3 6v6c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V6l-9-4z"/><polyline points="9 12 11 14 15 10"/></svg>
            Ranking Coordinador 
           </a>
           <!--
-          <a href="#" class="menu-item" data-trx-modal="Dashboard_Kilometros.html" data-trx-title="Kilometros Recorridos">
+          <a href="#" class="menu-item" data-trx-modal="Dashboard_Kilometros.html" data-trx-slug="Kms" data-trx-title="Kilometros Recorridos">
             <svg viewBox="0 0 24 24"><path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/><circle cx="12" cy="17" r="1.2" fill="#9ca3af" stroke="none"/><line x1="12" y1="5" x2="12" y2="6.5"/><line x1="5.5" y1="10" x2="6.8" y2="10.7"/><line x1="18.5" y1="10" x2="17.2" y2="10.7"/></svg>
             Kilometros (Desarrollo)
           </a>
           -->
-          <a href="#" class="menu-item" data-trx-modal="Dashboard_Flota.html" data-trx-title="Flota Vehicular">
+          <a href="#" class="menu-item" data-trx-modal="Dashboard_Flota.html" data-trx-slug="Flota" data-trx-title="Flota Vehicular">
             <!-- Camion: Flota Vehicular -->
             <svg viewBox="0 0 24 24"><rect x="1" y="5" width="13" height="11" rx="1"/><path d="M14 8h4l3 4v4h-7V8z"/><circle cx="5.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/><path d="M14 18H7.5"/></svg>
             Flota Vehicular
           </a>
           <!--
-          <a href="#" class="menu-item" data-trx-modal="Planeador_Territorio.html" data-trx-title="Eficiencias internas">
+          <a href="#" class="menu-item" data-trx-modal="Planeador_Territorio.html" data-trx-slug="Eficiencias" data-trx-title="Eficiencias internas">
             <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><polyline points="7 15 11 11 14 14 20 7"/><polyline points="16 7 20 7 20 11"/></svg>
             Eficiencias internas
           </a>
             -->
-           <a href="#" class="menu-item" data-trx-modal="kms_vacios.html" data-trx-title="Kms vacios">
+           <a href="#" class="menu-item" data-trx-modal="kms_vacios.html" data-trx-slug="KmsVacios" data-trx-title="Kms vacios">
             <!-- Camion vacio: Kms vacios -->
             <svg viewBox="0 0 24 24"><rect x="1" y="6" width="13" height="10" rx="1" stroke-dasharray="2 2"/><path d="M14 9h4l3 4v3h-7V9z"/><circle cx="5.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/></svg>
           Kms vacios
           </a>
-          <a href="#" class="menu-item" data-trx-modal="Asignacion_eficiente.html" data-trx-title="Asignacion eficiente">
+          <a href="#" class="menu-item" data-trx-modal="Asignacion_eficiente.html" data-trx-slug="Asignacion" data-trx-title="Asignacion eficiente">
             <!-- Persona: icono -->
             <svg viewBox="0 0 24 24"><rect x="1" y="6" width="13" height="10" rx="1" stroke-dasharray="2 2"/><path d="M14 9h4l3 4v3h-7V9z"/><circle cx="5.5" cy="18" r="2"/><circle cx="17.5" cy="18" r="2"/></svg>
           Asignacion eficiente
           </a>
-          <a href="#" class="menu-item" data-trx-modal="Viaje_ok.html" data-trx-title="Viaje ok">
+          <a href="#" class="menu-item" data-trx-modal="Viaje_ok.html" data-trx-slug="ViajeOk" data-trx-title="Viaje ok">
             <!-- Pin con check: Viaje ok -->
             <svg viewBox="0 0 24 24"><path d="M12 22s-7-8-7-13a7 7 0 0 1 14 0c0 5-7 13-7 13z"/><polyline points="9 9 11 11 15 7"/></svg>
           Viaje ok
           </a>
-           <a href="#" class="menu-item" data-trx-modal="Calidad_ruta.html" data-trx-title="Calidad de ruta">
+           <a href="#" class="menu-item" data-trx-modal="Calidad_ruta.html" data-trx-slug="CalidadRuta" data-trx-title="Calidad de ruta">
             <!-- Ruta con estrella: Calidad de ruta -->
             <svg viewBox="0 0 24 24"><path d="M5 21c0-3 2-4 5-4s5-1 5-4-2-4-5-4-5-1-5-4"/><circle cx="5" cy="4" r="1.6"/><polygon points="18 14 19 16.5 21.5 16.7 19.6 18.3 20.2 20.8 18 19.4 15.8 20.8 16.4 18.3 14.5 16.7 17 16.5"/></svg>
           Calidad de ruta
@@ -368,7 +384,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
       </div>
 
       <!-- ============ SEGURIDAD VIAL ============ -->
-      <div class="menu-category" data-cat="seguridad">
+      <div class="menu-category" data-cat="seguridad" data-trx-menu="Seguridad Vial">
         <button type="button" class="menu-category-header">
           <span class="cat-left">
             <svg class="cat-icon" viewBox="0 0 24 24"><path d="M12 2L3 6v6c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V6l-9-4z"/></svg>
@@ -377,22 +393,22 @@ body.trx-has-maximized .trx-hover-strip{display:block}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-          <a href="#" class="menu-item" data-trx-modal="Radar_Riesgos.html" data-trx-title="Radar de Riesgos">
+          <a href="#" class="menu-item" data-trx-modal="Radar_Riesgos.html" data-trx-slug="Radar" data-trx-title="Radar de Riesgos">
             <!-- Radar concentric: Radar de Riesgos -->
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="12" x2="19" y2="5"/></svg>
             Radar de Riesgos
           </a>
-          <a href="#" class="menu-item" data-trx-modal="Dashboard_Descansos.html" data-trx-title="Descansos">
+          <a href="#" class="menu-item" data-trx-modal="Dashboard_Descansos.html" data-trx-slug="Descansos" data-trx-title="Descansos">
             <!-- Luna: Descansos -->
             <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             Descansos
           </a>
-          <a href="#" class="menu-item" data-trx-modal="Dashboard_DMAS.html" data-trx-title="uso DMAS">
+          <a href="#" class="menu-item" data-trx-modal="Dashboard_DMAS.html" data-trx-slug="DMAS" data-trx-title="uso DMAS">
             <!-- Telefono movil con onda: uso DMAS -->
             <svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><line x1="10" y1="18.5" x2="14" y2="18.5"/><line x1="9" y1="6" x2="15" y2="6"/><path d="M18.5 9.5c1 .8 1 2.2 0 3"/><path d="M20 8c1.8 1.4 1.8 3.6 0 5"/></svg>
             uso DMAS
           </a>
-          <a href="#" class="menu-item" data-trx-modal="Dashboard_Excesos.html" data-trx-title="80 Excesos de Velocidad">
+          <a href="#" class="menu-item" data-trx-modal="Dashboard_Excesos.html" data-trx-slug="Excesos" data-trx-title="80 Excesos de Velocidad">
             <!-- Senal de velocidad: Excesos -->
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><text x="12" y="15.5" text-anchor="middle" font-size="8.5" font-weight="800" fill="#9ca3af" stroke="none" font-family="Segoe UI,Tahoma,sans-serif">80</text></svg>
             Excesos de Velocidad
@@ -400,7 +416,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
         </div>
       </div>
  <!-- ============ MANTENIMIENTO ============ -->
-      <div class="menu-category" data-cat="combustible">
+      <div class="menu-category" data-cat="combustible" data-trx-menu="Mantenimiento">
         <button type="button" class="menu-category-header">
           <span class="cat-left">
             <svg class="cat-icon" viewBox="0 0 24 24"><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M4 21h12"/><path d="M15 8l3 2v8a2 2 0 0 1-2 2"/><path d="M15 12h2"/><line x1="8" y1="7" x2="12" y2="7"/><line x1="8" y1="10" x2="12" y2="10"/></svg>
@@ -409,7 +425,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-          <a href="#" class="menu-item" data-trx-modal="Productividad.html" data-trx-title="Productividad Departamento">
+          <a href="#" class="menu-item" data-trx-modal="Productividad.html" data-trx-slug="ProdMtto" data-trx-title="Productividad Departamento">
             <!-- Motor / engranaje: Ralenti -->
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.5"/><path d="M12 18.5V21"/><path d="M3 12h2.5"/><path d="M18.5 12H21"/><path d="M5.6 5.6l1.8 1.8"/><path d="M16.6 16.6l1.8 1.8"/><path d="M5.6 18.4l1.8-1.8"/><path d="M16.6 7.4l1.8-1.8"/></svg>
             Productividad Departamento
@@ -417,7 +433,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
         </div>
       </div>
       <!-- ============ COMBUSTIBLE ============ -->
-      <div class="menu-category" data-cat="combustible">
+      <div class="menu-category" data-cat="combustible" data-trx-menu="Combustible">
         <button type="button" class="menu-category-header">
           <span class="cat-left">
             <svg class="cat-icon" viewBox="0 0 24 24"><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M4 21h12"/><path d="M15 8l3 2v8a2 2 0 0 1-2 2"/><path d="M15 12h2"/><line x1="8" y1="7" x2="12" y2="7"/><line x1="8" y1="10" x2="12" y2="10"/></svg>
@@ -426,17 +442,17 @@ body.trx-has-maximized .trx-hover-strip{display:block}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-          <a href="#" class="menu-item" data-trx-modal="Dashboard_ralenti.html" data-trx-title="Ralenti">
+          <a href="#" class="menu-item" data-trx-modal="Dashboard_ralenti.html" data-trx-slug="Ralenti" data-trx-title="Ralenti">
             <!-- Motor / engranaje: Ralenti -->
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.5"/><path d="M12 18.5V21"/><path d="M3 12h2.5"/><path d="M18.5 12H21"/><path d="M5.6 5.6l1.8 1.8"/><path d="M16.6 16.6l1.8 1.8"/><path d="M5.6 18.4l1.8-1.8"/><path d="M16.6 7.4l1.8-1.8"/></svg>
             Ralenti
           </a>
-          <a href="#" class="menu-item" data-trx-modal="Score_Operaciones.html" data-trx-title="Score de Operaciones">
+          <a href="#" class="menu-item" data-trx-modal="Score_Operaciones.html" data-trx-slug="ScoreOps" data-trx-title="Score de Operaciones">
             <!-- Trofeo: Score de operaciones -->
             <svg viewBox="0 0 24 24"><path d="M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M7 6H4v2a3 3 0 0 0 3 3"/><path d="M17 6h3v2a3 3 0 0 1-3 3"/><line x1="12" y1="14" x2="12" y2="18"/><path d="M8 21h8"/><path d="M9 18h6l-.5 3h-5L9 18z"/></svg>
             Score de Operaciones
           </a>
-          <a href="#" class="menu-item" data-trx-modal="Rendimiento.html" data-trx-title="Rendimiento">
+          <a href="#" class="menu-item" data-trx-modal="Rendimiento.html" data-trx-slug="Rendimiento" data-trx-title="Rendimiento">
            <!-- Motor / engranaje: Rendimeinto -->
             <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.5"/><path d="M12 18.5V21"/><path d="M3 12h2.5"/><path d="M18.5 12H21"/><path d="M5.6 5.6l1.8 1.8"/><path d="M16.6 16.6l1.8 1.8"/><path d="M5.6 18.4l1.8-1.8"/><path d="M16.6 7.4l1.8-1.8"/></svg>
             Rendimiento
@@ -445,7 +461,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
       </div>
 
       <!-- ============ REPORTES ============ -->
-      <div class="menu-category" data-cat="reportes">
+      <div class="menu-category" data-cat="reportes" data-trx-menu="Reportes">
         <button type="button" class="menu-category-header">
           <span class="cat-left">
             <svg class="cat-icon" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6z"/><polyline points="14 3 14 9 20 9"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
@@ -454,34 +470,34 @@ body.trx-has-maximized .trx-hover-strip{display:block}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-           <a href="#" class="menu-item" data-trx-modal="Incidencias_Coordinadores.html" data-trx-title="Incidencias Coordinadores">
+           <a href="#" class="menu-item" data-trx-modal="Incidencias_Coordinadores.html" data-trx-slug="IncCoord" data-trx-title="Incidencias Coordinadores">
             <!-- Flechas circulares: Incidencias Coordinadores -->
             <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-3.6"/><polyline points="20 4 20 8 16 8"/><path d="M4 13a8 8 0 0 0 14.3 3.6"/><polyline points="4 20 4 16 8 16"/></svg>
             Incidencias Coordinadores
           </a>
           <!--
-          <a href="#" class="menu-item" data-trx-modal="Rolador.html" data-trx-title="Rolador">
+          <a href="#" class="menu-item" data-trx-modal="Rolador.html" data-trx-slug="Rolador" data-trx-title="Rolador">
             <svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-3.6"/><polyline points="20 4 20 8 16 8"/><path d="M4 13a8 8 0 0 0 14.3 3.6"/><polyline points="4 20 4 16 8 16"/></svg>
             Rolador
           </a>
           -->
-          <a href="#" class="menu-item" data-trx-modal="Cambio_Manos.html" data-trx-title="Cambio de manos">
+          <a href="#" class="menu-item" data-trx-modal="Cambio_Manos.html" data-trx-slug="CambioManos" data-trx-title="Cambio de manos">
             <!-- Intercambio de flechas: Cambio de manos -->
             <svg viewBox="0 0 24 24"><polyline points="17 3 21 7 17 11"/><line x1="3" y1="7" x2="21" y2="7"/><polyline points="7 21 3 17 7 13"/><line x1="21" y1="17" x2="3" y2="17"/></svg>
             Cambio de manos
           </a>
          
-          <a href="#" class="menu-item" data-trx-modal="Auditoria_Niveles.html" data-trx-title="Captura Auditoria Niveles">
+          <a href="#" class="menu-item" data-trx-modal="Auditoria_Niveles.html" data-trx-slug="CapAuditoria" data-trx-title="Captura Auditoria Niveles">
             <!-- Clipboard con lapiz: Captura Auditoria -->
             <svg viewBox="0 0 24 24"><path d="M9 3h6a1 1 0 0 1 1 1v2H8V4a1 1 0 0 1 1-1z"/><path d="M16 5h2a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/><path d="M14 12l-4 4-2-1 1-2 4-4 1 3z"/></svg>
             Captura Auditoria Niveles
           </a>
-          <a href="#" class="menu-item" data-trx-modal="Resumen_Auditoria_Niveles.html" data-trx-title="Resumen Auditoria Niveles">
+          <a href="#" class="menu-item" data-trx-modal="Resumen_Auditoria_Niveles.html" data-trx-slug="ResAuditoria" data-trx-title="Resumen Auditoria Niveles">
             <!-- Reporte con grafico de barras: Resumen Auditoria -->
             <svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6z"/><polyline points="14 3 14 9 20 9"/><line x1="8" y1="17" x2="8" y2="14"/><line x1="12" y1="17" x2="12" y2="12"/><line x1="16" y1="17" x2="16" y2="15"/></svg>
             Resumen Auditoria Niveles
           </a>
-          <a href="#" class="menu-item" data-trx-modal="Mapeo_rutas.html" data-trx-title="Mapeo de Rutas">
+          <a href="#" class="menu-item" data-trx-modal="Mapeo_rutas.html" data-trx-slug="Mapeo" data-trx-title="Mapeo de Rutas">
             <!-- Mapa doblado con pin: Mapeo de rutas -->
             <svg viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><line x1="9" y1="4" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="20"/></svg>
             Mapeo de Rutas
@@ -491,7 +507,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
       </div>
 
       <!-- ============ RENTABILIDAD ============ -->
-      <div class="menu-category" data-cat="rentabilidad">
+      <div class="menu-category" data-cat="rentabilidad" data-trx-menu="Rentabilidad">
         <button type="button" class="menu-category-header">
           <span class="cat-left">
             <svg class="cat-icon" viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -500,7 +516,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-          <a href="#" class="menu-item" data-trx-modal="Rentabilidad.html" data-trx-title="Clientes Rentabilidad">
+          <a href="#" class="menu-item" data-trx-modal="Rentabilidad.html" data-trx-slug="Rentabilidad" data-trx-title="Clientes Rentabilidad">
             <!-- Usuarios / clientes -->
             <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             Clientes Rentabilidad
@@ -509,7 +525,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
       </div>
 
       <!-- ============ FACTURACION ============ -->
-      <div class="menu-category" data-cat="facturacion">
+      <div class="menu-category" data-cat="facturacion" data-trx-menu="Facturacion">
         <button type="button" class="menu-category-header">
           <span class="cat-left">
             <svg class="cat-icon" viewBox="0 0 24 24"><path d="M6 2h9l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><polyline points="15 2 15 6 19 6"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="14" y2="15"/><line x1="8" y1="18" x2="12" y2="18"/></svg>
@@ -518,17 +534,17 @@ body.trx-has-maximized .trx-hover-strip{display:block}
           <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
         </button>
         <div class="menu-category-body">
-          <a href="#" class="menu-item" data-trx-modal="Control_viajes.html" data-trx-title="Control de Viajes">
+          <a href="#" class="menu-item" data-trx-modal="Control_viajes.html" data-trx-slug="ControlViajes" data-trx-title="Control de Viajes">
             <!-- Ruta con puntos: Control de Viajes -->
             <svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h4a4 4 0 0 0 0-8H10a4 4 0 0 1 0-8h6"/></svg>
             Control de Viajes
           </a>
-           <a href="#" class="menu-item" data-trx-modal="Mov_Sinviaje.html" data-trx-title="Movimientos sin viaje">
+           <a href="#" class="menu-item" data-trx-modal="Mov_Sinviaje.html" data-trx-slug="MovSinViaje" data-trx-title="Movimientos sin viaje">
             <!-- Caja / paquete: Movimientos sin viaje -->
             <svg viewBox="0 0 24 24"><path d="M20 7L12 3 4 7v10l8 4 8-4V7z"/><path d="M4 7l8 4 8-4"/><line x1="12" y1="11" x2="12" y2="21"/><line x1="8" y1="5" x2="16" y2="9"/></svg>
             Movimientos sin viaje
           </a>
-           <a href="#" class="menu-item" data-trx-modal="Captura_Incidencia.html" data-trx-title="Captura de incidencias">
+           <a href="#" class="menu-item" data-trx-modal="Captura_Incidencia.html" data-trx-slug="CapIncidencia" data-trx-title="Captura de incidencias">
             <!-- Triangulo de alerta: Captura de incidencias -->
             <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12" y2="17.1"/></svg>
             Captura de incidencias
@@ -556,6 +572,14 @@ body.trx-has-maximized .trx-hover-strip{display:block}
     </div>
   </aside>
   <main class="main">
+    <div class="trx-welcome" id="trxWelcome">
+      <div class="trx-welcome-avatar" id="trxWelcomeAvatar">?</div>
+      <div class="trx-welcome-text">
+        <span class="trx-welcome-hi">Bienvenido</span>
+        <span class="trx-welcome-name" id="trxWelcomeName">Usuario</span>
+        <span class="trx-welcome-type" id="trxWelcomeType"></span>
+      </div>
+    </div>
     <div class="hero">
       <h2>TRAXION</h2>
       <p>Logistica &middot; Operaciones &middot; Seguridad</p>
@@ -575,21 +599,39 @@ body.trx-has-maximized .trx-hover-strip{display:block}
   </button>
 </div>
 
-<script id="trx-validator" type="text/plain">mmF01QsTmGJCuAdVtyOU5miutD2BnjYzxPkxPG5QThu/lF3dMBECPAE1/Sd1KOhWNiWV0RPF56aw+UOF95W6+mE=</script>
 <script>
-const VALIDATOR_EXPECTED = "trx-settepi-garcia-ok";
+/* ================================================================
+   AUTENTICACION Y PERMISOS via Google Sheet
+   Hoja: "Usuarios"
+   Columnas B:F -> Nombre, User, Password, Tipo, Tableros (col F opcional/individual)
+   Columnas I:J -> Tipo, Tableros permitidos (permiso por tipo)
+   Slugs de tableros aceptados en la col J (separados por coma):
+     *                        -> todos los tableros
+     menu:Logistica           -> toda una categoria completa
+     NS, Flota, Ralenti ...   -> slugs individuales
+   ================================================================ */
+const USERS_SHEET_NAME = 'Usuarios';
+const USERS_RANGE      = 'B2:F200';   // Nombre, User, Password, Tipo, Tableros
+const PERMS_RANGE      = 'I2:J50';    // Tipo, Tableros
+
+let trxUserSession = null;   // {nombre, user, tipo, tableros}
+let trxPermisos    = null;   // Map tipo(lowercase) -> Set(slugs) o '*'
+
 (async function autoAuth(){
-  const pwd = sessionStorage.getItem('trx_auth');
-  if(!pwd) return;
+  const raw = sessionStorage.getItem('trx_user');
+  if(!raw) return;
   try{
-    const blob = document.getElementById('trx-validator').textContent.trim();
-    const txt = await trxDecrypt(blob, pwd);
-    if(txt === VALIDATOR_EXPECTED){ showMenu(true); }
-    else{ sessionStorage.removeItem('trx_auth'); }
-  }catch(e){ sessionStorage.removeItem('trx_auth'); }
+    const s = JSON.parse(raw);
+    if(!s || !s.user || !s.pass) return;
+    const r = await trxAuthenticate(s.user, s.pass);
+    if(r){ trxUserSession = r; showMenu(true); }
+    else { sessionStorage.removeItem('trx_user'); }
+  }catch(e){ sessionStorage.removeItem('trx_user'); }
 })();
+
 document.getElementById('loginForm').addEventListener('submit', async function(ev){
   ev.preventDefault();
+  const usr = document.getElementById('usr').value.trim();
   const pwd = document.getElementById('pwd').value;
   const btn = document.getElementById('btn');
   const err = document.getElementById('err');
@@ -598,17 +640,17 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   btn.classList.add('checking');
   btn.textContent = 'Verificando...';
   try{
-    const blob = document.getElementById('trx-validator').textContent.trim();
-    const txt = await trxDecrypt(blob, pwd);
-    if(txt !== VALIDATOR_EXPECTED) throw new Error('mismatch');
-    sessionStorage.setItem('trx_auth', pwd);
-    // Exito: flash + acceso concedido + revelado del hero
+    const r = await trxAuthenticate(usr, pwd);
+    if(!r) throw new Error('mismatch');
+    trxUserSession = r;
+    sessionStorage.setItem('trx_user', JSON.stringify({user:usr, pass:pwd}));
+    // Exito
     btn.classList.remove('checking');
     btn.classList.add('ok');
-    btn.textContent = '✓ Acceso concedido';
+    btn.textContent = '✓ Bienvenido, ' + r.nombre.split(' ')[0];
     const card = document.querySelector('.login-card');
     if(card){ card.classList.add('success'); }
-    setTimeout(function(){ showMenu(); }, 650);
+    setTimeout(function(){ showMenu(); }, 700);
   }catch(e){
     btn.classList.remove('checking');
     err.classList.add('show');
@@ -620,11 +662,106 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     btn.textContent = 'Entrar';
   }
 });
+
+/* Valida user+pass contra la hoja Usuarios. Devuelve {nombre, user, tipo, tableros} o null */
+async function trxAuthenticate(user, pass){
+  if(!user || !pass) return null;
+  try{
+    const url = `https://docs.google.com/spreadsheets/d/${KPI_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(USERS_SHEET_NAME)}&range=${USERS_RANGE}`;
+    const res = await fetch(url, {cache:'no-store'});
+    const txt = await res.text();
+    const rows = parseCsv(txt);
+    const u = user.toLowerCase();
+    for(const r of rows){
+      const rName = (r[0]||'').trim();
+      const rUser = (r[1]||'').trim();
+      const rPass = (r[2]||'').trim();
+      const rTipo = (r[3]||'').trim();
+      const rTab  = (r[4]||'').trim();
+      if(!rUser) continue;
+      if(rUser.toLowerCase() === u && rPass === pass){
+        return {nombre:rName || rUser, user:rUser, tipo:rTipo || 'Sin tipo', tableros:rTab};
+      }
+    }
+  }catch(e){ console.error('Auth error', e); }
+  return null;
+}
+
+/* Carga los permisos por tipo desde columnas I:J */
+async function trxLoadPermisos(){
+  const map = new Map();
+  try{
+    const url = `https://docs.google.com/spreadsheets/d/${KPI_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(USERS_SHEET_NAME)}&range=${PERMS_RANGE}`;
+    const res = await fetch(url, {cache:'no-store'});
+    const txt = await res.text();
+    const rows = parseCsv(txt);
+    for(const r of rows){
+      const tipo = (r[0]||'').trim();
+      const list = (r[1]||'').trim();
+      if(!tipo) continue;
+      map.set(tipo.toLowerCase(), list);
+    }
+  }catch(e){ console.error('Permisos error', e); }
+  return map;
+}
+
+/* Aplica los permisos al menu: oculta items no permitidos y categorias vacias */
+function trxApplyPermisos(){
+  if(!trxUserSession) return;
+  const tipo = (trxUserSession.tipo||'').toLowerCase();
+  let raw = trxPermisos && trxPermisos.get(tipo);
+  // Si el usuario tiene su lista personal en la col F, tiene prioridad
+  if(trxUserSession.tableros && trxUserSession.tableros.length){
+    raw = trxUserSession.tableros;
+  }
+  raw = (raw||'').trim();
+  const allowAll = (raw === '*');
+  const parts = raw.split(',').map(s=>s.trim()).filter(Boolean);
+  const allowedSlugs = new Set();
+  const allowedMenus = new Set();
+  for(const p of parts){
+    if(p === '*'){ allowedSlugs.add('*'); continue; }
+    const m = /^menu\s*:\s*(.+)$/i.exec(p);
+    if(m){ allowedMenus.add(m[1].trim().toLowerCase()); }
+    else { allowedSlugs.add(p.toLowerCase()); }
+  }
+  document.querySelectorAll('.menu-category').forEach(function(cat){
+    const menuName = (cat.getAttribute('data-trx-menu')||'').toLowerCase();
+    const menuAllowed = allowAll || allowedMenus.has(menuName);
+    let visibleItems = 0;
+    cat.querySelectorAll('.menu-item').forEach(function(a){
+      const slug = (a.getAttribute('data-trx-slug')||'').toLowerCase();
+      const ok = allowAll || menuAllowed || allowedSlugs.has(slug);
+      a.style.display = ok ? '' : 'none';
+      if(ok) visibleItems++;
+    });
+    cat.style.display = (visibleItems > 0) ? '' : 'none';
+  });
+}
+
+/* Pinta el saludo en la esquina superior derecha */
+function trxRenderWelcome(){
+  if(!trxUserSession) return;
+  const w = document.getElementById('trxWelcome');
+  const nm = document.getElementById('trxWelcomeName');
+  const tp = document.getElementById('trxWelcomeType');
+  const av = document.getElementById('trxWelcomeAvatar');
+  if(!w) return;
+  const nombre = trxUserSession.nombre || trxUserSession.user;
+  const partes = nombre.trim().split(/\s+/);
+  const iniciales = (partes[0][0]||'?') + (partes[1] ? partes[1][0] : '');
+  nm.textContent = nombre;
+  tp.textContent = trxUserSession.tipo || '';
+  av.textContent = iniciales.toUpperCase();
+  w.classList.add('ready');
+}
 document.getElementById('logoutBtn').addEventListener('click', function(){
-  sessionStorage.removeItem('trx_auth');
+  sessionStorage.removeItem('trx_user');
+  sessionStorage.removeItem('trx_auth'); // limpieza legacy
+  sessionStorage.removeItem('trx_visit_logged');
   location.reload();
 });
-function showMenu(instant){
+async function showMenu(instant){
   const login = document.getElementById('login');
   const menu  = document.getElementById('menu');
   menu.classList.add('show');           // dispara las animaciones de entrada del hero
@@ -634,6 +771,12 @@ function showMenu(instant){
     login.classList.add('trx-hide');    // fade + zoom que revela la foto detras
     setTimeout(function(){ login.style.display = 'none'; }, 720);
   }
+  // Cargar permisos y aplicar al menu; luego pintar saludo
+  if(!trxPermisos){
+    try{ trxPermisos = await trxLoadPermisos(); }catch(e){ trxPermisos = new Map(); }
+  }
+  trxApplyPermisos();
+  trxRenderWelcome();
   logVisit();
 }
 /* ============ Contador de visitas -> Inputs!P3 ============
