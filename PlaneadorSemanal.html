@@ -157,9 +157,9 @@
 
   /* GANTT */
   .gantt-wrap{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow-sm)}
-  .gantt{display:grid;grid-template-columns:320px 1fr;max-height:calc(100vh - 100px);overflow:hidden}
-  .row-labels{border-right:1px solid var(--border-strong);background:white;overflow-y:auto;overflow-x:hidden}
-  .tracks-wrap{overflow:auto;position:relative}
+  .gantt{display:grid;grid-template-columns:320px 1fr;height:calc(100vh - 100px);max-height:calc(100vh - 100px);min-height:0;overflow:hidden}
+  .row-labels{border-right:1px solid var(--border-strong);background:white;min-height:0;overflow-y:scroll;overflow-x:hidden}
+  .tracks-wrap{min-width:0;min-height:0;overflow:auto;position:relative}
   .lbl-header,.track-header{height:44px;background:linear-gradient(180deg,#f8fafc,#f1f5f9);border-bottom:2px solid var(--border-strong);display:flex;align-items:center;padding:0 14px;position:sticky;top:0;z-index:5}
   .lbl-header{font-weight:800;font-size:10px;text-transform:uppercase;color:var(--muted);letter-spacing:0.8px;justify-content:space-between}
   .lbl-header .sort-hint{color:var(--accent);font-size:10px;text-transform:none;letter-spacing:0}
@@ -313,7 +313,7 @@
     .content{padding:10px}
     .toolbar{padding:10px 14px;gap:8px}
     .toolbar .search{width:100%}
-    .gantt{grid-template-columns:140px 1fr;max-height:calc(100vh - 80px)}
+    .gantt{grid-template-columns:140px 1fr;height:calc(100vh - 80px);max-height:calc(100vh - 80px)}
     .lbl-name{font-size:10.5px}
     .lbl-code{display:none}
     .buffer-panel{width:100%;justify-content:space-between}
