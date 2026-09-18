@@ -6,24 +6,54 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>/* ===== QRCode.js (davidshimjs) incrustado para funcionar offline ===== */
+var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this.parsedData=[];for(var b=[],d=0,e=this.data.length;e>d;d++){var f=this.data.charCodeAt(d);f>65536?(b[0]=240|(1835008&f)>>>18,b[1]=128|(258048&f)>>>12,b[2]=128|(4032&f)>>>6,b[3]=128|63&f):f>2048?(b[0]=224|(61440&f)>>>12,b[1]=128|(4032&f)>>>6,b[2]=128|63&f):f>128?(b[0]=192|(1984&f)>>>6,b[1]=128|63&f):b[0]=f,this.parsedData=this.parsedData.concat(b)}this.parsedData.length!=this.data.length&&(this.parsedData.unshift(191),this.parsedData.unshift(187),this.parsedData.unshift(239))}function b(a,b){this.typeNumber=a,this.errorCorrectLevel=b,this.modules=null,this.moduleCount=0,this.dataCache=null,this.dataList=[]}function i(a,b){if(void 0==a.length)throw new Error(a.length+"/"+b);for(var c=0;c<a.length&&0==a[c];)c++;this.num=new Array(a.length-c+b);for(var d=0;d<a.length-c;d++)this.num[d]=a[d+c]}function j(a,b){this.totalCount=a,this.dataCount=b}function k(){this.buffer=[],this.length=0}function m(){return"undefined"!=typeof CanvasRenderingContext2D}function n(){var a=!1,b=navigator.userAgent;return/android/i.test(b)&&(a=!0,aMat=b.toString().match(/android ([0-9]\.[0-9])/i),aMat&&aMat[1]&&(a=parseFloat(aMat[1]))),a}function r(a,b){for(var c=1,e=s(a),f=0,g=l.length;g>=f;f++){var h=0;switch(b){case d.L:h=l[f][0];break;case d.M:h=l[f][1];break;case d.Q:h=l[f][2];break;case d.H:h=l[f][3]}if(h>=e)break;c++}if(c>l.length)throw new Error("Too long data");return c}function s(a){var b=encodeURI(a).toString().replace(/\%[0-9a-fA-F]{2}/g,"a");return b.length+(b.length!=a?3:0)}a.prototype={getLength:function(){return this.parsedData.length},write:function(a){for(var b=0,c=this.parsedData.length;c>b;b++)a.put(this.parsedData[b],8)}},b.prototype={addData:function(b){var c=new a(b);this.dataList.push(c),this.dataCache=null},isDark:function(a,b){if(0>a||this.moduleCount<=a||0>b||this.moduleCount<=b)throw new Error(a+","+b);return this.modules[a][b]},getModuleCount:function(){return this.moduleCount},make:function(){this.makeImpl(!1,this.getBestMaskPattern())},makeImpl:function(a,c){this.moduleCount=4*this.typeNumber+17,this.modules=new Array(this.moduleCount);for(var d=0;d<this.moduleCount;d++){this.modules[d]=new Array(this.moduleCount);for(var e=0;e<this.moduleCount;e++)this.modules[d][e]=null}this.setupPositionProbePattern(0,0),this.setupPositionProbePattern(this.moduleCount-7,0),this.setupPositionProbePattern(0,this.moduleCount-7),this.setupPositionAdjustPattern(),this.setupTimingPattern(),this.setupTypeInfo(a,c),this.typeNumber>=7&&this.setupTypeNumber(a),null==this.dataCache&&(this.dataCache=b.createData(this.typeNumber,this.errorCorrectLevel,this.dataList)),this.mapData(this.dataCache,c)},setupPositionProbePattern:function(a,b){for(var c=-1;7>=c;c++)if(!(-1>=a+c||this.moduleCount<=a+c))for(var d=-1;7>=d;d++)-1>=b+d||this.moduleCount<=b+d||(this.modules[a+c][b+d]=c>=0&&6>=c&&(0==d||6==d)||d>=0&&6>=d&&(0==c||6==c)||c>=2&&4>=c&&d>=2&&4>=d?!0:!1)},getBestMaskPattern:function(){for(var a=0,b=0,c=0;8>c;c++){this.makeImpl(!0,c);var d=f.getLostPoint(this);(0==c||a>d)&&(a=d,b=c)}return b},createMovieClip:function(a,b,c){var d=a.createEmptyMovieClip(b,c),e=1;this.make();for(var f=0;f<this.modules.length;f++)for(var g=f*e,h=0;h<this.modules[f].length;h++){var i=h*e,j=this.modules[f][h];j&&(d.beginFill(0,100),d.moveTo(i,g),d.lineTo(i+e,g),d.lineTo(i+e,g+e),d.lineTo(i,g+e),d.endFill())}return d},setupTimingPattern:function(){for(var a=8;a<this.moduleCount-8;a++)null==this.modules[a][6]&&(this.modules[a][6]=0==a%2);for(var b=8;b<this.moduleCount-8;b++)null==this.modules[6][b]&&(this.modules[6][b]=0==b%2)},setupPositionAdjustPattern:function(){for(var a=f.getPatternPosition(this.typeNumber),b=0;b<a.length;b++)for(var c=0;c<a.length;c++){var d=a[b],e=a[c];if(null==this.modules[d][e])for(var g=-2;2>=g;g++)for(var h=-2;2>=h;h++)this.modules[d+g][e+h]=-2==g||2==g||-2==h||2==h||0==g&&0==h?!0:!1}},setupTypeNumber:function(a){for(var b=f.getBCHTypeNumber(this.typeNumber),c=0;18>c;c++){var d=!a&&1==(1&b>>c);this.modules[Math.floor(c/3)][c%3+this.moduleCount-8-3]=d}for(var c=0;18>c;c++){var d=!a&&1==(1&b>>c);this.modules[c%3+this.moduleCount-8-3][Math.floor(c/3)]=d}},setupTypeInfo:function(a,b){for(var c=this.errorCorrectLevel<<3|b,d=f.getBCHTypeInfo(c),e=0;15>e;e++){var g=!a&&1==(1&d>>e);6>e?this.modules[e][8]=g:8>e?this.modules[e+1][8]=g:this.modules[this.moduleCount-15+e][8]=g}for(var e=0;15>e;e++){var g=!a&&1==(1&d>>e);8>e?this.modules[8][this.moduleCount-e-1]=g:9>e?this.modules[8][15-e-1+1]=g:this.modules[8][15-e-1]=g}this.modules[this.moduleCount-8][8]=!a},mapData:function(a,b){for(var c=-1,d=this.moduleCount-1,e=7,g=0,h=this.moduleCount-1;h>0;h-=2)for(6==h&&h--;;){for(var i=0;2>i;i++)if(null==this.modules[d][h-i]){var j=!1;g<a.length&&(j=1==(1&a[g]>>>e));var k=f.getMask(b,d,h-i);k&&(j=!j),this.modules[d][h-i]=j,e--,-1==e&&(g++,e=7)}if(d+=c,0>d||this.moduleCount<=d){d-=c,c=-c;break}}}},b.PAD0=236,b.PAD1=17,b.createData=function(a,c,d){for(var e=j.getRSBlocks(a,c),g=new k,h=0;h<d.length;h++){var i=d[h];g.put(i.mode,4),g.put(i.getLength(),f.getLengthInBits(i.mode,a)),i.write(g)}for(var l=0,h=0;h<e.length;h++)l+=e[h].dataCount;if(g.getLengthInBits()>8*l)throw new Error("code length overflow. ("+g.getLengthInBits()+">"+8*l+")");for(g.getLengthInBits()+4<=8*l&&g.put(0,4);0!=g.getLengthInBits()%8;)g.putBit(!1);for(;;){if(g.getLengthInBits()>=8*l)break;if(g.put(b.PAD0,8),g.getLengthInBits()>=8*l)break;g.put(b.PAD1,8)}return b.createBytes(g,e)},b.createBytes=function(a,b){for(var c=0,d=0,e=0,g=new Array(b.length),h=new Array(b.length),j=0;j<b.length;j++){var k=b[j].dataCount,l=b[j].totalCount-k;d=Math.max(d,k),e=Math.max(e,l),g[j]=new Array(k);for(var m=0;m<g[j].length;m++)g[j][m]=255&a.buffer[m+c];c+=k;var n=f.getErrorCorrectPolynomial(l),o=new i(g[j],n.getLength()-1),p=o.mod(n);h[j]=new Array(n.getLength()-1);for(var m=0;m<h[j].length;m++){var q=m+p.getLength()-h[j].length;h[j][m]=q>=0?p.get(q):0}}for(var r=0,m=0;m<b.length;m++)r+=b[m].totalCount;for(var s=new Array(r),t=0,m=0;d>m;m++)for(var j=0;j<b.length;j++)m<g[j].length&&(s[t++]=g[j][m]);for(var m=0;e>m;m++)for(var j=0;j<b.length;j++)m<h[j].length&&(s[t++]=h[j][m]);return s};for(var c={MODE_NUMBER:1,MODE_ALPHA_NUM:2,MODE_8BIT_BYTE:4,MODE_KANJI:8},d={L:1,M:0,Q:3,H:2},e={PATTERN000:0,PATTERN001:1,PATTERN010:2,PATTERN011:3,PATTERN100:4,PATTERN101:5,PATTERN110:6,PATTERN111:7},f={PATTERN_POSITION_TABLE:[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],G15:1335,G18:7973,G15_MASK:21522,getBCHTypeInfo:function(a){for(var b=a<<10;f.getBCHDigit(b)-f.getBCHDigit(f.G15)>=0;)b^=f.G15<<f.getBCHDigit(b)-f.getBCHDigit(f.G15);return(a<<10|b)^f.G15_MASK},getBCHTypeNumber:function(a){for(var b=a<<12;f.getBCHDigit(b)-f.getBCHDigit(f.G18)>=0;)b^=f.G18<<f.getBCHDigit(b)-f.getBCHDigit(f.G18);return a<<12|b},getBCHDigit:function(a){for(var b=0;0!=a;)b++,a>>>=1;return b},getPatternPosition:function(a){return f.PATTERN_POSITION_TABLE[a-1]},getMask:function(a,b,c){switch(a){case e.PATTERN000:return 0==(b+c)%2;case e.PATTERN001:return 0==b%2;case e.PATTERN010:return 0==c%3;case e.PATTERN011:return 0==(b+c)%3;case e.PATTERN100:return 0==(Math.floor(b/2)+Math.floor(c/3))%2;case e.PATTERN101:return 0==b*c%2+b*c%3;case e.PATTERN110:return 0==(b*c%2+b*c%3)%2;case e.PATTERN111:return 0==(b*c%3+(b+c)%2)%2;default:throw new Error("bad maskPattern:"+a)}},getErrorCorrectPolynomial:function(a){for(var b=new i([1],0),c=0;a>c;c++)b=b.multiply(new i([1,g.gexp(c)],0));return b},getLengthInBits:function(a,b){if(b>=1&&10>b)switch(a){case c.MODE_NUMBER:return 10;case c.MODE_ALPHA_NUM:return 9;case c.MODE_8BIT_BYTE:return 8;case c.MODE_KANJI:return 8;default:throw new Error("mode:"+a)}else if(27>b)switch(a){case c.MODE_NUMBER:return 12;case c.MODE_ALPHA_NUM:return 11;case c.MODE_8BIT_BYTE:return 16;case c.MODE_KANJI:return 10;default:throw new Error("mode:"+a)}else{if(!(41>b))throw new Error("type:"+b);switch(a){case c.MODE_NUMBER:return 14;case c.MODE_ALPHA_NUM:return 13;case c.MODE_8BIT_BYTE:return 16;case c.MODE_KANJI:return 12;default:throw new Error("mode:"+a)}}},getLostPoint:function(a){for(var b=a.getModuleCount(),c=0,d=0;b>d;d++)for(var e=0;b>e;e++){for(var f=0,g=a.isDark(d,e),h=-1;1>=h;h++)if(!(0>d+h||d+h>=b))for(var i=-1;1>=i;i++)0>e+i||e+i>=b||(0!=h||0!=i)&&g==a.isDark(d+h,e+i)&&f++;f>5&&(c+=3+f-5)}for(var d=0;b-1>d;d++)for(var e=0;b-1>e;e++){var j=0;a.isDark(d,e)&&j++,a.isDark(d+1,e)&&j++,a.isDark(d,e+1)&&j++,a.isDark(d+1,e+1)&&j++,(0==j||4==j)&&(c+=3)}for(var d=0;b>d;d++)for(var e=0;b-6>e;e++)a.isDark(d,e)&&!a.isDark(d,e+1)&&a.isDark(d,e+2)&&a.isDark(d,e+3)&&a.isDark(d,e+4)&&!a.isDark(d,e+5)&&a.isDark(d,e+6)&&(c+=40);for(var e=0;b>e;e++)for(var d=0;b-6>d;d++)a.isDark(d,e)&&!a.isDark(d+1,e)&&a.isDark(d+2,e)&&a.isDark(d+3,e)&&a.isDark(d+4,e)&&!a.isDark(d+5,e)&&a.isDark(d+6,e)&&(c+=40);for(var k=0,e=0;b>e;e++)for(var d=0;b>d;d++)a.isDark(d,e)&&k++;var l=Math.abs(100*k/b/b-50)/5;return c+=10*l}},g={glog:function(a){if(1>a)throw new Error("glog("+a+")");return g.LOG_TABLE[a]},gexp:function(a){for(;0>a;)a+=255;for(;a>=256;)a-=255;return g.EXP_TABLE[a]},EXP_TABLE:new Array(256),LOG_TABLE:new Array(256)},h=0;8>h;h++)g.EXP_TABLE[h]=1<<h;for(var h=8;256>h;h++)g.EXP_TABLE[h]=g.EXP_TABLE[h-4]^g.EXP_TABLE[h-5]^g.EXP_TABLE[h-6]^g.EXP_TABLE[h-8];for(var h=0;255>h;h++)g.LOG_TABLE[g.EXP_TABLE[h]]=h;i.prototype={get:function(a){return this.num[a]},getLength:function(){return this.num.length},multiply:function(a){for(var b=new Array(this.getLength()+a.getLength()-1),c=0;c<this.getLength();c++)for(var d=0;d<a.getLength();d++)b[c+d]^=g.gexp(g.glog(this.get(c))+g.glog(a.get(d)));return new i(b,0)},mod:function(a){if(this.getLength()-a.getLength()<0)return this;for(var b=g.glog(this.get(0))-g.glog(a.get(0)),c=new Array(this.getLength()),d=0;d<this.getLength();d++)c[d]=this.get(d);for(var d=0;d<a.getLength();d++)c[d]^=g.gexp(g.glog(a.get(d))+b);return new i(c,0).mod(a)}},j.RS_BLOCK_TABLE=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],j.getRSBlocks=function(a,b){var c=j.getRsBlockTable(a,b);if(void 0==c)throw new Error("bad rs block @ typeNumber:"+a+"/errorCorrectLevel:"+b);for(var d=c.length/3,e=[],f=0;d>f;f++)for(var g=c[3*f+0],h=c[3*f+1],i=c[3*f+2],k=0;g>k;k++)e.push(new j(h,i));return e},j.getRsBlockTable=function(a,b){switch(b){case d.L:return j.RS_BLOCK_TABLE[4*(a-1)+0];case d.M:return j.RS_BLOCK_TABLE[4*(a-1)+1];case d.Q:return j.RS_BLOCK_TABLE[4*(a-1)+2];case d.H:return j.RS_BLOCK_TABLE[4*(a-1)+3];default:return void 0}},k.prototype={get:function(a){var b=Math.floor(a/8);return 1==(1&this.buffer[b]>>>7-a%8)},put:function(a,b){for(var c=0;b>c;c++)this.putBit(1==(1&a>>>b-c-1))},getLengthInBits:function(){return this.length},putBit:function(a){var b=Math.floor(this.length/8);this.buffer.length<=b&&this.buffer.push(0),a&&(this.buffer[b]|=128>>>this.length%8),this.length++}};var l=[[17,14,11,7],[32,26,20,14],[53,42,32,24],[78,62,46,34],[106,84,60,44],[134,106,74,58],[154,122,86,64],[192,152,108,84],[230,180,130,98],[271,213,151,119],[321,251,177,137],[367,287,203,155],[425,331,241,177],[458,362,258,194],[520,412,292,220],[586,450,322,250],[644,504,364,280],[718,560,394,310],[792,624,442,338],[858,666,482,382],[929,711,509,403],[1003,779,565,439],[1091,857,611,461],[1171,911,661,511],[1273,997,715,535],[1367,1059,751,593],[1465,1125,805,625],[1528,1190,868,658],[1628,1264,908,698],[1732,1370,982,742],[1840,1452,1030,790],[1952,1538,1112,842],[2068,1628,1168,898],[2188,1722,1228,958],[2303,1809,1283,983],[2431,1911,1351,1051],[2563,1989,1423,1093],[2699,2099,1499,1139],[2809,2213,1579,1219],[2953,2331,1663,1273]],o=function(){var a=function(a,b){this._el=a,this._htOption=b};return a.prototype.draw=function(a){function g(a,b){var c=document.createElementNS("http://www.w3.org/2000/svg",a);for(var d in b)b.hasOwnProperty(d)&&c.setAttribute(d,b[d]);return c}var b=this._htOption,c=this._el,d=a.getModuleCount();Math.floor(b.width/d),Math.floor(b.height/d),this.clear();var h=g("svg",{viewBox:"0 0 "+String(d)+" "+String(d),width:"100%",height:"100%",fill:b.colorLight});h.setAttributeNS("http://www.w3.org/2000/xmlns/","xmlns:xlink","http://www.w3.org/1999/xlink"),c.appendChild(h),h.appendChild(g("rect",{fill:b.colorDark,width:"1",height:"1",id:"template"}));for(var i=0;d>i;i++)for(var j=0;d>j;j++)if(a.isDark(i,j)){var k=g("use",{x:String(i),y:String(j)});k.setAttributeNS("http://www.w3.org/1999/xlink","href","#template"),h.appendChild(k)}},a.prototype.clear=function(){for(;this._el.hasChildNodes();)this._el.removeChild(this._el.lastChild)},a}(),p="svg"===document.documentElement.tagName.toLowerCase(),q=p?o:m()?function(){function a(){this._elImage.src=this._elCanvas.toDataURL("image/png"),this._elImage.style.display="block",this._elCanvas.style.display="none"}function d(a,b){var c=this;if(c._fFail=b,c._fSuccess=a,null===c._bSupportDataURI){var d=document.createElement("img"),e=function(){c._bSupportDataURI=!1,c._fFail&&_fFail.call(c)},f=function(){c._bSupportDataURI=!0,c._fSuccess&&c._fSuccess.call(c)};return d.onabort=e,d.onerror=e,d.onload=f,d.src="data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",void 0}c._bSupportDataURI===!0&&c._fSuccess?c._fSuccess.call(c):c._bSupportDataURI===!1&&c._fFail&&c._fFail.call(c)}if(this._android&&this._android<=2.1){var b=1/window.devicePixelRatio,c=CanvasRenderingContext2D.prototype.drawImage;CanvasRenderingContext2D.prototype.drawImage=function(a,d,e,f,g,h,i,j){if("nodeName"in a&&/img/i.test(a.nodeName))for(var l=arguments.length-1;l>=1;l--)arguments[l]=arguments[l]*b;else"undefined"==typeof j&&(arguments[1]*=b,arguments[2]*=b,arguments[3]*=b,arguments[4]*=b);c.apply(this,arguments)}}var e=function(a,b){this._bIsPainted=!1,this._android=n(),this._htOption=b,this._elCanvas=document.createElement("canvas"),this._elCanvas.width=b.width,this._elCanvas.height=b.height,a.appendChild(this._elCanvas),this._el=a,this._oContext=this._elCanvas.getContext("2d"),this._bIsPainted=!1,this._elImage=document.createElement("img"),this._elImage.style.display="none",this._el.appendChild(this._elImage),this._bSupportDataURI=null};return e.prototype.draw=function(a){var b=this._elImage,c=this._oContext,d=this._htOption,e=a.getModuleCount(),f=d.width/e,g=d.height/e,h=Math.round(f),i=Math.round(g);b.style.display="none",this.clear();for(var j=0;e>j;j++)for(var k=0;e>k;k++){var l=a.isDark(j,k),m=k*f,n=j*g;c.strokeStyle=l?d.colorDark:d.colorLight,c.lineWidth=1,c.fillStyle=l?d.colorDark:d.colorLight,c.fillRect(m,n,f,g),c.strokeRect(Math.floor(m)+.5,Math.floor(n)+.5,h,i),c.strokeRect(Math.ceil(m)-.5,Math.ceil(n)-.5,h,i)}this._bIsPainted=!0},e.prototype.makeImage=function(){this._bIsPainted&&d.call(this,a)},e.prototype.isPainted=function(){return this._bIsPainted},e.prototype.clear=function(){this._oContext.clearRect(0,0,this._elCanvas.width,this._elCanvas.height),this._bIsPainted=!1},e.prototype.round=function(a){return a?Math.floor(1e3*a)/1e3:a},e}():function(){var a=function(a,b){this._el=a,this._htOption=b};return a.prototype.draw=function(a){for(var b=this._htOption,c=this._el,d=a.getModuleCount(),e=Math.floor(b.width/d),f=Math.floor(b.height/d),g=['<table style="border:0;border-collapse:collapse;">'],h=0;d>h;h++){g.push("<tr>");for(var i=0;d>i;i++)g.push('<td style="border:0;border-collapse:collapse;padding:0;margin:0;width:'+e+"px;height:"+f+"px;background-color:"+(a.isDark(h,i)?b.colorDark:b.colorLight)+';"></td>');g.push("</tr>")}g.push("</table>"),c.innerHTML=g.join("");var j=c.childNodes[0],k=(b.width-j.offsetWidth)/2,l=(b.height-j.offsetHeight)/2;k>0&&l>0&&(j.style.margin=l+"px "+k+"px")},a.prototype.clear=function(){this._el.innerHTML=""},a}();QRCode=function(a,b){if(this._htOption={width:256,height:256,typeNumber:4,colorDark:"#000000",colorLight:"#ffffff",correctLevel:d.H},"string"==typeof b&&(b={text:b}),b)for(var c in b)this._htOption[c]=b[c];"string"==typeof a&&(a=document.getElementById(a)),this._android=n(),this._el=a,this._oQRCode=null,this._oDrawing=new q(this._el,this._htOption),this._htOption.text&&this.makeCode(this._htOption.text)},QRCode.prototype.makeCode=function(a){this._oQRCode=new b(r(a,this._htOption.correctLevel),this._htOption.correctLevel),this._oQRCode.addData(a),this._oQRCode.make(),this._el.title=a,this._oDrawing.draw(this._oQRCode),this.makeImage()},QRCode.prototype.makeImage=function(){"function"==typeof this._oDrawing.makeImage&&(!this._android||this._android>=3)&&this._oDrawing.makeImage()},QRCode.prototype.clear=function(){this._oDrawing.clear()},QRCode.CorrectLevel=d}();
+</script>
 <style>
-    :root { --marker-scale: 1; }
-  html, body { margin:0; padding:0; height:100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  #app { display:flex; height:100vh; }
+    :root {
+      --marker-scale: 1;
+      /* Paleta "pro" tipo dashboard */
+      --bg-app: #0b1220;
+      --panel: #ffffff;
+      --panel-2: #f8fafc;
+      --ink: #1f2937;
+      --ink-soft: #64748b;
+      --line: #e5e7eb;
+      --brand: #84cc16;
+      --brand-2: #22c55e;
+      --brand-ink: #0f172a;
+      --accent: #6366f1;
+      --warn: #f59e0b;
+      --danger: #dc2626;
+      --ok: #16a34a;
+      --shadow-sm: 0 1px 2px rgba(15,23,42,0.06);
+      --shadow-md: 0 4px 14px rgba(15,23,42,0.10);
+      --shadow-lg: 0 18px 50px rgba(15,23,42,0.28);
+      --radius: 10px;
+    }
+  html, body { margin:0; padding:0; height:100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif; }
+  * { -webkit-font-smoothing: antialiased; }
+  #app { display:flex; height:100vh; background: var(--bg-app); }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 6px; }
+  ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  ::-webkit-scrollbar-track { background: transparent; }
 
   /* Sidebar estilo Settepi */
   #sidebar {
-    width: 320px;
-    background: #ffffff;
-    color: #1f2937;
+    width: 328px;
+    background: var(--panel);
+    color: var(--ink);
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    box-shadow: var(--shadow-md);
+    z-index: 5;
   }
   #sidebar header {
     padding: 16px;
-    border-bottom: 1px solid #e5e7eb;
-    background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(135deg, #0f172a 0%, #131f3a 55%, #0b1220 100%);
     position: relative;
   }
   #sidebar header::before {
@@ -31,15 +61,22 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #84cc16 0%, #22c55e 100%);
+    background: linear-gradient(90deg, #84cc16 0%, #22c55e 60%, #6366f1 100%);
   }
   #sidebar h1 {
     margin: 0;
     font-size: 15px;
-    font-weight: 700;
+    font-weight: 800;
     color: #84cc16;
     letter-spacing: 0.6px;
     text-transform: uppercase;
+    display:flex; align-items:center; gap:8px;
+  }
+  #sidebar h1 .logo-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #a3e635, #22c55e);
+    box-shadow: 0 0 10px #84cc1699;
+    flex-shrink: 0;
   }
   #sidebar h1 .sub {
     display:block;
@@ -52,39 +89,196 @@
   }
 
   .toolbar {
-    padding: 10px 16px;
-    border-bottom: 1px solid #e5e7eb;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
     display:flex;
     gap:6px;
     flex-wrap:wrap;
+    background: var(--panel-2);
   }
   .toolbar button {
-    background: #f3f4f6;
-    color: #1f2937;
-    border: none;
+    background: #fff;
+    color: #334155;
+    border: 1px solid var(--line);
     padding: 6px 10px;
-    border-radius: 4px;
+    border-radius: 7px;
     font-size: 11px;
+    font-weight: 600;
     cursor: pointer;
+    transition: all 0.14s ease;
+    box-shadow: var(--shadow-sm);
   }
-  .toolbar button:hover { background: #4b5563; }
-  .toolbar button.primary { background: #84cc16; color: #0f172a; font-weight:600; }
-  .toolbar button.primary:hover { background: #a3e635; }
-  .toolbar button.danger { background: #f97316; color: #0f172a; font-weight:600; }
-  .toolbar button.danger:hover { background: #fbbf24; }
-  .toolbar button.desvio { background: #dc2626; color: #fff; font-weight:600; }
-  .toolbar button.desvio:hover { background: #ef4444; }
+  .toolbar button:hover { background: #0f172a; color:#fff; border-color:#0f172a; transform: translateY(-1px); }
+  .toolbar button.primary { background: linear-gradient(180deg,#a3e635,#84cc16); color: #0f172a; font-weight:700; border-color:#84cc16; }
+  .toolbar button.primary:hover { background: linear-gradient(180deg,#bef264,#a3e635); color:#0f172a; }
+  .toolbar button.danger { background: linear-gradient(180deg,#fb923c,#f97316); color: #fff; font-weight:700; border-color:#f97316; }
+  .toolbar button.danger:hover { background: #ea580c; color:#fff; }
+  .toolbar button.desvio { background: #dc2626; color: #fff; font-weight:600; border-color:#dc2626; }
+  .toolbar button.desvio:hover { background: #ef4444; color:#fff; }
   .toolbar button.desvio.active { background: #ff0000; box-shadow: 0 0 8px #ff000088; animation: pulseDesvio 1.2s infinite; }
   @keyframes pulseDesvio {
     0%, 100% { box-shadow: 0 0 6px #ff000088; }
     50% { box-shadow: 0 0 14px #ff0000cc; }
   }
   .toolbar button:disabled { opacity: 0.4; cursor: not-allowed; }
-  .toolbar button:disabled:hover { background: #f3f4f6; }
+  .toolbar button:disabled:hover { background: #fff; color:#334155; border-color:var(--line); transform:none; }
   #badgeCambios:not(:empty) {
-    background: #ffffff; color: #fbbf24;
+    background: var(--warn); color: #fff;
     border-radius: 8px; padding: 1px 5px; margin-left: 3px; font-weight:700;
   }
+
+  /* Badges de posición en popup */
+  .pos-badge {
+    display: inline-block;
+    font-size: 9px; font-weight: 700;
+    padding: 1px 6px; border-radius: 4px;
+    letter-spacing: 0.4px; vertical-align: middle;
+  }
+  .pos-badge.ini    { background: #dcfce7; color: #166534; }
+  .pos-badge.planta { background: #ede9fe; color: #6d28d9; }
+  .pos-badge.intr   { background: #f1f5f9; color: #475569; }
+
+  /* Botones de acción en popup (eliminar / mover) */
+  .popup-actions {
+    display: flex; gap: 6px;
+    margin-top: 8px; padding-top: 8px;
+    border-top: 1px solid #eee;
+  }
+  .popup-actions .pa-btn {
+    flex: 1;
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 5px;
+    padding: 4px 6px;
+    font-size: 11px; font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .popup-actions .pa-btn.del { color: var(--danger); border-color: #fecaca; }
+  .popup-actions .pa-btn.del:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .popup-actions .pa-btn.move { color: var(--accent); border-color: #ddd6fe; }
+  .popup-actions .pa-btn.move:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ===== Modal COMPARTIR QR ===== */
+  #qrModalBg {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,23,42,0.6); z-index: 4300;
+    align-items: center; justify-content: center;
+  }
+  #qrModalBg.open { display: flex; }
+  #qrModal {
+    background: #fff; border-radius: 12px;
+    width: 380px; max-width: 92vw; max-height: 90vh;
+    display: flex; flex-direction: column;
+    box-shadow: var(--shadow-lg); overflow: hidden;
+  }
+  #qrModal header {
+    padding: 13px 18px;
+    background: linear-gradient(135deg,#0f172a,#131f3a);
+    color: #84cc16; font-weight: 700; font-size: 14px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 3px solid #84cc16;
+  }
+  #qrModal header .close-x { background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer; }
+  #qrModal header .close-x:hover { color:#fff; }
+  #qrModal .body { padding: 16px 18px; overflow-y:auto; text-align:center; }
+  #qrRutaInfo {
+    font-size: 12px; color: #334155; margin-bottom: 14px;
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+    padding: 8px 10px; text-align: left;
+  }
+  #qrRutaInfo b { color: #0f172a; }
+  #qrCanvas {
+    display: inline-block; padding: 12px; background: #fff;
+    border: 1px solid #e5e7eb; border-radius: 10px;
+    box-shadow: var(--shadow-sm); margin-bottom: 12px;
+  }
+  #qrCanvas img, #qrCanvas canvas { display: block; }
+  #qrAviso {
+    font-size: 11px; color: #9a3412; background: #fff7ed;
+    border: 1px solid #fed7aa; border-radius: 6px;
+    padding: 6px 8px; margin-bottom: 12px; display: none; text-align: left;
+  }
+  #qrAviso.show { display: block; }
+  .qr-actions { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+  .qr-btn {
+    padding: 9px 12px; border: 1px solid var(--line); border-radius: 7px;
+    background: #fff; color: #334155; font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .qr-btn:hover { background: #0f172a; color: #fff; }
+  .qr-btn.primary { background: linear-gradient(180deg,#a3e635,#84cc16); color: #0f172a; border-color:#84cc16; }
+  .qr-btn.primary:hover { background: linear-gradient(180deg,#bef264,#a3e635); }
+  .qr-link-box {
+    font-size: 10px; color: #6b7280; word-break: break-all;
+    background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px;
+    padding: 6px 8px; text-align: left; max-height: 60px; overflow-y: auto;
+  }
+
+  /* ===== Modal MOVER PARADA ===== */
+  #moverModalBg, #dropModalBg {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(15,23,42,0.55);
+    z-index: 4200;
+    align-items: center; justify-content: center;
+  }
+  #moverModalBg.open, #dropModalBg.open { display: flex; }
+  #moverModal {
+    background: #fff; border-radius: 10px;
+    width: 420px; max-width: 92vw; max-height: 86vh;
+    display: flex; flex-direction: column;
+    box-shadow: var(--shadow-lg); overflow: hidden;
+  }
+  #moverModal header {
+    padding: 13px 18px;
+    background: linear-gradient(135deg,#0f172a,#131f3a);
+    color: #c4b5fd; font-weight: 700; font-size: 14px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 3px solid #8b5cf6;
+  }
+  #moverModal header .close-x { background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer; }
+  #moverModal header .close-x:hover { color:#fff; }
+  #moverModal .body { padding: 14px 18px; overflow-y:auto; }
+  #moverParadaInfo {
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 6px; padding: 8px 10px; margin-bottom: 12px;
+    font-size: 12px; color: #334155;
+  }
+  #moverParadaInfo b { color: #0f172a; }
+  #moverModal .field label {
+    display:block; font-size:12px; font-weight:600; margin-bottom:4px; color:#1f2937;
+  }
+  #moverModal select, #moverModal input {
+    width: 100%; padding: 7px 8px; box-sizing: border-box;
+    border: 1px solid #d1d5db; border-radius: 5px; font-size: 12px;
+    margin-bottom: 12px;
+  }
+  .mover-hint { font-size: 11px; color:#6b7280; background:#eff6ff; border:1px solid #bfdbfe; padding:6px 8px; border-radius:4px; margin-bottom:10px; }
+  #moverModal footer {
+    padding: 12px 18px; border-top: 1px solid var(--line);
+    display:flex; justify-content:flex-end; gap:8px; background: var(--panel-2);
+  }
+  #moverModal footer button { padding:7px 14px; border:none; border-radius:5px; font-size:12px; font-weight:600; cursor:pointer; }
+  #moverModal .btn-cancel { background:#e5e7eb; color:#1f2937; }
+  #moverModal .btn-ok { background:#8b5cf6; color:#fff; }
+  #moverModal .btn-ok:hover { background:#7c3aed; }
+
+  /* Toast breve (undo/redo, avisos) */
+  #miniToast {
+    position: fixed;
+    bottom: 22px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #0f172a; color: #fff;
+    padding: 9px 18px; border-radius: 999px;
+    font-size: 13px; font-weight: 600;
+    box-shadow: var(--shadow-lg);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 6000;
+  }
+  #miniToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   .file-input {
     padding: 10px 16px;
@@ -374,32 +568,147 @@
     box-shadow: 0 0 6px rgba(220,38,38,0.5);
     animation: pulseBtnZero 1.4s infinite;
   }
+  .btn-qr-ruta {
+    background: #ffffff;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    width: 22px; height: 22px;
+    padding: 0; margin-left: 4px;
+    cursor: pointer; font-size: 12px; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.15s;
+  }
+  .btn-qr-ruta:hover {
+    background: #eef2ff; border-color: #a5b4fc; color: #4f46e5;
+  }
   @keyframes pulseBtnZero {
     0%, 100% { box-shadow: 0 0 4px rgba(220,38,38,0.4); }
     50%      { box-shadow: 0 0 10px rgba(220,38,38,0.75); }
   }
 
   /* Mapa */
-  #map { flex:1; height:100vh; }
+  #mapWrap { flex:1; position: relative; height: 100vh; }
+  #map { position:absolute; inset:0; height:100%; width:100%; }
+
+  /* Barra KPI flotante estilo dashboard */
+  #kpiBar {
+    position: absolute;
+    top: 12px; left: 50%;
+    transform: translateX(-50%);
+    display: flex; gap: 10px;
+    z-index: 500;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(8px);
+    padding: 8px 10px;
+    border-radius: 14px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(255,255,255,0.6);
+    max-width: calc(100% - 24px);
+    overflow-x: auto;
+  }
+  #kpiBar .kpi {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 12px 4px 4px;
+    border-right: 1px solid #eef2f7;
+    white-space: nowrap;
+  }
+  #kpiBar .kpi:last-child { border-right: none; }
+  #kpiBar .kpi-ico {
+    width: 34px; height: 34px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  #kpiBar .kpi-num { font-size: 17px; font-weight: 800; color: #0f172a; line-height: 1.1; }
+  #kpiBar .kpi-lbl { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.4px; }
+  @media (max-width: 1100px) {
+    #kpiBar .kpi-lbl { display: none; }
+    #kpiBar .kpi { padding: 4px 8px; }
+  }
 
   /* Panel filtros derecho */
   #filterPanel {
-    width: 290px;
-    background: #ffffff;
-    color: #1f2937;
+    width: 300px;
+    background: var(--panel);
+    color: var(--ink);
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    border-left: 1px solid #e5e7eb;
+    border-left: 1px solid var(--line);
+    box-shadow: -4px 0 14px rgba(15,23,42,0.06);
   }
-  #filterPanel section { padding: 12px 16px; border-bottom: 1px solid #e5e7eb; }
+
+  /* Panel de reingenierías (lado derecho) */
+  #reingPanel { border-top: 3px solid var(--accent) !important; }
+  .reing-panel-count {
+    background: var(--accent); color: #fff;
+    border-radius: 10px; padding: 1px 8px;
+    font-size: 11px; font-weight: 700; margin-left: 4px;
+  }
+  .reing-panel-actions {
+    display: flex; gap: 6px; margin-top: 8px;
+  }
+  .rp-btn {
+    flex: 1;
+    background: #f3f4f6; border: 1px solid var(--line);
+    border-radius: 6px; padding: 5px 8px;
+    font-size: 11px; font-weight: 600; cursor: pointer;
+    color: #334155;
+  }
+  .rp-btn:hover { background: #0f172a; color: #fff; }
+  .rp-btn.danger { color: var(--danger); }
+  .rp-btn.danger:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .rp-card {
+    background: linear-gradient(180deg,#ffffff,#f8fafc);
+    border: 1px solid var(--line);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: box-shadow 0.15s, transform 0.1s;
+  }
+  .rp-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .rp-card.oculta { opacity: 0.5; }
+  .rp-card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 5px;
+  }
+  .rp-card-id {
+    font-size: 12px; font-weight: 700; color: #0f172a;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .rp-card-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .rp-card-tools { display: flex; gap: 4px; }
+  .rp-card-tools button {
+    background: none; border: none; cursor: pointer;
+    font-size: 12px; padding: 1px 3px; border-radius: 4px;
+    color: #94a3b8;
+  }
+  .rp-card-tools button:hover { background: #e5e7eb; color: #0f172a; }
+  .rp-metrics { display: flex; gap: 5px; flex-wrap: wrap; }
+  .rp-metric {
+    font-size: 10px; font-weight: 600;
+    padding: 2px 6px; border-radius: 5px;
+    background: #eef2ff; color: #4338ca;
+  }
+  .rp-metric.ok   { background: #dcfce7; color: #166534; }
+  .rp-metric.warn { background: #ffedd5; color: #9a3412; }
+  .rp-metric.bad  { background: #fee2e2; color: #991b1b; }
+  .rp-card-warn {
+    font-size: 10px; color: var(--danger);
+    margin-top: 5px; line-height: 1.4;
+  }
+
+  #filterPanel section { padding: 12px 16px; border-bottom: 1px solid var(--line); }
   #filterPanel h2 {
     margin: 0 0 8px 0;
     font-size: 12px;
-    font-weight: 600;
-    color: #84cc16;
+    font-weight: 700;
+    color: #0f172a;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    display: flex; align-items: center;
   }
   .chip {
     display: inline-block;
@@ -504,6 +813,21 @@
     border-radius: 50%;
     box-shadow: 0 0 6px #ff0000, 0 0 2px rgba(0,0,0,0.6);
     cursor: grab;
+  }
+  /* Puntos de trazo (via-points) para editar la línea */
+  .via-point {
+    width: 14px; height: 14px;
+    background: #6366f1;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(99,102,241,0.7), 0 1px 2px rgba(0,0,0,0.4);
+    cursor: grab;
+  }
+  .via-point:active { cursor: grabbing; }
+  .via-point.dragging {
+    width: 16px; height: 16px;
+    background: #4f46e5;
+    box-shadow: 0 0 12px rgba(79,70,229,0.9);
   }
   .desvio-point:active { cursor: grabbing; }
   .desvio-point.anchor {
@@ -689,6 +1013,232 @@
     margin-bottom: 10px;
   }
 
+  /* ============ MODAL REINGENIERÍA ============ */
+  #reingModalBg {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 4100;
+    align-items: center; justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  #reingModalBg.open { display: flex; }
+  #reingModal {
+    background: #fff;
+    border-radius: 10px;
+    width: 720px;
+    max-width: 95vw;
+    max-height: 90vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    overflow: hidden;
+  }
+  #reingModal header {
+    padding: 14px 18px;
+    background: linear-gradient(180deg, #0f172a 0%, #0b1220 100%);
+    color: #a3e635;
+    font-size: 14px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 3px solid #a3e635;
+  }
+  #reingModal header .close-x {
+    background: none; border: none; color: #94a3b8;
+    font-size: 22px; cursor: pointer; padding: 0 4px;
+  }
+  #reingModal header .close-x:hover { color: #fff; }
+  #reingModal .body {
+    padding: 14px 18px;
+    overflow-y: auto;
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  #reingModal .col h3 {
+    margin: 0 0 8px 0;
+    font-size: 12px; font-weight: 700;
+    color: #0f172a;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #a3e635;
+  }
+  #reingRutasList {
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    max-height: 340px;
+    overflow-y: auto;
+    background: #fafafa;
+    font-size: 12px;
+  }
+  #reingRutasList .r-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+  }
+  #reingRutasList .r-item:last-child { border-bottom: none; }
+  #reingRutasList .r-item:hover { background: #f3f4f6; }
+  #reingRutasList .r-item input { cursor: pointer; accent-color: #84cc16; }
+  #reingRutasList .r-color { width:12px;height:12px;border-radius:2px;flex-shrink:0; }
+  #reingRutasList .r-info { flex:1; min-width:0; }
+  #reingRutasList .r-id { font-weight:600; color:#1f2937; }
+  #reingRutasList .r-meta { color:#9ca3af; font-size:10px; }
+
+  .reing-search input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    font-size: 12px;
+    box-sizing: border-box;
+    margin-bottom: 6px;
+  }
+  .reing-quick {
+    display:flex; gap:4px; margin-bottom:6px; font-size: 10px;
+  }
+  .reing-quick button {
+    background: #f3f4f6; border: 1px solid #e5e7eb;
+    padding: 3px 8px; border-radius: 4px; cursor: pointer;
+    color: #1f2937; font-size: 10px;
+  }
+  .reing-quick button:hover { background: #e5e7eb; }
+
+  #reingModal .params { font-size: 12px; }
+  #reingModal .modo-tabs {
+    display: flex; gap: 4px;
+    margin-bottom: 10px;
+    background: #f3f4f6; padding: 3px;
+    border-radius: 6px;
+  }
+  #reingModal .modo-tab {
+    flex: 1;
+    text-align: center;
+    padding: 6px 8px;
+    font-size: 11px; font-weight: 600;
+    cursor: pointer;
+    border-radius: 4px;
+    color: #6b7280;
+  }
+  #reingModal .modo-tab.active {
+    background: #fff;
+    color: #0f172a;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+  #reingModal .param-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dashed #e5e7eb;
+    font-size: 11px; color: #4b5563;
+  }
+  #reingModal .param-row:last-child { border-bottom: none; }
+  #reingModal .param-row b { color: #0f172a; font-size: 12px; }
+  #reingModal .param-row input[type="number"] {
+    width: 70px;
+    padding: 3px 6px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 12px;
+    text-align: center;
+  }
+  #reingModal .param-row input[type="checkbox"] { accent-color: #84cc16; }
+
+  #reingResumen {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-top: 10px;
+    font-size: 11px;
+    color: #475569;
+    line-height: 1.6;
+  }
+  #reingResumen b { color: #0f172a; }
+
+  #reingResultados {
+    margin-top: 12px;
+    max-height: 240px;
+    overflow-y: auto;
+    border-top: 2px dashed #e5e7eb;
+    padding-top: 10px;
+  }
+  #reingResultados .res-empty {
+    color: #9ca3af; font-size: 12px; text-align: center;
+    padding: 20px;
+  }
+  #reingResultados .res-item {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #84cc16;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    font-size: 11px;
+  }
+  #reingResultados .res-item.warn { border-left-color: #f97316; }
+  #reingResultados .res-item.danger { border-left-color: #dc2626; }
+  #reingResultados .res-head {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 4px;
+  }
+  #reingResultados .res-id { font-weight:700; font-size:12px; color:#0f172a; }
+  #reingResultados .res-badges { display:flex; gap:4px; flex-wrap: wrap; }
+  #reingResultados .res-badge {
+    background: #e5e7eb; color: #374151;
+    padding: 2px 6px; border-radius: 4px;
+    font-size: 10px; font-weight: 600;
+  }
+  #reingResultados .res-badge.ok { background: #dcfce7; color: #166534; }
+  #reingResultados .res-badge.warn { background: #ffedd5; color: #9a3412; }
+  #reingResultados .res-badge.bad { background: #fee2e2; color: #991b1b; }
+  #reingResultados .res-detail { color:#6b7280; font-size:10px; }
+
+  #reingModal footer {
+    padding: 12px 18px;
+    border-top: 1px solid #e5e7eb;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    background: #fafafa;
+    flex-wrap: wrap;
+  }
+  #reingModal footer .left-actions { display:flex; gap:6px; }
+  #reingModal footer .right-actions { display:flex; gap:6px; }
+  #reingModal footer button {
+    padding: 7px 14px;
+    border: none; border-radius: 5px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+  }
+  #reingModal .btn-cancel { background: #e5e7eb; color: #1f2937; }
+  #reingModal .btn-cancel:hover { background: #d1d5db; }
+  #reingModal .btn-calc { background: #84cc16; color: #0f172a; }
+  #reingModal .btn-calc:hover { background: #a3e635; }
+  #reingModal .btn-apply { background: #22c55e; color: #fff; }
+  #reingModal .btn-apply:hover { background: #16a34a; }
+  #reingModal .btn-apply:disabled { opacity: 0.4; cursor: not-allowed; }
+  #reingModal .btn-calc:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  #reingProgreso {
+    display: none;
+    align-items: center; gap: 8px;
+    font-size: 11px; color: #6b7280;
+    padding: 4px 8px;
+    background: #fef3c7;
+    border-radius: 4px;
+  }
+  #reingProgreso.show { display: flex; }
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid #e5e7eb;
+    border-top-color: #f59e0b;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 700px) {
+    #reingModal .body { grid-template-columns: 1fr; }
+  }
+
   /* Marcador con 0 beneficiados — resaltado rojo pulsante cuando se activa el botón */
   .start-marker.zero-benef, .stop-marker.zero-benef {
     outline: 3px solid #dc2626;
@@ -708,8 +1258,14 @@
     }
   }
 
-  .leaflet-popup-content { font-size: 12px; line-height: 1.5; }
+  .leaflet-popup-content { font-size: 12px; line-height: 1.5; margin: 12px 14px; }
   .leaflet-popup-content b { color: #0f172a; }
+  .leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: 0 12px 34px rgba(15,23,42,0.22);
+    border: 1px solid rgba(15,23,42,0.06);
+  }
+  .leaflet-popup-tip { box-shadow: 0 12px 34px rgba(15,23,42,0.14); }
 
   /* Marcador de persona (operador cargado por Excel) */
   .person-marker {
@@ -1206,8 +1762,8 @@
 <div id="app">
   <aside id="sidebar">
     <header>
-      <h1>Rutas Stp Garcia
-        <span class="sub">Planeador de rutas</span>
+      <h1><span class="logo-dot"></span>Rutas Stp Garcia
+        <span class="sub">Planeador &amp; reingeniería de rutas</span>
       </h1>
     </header>
 
@@ -1222,15 +1778,19 @@
     </div>
 
     <div class="toolbar">
+      <button id="btnUndo" disabled title="Deshacer (Ctrl+Z)">↶</button>
+      <button id="btnRedo" disabled title="Rehacer (Ctrl+Y)">↷</button>
       <button class="primary" id="btnAll">Mostrar todas</button>
       <button id="btnNone">Ocultar todas</button>
       <button id="btnFit">Centrar</button>
       <button id="btnModo">Modo: Calles</button>
       <button id="btnEdit">Editar: OFF</button>
+      <button id="btnParadas">✏ Editar paradas</button>
       <button id="btnExport" disabled>Exportar cambios <span id="badgeCambios"></span></button>
       <button id="btnDesvio">Desvío: OFF</button>
       <button id="btnClearDesvio" disabled>Borrar desvíos</button>
       <button id="btnFusion">🔗 Fusionar rutas</button>
+      <button id="btnReing">🧬 Reingeniería</button>
     </div>
 
 
@@ -1256,9 +1816,42 @@
     <div id="lista"></div>
   </aside>
 
-  <div id="map"></div>
+  <div id="mapWrap">
+    <div id="kpiBar">
+      <div class="kpi">
+        <div class="kpi-ico" style="background:#e0f2fe;color:#0369a1">🚌</div>
+        <div class="kpi-body"><div class="kpi-num" id="kpiRutas">0</div><div class="kpi-lbl">Rutas</div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-ico" style="background:#dcfce7;color:#166534">🚏</div>
+        <div class="kpi-body"><div class="kpi-num" id="kpiParadas">0</div><div class="kpi-lbl">Paradas</div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-ico" style="background:#fef3c7;color:#92400e">👥</div>
+        <div class="kpi-body"><div class="kpi-num" id="kpiUsuarios">0</div><div class="kpi-lbl">Usuarios</div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-ico" style="background:#fee2e2;color:#991b1b">📊</div>
+        <div class="kpi-body"><div class="kpi-num" id="kpiOcup">0%</div><div class="kpi-lbl">Ocup. media</div></div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-ico" style="background:#ede9fe;color:#6d28d9">🧬</div>
+        <div class="kpi-body"><div class="kpi-num" id="kpiReing">0</div><div class="kpi-lbl">Reingenierías</div></div>
+      </div>
+    </div>
+    <div id="map"></div>
+  </div>
 
   <aside id="filterPanel">
+    <section id="reingPanel" style="display:none">
+      <h2><span style="filter:none">🧬</span> Rutas de reingeniería <span id="reingPanelCount" class="reing-panel-count">0</span></h2>
+      <div id="reingPanelList"></div>
+      <div class="reing-panel-actions">
+        <button class="rp-btn" id="btnReingExport">⬇ Exportar</button>
+        <button class="rp-btn danger" id="btnReingClear">✕ Quitar todas</button>
+      </div>
+    </section>
+
     <section>
       <h2>Tamaño de puntos</h2>
       <div class="slider-row">
@@ -1342,6 +1935,196 @@
   </div>
 </div>
 
+<!-- Modal compartir QR / Google Maps -->
+<div id="qrModalBg">
+  <div id="qrModal">
+    <header>
+      <span>🔗 Compartir recorrido</span>
+      <button class="close-x" id="qrClose">×</button>
+    </header>
+    <div class="body">
+      <div id="qrRutaInfo"></div>
+      <div id="qrCanvas"></div>
+      <div id="qrAviso"></div>
+      <div class="qr-actions">
+        <button id="qrAbrirMaps" class="qr-btn primary">🧭 Abrir en Google Maps</button>
+        <button id="qrCopiar" class="qr-btn">📋 Copiar enlace</button>
+        <button id="qrDescargar" class="qr-btn">⬇ Descargar QR (PNG)</button>
+      </div>
+      <div class="qr-link-box"><span id="qrLinkText"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Mini-modal: confirmar posición tras arrastrar parada sobre otra ruta -->
+<div id="dropModalBg">
+  <div id="moverModal">
+    <header>
+      <span>↔ Mover parada aquí</span>
+      <button class="close-x" id="dropClose">×</button>
+    </header>
+    <div class="body">
+      <div id="dropInfo" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px;margin-bottom:12px;font-size:12px;color:#334155"></div>
+      <div class="field">
+        <label>¿En qué posición de la ruta destino?</label>
+        <select id="dropPosicion">
+          <option value="auto">Automática (más cercana geográficamente)</option>
+          <option value="inicio">Al inicio (después de la salida)</option>
+          <option value="fin">Al final (antes de la planta)</option>
+        </select>
+      </div>
+    </div>
+    <footer>
+      <button class="btn-cancel" id="dropCancel">Cancelar</button>
+      <button class="btn-ok" id="dropConfirm">Mover aquí</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Modal mover parada -->
+<div id="moverModalBg">
+  <div id="moverModal">
+    <header>
+      <span>↔ Mover parada</span>
+      <button class="close-x" id="moverClose">×</button>
+    </header>
+    <div class="body">
+      <div id="moverParadaInfo"></div>
+      <div class="mover-hint">
+        La parada se insertará en la ruta destino en la posición geográfica más lógica
+        (entre las dos paradas más cercanas), respetando siempre que la <b>planta</b> quede al final.
+      </div>
+      <div class="field">
+        <label>Ruta destino</label>
+        <select id="moverRutaDestino"></select>
+      </div>
+      <div class="field">
+        <label>Posición de inserción</label>
+        <select id="moverPosicion">
+          <option value="auto">Automática (más cercana geográficamente)</option>
+          <option value="inicio">Al inicio (después de la salida)</option>
+          <option value="fin">Al final (antes de la planta)</option>
+        </select>
+      </div>
+    </div>
+    <footer>
+      <button class="btn-cancel" id="moverCancel">Cancelar</button>
+      <button class="btn-ok" id="moverConfirm">Mover parada</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Modal reingeniería -->
+<div id="reingModalBg">
+  <div id="reingModal">
+    <header>
+      <span>🧬 Reingeniería de rutas</span>
+      <button class="close-x" id="reingClose" title="Cerrar">×</button>
+    </header>
+    <div class="body">
+
+      <!-- Columna izquierda: selección de rutas -->
+      <div class="col">
+        <h3>1. Rutas a reprocesar</h3>
+        <div class="reing-search">
+          <input type="text" id="reingFiltro" placeholder="Buscar ruta o descripción..."/>
+        </div>
+        <div class="reing-quick">
+          <button type="button" id="reingSelAll">Seleccionar todas</button>
+          <button type="button" id="reingSelNone">Ninguna</button>
+          <button type="button" id="reingSelVisibles">Solo visibles</button>
+        </div>
+        <div id="reingRutasList"></div>
+      </div>
+
+      <!-- Columna derecha: parámetros + resultados -->
+      <div class="col">
+        <h3>2. Parámetros</h3>
+
+        <div class="modo-tabs">
+          <div class="modo-tab active" data-modo="reducir">📉 Reducir<br><span style="font-weight:400; color:#9ca3af">menos rutas</span></div>
+          <div class="modo-tab" data-modo="objetivo">🎯 Objetivo<br><span style="font-weight:400; color:#9ca3af">yo fijo cuántas</span></div>
+          <div class="modo-tab" data-modo="auto">🤖 Automático<br><span style="font-weight:400; color:#9ca3af">mínimo con límites</span></div>
+          <div class="modo-tab" data-modo="libre">✋ Libre<br><span style="font-weight:400; color:#9ca3af">sin límites</span></div>
+        </div>
+
+        <div class="params">
+          <div class="param-row" id="rowNumRutas" style="display:none">
+            <span>Nº de rutas objetivo</span>
+            <input type="number" id="reingNumRutas" min="1" max="300" value="10"/>
+          </div>
+          <div id="proyeccionObjetivo" style="display:none"></div>
+
+          <div class="param-row">
+            <span>Duración mín. (min)</span>
+            <input type="number" id="reingDurMin" min="10" max="480" value="40"/>
+          </div>
+          <div class="param-row">
+            <span>Duración máx. (min)</span>
+            <input type="number" id="reingDurMax" min="10" max="480" value="120"/>
+          </div>
+          <div class="param-row">
+            <span>Capacidad máx. por ruta</span>
+            <input type="number" id="reingCap" min="1" max="200" value="41"/>
+          </div>
+          <div class="param-row">
+            <span>Máx. paradas por ruta</span>
+            <input type="number" id="reingMaxParadas" min="2" max="100" value="35"/>
+          </div>
+          <div class="param-row">
+            <span>Vel. carretera (km/h)</span>
+            <input type="number" id="reingVelCarr" min="20" max="120" value="70"/>
+          </div>
+          <div class="param-row">
+            <span>Vel. ciudad mín–máx (km/h)</span>
+            <span style="display:flex;gap:4px">
+              <input type="number" id="reingVelCiuMin" min="10" max="80" value="30" style="width:52px"/>
+              <input type="number" id="reingVelCiuMax" min="10" max="80" value="50" style="width:52px"/>
+            </span>
+          </div>
+          <div class="param-row">
+            <span>Segundos por parada</span>
+            <input type="number" id="reingSegParada" min="0" max="600" value="45"/>
+          </div>
+          <div class="param-row">
+            <span>Evitar carreteras con caseta</span>
+            <input type="checkbox" id="reingEvitarPeaje" checked/>
+          </div>
+          <div class="param-row">
+            <span>Terminar en planta</span>
+            <input type="checkbox" id="reingTerminarPlanta" checked/>
+          </div>
+          <div class="param-row" id="rowPlantaSel">
+            <span>Planta destino</span>
+            <select id="reingPlanta" style="padding:3px 6px;border:1px solid #d1d5db;border-radius:4px;font-size:11px;max-width:180px"></select>
+          </div>
+          <div class="param-row">
+            <span>Eliminar rutas originales</span>
+            <input type="checkbox" id="reingEliminarOrig"/>
+          </div>
+        </div>
+
+        <div id="reingResumen">Selecciona rutas para ver el resumen…</div>
+
+        <div id="reingResultados">
+          <div class="res-empty">Aún no hay resultados. Presiona <b>Calcular</b>.</div>
+        </div>
+      </div>
+
+    </div>
+    <footer>
+      <div class="left-actions">
+        <div id="reingProgreso"><div class="spinner"></div><span id="reingProgTxt">Procesando…</span></div>
+      </div>
+      <div class="right-actions">
+        <button class="btn-cancel" id="reingCancel">Cerrar</button>
+        <button class="btn-calc" id="reingCalcular" disabled>Calcular</button>
+        <button class="btn-apply" id="reingAplicar" disabled>Aplicar resultado</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
 <script>
 // =========================================================
 // CONFIG
@@ -1359,13 +2142,101 @@ const COL = {
   parada: 6,
   lat: 7,
   lng: 8,
-  h1: 9, h2: 10, h3: 11
+  h1: 9, h2: 10, h3: 11,
+  aforo: -1     // se detecta dinámicamente por nombre; si falla, se usa la columna O (índice 14)
 };
+
+// Columnas donde puede venir el AFORO. Se detectan por contenido.
+// COL.aforoCols = lista de índices que son aforo (puede haber varios, uno por turno).
+COL.aforoCols = [];
+
+// ¿El valor de celda parece una HORA? (HH:MM, HH:MM:SS, o fracción de día 0..1)
+function _pareceHora(v) {
+  if (v == null) return false;
+  const s = v.toString().trim();
+  if (s === '') return false;
+  if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(s)) return true;           // 05:54, 13:49:00
+  // fracción de día (SheetJS a veces): 0.24583333...
+  const f = parseFloat(s);
+  if (!isNaN(f) && f > 0 && f < 1 && s.includes('.')) return true;
+  return false;
+}
+// ¿El valor parece un AFORO? (entero >= 0, sin ":" ni decimales largos)
+function _pareceAforo(v) {
+  if (v == null) return false;
+  const s = v.toString().trim();
+  if (s === '') return false;
+  if (s.includes(':')) return false;
+  if (!/^\d{1,4}(\.0+)?$/.test(s)) return false;   // 100, 41, 0, 12.0
+  const n = parseInt(s, 10);
+  return !isNaN(n) && n >= 0 && n <= 400;          // aforo razonable
+}
+
+// Detecta la(s) columna(s) de aforo.
+// Estrategia:
+//   1) Por nombre en el header (aforo, pax, ocupacion...). Puede marcar varias.
+//   2) Por contenido: en las columnas DESPUÉS de lng (índice 9+), las que
+//      contienen enteros (no horas) se consideran aforo.
+function detectarColumnaAforo(headerRow, filas) {
+  COL.aforo = -1;
+  COL.aforoCols = [];
+  const normalizar = s => (s || '').toString().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[\s._-]/g,'').trim();
+
+  const nCols = Math.max(
+    Array.isArray(headerRow) ? headerRow.length : 0,
+    ...(Array.isArray(filas) ? filas.slice(1, 50).map(f => (f ? f.length : 0)) : [0])
+  );
+
+  // 1) Por nombre — marca TODAS las columnas cuyo header contenga una clave
+  if (Array.isArray(headerRow)) {
+    const claves = ['aforo','pax','ocupacion','usuarios','beneficiados','pasajeros','demanda'];
+    for (let i = 0; i < headerRow.length; i++) {
+      const h = normalizar(headerRow[i]);
+      if (!h) continue;
+      if (claves.some(k => h.includes(normalizar(k)))) {
+        COL.aforoCols.push(i);
+      }
+    }
+  }
+
+  // 2) Por contenido — solo si no se halló por nombre.
+  //    Recorremos columnas desde la 9 (tras lng). Clasificamos cada columna
+  //    contando cuántas celdas parecen hora vs aforo. Las que son
+  //    mayoritariamente enteros → aforo.
+  if (!COL.aforoCols.length && Array.isArray(filas) && filas.length > 1) {
+    for (let col = COL.h1; col < nCols; col++) {
+      let horas = 0, aforos = 0, vacias = 0, total = 0;
+      for (let i = 1; i < Math.min(filas.length, 300); i++) {
+        const c = filas[i];
+        if (!c || col >= c.length) { vacias++; continue; }
+        const v = (c[col] || '').toString().trim();
+        if (v === '') { vacias++; continue; }
+        total++;
+        if (_pareceHora(v)) horas++;
+        else if (_pareceAforo(v)) aforos++;
+      }
+      // La columna es "aforo" si la mayoría de sus valores no vacíos son enteros
+      if (total > 0 && aforos > horas && aforos >= Math.max(1, total * 0.5)) {
+        COL.aforoCols.push(col);
+      }
+    }
+  }
+
+  if (COL.aforoCols.length) {
+    COL.aforo = COL.aforoCols[0];   // compatibilidad con código previo
+    console.log(`[AFORO] Columnas de aforo detectadas: [${COL.aforoCols.join(', ')}]`);
+  } else {
+    console.warn('[AFORO] No se detectó columna de aforo. Todas las paradas quedarán en 0.');
+  }
+}
 
 // =========================================================
 // MAPA
 // =========================================================
 const map = L.map('map').setView([25.67, -100.30], 10);
+setTimeout(() => { try { map.invalidateSize(); } catch(e){} }, 200);
+window.addEventListener('resize', () => { try { map.invalidateSize(); } catch(e){} });
 
 // Capas base — Google + OpenStreetMap + CartoDB
 const gMapa = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
@@ -1459,6 +2330,130 @@ let modoDesvio = false;
 // Array de desvíos: { id, puntos: [{lat,lng},...], polyline, markers: [], osrmGeom: null, osrmPoly: null }
 const desvios = [];
 let desvioActual = null;  // desvío que se está construyendo ahora
+
+// =========================================================
+// UNDO / REDO (Ctrl+Z / Ctrl+Y)
+// =========================================================
+const UNDO_MAX = 40;
+let undoStack = [];
+let redoStack = [];
+let _restaurando = false;
+
+// Serializa el estado de rutas (sin objetos Leaflet)
+function snapshotRutas() {
+  const out = {};
+  Object.keys(rutas).forEach(id => {
+    const r = rutas[id];
+    out[id] = {
+      descRuta: r.descRuta, planta: r.planta, tipServ: r.tipServ,
+      turnos: (r.turnos||[]).slice(), color: r.color, visible: r.visible,
+      highlightEmpty: !!r.highlightEmpty,
+      esReingenieria: !!r.esReingenieria, esFusion: !!r.esFusion,
+      duracionEstMin: r.duracionEstMin, distanciaKm: r.distanciaKm,
+      plantaPunto: r.plantaPunto ? {...r.plantaPunto} : null,
+      warnings: (r.warnings||[]).slice(),
+      rutasOrigen: (r.rutasOrigen||[]).slice(),
+      evitarPeaje: !!r.evitarPeaje,
+      viaPoints: (r.viaPoints||[]).map(v => ({...v})),
+      puntos: r.puntos.map(p => ({...p}))
+    };
+  });
+  return JSON.stringify(out);
+}
+
+// Reconstruye rutas desde un snapshot
+async function restaurarSnapshot(json) {
+  _restaurando = true;
+  // limpiar layers actuales
+  Object.values(rutas).forEach(r => { if (r.layer) map.removeLayer(r.layer); });
+  const data = JSON.parse(json);
+  rutas = {};
+  Object.keys(data).forEach(id => {
+    const d = data[id];
+    rutas[id] = {
+      ...d,
+      layer: L.layerGroup(),
+      puntos: d.puntos.map(p => ({...p}))
+    };
+  });
+  Object.keys(cacheCalles).forEach(k => delete cacheCalles[k]);
+  // redibujar
+  for (const id of Object.keys(rutas)) {
+    await dibujarRuta(id);
+    if (rutas[id].visible) rutas[id].layer.addTo(map);
+  }
+  renderLista(document.getElementById('filtro').value);
+  try { renderChipsFiltros(); } catch(e){}
+  actualizarBadgeCambios();
+  actualizarOcupacion();
+  _restaurando = false;
+}
+
+// Guarda el estado ACTUAL en el stack de undo (llamar ANTES de un cambio)
+function pushUndo() {
+  if (_restaurando) return;
+  try {
+    undoStack.push(snapshotRutas());
+    if (undoStack.length > UNDO_MAX) undoStack.shift();
+    redoStack = [];  // cualquier acción nueva invalida el redo
+    actualizarBotonesUndo();
+  } catch(e) { console.warn('pushUndo falló', e); }
+}
+
+async function hacerUndo() {
+  if (!undoStack.length) return;
+  const actual = snapshotRutas();
+  const prev = undoStack.pop();
+  redoStack.push(actual);
+  await restaurarSnapshot(prev);
+  actualizarBotonesUndo();
+  flashToast('↶ Deshecho');
+}
+
+async function hacerRedo() {
+  if (!redoStack.length) return;
+  const actual = snapshotRutas();
+  const next = redoStack.pop();
+  undoStack.push(actual);
+  await restaurarSnapshot(next);
+  actualizarBotonesUndo();
+  flashToast('↷ Rehecho');
+}
+
+function actualizarBotonesUndo() {
+  const bu = document.getElementById('btnUndo');
+  const br = document.getElementById('btnRedo');
+  if (bu) bu.disabled = undoStack.length === 0;
+  if (br) br.disabled = redoStack.length === 0;
+}
+
+// Toast breve
+let _toastTimer = null;
+function flashToast(msg) {
+  let t = document.getElementById('miniToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'miniToast';
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 1400);
+}
+
+// Atajos de teclado
+document.addEventListener('keydown', (e) => {
+  // No interferir si el foco está en un input/textarea
+  const tag = (e.target.tagName || '').toLowerCase();
+  const editable = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
+  const ctrl = e.ctrlKey || e.metaKey;
+  if (!ctrl) return;
+  if (editable) return;
+  const k = e.key.toLowerCase();
+  if (k === 'z' && !e.shiftKey) { e.preventDefault(); hacerUndo(); }
+  else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); hacerRedo(); }
+});
 
 // =========================================================
 // HELPERS DE HORARIO Y TURNO
@@ -1654,25 +2649,48 @@ function toggleGeocercas() {
 async function obtenerGeometriaCalles(idRuta, puntos) {
   if (cacheCalles[idRuta]) return cacheCalles[idRuta];
 
-  // OSRM acepta hasta ~100 waypoints. Si hay más, partimos en tramos.
+  const r = rutas[idRuta] || {};
+  const evitarPeajeRuta = r.evitarPeaje === true;
+  const vias = r.viaPoints || [];
+
+  // Construir la secuencia de waypoints: para cada tramo parada[i]→parada[i+1]
+  // insertamos los via-points que "pertenezcan" a ese tramo (por cercanía).
+  // Para simplificar y ser robustos: intercalamos todos los via-points en el
+  // orden en que fueron creados, respetando su campo _afterIdx (índice de parada
+  // tras la cual van). Si no lo tienen, se ordenan por cercanía al recorrido.
+  const secuencia = [];
+  puntos.forEach((p, i) => {
+    secuencia.push({ lat: p.lat, lng: p.lng });
+    // via-points anclados justo después de la parada i
+    vias.filter(v => v._afterIdx === i)
+        .forEach(v => secuencia.push({ lat: v.lat, lng: v.lng, _via: true }));
+  });
+
   const MAX_WP = 90;
   let geomTotal = [];
   let distTotal = 0;
 
-  for (let inicio = 0; inicio < puntos.length - 1; inicio += MAX_WP - 1) {
-    const tramo = puntos.slice(inicio, inicio + MAX_WP);
+  for (let inicio = 0; inicio < secuencia.length - 1; inicio += MAX_WP - 1) {
+    const tramo = secuencia.slice(inicio, inicio + MAX_WP);
     if (tramo.length < 2) break;
     const coords = tramo.map(p => `${p.lng},${p.lat}`).join(';');
-    const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+    let url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+    if (evitarPeajeRuta) url += '&exclude=toll';
 
     try {
-      const resp = await fetch(url);
-      const data = await resp.json();
+      let resp = await fetch(url);
+      let data = await resp.json();
+      // fallback si exclude=toll deja sin ruta
+      if (evitarPeajeRuta && data.code !== 'Ok') {
+        const url2 = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+        resp = await fetch(url2);
+        data = await resp.json();
+      }
       if (data.code === 'Ok' && data.routes && data.routes[0]) {
         const geom = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-        if (geomTotal.length) geom.shift(); // evita duplicar el punto de unión
+        if (geomTotal.length) geom.shift();
         geomTotal = geomTotal.concat(geom);
-        distTotal += data.routes[0].distance; // metros
+        distTotal += data.routes[0].distance;
       } else {
         return null;
       }
@@ -1688,6 +2706,33 @@ async function obtenerGeometriaCalles(idRuta, puntos) {
 // =========================================================
 // PROCESAR DATOS
 // =========================================================
+
+// Clasifica el código de la columna E (pos) en un tipo lógico.
+// Reconoce variantes: INI/INICIO/INICIAL, ULT/FIN/FINAL/PLANTA/DESTINO, INTR/INTERMEDIA.
+function clasificarPos(pos) {
+  const s = (pos || '').toString().toUpperCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+  if (!s) return 'intermedia';
+  if (/(^INI)|INICIO|INICIAL|ORIGEN|SALIDA|ABORDAJE/.test(s)) return 'inicio';
+  if (/(^ULT)|ULTIMA|ULTIMO|FIN|FINAL|PLANTA|DESTINO|LLEGADA|ARRIBO/.test(s)) return 'planta';
+  return 'intermedia';
+}
+
+// Determina el punto-planta (destino) de una ruta.
+// Prioridad: (1) punto marcado tipoPos='planta' en col E; (2) el de mayor sec.
+function detectarPlantaDeRuta(r) {
+  if (!r || !r.puntos || !r.puntos.length) { r.plantaPunto = null; return; }
+  const porCol = r.puntos.filter(p => p.tipoPos === 'planta');
+  let pl;
+  if (porCol.length) {
+    // el último marcado como planta (por sec)
+    pl = porCol.slice().sort((a,b) => a.sec - b.sec).pop();
+  } else {
+    pl = r.puntos.slice().sort((a,b) => a.sec - b.sec).pop();
+  }
+  r.plantaPunto = pl ? { lat: pl.lat, lng: pl.lng, parada: pl.parada } : null;
+}
+
 function procesarCSV(csvText) {
   const filas = parseCSV(csvText);
   if (filas.length < 2) {
@@ -1695,8 +2740,10 @@ function procesarCSV(csvText) {
     return;
   }
 
-  // Detectar encabezado y arrancar en fila 1
+  // Detectar encabezado y columna aforo dinámicamente (nombre o columna O fija)
+  detectarColumnaAforo(filas[0], filas);
   rutas = {};
+  let totalAforoLeido = 0, paradasConAforo = 0;
   for (let i = 1; i < filas.length; i++) {
     const c = filas[i];
     if (!c || c.length < 9) continue;
@@ -1705,6 +2752,17 @@ function procesarCSV(csvText) {
     const lat = parseFloat(c[COL.lat]);
     const lng = parseFloat(c[COL.lng]);
     if (!idRuta || isNaN(lat) || isNaN(lng)) continue;
+
+    // Aforo por parada: tomamos el MÁXIMO entre las columnas de aforo detectadas
+    // (si el mismo dato viene repetido por turno, no lo duplicamos).
+    let aforo = 0;
+    if (COL.aforoCols && COL.aforoCols.length) {
+      COL.aforoCols.forEach(col => {
+        const n = parseInt(c[col], 10);
+        if (!isNaN(n) && n > aforo) aforo = n;
+      });
+      if (aforo > 0) { totalAforoLeido += aforo; paradasConAforo++; }
+    }
 
     if (!rutas[idRuta]) {
       rutas[idRuta] = {
@@ -1716,16 +2774,26 @@ function procesarCSV(csvText) {
         visible: true
       };
     }
+    // Horarios: columnas desde la 9, EXCLUYENDO cualquier columna de aforo.
+    const aforoSet = new Set(COL.aforoCols || []);
+    const horarios = [];
+    for (let k = COL.h1; k < c.length; k++) {
+      if (aforoSet.has(k)) continue;          // saltar columnas de aforo
+      const v = (c[k] || '').toString().trim();
+      if (v && !_pareceAforo(v)) horarios.push(v);   // además, ignorar enteros sueltos
+    }
     rutas[idRuta].puntos.push({
       sec: parseInt(c[COL.sec]) || 0,
       pos: (c[COL.pos] || '').trim(),
+      tipoPos: clasificarPos((c[COL.pos] || '').trim()),   // 'inicio' | 'planta' | 'intermedia'
       parada: (c[COL.parada] || '').trim(),
       lat, lng,
       latOrig: lat, lngOrig: lng,    // referencia para detectar cambios
-      // Todos los horarios disponibles a partir de la columna 9
-      horarios: c.slice(COL.h1).map(s => (s || '').trim()).filter(Boolean)
+      beneficiados: aforo,           // desde columna(s) aforo (0 si no hay)
+      horarios
     });
   }
+  console.log(`[AFORO] Total leído: ${totalAforoLeido} usuarios en ${paradasConAforo} paradas (cols [${(COL.aforoCols||[]).join(', ')}]).`);
 
   // Calcular turnos por ruta a partir de horarios
   Object.keys(rutas).forEach(id => {
@@ -1737,6 +2805,7 @@ function procesarCSV(csvText) {
       });
     });
     rutas[id].turnos = Array.from(turnos);
+    detectarPlantaDeRuta(rutas[id]);   // guarda r.plantaPunto {lat,lng,parada}
   });
 
   // Asignar colores y dibujar
@@ -1754,6 +2823,215 @@ function procesarCSV(csvText) {
 // =========================================================
 // DIBUJAR UNA RUTA
 // =========================================================
+// =========================================================
+// EDICIÓN DE TRAZO (via-points) — arrastrar la línea
+// =========================================================
+let _arrastreTrazo = null;   // { id, tmpMarker, afterIdx }
+
+function _indiceParadaTrasPunto(r, latlng) {
+  // Encuentra tras qué parada (por segmento recto entre paradas) cae el punto
+  r.puntos.sort((a,b) => a.sec - b.sec);
+  let mejor = 0, mejorD = Infinity;
+  for (let i = 0; i < r.puntos.length - 1; i++) {
+    const a = r.puntos[i], b = r.puntos[i+1];
+    // distancia del punto al segmento a-b (aprox con punto medio + extremos)
+    const dm = _distHaversineM(latlng, {lat:(a.lat+b.lat)/2, lng:(a.lng+b.lng)/2});
+    const da = _distHaversineM(latlng, a);
+    const db = _distHaversineM(latlng, b);
+    const d = Math.min(dm, da, db);
+    if (d < mejorD) { mejorD = d; mejor = i; }
+  }
+  return mejor;  // via-point irá "después de" la parada índice `mejor`
+}
+
+function iniciarArrastreTrazo(id, latlng, geom) {
+  const r = rutas[id];
+  if (!r) return;
+  pushUndo();
+  const afterIdx = _indiceParadaTrasPunto(r, latlng);
+
+  // Marcador temporal que sigue el cursor
+  const icon = L.divIcon({ className:'', html:'<div class="via-point dragging"></div>', iconSize:[16,16], iconAnchor:[8,8] });
+  const tmp = L.marker(latlng, { icon, draggable: false }).addTo(map);
+  _arrastreTrazo = { id, tmp, afterIdx, moved: false };
+
+  map.dragging.disable();
+  map.on('mousemove', _moverArrastreTrazo);
+  map.on('mouseup', _soltarArrastreTrazo);
+}
+
+function _moverArrastreTrazo(ev) {
+  if (!_arrastreTrazo) return;
+  _arrastreTrazo.tmp.setLatLng(ev.latlng);
+  _arrastreTrazo.moved = true;
+}
+
+async function _soltarArrastreTrazo(ev) {
+  if (!_arrastreTrazo) return;
+  const { id, tmp, afterIdx, moved } = _arrastreTrazo;
+  map.off('mousemove', _moverArrastreTrazo);
+  map.off('mouseup', _soltarArrastreTrazo);
+  map.dragging.enable();
+  const pos = tmp.getLatLng();
+  map.removeLayer(tmp);
+  _arrastreTrazo = null;
+
+  if (!moved) return;  // fue solo un clic, no arrastre
+
+  const r = rutas[id];
+  if (!r.viaPoints) r.viaPoints = [];
+  r.viaPoints.push({ lat: pos.lat, lng: pos.lng, _afterIdx: afterIdx });
+  delete cacheCalles[id];
+  await dibujarRuta(id);
+  renderLista(document.getElementById('filtro').value);
+  flashToast('✏ Trazo ajustado — arrastra el punto morado o clic derecho para borrarlo');
+}
+
+// Alternar "evitar pistas/casetas" para una ruta y recalcular su trazo
+async function toggleEvitarPeaje(id) {
+  const r = rutas[id];
+  if (!r) return;
+  pushUndo();
+  r.evitarPeaje = !r.evitarPeaje;
+  delete cacheCalles[id];
+  map.closePopup();
+  await dibujarRuta(id);
+  flashToast(r.evitarPeaje ? '🚫 Evitando casetas/pistas en esta ruta' : 'Trazo normal (con pistas permitidas)');
+}
+window.toggleEvitarPeaje = toggleEvitarPeaje;
+
+// Restablecer el trazo: quitar todos los via-points
+async function limpiarTrazo(id) {
+  const r = rutas[id];
+  if (!r) return;
+  if (!r.viaPoints || !r.viaPoints.length) {
+    flashToast('Esta ruta no tiene puntos de trazo');
+    return;
+  }
+  pushUndo();
+  r.viaPoints = [];
+  delete cacheCalles[id];
+  map.closePopup();
+  await dibujarRuta(id);
+  flashToast('↺ Trazo restablecido');
+}
+window.limpiarTrazo = limpiarTrazo;
+
+// =========================================================
+// COMPARTIR RECORRIDO POR QR / GOOGLE MAPS
+// =========================================================
+// Construye una URL de Google Maps Directions con las paradas de la ruta.
+// Formato: https://www.google.com/maps/dir/?api=1&origin=..&destination=..&waypoints=a|b|c&travelmode=driving
+function construirUrlGoogleMaps(id) {
+  const r = rutas[id];
+  if (!r || !r.puntos.length) return { url: null, aviso: 'Ruta sin paradas.' };
+  const pts = r.puntos.slice().sort((a,b) => a.sec - b.sec);
+  const origin = pts[0];
+  const destination = pts[pts.length - 1];
+  const intermedias = pts.slice(1, -1);
+
+  const fmt = p => `${p.lat.toFixed(6)},${p.lng.toFixed(6)}`;
+  let aviso = '';
+
+  // Google Maps (URL API) admite de forma confiable ~9 waypoints intermedios.
+  // Si hay más, tomamos una muestra uniforme para no romper el enlace.
+  let usadas = intermedias;
+  const MAX_WP = 9;
+  if (intermedias.length > MAX_WP) {
+    const paso = intermedias.length / MAX_WP;
+    usadas = [];
+    for (let i = 0; i < MAX_WP; i++) usadas.push(intermedias[Math.floor(i * paso)]);
+    aviso = `La ruta tiene ${intermedias.length} paradas intermedias; Google Maps solo admite ~${MAX_WP} en un enlace, ` +
+            `así que se incluyó una muestra representativa. El inicio y la planta (destino) siempre se respetan.`;
+  }
+
+  const params = new URLSearchParams();
+  params.set('api', '1');
+  params.set('origin', fmt(origin));
+  params.set('destination', fmt(destination));
+  if (usadas.length) params.set('waypoints', usadas.map(fmt).join('|'));
+  params.set('travelmode', 'driving');
+
+  const url = 'https://www.google.com/maps/dir/?' + params.toString();
+  return { url, aviso };
+}
+
+let _qrActual = { url: null, id: null };
+
+function compartirRutaQR(id) {
+  const r = rutas[id];
+  if (!r) return;
+  map.closePopup();
+  const { url, aviso } = construirUrlGoogleMaps(id);
+  if (!url) { alert(aviso || 'No se pudo generar el enlace.'); return; }
+  _qrActual = { url, id };
+
+  const pts = r.puntos.slice().sort((a,b)=>a.sec-b.sec);
+  document.getElementById('qrRutaInfo').innerHTML =
+    `<b>${id}</b> — ${r.descRuta}<br>` +
+    `🚏 ${pts.length} paradas · 👥 ${totalBeneficiadosRuta(id)} · ` +
+    `${r.distanciaKm ? r.distanciaKm.toFixed(1)+' km' : ''}<br>` +
+    `<small>Escanea el código para abrir la ruta en Google Maps.</small>`;
+
+  const av = document.getElementById('qrAviso');
+  if (aviso) { av.textContent = '⚠ ' + aviso; av.classList.add('show'); }
+  else { av.textContent = ''; av.classList.remove('show'); }
+
+  // Generar QR
+  const cont = document.getElementById('qrCanvas');
+  cont.innerHTML = '';
+  try {
+    new QRCode(cont, {
+      text: url,
+      width: 240, height: 240,
+      colorDark: '#0f172a', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  } catch(e) {
+    cont.innerHTML = '<div style="color:#dc2626;font-size:12px">No se pudo generar el QR.</div>';
+  }
+
+  document.getElementById('qrLinkText').textContent = url;
+  document.getElementById('qrModalBg').classList.add('open');
+}
+window.compartirRutaQR = compartirRutaQR;
+
+// Eventos del modal QR
+document.getElementById('qrClose').addEventListener('click', () => {
+  document.getElementById('qrModalBg').classList.remove('open');
+});
+document.getElementById('qrModalBg').addEventListener('click', (e) => {
+  if (e.target.id === 'qrModalBg') document.getElementById('qrModalBg').classList.remove('open');
+});
+document.getElementById('qrAbrirMaps').addEventListener('click', () => {
+  if (_qrActual.url) window.open(_qrActual.url, '_blank');
+});
+document.getElementById('qrCopiar').addEventListener('click', async () => {
+  if (!_qrActual.url) return;
+  try {
+    await navigator.clipboard.writeText(_qrActual.url);
+    flashToast('📋 Enlace copiado');
+  } catch(e) {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = _qrActual.url; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); flashToast('📋 Enlace copiado'); } catch(_) {}
+    document.body.removeChild(ta);
+  }
+});
+document.getElementById('qrDescargar').addEventListener('click', () => {
+  const cont = document.getElementById('qrCanvas');
+  const img = cont.querySelector('img') || cont.querySelector('canvas');
+  if (!img) return;
+  let dataUrl;
+  if (img.tagName === 'CANVAS') dataUrl = img.toDataURL('image/png');
+  else dataUrl = img.src;
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = `QR_${_qrActual.id || 'ruta'}.png`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+});
+
 async function dibujarRuta(id) {
   const r = rutas[id];
   r.layer.clearLayers();
@@ -1782,7 +3060,16 @@ async function dibujarRuta(id) {
   }).bindPopup(
     `<b>${id}</b><br>${r.descRuta}<br>` +
     `<small>${r.planta}</small><br>` +
-    `<b>${r.distanciaKm.toFixed(2)} km</b> · ${r.puntos.length} paradas`
+    `<b>${r.distanciaKm.toFixed(2)} km</b> · ${r.puntos.length} paradas` +
+    (r.evitarPeaje ? '<br><small style="color:#dc2626">🚫 Evitando casetas/pistas</small>' : '') +
+    ((r.viaPoints && r.viaPoints.length) ? `<br><small style="color:#6366f1">✏ ${r.viaPoints.length} punto(s) de trazo</small>` : '') +
+    `<div class="popup-actions" style="margin-top:8px">
+       <button class="pa-btn move" onclick="toggleEvitarPeaje('${id}')">${r.evitarPeaje ? '✓ Con casetas' : '🚫 Evitar pistas'}</button>
+       <button class="pa-btn del" onclick="limpiarTrazo('${id}')">↺ Restablecer trazo</button>
+     </div>` +
+    `<div class="popup-actions" style="margin-top:6px">
+       <button class="pa-btn move" style="flex:1" onclick="compartirRutaQR('${id}')">🔗 Compartir (QR / Maps)</button>
+     </div>`
   ).addTo(r.layer);
 
   // Doble click en la línea = insertar parada (solo en modo edición)
@@ -1792,6 +3079,45 @@ async function dibujarRuta(id) {
     L.DomEvent.stopPropagation(ev);
     insertarParada(id, ev.latlng);
   });
+
+  // En modo edición: arrastrar la línea crea/mueve un punto de trazo (via-point)
+  // que obliga a la ruta a pasar por ahí (para evitar pistas/autopistas).
+  if (modoEdicion && !modoDesvio) {
+    polyline.on('mousedown', (ev) => {
+      L.DomEvent.stop(ev);
+      iniciarArrastreTrazo(id, ev.latlng, geom);
+    });
+  }
+
+  // Marcadores de via-points existentes (arrastrables)
+  if (modoEdicion && r.viaPoints && r.viaPoints.length) {
+    r.viaPoints.forEach((v, vi) => {
+      const vicon = L.divIcon({
+        className: '',
+        html: '<div class="via-point"></div>',
+        iconSize: [14,14], iconAnchor: [7,7]
+      });
+      const vm = L.marker([v.lat, v.lng], { icon: vicon, draggable: true })
+        .bindTooltip('Punto de trazo — arrastra para ajustar, clic derecho para borrar', {direction:'top'})
+        .addTo(r.layer);
+      vm.on('dragstart', () => pushUndo());
+      vm.on('dragend', async (e) => {
+        const nl = e.target.getLatLng();
+        v.lat = nl.lat; v.lng = nl.lng;
+        delete cacheCalles[id];
+        await dibujarRuta(id);
+        renderLista(document.getElementById('filtro').value);
+      });
+      vm.on('contextmenu', async (e) => {
+        L.DomEvent.stop(e);
+        pushUndo();
+        r.viaPoints.splice(vi, 1);
+        delete cacheCalles[id];
+        await dibujarRuta(id);
+        flashToast('Punto de trazo eliminado');
+      });
+    });
+  }
 
   // Paradas (siempre en su posición original, no en la geometría OSRM)
   r.puntos.forEach((p, i) => {
@@ -1826,8 +3152,21 @@ async function dibujarRuta(id) {
     });
 
     if (modoEdicion) {
+      marker.on('dragstart', () => { pushUndo(); });
       marker.on('dragend', async (ev) => {
         const nl = ev.target.getLatLng();
+        // ¿Se soltó sobre OTRA ruta? → mover parada a esa ruta
+        const destino = rutaMasCercanaAPunto(nl.lat, nl.lng, id);
+        if (destino) {
+          // Restaurar posición visual antes de mover (el mover redibuja)
+          const p2 = p;
+          const okMover = await moverParadaArrastrada(id, p2.sec, destino.id, nl);
+          if (okMover) return;   // ya se movió y redibujó todo
+          // si canceló, redibujar origen para volver el marker a su lugar
+          await dibujarRuta(id);
+          return;
+        }
+        // Movimiento normal dentro de la misma ruta
         p.lat = nl.lat;
         p.lng = nl.lng;
         delete cacheCalles[id];      // invalidar geometría cacheada
@@ -1850,12 +3189,18 @@ function popupHTML(id, p) {
   const benefVal = Number(p.beneficiados || 0);
   const benefKey = benefKeyFor(id, p);
   const isRed = p.marcadoRojo === true;
+  const tipo = p.tipoPos || 'intermedia';
+  const tipoBadge = tipo === 'inicio'
+      ? '<span class="pos-badge ini">INICIO</span>'
+      : (tipo === 'planta'
+          ? '<span class="pos-badge planta">PLANTA</span>'
+          : '<span class="pos-badge intr">INTERMEDIA</span>');
   return `
     <b>${id}</b> — ${r.descRuta}<br>
     <small>${r.planta}${r.tipServ ? ' · ' + r.tipServ : ''}</small><br>
     <small><b>Turno(s):</b> ${turnos}</small><br>
     <hr style="margin:6px 0; border:none; border-top:1px solid #ddd"/>
-    <b>Sec ${p.sec}</b>${p.pos ? ' · ' + p.pos : ''}<br>
+    <b>Sec ${p.sec}</b> ${tipoBadge}<br>
     ${p.parada}<br>
     <small><b>Horarios:</b> ${horariosStr}</small>
     <div class="benef-row">
@@ -1872,6 +3217,10 @@ function popupHTML(id, p) {
         onclick="toggleMarcadoRojo('${benefKey}', this)">
         ${isRed ? '✓ Marcada' : 'Marcar rojo'}
       </button>
+    </div>
+    <div class="popup-actions">
+      <button class="pa-btn del" onclick="eliminarParadaPopup('${id}', ${p.sec})">🗑 Eliminar</button>
+      <button class="pa-btn move" onclick="abrirMoverParada('${id}', ${p.sec})">↔ Mover a otra ruta</button>
     </div>
   `;
 }
@@ -1935,11 +3284,19 @@ function guardarBeneficiados(key, btn) {
 
 function hidratarBeneficiadosEnRutas() {
   const store = cargarBeneficiadosLS();
+  const archivoTraeAforo = (COL.aforo >= 0);
   Object.keys(rutas).forEach(id => {
     rutas[id].puntos.forEach(p => {
       const key = benefKeyFor(id, p);
-      if (store[key] != null) p.beneficiados = store[key];
-      else if (p.beneficiados == null) p.beneficiados = 0;
+      // Si el archivo trae columna "aforo", ese valor es la fuente autoritativa.
+      // El localStorage solo se usa como respaldo cuando el archivo NO trae la columna.
+      if (archivoTraeAforo) {
+        // Valor ya cargado en procesarCSV. No sobrescribir con localStorage.
+        if (p.beneficiados == null) p.beneficiados = 0;
+      } else {
+        if (store[key] != null) p.beneficiados = store[key];
+        else if (p.beneficiados == null) p.beneficiados = 0;
+      }
     });
   });
   hidratarMarcadoRojoEnRutas();
@@ -1999,6 +3356,255 @@ async function toggleMarcadoRojo(key, btn) {
 }
 window.toggleMarcadoRojo = toggleMarcadoRojo;
 
+// =========================================================
+// EDITAR PARADAS: ELIMINAR Y MOVER A OTRA RUTA
+// =========================================================
+// Localiza un punto por (idRuta, sec)
+function _buscarPunto(id, sec) {
+  const r = rutas[id];
+  if (!r) return null;
+  return r.puntos.find(p => p.sec === sec) || null;
+}
+
+// Reordena secuencias 1..N respetando: inicio primero, planta al final
+function renumerarSecuencias(r) {
+  const pts = r.puntos.slice();
+  // separar inicio / planta / resto conservando su orden actual por sec
+  pts.sort((a,b) => a.sec - b.sec);
+  const inicio = pts.filter(p => p.tipoPos === 'inicio');
+  const planta = pts.filter(p => p.tipoPos === 'planta');
+  const medio  = pts.filter(p => p.tipoPos !== 'inicio' && p.tipoPos !== 'planta');
+  const ordenado = [...inicio, ...medio, ...planta];
+  ordenado.forEach((p, i) => { p.sec = i + 1; });
+  r.puntos = ordenado;
+}
+
+// Eliminar parada desde el popup
+async function eliminarParadaPopup(id, sec) {
+  const r = rutas[id];
+  if (!r) return;
+  const p = _buscarPunto(id, sec);
+  if (!p) return;
+  if (p.tipoPos === 'planta') {
+    alert('No puedes eliminar la parada PLANTA (destino final de la ruta).');
+    return;
+  }
+  if (r.puntos.length <= 1) {
+    alert('La ruta quedaría vacía. Elimina la ruta completa desde el panel si es lo que quieres.');
+    return;
+  }
+  if (!confirm(`¿Eliminar la parada "${p.parada}" (Sec ${sec}) de ${id}?`)) return;
+  pushUndo();
+  map.closePopup();
+  r.puntos = r.puntos.filter(pp => pp !== p);
+  renumerarSecuencias(r);
+  delete cacheCalles[id];
+  await dibujarRuta(id);
+  actualizarBadgeCambios();
+  renderLista(document.getElementById('filtro').value);
+  flashToast('🗑 Parada eliminada');
+}
+window.eliminarParadaPopup = eliminarParadaPopup;
+
+// ---- Mover parada a otra ruta ----
+let moverCtx = null;   // { idOrigen, sec }
+
+function abrirMoverParada(id, sec) {
+  const p = _buscarPunto(id, sec);
+  if (!p) return;
+  if (p.tipoPos === 'planta') {
+    alert('La parada PLANTA no se puede mover.');
+    return;
+  }
+  moverCtx = { idOrigen: id, sec };
+  map.closePopup();
+
+  document.getElementById('moverParadaInfo').innerHTML =
+    `<b>${p.parada}</b><br>Sec ${sec} · 👥 ${Number(p.beneficiados||0)} · Ruta origen: <b>${id}</b>`;
+
+  // Poblar rutas destino (todas menos la de origen)
+  const sel = document.getElementById('moverRutaDestino');
+  sel.innerHTML = '';
+  Object.keys(rutas).sort().forEach(rid => {
+    if (rid === id) return;
+    const opt = document.createElement('option');
+    opt.value = rid;
+    const marca = rutas[rid].esReingenieria ? ' 🧬' : (rutas[rid].esFusion ? ' 🔗' : '');
+    opt.textContent = `${rid}${marca} · ${rutas[rid].puntos.length}p`;
+    sel.appendChild(opt);
+  });
+  document.getElementById('moverPosicion').value = 'auto';
+  if (!sel.options.length) {
+    alert('No hay otra ruta destino disponible.');
+    return;
+  }
+  document.getElementById('moverModalBg').classList.add('open');
+}
+window.abrirMoverParada = abrirMoverParada;
+
+function cerrarMover() {
+  document.getElementById('moverModalBg').classList.remove('open');
+  moverCtx = null;
+}
+
+// Inserta nuevoP en la ruta rD según el modo ('inicio'|'fin'|'auto').
+// Devuelve el índice de inserción. Nunca coloca después de la planta.
+function calcularIndiceInsercion(rD, nuevoP, modo) {
+  rD.puntos.sort((a,b) => a.sec - b.sec);
+  const inicioIdx = rD.puntos.findIndex(pp => pp.tipoPos === 'inicio');
+  const plantaIdx = rD.puntos.findIndex(pp => pp.tipoPos === 'planta');
+  if (modo === 'inicio') {
+    return (inicioIdx >= 0 ? inicioIdx + 1 : 0);
+  } else if (modo === 'fin') {
+    return (plantaIdx >= 0 ? plantaIdx : rD.puntos.length);
+  }
+  // AUTO: minimizar el detour entre pares consecutivos. Nunca tras la planta.
+  const limite = (plantaIdx >= 0) ? plantaIdx : rD.puntos.length;
+  const inicioLim = (inicioIdx >= 0) ? inicioIdx + 1 : 0;
+  if (rD.puntos.length === 0) return 0;
+  if (limite - inicioLim <= 0) return limite;
+  let mejor = inicioLim, mejorCosto = Infinity;
+  for (let i = inicioLim; i <= limite; i++) {
+    const a = rD.puntos[i-1];
+    const b = rD.puntos[i];
+    let costo;
+    if (a && b) costo = _distHaversineM(a, nuevoP) + _distHaversineM(nuevoP, b) - _distHaversineM(a, b);
+    else if (a && !b) costo = _distHaversineM(a, nuevoP);
+    else if (!a && b) costo = _distHaversineM(nuevoP, b);
+    else costo = 0;
+    if (costo < mejorCosto) { mejorCosto = costo; mejor = i; }
+  }
+  return mejor;
+}
+
+// Ejecuta el movimiento (usado por el modal y por el arrastre)
+async function ejecutarMovimiento(idOrigen, sec, idDest, modo) {
+  const rO = rutas[idOrigen], rD = rutas[idDest];
+  if (!rO || !rD) return false;
+  const p = _buscarPunto(idOrigen, sec);
+  if (!p) return false;
+
+  pushUndo();
+  rO.puntos = rO.puntos.filter(pp => pp !== p);
+  renumerarSecuencias(rO);
+
+  const nuevoP = { ...p, tipoPos: 'intermedia', pos: 'INTR', nuevo: true, _origenRuta: idOrigen };
+  const insertAt = calcularIndiceInsercion(rD, nuevoP, modo);
+  rD.puntos.splice(insertAt, 0, nuevoP);
+  renumerarSecuencias(rD);
+
+  detectarPlantaDeRuta(rO);
+  detectarPlantaDeRuta(rD);
+  delete cacheCalles[idOrigen];
+  delete cacheCalles[idDest];
+
+  await dibujarRuta(idOrigen);
+  await dibujarRuta(idDest);
+  if (rD.visible) rD.layer.addTo(map);
+
+  actualizarBadgeCambios();
+  actualizarOcupacion();
+  renderLista(document.getElementById('filtro').value);
+  flashToast(`↔ Parada movida a ${idDest} (Sec ${nuevoP.sec})`);
+  return true;
+}
+
+async function confirmarMoverParada() {
+  if (!moverCtx) return;
+  const { idOrigen, sec } = moverCtx;
+  const idDest = document.getElementById('moverRutaDestino').value;
+  const modo = document.getElementById('moverPosicion').value;
+  await ejecutarMovimiento(idOrigen, sec, idDest, modo);
+  cerrarMover();
+}
+
+// -------- ARRASTRE: soltar parada sobre otra ruta --------
+// Encuentra la ruta VISIBLE más cercana a un punto (excluyendo idExcluir).
+// Usa la geometría dibujada (o las paradas) y un umbral en metros.
+function rutaMasCercanaAPunto(lat, lng, idExcluir) {
+  const UMBRAL_M = 120;   // qué tan cerca de otra ruta hay que soltar
+  let mejor = null, mejorD = UMBRAL_M;
+  const pt = { lat, lng };
+  Object.keys(rutas).forEach(id => {
+    if (id === idExcluir) return;
+    const r = rutas[id];
+    if (!r.visible) return;
+    // distancia mínima a cualquier parada de la ruta
+    let dMin = Infinity;
+    r.puntos.forEach(p => {
+      const d = _distHaversineM(pt, p);
+      if (d < dMin) dMin = d;
+    });
+    // también contra la geometría cacheada (línea), si existe
+    const cache = cacheCalles[id];
+    if (cache && cache.geom) {
+      for (let i = 0; i < cache.geom.length; i++) {
+        const g = { lat: cache.geom[i][0], lng: cache.geom[i][1] };
+        const d = _distHaversineM(pt, g);
+        if (d < dMin) dMin = d;
+      }
+    }
+    if (dMin < mejorD) { mejorD = dMin; mejor = { id, dist: dMin }; }
+  });
+  return mejor;
+}
+
+// Al soltar una parada sobre otra ruta: preguntar posición y mover.
+// Devuelve true si se movió, false si el usuario canceló.
+async function moverParadaArrastrada(idOrigen, sec, idDest, latlng) {
+  const p = _buscarPunto(idOrigen, sec);
+  if (!p) return false;
+  if (p.tipoPos === 'planta') {
+    alert('La parada PLANTA no se puede mover.');
+    return false;
+  }
+  return new Promise((resolve) => {
+    abrirMoverConfirmDrop(idOrigen, sec, idDest, resolve);
+  });
+}
+
+// Mini-modal de confirmación tras el arrastre (posición en la ruta destino)
+let _dropResolve = null;
+let _dropCtx = null;
+function abrirMoverConfirmDrop(idOrigen, sec, idDest, resolve) {
+  _dropResolve = resolve;
+  _dropCtx = { idOrigen, sec, idDest };
+  const p = _buscarPunto(idOrigen, sec);
+  const rD = rutas[idDest];
+  document.getElementById('dropInfo').innerHTML =
+    `<b>${p.parada}</b><br>De <b>${idOrigen}</b> → <b>${idDest}</b> · 👥 ${Number(p.beneficiados||0)}`;
+  document.getElementById('dropPosicion').value = 'auto';
+  document.getElementById('dropModalBg').classList.add('open');
+}
+function cerrarDrop(resultado) {
+  document.getElementById('dropModalBg').classList.remove('open');
+  const res = _dropResolve;
+  _dropResolve = null; _dropCtx = null;
+  if (res) res(resultado);
+}
+document.getElementById('dropCancel').addEventListener('click', () => cerrarDrop(false));
+document.getElementById('dropClose').addEventListener('click', () => cerrarDrop(false));
+document.getElementById('dropConfirm').addEventListener('click', async () => {
+  if (!_dropCtx) { cerrarDrop(false); return; }
+  const { idOrigen, sec, idDest } = _dropCtx;
+  const modo = document.getElementById('dropPosicion').value;
+  document.getElementById('dropModalBg').classList.remove('open');
+  const ok = await ejecutarMovimiento(idOrigen, sec, idDest, modo);
+  const res = _dropResolve;
+  _dropResolve = null; _dropCtx = null;
+  if (res) res(ok);
+});
+document.getElementById('dropModalBg').addEventListener('click', (e) => {
+  if (e.target.id === 'dropModalBg') cerrarDrop(false);
+});
+
+document.getElementById('moverClose').addEventListener('click', cerrarMover);
+document.getElementById('moverCancel').addEventListener('click', cerrarMover);
+document.getElementById('moverConfirm').addEventListener('click', confirmarMoverParada);
+document.getElementById('moverModalBg').addEventListener('click', (e) => {
+  if (e.target.id === 'moverModalBg') cerrarMover();
+});
+
 // Total de beneficiados de UNA ruta
 function totalBeneficiadosRuta(id) {
   const r = rutas[id];
@@ -2009,7 +3615,8 @@ function totalBeneficiadosRuta(id) {
 // Ocupación (%) de UNA ruta respecto a la capacidad total (123 = 100%)
 function ocupacionRuta(id) {
   const b = totalBeneficiadosRuta(id);
-  return Math.min(100, Math.round((b / CAP_TOTAL) * 100));
+  // Sin tope — puede pasarse de 100% cuando la ruta está sobrecargada
+  return Math.round((b / CAP_TOTAL) * 100);
 }
 
 // Mantiene la firma anterior — ya no hay panel global,
@@ -2037,8 +3644,12 @@ async function dibujarTodas() {
     }
   }
   // Mensaje final
+  const totAforo = ids.reduce((a,id)=>a+totalBeneficiadosRuta(id),0);
+  const aforoInfo = COL.aforo >= 0
+    ? ` · <b style="color:#f59e0b">👥 ${totAforo} usuarios</b>`
+    : ' · <span style="color:#dc2626">⚠ sin columna aforo</span>';
   counter.innerHTML =
-    `<b>${total}</b> rutas · <b>${ids.reduce((a,id)=>a+rutas[id].puntos.length,0)}</b> paradas`;
+    `<b>${total}</b> rutas · <b>${ids.reduce((a,id)=>a+rutas[id].puntos.length,0)}</b> paradas${aforoInfo}`;
   // Refrescar lista para que aparezcan los km calculados
   renderLista(document.getElementById('filtro').value);
 }
@@ -2072,6 +3683,8 @@ function renderLista(filtroTxt = '') {
 
   ids.forEach(id => {
     const r = rutas[id];
+    // Las rutas de reingeniería NO van en la lista principal; van en el panel derecho.
+    if (r.esReingenieria) return;
     if (f && !id.toLowerCase().includes(f) && !r.descRuta.toLowerCase().includes(f)) return;
 
     // Filtro por chips de planta / turno: si hay al menos uno activo,
@@ -2094,19 +3707,26 @@ function renderLista(filtroTxt = '') {
         ${(() => {
           const tb = totalBeneficiadosRuta(id);
           const pct = ocupacionRuta(id);
-          const cls = pct >= 100 ? 'full' : (pct >= 80 ? 'warn' : '');
+          // Umbrales: >85% ROJO, 60-85 amarillo, <60 verde
+          const cls = pct > 85 ? 'full' : (pct >= 60 ? 'warn' : '');
           const zeroCount = r.puntos.filter(p => !Number(p.beneficiados || 0)).length;
           const btnTitle = 'Marcar paradas con 0 beneficiados (' + zeroCount + ')';
+          const barPct = Math.min(100, pct);
+          const pctColor = pct > 85 ? '#dc2626' : (pct >= 60 ? '#f97316' : '#84cc16');
           return `
             <div class="ruta-ocup">
               <div class="ruta-ocup-bar-wrap">
-                <div class="ruta-ocup-bar ${cls}" style="width:${pct}%"></div>
+                <div class="ruta-ocup-bar ${cls}" style="width:${barPct}%"></div>
               </div>
-              <span class="ruta-ocup-lbl">👥 ${tb}/${CAP_TOTAL} · <b>${pct}%</b></span>
+              <span class="ruta-ocup-lbl">👥 ${tb}/${CAP_TOTAL} · <b style="color:${pctColor}">${pct}%</b></span>
               <button type="button"
                       class="btn-zero-benef${r.highlightEmpty ? ' active' : ''}"
                       data-ruta-id="${id}"
                       title="${btnTitle}">🎯</button>
+              <button type="button"
+                      class="btn-qr-ruta"
+                      data-ruta-id="${id}"
+                      title="Compartir QR / Google Maps">🔗</button>
             </div>`;
         })()}
       </div>
@@ -2137,15 +3757,134 @@ function renderLista(filtroTxt = '') {
         }
       });
     }
+    // Botón compartir QR
+    const btnQr = div.querySelector('.btn-qr-ruta');
+    if (btnQr) {
+      btnQr.addEventListener('click', (e) => {
+        e.stopPropagation();
+        compartirRutaQR(id);
+      });
+    }
     div.addEventListener('click', e => {
       if (e.target === chk) return;
       if (e.target.closest && e.target.closest('.btn-zero-benef')) return;
+      if (e.target.closest && e.target.closest('.btn-qr-ruta')) return;
       // click en el item: hacer zoom a esa ruta
       const coords = r.puntos.map(p => [p.lat, p.lng]);
       if (coords.length) map.fitBounds(coords, { padding: [40, 40] });
       if (!r.visible) { chk.checked = true; toggleRuta(id, true); div.classList.add('activa'); }
     });
     cont.appendChild(div);
+  });
+  renderReingPanel();
+  actualizarKPIs();
+}
+
+// Actualiza la barra KPI superior del mapa
+function actualizarKPIs() {
+  const ids = Object.keys(rutas);
+  const normales = ids.filter(id => !rutas[id].esReingenieria);
+  const reing = ids.filter(id => rutas[id].esReingenieria);
+  let paradas = 0, usuarios = 0, sumaPct = 0, nPct = 0;
+  ids.forEach(id => {
+    const r = rutas[id];
+    paradas += r.puntos.length;
+    const af = totalBeneficiadosRuta(id);
+    usuarios += af;
+    const pct = Math.round((af / 41) * 100);
+    if (af > 0) { sumaPct += pct; nPct++; }
+  });
+  const set = (elid, val) => { const e = document.getElementById(elid); if (e) e.textContent = val; };
+  set('kpiRutas', ids.length);
+  set('kpiParadas', paradas);
+  set('kpiUsuarios', usuarios);
+  set('kpiOcup', (nPct ? Math.round(sumaPct / nPct) : 0) + '%');
+  set('kpiReing', reing.length);
+}
+
+// =========================================================
+// PANEL DERECHO DE REINGENIERÍAS
+// =========================================================
+function renderReingPanel() {
+  const panel = document.getElementById('reingPanel');
+  const list = document.getElementById('reingPanelList');
+  const cnt = document.getElementById('reingPanelCount');
+  if (!panel || !list) return;
+  const ids = Object.keys(rutas).filter(id => rutas[id].esReingenieria).sort();
+  cnt.textContent = ids.length;
+  if (!ids.length) {
+    panel.style.display = 'none';
+    list.innerHTML = '';
+    return;
+  }
+  panel.style.display = 'block';
+  list.innerHTML = '';
+  ids.forEach(id => {
+    const r = rutas[id];
+    const cap = 41;
+    const af = totalBeneficiadosRuta(id);
+    const pct = Math.round((af / cap) * 100);
+    const dur = r.duracionEstMin != null ? r.duracionEstMin : '—';
+    const nP = r.puntos.filter(p => p.tipoPos !== 'planta').length;
+    const km = r.distanciaKm != null ? r.distanciaKm.toFixed(1) : '—';
+    const ocupCls = pct > 100 ? 'bad' : (pct > 85 ? 'warn' : 'ok');
+    const durCls = (typeof dur === 'number' && dur > 120) ? 'bad'
+                 : (typeof dur === 'number' && dur < 40 ? 'warn' : 'ok');
+    const warns = (r.warnings || []);
+    const card = document.createElement('div');
+    card.className = 'rp-card' + (r.visible ? '' : ' oculta');
+    card.innerHTML = `
+      <div class="rp-card-head">
+        <div class="rp-card-id">
+          <span class="rp-card-dot" style="background:${r.color}"></span>${id}
+        </div>
+        <div class="rp-card-tools">
+          <button data-act="toggle" title="Mostrar/ocultar">${r.visible ? '👁' : '🚫'}</button>
+          <button data-act="zoom" title="Centrar">🎯</button>
+          <button data-act="qr" title="Compartir QR / Maps">🔗</button>
+          <button data-act="del" title="Quitar">🗑</button>
+        </div>
+      </div>
+      <div class="rp-metrics">
+        <span class="rp-metric ${ocupCls}">👥 ${af}/${cap} · ${pct}%</span>
+        <span class="rp-metric ${durCls}">⏱ ${dur} min</span>
+        <span class="rp-metric">🚏 ${nP}</span>
+        <span class="rp-metric">📏 ${km} km</span>
+      </div>
+      ${warns.length ? `<div class="rp-card-warn">${warns.join(' · ')}</div>` : ''}
+    `;
+    // Acciones
+    card.querySelector('[data-act="toggle"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleRuta(id, !r.visible);
+      renderReingPanel();
+    });
+    card.querySelector('[data-act="zoom"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!r.visible) toggleRuta(id, true);
+      const coords = r.puntos.map(p => [p.lat, p.lng]);
+      if (coords.length) map.fitBounds(coords, { padding: [40, 40] });
+      renderReingPanel();
+    });
+    card.querySelector('[data-act="qr"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      compartirRutaQR(id);
+    });
+    card.querySelector('[data-act="del"]').addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!confirm(`¿Quitar la ruta de reingeniería ${id}?`)) return;
+      pushUndo();
+      if (r.layer) map.removeLayer(r.layer);
+      delete rutas[id];
+      renderLista(document.getElementById('filtro').value);
+    });
+    card.addEventListener('click', () => {
+      if (!r.visible) toggleRuta(id, true);
+      const coords = r.puntos.map(p => [p.lat, p.lng]);
+      if (coords.length) map.fitBounds(coords, { padding: [40, 40] });
+      renderReingPanel();
+    });
+    list.appendChild(card);
   });
 }
 
@@ -2162,6 +3901,8 @@ document.getElementById('btnNone').addEventListener('click', () => {
   renderLista(document.getElementById('filtro').value);
 });
 document.getElementById('btnFit').addEventListener('click', ajustarVista);
+document.getElementById('btnUndo').addEventListener('click', hacerUndo);
+document.getElementById('btnRedo').addEventListener('click', hacerRedo);
 document.getElementById('btnModo').addEventListener('click', async () => {
   modoCalles = !modoCalles;
   document.getElementById('btnModo').textContent = 'Modo: ' + (modoCalles ? 'Calles' : 'Recto');
@@ -2197,6 +3938,19 @@ document.getElementById('btnEdit').addEventListener('click', async () => {
 });
 
 document.getElementById('btnExport').addEventListener('click', exportarCambios);
+
+// --------- Botón Editar paradas ---------
+// Activa el modo edición (arrastre) y recuerda al usuario que en cada parada
+// puede eliminar o mover desde su popup.
+document.getElementById('btnParadas').addEventListener('click', async () => {
+  const btn = document.getElementById('btnParadas');
+  if (!modoEdicion) {
+    // Encender edición
+    document.getElementById('btnEdit').click();
+  }
+  btn.classList.toggle('primary');
+  flashToast('✏ Haz clic en una parada para eliminar o mover');
+});
 
 // --------- Botón Desvío ---------
 document.getElementById('btnDesvio').addEventListener('click', () => {
@@ -2308,6 +4062,7 @@ function ejecutarFusion() {
     return;
   }
   const eliminarOrig = document.getElementById('fusionEliminarOrig').checked;
+  pushUndo();
 
   // Construir puntos fusionados en el orden seleccionado, re-enumerando sec
   const puntosFusion = [];
@@ -2394,6 +4149,993 @@ document.getElementById('fusionConfirm').addEventListener('click', ejecutarFusio
 document.getElementById('fusionFiltro').addEventListener('input', renderFusionList);
 document.getElementById('fusionModalBg').addEventListener('click', (e) => {
   if (e.target.id === 'fusionModalBg') cerrarModalFusion();
+});
+
+// =========================================================
+// REINGENIERÍA DE RUTAS
+// =========================================================
+// Estado del modal
+const reingSel = new Set();      // ids de rutas seleccionadas
+let reingModo = 'reducir';        // 'reducir' | 'objetivo' | 'auto' | 'libre'
+let reingResultado = null;        // { rutas: [{id, puntos, aforo, duracionMin, distanciaKm, color, warnings:[]}], warnings:[] }
+
+// -------- Utilidades geográficas --------
+function _distHaversineM(a, b) {
+  const R = 6371000;
+  const dLat = (b.lat - a.lat) * Math.PI / 180;
+  const dLng = (b.lng - a.lng) * Math.PI / 180;
+  const la1 = a.lat * Math.PI / 180;
+  const la2 = b.lat * Math.PI / 180;
+  const h = Math.sin(dLat/2)**2 + Math.cos(la1)*Math.cos(la2)*Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+// -------- Detección de la planta (destino común) --------
+// Devuelve una lista de posibles plantas, cada una: {lat,lng,label,count}
+// PRIORIDAD: usa el punto marcado como planta en columna E (r.plantaPunto);
+// si no existe, usa el último punto por secuencia. Agrupa por cercanía (<300m).
+function detectarPlantasCandidatas(idsRutas) {
+  const ultimos = [];
+  idsRutas.forEach(id => {
+    const r = rutas[id];
+    if (!r || !r.puntos.length) return;
+    let ref;
+    if (r.plantaPunto) {
+      ref = r.plantaPunto;
+    } else {
+      const pts = r.puntos.slice().sort((a,b) => a.sec - b.sec);
+      ref = pts[pts.length - 1];
+    }
+    ultimos.push({ lat: ref.lat, lng: ref.lng, nombre: ref.parada, ruta: id });
+  });
+  // Clustering simple por proximidad
+  const grupos = [];
+  const UMBRAL_M = 300;
+  ultimos.forEach(u => {
+    let g = grupos.find(gg => _distHaversineM(gg, u) < UMBRAL_M);
+    if (!g) {
+      g = { lat: u.lat, lng: u.lng, label: u.nombre, count: 0, rutas: [] };
+      grupos.push(g);
+    }
+    g.count++;
+    g.rutas.push(u.ruta);
+    g.lat = (g.lat*(g.count-1) + u.lat) / g.count;
+    g.lng = (g.lng*(g.count-1) + u.lng) / g.count;
+  });
+  grupos.sort((a,b) => b.count - a.count);
+  return grupos;
+}
+
+// Fallback de duración (sin OSRM): distancia haversine encadenada con modelo de velocidad
+function estimarFallbackDur(waypoints) {
+  const geom = waypoints.map(p => [p.lat, p.lng]);
+  return estimarDuracionPorVelocidad(geom, waypoints.length);
+}
+
+// -------- K-means geográfico simple --------
+function kmeansParadas(paradas, k, semillas = null) {
+  if (!paradas.length || k <= 0) return [];
+  k = Math.min(k, paradas.length);
+
+  // Inicialización: k-means++ simplificado si no hay semillas
+  let centros;
+  if (semillas && semillas.length === k) {
+    centros = semillas.map(s => ({ lat: s.lat, lng: s.lng }));
+  } else {
+    centros = [];
+    const idx0 = Math.floor(Math.random() * paradas.length);
+    centros.push({ lat: paradas[idx0].lat, lng: paradas[idx0].lng });
+    while (centros.length < k) {
+      const dists = paradas.map(p => {
+        let dMin = Infinity;
+        centros.forEach(c => { const d = _distHaversineM(c, p); if (d < dMin) dMin = d; });
+        return dMin * dMin;
+      });
+      const total = dists.reduce((a,b) => a+b, 0);
+      if (total <= 0) {
+        // fallback aleatorio
+        centros.push({ lat: paradas[Math.floor(Math.random()*paradas.length)].lat,
+                       lng: paradas[Math.floor(Math.random()*paradas.length)].lng });
+      } else {
+        let r = Math.random() * total, acc = 0, pick = 0;
+        for (let i = 0; i < dists.length; i++) {
+          acc += dists[i];
+          if (acc >= r) { pick = i; break; }
+        }
+        centros.push({ lat: paradas[pick].lat, lng: paradas[pick].lng });
+      }
+    }
+  }
+
+  let asign = new Array(paradas.length).fill(0);
+  for (let iter = 0; iter < 30; iter++) {
+    let cambios = 0;
+    // asignar
+    for (let i = 0; i < paradas.length; i++) {
+      let mejor = 0, dMejor = Infinity;
+      for (let c = 0; c < k; c++) {
+        const d = _distHaversineM(centros[c], paradas[i]);
+        if (d < dMejor) { dMejor = d; mejor = c; }
+      }
+      if (asign[i] !== mejor) { asign[i] = mejor; cambios++; }
+    }
+    // recalcular centros
+    const nuevos = Array.from({length:k}, () => ({lat:0,lng:0,n:0}));
+    for (let i = 0; i < paradas.length; i++) {
+      const c = asign[i];
+      nuevos[c].lat += paradas[i].lat;
+      nuevos[c].lng += paradas[i].lng;
+      nuevos[c].n++;
+    }
+    for (let c = 0; c < k; c++) {
+      if (nuevos[c].n > 0) {
+        centros[c] = { lat: nuevos[c].lat/nuevos[c].n, lng: nuevos[c].lng/nuevos[c].n };
+      }
+    }
+    if (cambios === 0) break;
+  }
+
+  // Agrupar
+  const clusters = Array.from({length:k}, () => []);
+  paradas.forEach((p, i) => clusters[asign[i]].push(p));
+  return clusters.filter(c => c.length > 0);
+}
+
+// -------- Balanceo de clusters por capacidad (modo auto) --------
+// Si un cluster excede capacidad, mueve las paradas más lejanas al centro
+// hacia el cluster vecino cuya suma quepa. Si nada cabe, se crea un cluster nuevo.
+function balancearPorCapacidad(clusters, capMax, maxParadas, maxIter = 15) {
+  const sumaAforo = c => c.reduce((a,p) => a + Number(p.beneficiados || 0), 0);
+  const centroide = c => {
+    let lat=0,lng=0; c.forEach(p=>{lat+=p.lat;lng+=p.lng;});
+    return {lat:lat/c.length, lng:lng/c.length};
+  };
+  for (let iter = 0; iter < maxIter; iter++) {
+    let cambios = 0;
+    // Ordenar por exceso
+    for (let ci = 0; ci < clusters.length; ci++) {
+      const cent = centroide(clusters[ci]);
+      while ((sumaAforo(clusters[ci]) > capMax || clusters[ci].length > maxParadas)
+             && clusters[ci].length > 1) {
+        // Sacar la parada más lejana al centro
+        let idxLejos = 0, dLejos = -1;
+        clusters[ci].forEach((p, i) => {
+          const d = _distHaversineM(cent, p);
+          if (d > dLejos) { dLejos = d; idxLejos = i; }
+        });
+        const p = clusters[ci][idxLejos];
+        // Buscar cluster vecino más cercano al que quepa
+        let mejor = -1, dMejor = Infinity;
+        for (let cj = 0; cj < clusters.length; cj++) {
+          if (cj === ci) continue;
+          const centj = centroide(clusters[cj]);
+          const d = _distHaversineM(centj, p);
+          const cabe = (sumaAforo(clusters[cj]) + Number(p.beneficiados||0) <= capMax)
+                    && (clusters[cj].length + 1 <= maxParadas);
+          if (cabe && d < dMejor) { dMejor = d; mejor = cj; }
+        }
+        if (mejor >= 0) {
+          clusters[ci].splice(idxLejos, 1);
+          clusters[mejor].push(p);
+          cambios++;
+        } else {
+          // Nada cabe: crear un cluster nuevo con esta parada
+          clusters[ci].splice(idxLejos, 1);
+          clusters.push([p]);
+          cambios++;
+          break;
+        }
+      }
+    }
+    if (cambios === 0) break;
+  }
+  return clusters.filter(c => c.length > 0);
+}
+
+// -------- CONSOLIDACIÓN GEOGRÁFICA (reducir rutas al mínimo real) --------
+// Agrupa TODAS las paradas llenando cada ruta hasta la capacidad (cap) sin
+// pasarse, respetando cercanía: cada ruta arranca con una parada "semilla" y
+// crece añadiendo la parada NO asignada más cercana que todavía quepa.
+// Resultado: el menor número de rutas posible sin exceder cap ni maxParadas.
+function consolidarGeografico(paradas, cap, maxParadas, planta) {
+  const restantes = paradas.slice();
+  const rutasOut = [];
+  const aforoDe = p => Number(p.beneficiados || 0);
+  const centroide = c => {
+    let lat=0,lng=0; c.forEach(p=>{lat+=p.lat;lng+=p.lng;});
+    return {lat:lat/c.length, lng:lng/c.length};
+  };
+  // Referencia para elegir la semilla: la planta (así la ruta arranca lejos y
+  // se acerca a la planta). Si no hay planta, el centroide global.
+  const ref = planta || centroide(restantes);
+
+  let guard = 0;
+  while (restantes.length && guard++ < 100000) {
+    // Semilla: la parada no asignada MÁS LEJANA de la referencia
+    let seedIdx = 0, dMax = -1;
+    for (let i = 0; i < restantes.length; i++) {
+      const d = _distHaversineM(ref, restantes[i]);
+      if (d > dMax) { dMax = d; seedIdx = i; }
+    }
+    const ruta = [restantes.splice(seedIdx, 1)[0]];
+    let aforoRuta = aforoDe(ruta[0]);
+
+    // Crecer: añadir repetidamente la parada más cercana al conjunto actual
+    // que todavía quepa (por capacidad y por número de paradas).
+    while (restantes.length && ruta.length < maxParadas) {
+      const cent = centroide(ruta);
+      let mejorIdx = -1, mejorD = Infinity;
+      for (let i = 0; i < restantes.length; i++) {
+        const p = restantes[i];
+        if (aforoRuta + aforoDe(p) > cap) continue;   // no cabe por capacidad
+        const d = _distHaversineM(cent, p);
+        if (d < mejorD) { mejorD = d; mejorIdx = i; }
+      }
+      if (mejorIdx < 0) break;   // nada más cabe → cerrar la ruta
+      const p = restantes.splice(mejorIdx, 1)[0];
+      ruta.push(p);
+      aforoRuta += aforoDe(p);
+    }
+    rutasOut.push(ruta);
+  }
+  return rutasOut;
+}
+
+// -------- TSP greedy (nearest neighbor) terminando en planta --------
+function ordenarNearestNeighbor(paradas, planta) {
+  if (!paradas.length) return [];
+  // Empezar por la parada más lejana a la planta (para que el recorrido
+  // vaya progresivamente acercándose a la planta al final)
+  let idxStart = 0, dMax = -1;
+  if (planta) {
+    paradas.forEach((p, i) => {
+      const d = _distHaversineM(planta, p);
+      if (d > dMax) { dMax = d; idxStart = i; }
+    });
+  }
+  const restantes = paradas.slice();
+  const ruta = [restantes.splice(idxStart, 1)[0]];
+  while (restantes.length) {
+    const actual = ruta[ruta.length - 1];
+    let mejor = 0, dMejor = Infinity;
+    restantes.forEach((p, i) => {
+      const d = _distHaversineM(actual, p);
+      if (d < dMejor) { dMejor = d; mejor = i; }
+    });
+    ruta.push(restantes.splice(mejor, 1)[0]);
+  }
+  return ruta;
+}
+
+// -------- Modelo de velocidad para estimar duración --------
+// Parámetros ajustables (km/h). El usuario pidió:
+//   - carretera: máx 70 km/h
+//   - ciudad: 30 a 50 km/h
+// Estimamos por segmento entre coordenadas de la geometría OSRM:
+//   segmentos largos/rápidos → carretera (70), cortos → ciudad (interpolado 30–50).
+const VEL = {
+  carreteraKmh: 70,
+  ciudadMinKmh: 30,
+  ciudadMaxKmh: 50,
+  // umbral de "tramo largo" (m) entre 2 vértices para considerarlo carretera
+  umbralCarreteraM: 250,
+  // segundos de servicio por parada (subida/bajada)
+  segPorParada: 45
+};
+
+// Estima duración (segundos) recorriendo la geometría (array [lat,lng]) con
+// el modelo de velocidad. nParadas para sumar tiempo de servicio.
+function estimarDuracionPorVelocidad(geom, nParadas) {
+  if (!geom || geom.length < 2) return (nParadas || 0) * VEL.segPorParada;
+  let segTotal = 0;
+  for (let i = 1; i < geom.length; i++) {
+    const a = { lat: geom[i-1][0], lng: geom[i-1][1] };
+    const b = { lat: geom[i][0], lng: geom[i][1] };
+    const dM = _distHaversineM(a, b);
+    if (dM <= 0) continue;
+    let kmh;
+    if (dM >= VEL.umbralCarreteraM) {
+      kmh = VEL.carreteraKmh;
+    } else {
+      // Interpola ciudad entre 30 y 50 según qué tan "largo" sea el tramo urbano
+      const t = Math.min(1, dM / VEL.umbralCarreteraM);
+      kmh = VEL.ciudadMinKmh + t * (VEL.ciudadMaxKmh - VEL.ciudadMinKmh);
+    }
+    const ms = kmh * 1000 / 3600; // m/s
+    segTotal += dM / ms;
+  }
+  segTotal += (nParadas || 0) * VEL.segPorParada;
+  return segTotal;
+}
+
+// -------- OSRM: duración + distancia (con exclude=toll opcional) --------
+// Devuelve { durSeg, durVelSeg, distM, geom } o null si falla.
+// durSeg = duración cruda de OSRM; durVelSeg = recalculada con modelo de velocidad.
+async function osrmRuta(waypoints, evitarPeaje) {
+  if (waypoints.length < 2) return { durSeg: 0, durVelSeg: 0, distM: 0, geom: [] };
+  const coords = waypoints.map(p => `${p.lng},${p.lat}`).join(';');
+  let url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+  if (evitarPeaje) url += '&exclude=toll';
+  const _armar = (rt, flag) => {
+    const geom = rt.geometry.coordinates.map(c => [c[1], c[0]]);
+    return {
+      durSeg: rt.duration,
+      durVelSeg: estimarDuracionPorVelocidad(geom, waypoints.length),
+      distM: rt.distance,
+      geom,
+      sinPeajeFallo: !!flag
+    };
+  };
+  try {
+    const resp = await fetch(url);
+    const data = await resp.json();
+    if (data.code === 'Ok' && data.routes && data.routes[0]) {
+      return _armar(data.routes[0], false);
+    }
+    if (evitarPeaje && (data.code === 'NoRoute' || data.code === 'InvalidOptions')) {
+      const url2 = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+      const resp2 = await fetch(url2);
+      const data2 = await resp2.json();
+      if (data2.code === 'Ok' && data2.routes && data2.routes[0]) {
+        return _armar(data2.routes[0], true);
+      }
+    }
+    return null;
+  } catch(e) { return null; }
+}
+
+// -------- Cálculo principal --------
+async function calcularReingenieria() {
+  reingResultado = null;
+  const idsSel = Array.from(reingSel);
+  if (idsSel.length < 1) {
+    alert('Selecciona al menos una ruta.');
+    return;
+  }
+  const selNumRutasOriginal = idsSel.length;  // cuántas rutas había antes (para comparar)
+  const params = leerParamsReing();
+  // Cargar parámetros de velocidad al modelo global VEL
+  VEL.carreteraKmh = parseInt(document.getElementById('reingVelCarr').value,10) || 70;
+  VEL.ciudadMinKmh = parseInt(document.getElementById('reingVelCiuMin').value,10) || 30;
+  VEL.ciudadMaxKmh = parseInt(document.getElementById('reingVelCiuMax').value,10) || 50;
+  if (VEL.ciudadMaxKmh < VEL.ciudadMinKmh) VEL.ciudadMaxKmh = VEL.ciudadMinKmh;
+  VEL.segPorParada = parseInt(document.getElementById('reingSegParada').value,10);
+  if (isNaN(VEL.segPorParada) || VEL.segPorParada < 0) VEL.segPorParada = 45;
+
+  const btnCalc = document.getElementById('reingCalcular');
+  const btnApp  = document.getElementById('reingAplicar');
+  const prog    = document.getElementById('reingProgreso');
+  const progTxt = document.getElementById('reingProgTxt');
+  btnCalc.disabled = true; btnApp.disabled = true;
+  prog.classList.add('show'); progTxt.textContent = 'Recopilando paradas…';
+
+  try {
+    // 1. Colectar TODAS las paradas de las rutas seleccionadas
+    // Se descarta la parada que coincide con la planta seleccionada (por proximidad).
+    let planta = null;
+    if (params.terminarPlanta) {
+      const idx = parseInt(document.getElementById('reingPlanta').value, 10);
+      const cands = detectarPlantasCandidatas(idsSel);
+      planta = cands[idx] || cands[0] || null;
+    }
+
+    const paradas = [];
+    idsSel.forEach(id => {
+      rutas[id].puntos.forEach(p => {
+        // omitir si es punto-planta (por columna E) o coincide con la planta destino
+        if (p.tipoPos === 'planta') return;
+        if (planta && _distHaversineM(planta, p) < 300) return;
+        paradas.push({
+          lat: p.lat, lng: p.lng,
+          parada: p.parada,
+          beneficiados: Number(p.beneficiados || 0),
+          tipoPos: p.tipoPos || 'intermedia',
+          _origId: id, _origSec: p.sec, _origHorarios: (p.horarios||[]).slice()
+        });
+      });
+    });
+
+    if (paradas.length === 0) {
+      alert('No hay paradas para procesar (¿todas coinciden con la planta?).');
+      btnCalc.disabled = false; prog.classList.remove('show');
+      return;
+    }
+
+    // 2. Determinar K (número de rutas)
+    const totalAforo = paradas.reduce((a,p) => a + Number(p.beneficiados||0), 0);
+    // Mínimo físico imprescindible para NO exceder capacidad/paradas
+    const kCapMin = Math.max(1, Math.ceil(totalAforo / params.cap));
+    const kParadasMin = Math.max(1, Math.ceil(paradas.length / params.maxParadas));
+    const kMinFisico = Math.max(kCapMin, kParadasMin);
+
+    let k;
+    let avisoModo = '';
+    let clustersConsolidados = null;   // usado solo por modo 'reducir'
+    if (params.modo === 'reducir') {
+      // REDUCIR: consolidación geográfica llenando cada ruta hasta cap.
+      // Da el menor número de rutas posible sin exceder cap ni maxParadas.
+      clustersConsolidados = consolidarGeografico(paradas, params.cap, params.maxParadas, planta);
+      k = clustersConsolidados.length;
+      const dif = selNumRutasOriginal - k;
+      if (dif > 0) {
+        avisoModo = `Consolidación: de ${selNumRutasOriginal} rutas a ${k} ` +
+                    `(–${dif}, ${Math.round(dif/selNumRutasOriginal*100)}% menos), ` +
+                    `llenando cada una hasta ${params.cap} usuarios sin pasarse.`;
+      } else if (dif === 0) {
+        avisoModo = `No se pudo reducir: las ${selNumRutasOriginal} rutas ya están cerca del ` +
+                    `óptimo para capacidad ${params.cap}.`;
+      } else {
+        avisoModo = `Con capacidad ${params.cap} el mínimo real es ${k} rutas ` +
+                    `(tus ${selNumRutasOriginal} actuales ya iban muy llenas). ` +
+                    `Sube la capacidad si necesitas menos rutas.`;
+      }
+    } else if (params.modo === 'libre') {
+      // Libre: exactamente lo que pida el usuario, SIN respetar límites
+      k = Math.max(1, parseInt(document.getElementById('reingNumRutas').value, 10) || 1);
+    } else if (params.modo === 'objetivo') {
+      // Objetivo: el usuario fija cuántas quiere. Se intenta cumplir, pero si es
+      // físicamente imposible respetar capacidad, se avisa (no se fuerza a subir,
+      // salvo que el usuario quiera; en objetivo respetamos su número tal cual).
+      k = Math.max(1, parseInt(document.getElementById('reingNumRutas').value, 10) || 1);
+      if (k < kMinFisico) {
+        avisoModo = `Pediste ${k} rutas, pero con capacidad ${params.cap} se necesitarían al menos ` +
+                    `${kMinFisico} para no sobrecargar. Se generarán ${k} y verás la ocupación real ` +
+                    `(algunas superarán 100%).`;
+      }
+    } else {
+      // Automático: el mínimo que respeta límites
+      k = kMinFisico;
+      if (k > selNumRutasOriginal) {
+        avisoModo = `Las ${selNumRutasOriginal} rutas actuales llevan ${totalAforo} usuarios ` +
+                    `(promedio ${Math.round(totalAforo/selNumRutasOriginal)}/ruta, por encima de ${params.cap}). ` +
+                    `Para respetar la capacidad ${params.cap} se necesitan ${k} rutas. ` +
+                    `Si tu meta es REDUCIR, usa el modo 🎯 Objetivo o sube la capacidad.`;
+      }
+    }
+
+    progTxt.textContent = `Agrupando en ${k} clusters…`;
+    await new Promise(r => setTimeout(r, 30));
+
+    // 3. Clustering
+    let clusters;
+    if (params.modo === 'reducir') {
+      // Ya consolidado por capacidad+cercanía
+      clusters = clustersConsolidados;
+    } else {
+      // K-means geográfico
+      clusters = kmeansParadas(paradas, k);
+      // En modo auto: balancear por capacidad y máx paradas
+      if (params.modo === 'auto') {
+        clusters = balancearPorCapacidad(clusters, params.cap, params.maxParadas);
+      }
+    }
+
+    // 5. Para cada cluster: TSP nearest-neighbor terminando en planta,
+    //    calcular duración con OSRM.
+    const resultados = [];
+    const coloresRes = generarColores(clusters.length);
+    for (let ci = 0; ci < clusters.length; ci++) {
+      progTxt.textContent = `Calculando ruta ${ci+1}/${clusters.length}…`;
+      await new Promise(r => setTimeout(r, 20));
+
+      let orden = ordenarNearestNeighbor(clusters[ci], planta);
+      // Agregar planta al final si aplica
+      const waypoints = planta ? orden.concat([planta]) : orden.slice();
+
+      // OSRM + modelo de velocidad
+      const info = await osrmRuta(waypoints, params.evitarPeaje);
+      // Duración: preferimos el modelo por velocidad (máx 70 carretera, 30–50 ciudad)
+      const durSeg = info ? info.durVelSeg : estimarFallbackDur(waypoints);
+      // Distancia: si OSRM no responde (0 o null), usar distancia recta encadenada
+      let distM = info ? info.distM : 0;
+      if (!distM || distM <= 0) {
+        distM = 0;
+        for (let w = 1; w < waypoints.length; w++) distM += _distHaversineM(waypoints[w-1], waypoints[w]);
+      }
+      const durMin = Math.round(durSeg / 60);
+      const durOsrmMin = info ? Math.round(info.durSeg / 60) : null;
+      const aforoTotal = orden.reduce((a,p) => a + Number(p.beneficiados||0), 0);
+      const ocupPct = Math.round((aforoTotal / params.cap) * 100);
+
+      const warnings = [];
+      if (params.modo === 'auto' || true) {
+        if (durMin > params.durMax) warnings.push(`⏱ ${durMin}min excede ${params.durMax}min`);
+        if (durMin < params.durMin) warnings.push(`⏱ ${durMin}min bajo el mínimo ${params.durMin}min`);
+        if (aforoTotal > params.cap) warnings.push(`👥 ${aforoTotal} pax excede ${params.cap}`);
+        if (orden.length > params.maxParadas) warnings.push(`🚏 ${orden.length} paradas excede ${params.maxParadas}`);
+        if (info && info.sinPeajeFallo) warnings.push(`⚠ Sin ruta libre de casetas (usó ruta con posible peaje)`);
+      }
+
+      resultados.push({
+        indice: ci + 1,
+        puntos: orden,          // sin planta (se añade al aplicar)
+        planta: planta,
+        aforoTotal,
+        ocupPct,
+        durMin,
+        durOsrmMin,
+        distKm: distM / 1000,
+        color: coloresRes[ci],
+        warnings
+      });
+    }
+
+    reingResultado = {
+      rutasSeleccionadas: idsSel,
+      params,
+      planta,
+      resultados,
+      totalAforo,
+      totalParadas: paradas.length,
+      avisoModo,
+      numOriginal: selNumRutasOriginal,
+      kMinFisico
+    };
+
+    renderResultadosReing();
+    btnApp.disabled = false;
+  } catch(err) {
+    console.error(err);
+    alert('Error al calcular la reingeniería: ' + err.message);
+  } finally {
+    btnCalc.disabled = false;
+    prog.classList.remove('show');
+  }
+}
+
+function leerParamsReing() {
+  return {
+    modo: reingModo,
+    durMin: parseInt(document.getElementById('reingDurMin').value, 10) || 40,
+    durMax: parseInt(document.getElementById('reingDurMax').value, 10) || 120,
+    cap: parseInt(document.getElementById('reingCap').value, 10) || 41,
+    maxParadas: parseInt(document.getElementById('reingMaxParadas').value, 10) || 35,
+    evitarPeaje: document.getElementById('reingEvitarPeaje').checked,
+    terminarPlanta: document.getElementById('reingTerminarPlanta').checked,
+    eliminarOrig: document.getElementById('reingEliminarOrig').checked
+  };
+}
+
+function renderResultadosReing() {
+  const cont = document.getElementById('reingResultados');
+  if (!reingResultado || !reingResultado.resultados.length) {
+    cont.innerHTML = '<div class="res-empty">Sin resultados.</div>';
+    return;
+  }
+  const html = reingResultado.resultados.map(r => {
+    const claseSev = r.ocupPct > 100 || r.durMin > reingResultado.params.durMax
+                    ? 'danger'
+                    : (r.ocupPct > 85 ? 'warn' : '');
+    const ocupBadge = r.ocupPct > 100 ? 'bad' : (r.ocupPct > 85 ? 'warn' : 'ok');
+    const durBadge  = r.durMin > reingResultado.params.durMax ? 'bad'
+                    : (r.durMin < reingResultado.params.durMin ? 'warn' : 'ok');
+    const stopsBadge = r.puntos.length > reingResultado.params.maxParadas ? 'bad' : 'ok';
+    return `
+      <div class="res-item ${claseSev}" style="border-left-color:${r.color}">
+        <div class="res-head">
+          <div class="res-id">REING-${String(r.indice).padStart(2,'0')}
+            <span style="color:${r.color}; margin-left:6px">●</span></div>
+          <div class="res-badges">
+            <span class="res-badge ${ocupBadge}">👥 ${r.aforoTotal}/${reingResultado.params.cap} · ${r.ocupPct}%</span>
+            <span class="res-badge ${durBadge}">⏱ ${r.durMin} min</span>
+            <span class="res-badge ${stopsBadge}">🚏 ${r.puntos.length} paradas</span>
+            <span class="res-badge">📏 ${r.distKm.toFixed(1)} km</span>
+          </div>
+        </div>
+        ${r.warnings.length ? `<div class="res-detail" style="color:#dc2626">${r.warnings.join(' · ')}</div>` : ''}
+      </div>`;
+  }).join('');
+  const rr = reingResultado.resultados;
+  const durProm = Math.round(rr.reduce((a,r)=>a+r.durMin,0) / rr.length);
+  const ocupProm = Math.round(rr.reduce((a,r)=>a+r.ocupPct,0) / rr.length);
+  const totalW = rr.reduce((a,r)=>a+r.warnings.length,0);
+
+  // Comparación antes vs después
+  const nOrig = reingResultado.numOriginal || 0;
+  const nNew = rr.length;
+  const diff = nNew - nOrig;
+  const signo = diff > 0 ? '+' : '';
+  const colorDiff = diff > 0 ? '#dc2626' : (diff < 0 ? '#16a34a' : '#64748b');
+  const flechaDiff = diff > 0 ? '▲' : (diff < 0 ? '▼' : '=');
+  const comparacion = `
+    <div style="display:flex;gap:8px;margin-bottom:8px;text-align:center">
+      <div style="flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px">
+        <div style="font-size:16px;font-weight:800;color:#0f172a">${nOrig}</div>
+        <div style="font-size:9px;color:#64748b;text-transform:uppercase">Antes</div>
+      </div>
+      <div style="flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px">
+        <div style="font-size:16px;font-weight:800;color:#0f172a">${nNew}</div>
+        <div style="font-size:9px;color:#64748b;text-transform:uppercase">Después</div>
+      </div>
+      <div style="flex:1;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:6px">
+        <div style="font-size:16px;font-weight:800;color:${colorDiff}">${flechaDiff} ${signo}${diff}</div>
+        <div style="font-size:9px;color:#64748b;text-transform:uppercase">Cambio</div>
+      </div>
+    </div>`;
+
+  // Aviso del modo (por ejemplo, cuando no se puede reducir)
+  const avisoHtml = reingResultado.avisoModo
+    ? `<div style="font-size:11px;color:#9a3412;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:8px 10px;margin-bottom:8px">⚠ ${reingResultado.avisoModo}</div>`
+    : '';
+
+  const resumen = `<div style="font-size:11px;color:#0f172a;background:#f1f5f9;padding:6px 8px;border-radius:4px;margin-bottom:6px">
+    <b>${rr.length}</b> rutas propuestas · promedio <b>${durProm}min</b> · ocupación media <b>${ocupProm}%</b>
+    ${totalW ? ` · <span style="color:#dc2626"><b>${totalW}</b> alertas</span>` : ' · <span style="color:#16a34a">Sin alertas</span>'}
+  </div>`;
+  cont.innerHTML = comparacion + avisoHtml + resumen + html;
+}
+
+// -------- Aplicar el resultado al mapa --------
+async function aplicarReingenieria() {
+  if (!reingResultado || !reingResultado.resultados.length) return;
+  const { params, planta, resultados, rutasSeleccionadas } = reingResultado;
+  if (!confirm(`Se crearán ${resultados.length} rutas nuevas.` +
+      (params.eliminarOrig ? ` Se ELIMINARÁN las ${rutasSeleccionadas.length} rutas originales.` : '') +
+      '\n\n¿Continuar?')) return;
+
+  pushUndo();
+
+  // Eliminar originales si se pidió
+  if (params.eliminarOrig) {
+    rutasSeleccionadas.forEach(id => {
+      if (rutas[id] && rutas[id].layer) map.removeLayer(rutas[id].layer);
+      delete rutas[id];
+    });
+  }
+
+  // Sacar planta común (nombre + primera ruta origen) para etiquetado
+  const plantaLabel = planta ? (planta.label || 'Planta') : '';
+  const fecha = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  // Buscar un ID libre para cada REING
+  const yaUsados = new Set(Object.keys(rutas));
+  const nuevosIds = [];
+
+  resultados.forEach((res, k) => {
+    let base = `REING-${fecha}-${String(k+1).padStart(2,'0')}`;
+    let id = base, n = 1;
+    while (yaUsados.has(id)) { id = base + '-' + (++n); }
+    yaUsados.add(id);
+    nuevosIds.push(id);
+
+    const puntosFinal = [];
+    let secC = 1;
+    res.puntos.forEach((p, idx) => {
+      puntosFinal.push({
+        sec: secC++,
+        pos: idx === 0 ? 'INICIO' : 'INTR',
+        tipoPos: idx === 0 ? 'inicio' : 'intermedia',
+        parada: p.parada + ' [' + p._origId + ']',
+        lat: p.lat, lng: p.lng,
+        latOrig: p.lat, lngOrig: p.lng,
+        horarios: p._origHorarios || [],
+        beneficiados: Number(p.beneficiados || 0),
+        marcadoRojo: false,
+        nuevo: true,
+        _origenRuta: p._origId,
+        _origenSec: p._origSec
+      });
+    });
+    // Añadir planta como ÚLTIMA parada (siempre destino final)
+    if (planta) {
+      puntosFinal.push({
+        sec: secC++,
+        pos: 'PLANTA',
+        tipoPos: 'planta',
+        parada: plantaLabel + ' (planta)',
+        lat: planta.lat, lng: planta.lng,
+        latOrig: planta.lat, lngOrig: planta.lng,
+        horarios: [],
+        beneficiados: 0,
+        marcadoRojo: false,
+        nuevo: true
+      });
+    }
+
+    rutas[id] = {
+      puntos: puntosFinal,
+      descRuta: `Reingeniería ${k+1} · ${res.durMin}min · ${res.ocupPct}%`,
+      planta: plantaLabel || 'Reingeniería',
+      tipServ: 'REING',
+      turnos: [],
+      color: res.color,
+      layer: L.layerGroup(),
+      visible: true,
+      esReingenieria: true,
+      duracionEstMin: res.durMin,
+      distanciaKm: res.distKm,
+      warnings: res.warnings.slice()
+    };
+  });
+
+  cerrarModalReing();
+
+  // Ocultar todas y mostrar solo las nuevas para claridad
+  Object.keys(rutas).forEach(id => {
+    if (!nuevosIds.includes(id)) {
+      rutas[id].visible = false;
+      if (rutas[id].layer) map.removeLayer(rutas[id].layer);
+    }
+  });
+
+  // Dibujar las nuevas
+  for (const id of nuevosIds) {
+    await dibujarRuta(id);
+    if (rutas[id].visible) rutas[id].layer.addTo(map);
+  }
+  renderLista(document.getElementById('filtro').value);
+  renderChipsFiltros();
+  actualizarBadgeCambios();
+  actualizarOcupacion();
+  ajustarVista();
+}
+
+// -------- UI del modal --------
+function abrirModalReing() {
+  if (!Object.keys(rutas).length) {
+    alert('Primero carga un archivo de rutas.');
+    return;
+  }
+  reingSel.clear();
+  reingResultado = null;
+  document.getElementById('reingFiltro').value = '';
+  document.getElementById('reingResultados').innerHTML =
+    '<div class="res-empty">Aún no hay resultados. Presiona <b>Calcular</b>.</div>';
+  document.getElementById('reingAplicar').disabled = true;
+  document.getElementById('reingCalcular').disabled = true;
+  actualizarResumenReing();
+  renderReingRutasList();
+  actualizarPlantasReing();
+  document.getElementById('reingModalBg').classList.add('open');
+}
+function cerrarModalReing() {
+  document.getElementById('reingModalBg').classList.remove('open');
+}
+function renderReingRutasList() {
+  const cont = document.getElementById('reingRutasList');
+  const filtro = (document.getElementById('reingFiltro').value || '').toLowerCase().trim();
+  const ids = Object.keys(rutas).sort();
+  cont.innerHTML = '';
+  ids.forEach(id => {
+    const r = rutas[id];
+    const desc = (r.descRuta || '').toLowerCase();
+    if (filtro && !id.toLowerCase().includes(filtro) && !desc.includes(filtro)) return;
+    const isSel = reingSel.has(id);
+    const totalAf = totalBeneficiadosRuta(id);
+    const div = document.createElement('div');
+    div.className = 'r-item';
+    div.innerHTML = `
+      <input type="checkbox" ${isSel ? 'checked' : ''}/>
+      <div class="r-color" style="background:${r.color||'#888'}"></div>
+      <div class="r-info">
+        <div class="r-id">${id}</div>
+        <div class="r-meta">${r.descRuta||''} · ${r.puntos.length}p · 👥${totalAf}</div>
+      </div>
+    `;
+    div.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (reingSel.has(id)) reingSel.delete(id);
+      else reingSel.add(id);
+      renderReingRutasList();
+      actualizarResumenReing();
+      actualizarPlantasReing();
+    });
+    cont.appendChild(div);
+  });
+  if (!cont.children.length) {
+    cont.innerHTML = '<div style="padding:12px;text-align:center;color:#9ca3af;font-size:11px">Sin resultados</div>';
+  }
+}
+function actualizarPlantasReing() {
+  const sel = document.getElementById('reingPlanta');
+  const idsSel = Array.from(reingSel);
+  const cands = detectarPlantasCandidatas(idsSel);
+  sel.innerHTML = '';
+  if (!cands.length) {
+    sel.innerHTML = '<option>—</option>';
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+  cands.forEach((c, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `${c.label} (${c.count} rutas)`;
+    sel.appendChild(opt);
+  });
+}
+function actualizarResumenReing() {
+  const idsSel = Array.from(reingSel);
+  const cont = document.getElementById('reingResumen');
+  const btnCalc = document.getElementById('reingCalcular');
+  btnCalc.disabled = (idsSel.length === 0);
+  const proyDiv = document.getElementById('proyeccionObjetivo');
+  if (!idsSel.length) {
+    cont.innerHTML = 'Selecciona rutas para ver el resumen…';
+    if (proyDiv) proyDiv.style.display = 'none';
+    return;
+  }
+  let totalParadas = 0, totalAforo = 0;
+  idsSel.forEach(id => {
+    totalParadas += rutas[id].puntos.length;
+    totalAforo += totalBeneficiadosRuta(id);
+  });
+  const cap = parseInt(document.getElementById('reingCap').value, 10) || 41;
+  const maxP = parseInt(document.getElementById('reingMaxParadas').value, 10) || 35;
+  const kCapMin = Math.ceil(totalAforo / cap);
+  const kParadasMin = Math.ceil(totalParadas / maxP);
+  const kMinFisico = Math.max(kCapMin, kParadasMin, 1);
+  const promActual = Math.round(totalAforo / idsSel.length);
+
+  let modoTxt;
+  if (reingModo === 'reducir') {
+    const est = kMinFisico;
+    const dif = idsSel.length - est;
+    const cmp = dif > 0
+      ? `estimado <span style="color:#16a34a;font-weight:700">≈${est} rutas (–${dif})</span>`
+      : `mínimo <b>${est}</b> (tus rutas ya van muy llenas; sube la capacidad para reducir más)`;
+    modoTxt = `Modo <b>📉 reducir</b> — junta las paradas por zona y llena cada ruta hasta ${cap} sin pasarse: ${cmp}.`;
+  } else if (reingModo === 'libre') {
+    modoTxt = `Modo <b>✋ libre</b> — se crearán exactamente las rutas que definas, sin respetar límites (verás la ocupación real, aunque pase de 100%).`;
+  } else if (reingModo === 'objetivo') {
+    modoTxt = `Modo <b>🎯 objetivo</b> — tú fijas cuántas rutas quieres; abajo te muestro cómo quedarían.`;
+  } else {
+    const cmp = kMinFisico > idsSel.length
+      ? `<span style="color:#dc2626">subiría a ${kMinFisico}</span> (tus rutas actuales promedian ${promActual} usuarios, arriba de ${cap})`
+      : `<span style="color:#16a34a">bajaría a ${kMinFisico}</span>`;
+    modoTxt = `Modo <b>🤖 automático</b> — mínimo para respetar límites: ${cmp}.`;
+  }
+  cont.innerHTML = `
+    <b>${idsSel.length}</b> ruta(s) · <b>${totalParadas}</b> paradas · <b>${totalAforo}</b> usuarios (prom. <b>${promActual}</b>/ruta).<br>
+    ${modoTxt}
+  `;
+
+  // Proyección en vivo para modo objetivo
+  if (proyDiv) {
+    if (reingModo === 'objetivo') {
+      proyDiv.style.display = 'block';
+      actualizarProyeccionObjetivo(totalAforo, totalParadas, cap, maxP, kMinFisico);
+    } else {
+      proyDiv.style.display = 'none';
+    }
+  }
+}
+
+// Calcula y muestra cómo quedarían N rutas objetivo (proyección instantánea)
+function actualizarProyeccionObjetivo(totalAforo, totalParadas, cap, maxP, kMinFisico) {
+  const proyDiv = document.getElementById('proyeccionObjetivo');
+  if (!proyDiv) return;
+  const n = Math.max(1, parseInt(document.getElementById('reingNumRutas').value, 10) || 1);
+  const usuariosPorRuta = Math.round(totalAforo / n);
+  const paradasPorRuta = Math.round(totalParadas / n);
+  const ocupPct = Math.round((usuariosPorRuta / cap) * 100);
+
+  const factible = (n >= kMinFisico);
+  const ocupColor = ocupPct > 100 ? '#dc2626' : (ocupPct > 85 ? '#f97316' : '#16a34a');
+  const stopsColor = paradasPorRuta > maxP ? '#dc2626' : '#16a34a';
+
+  let veredicto;
+  if (factible && ocupPct <= 100 && paradasPorRuta <= maxP) {
+    veredicto = `<span style="color:#16a34a;font-weight:700">✓ Factible</span> respetando capacidad y paradas.`;
+  } else {
+    const motivos = [];
+    if (ocupPct > 100) motivos.push('excede capacidad de usuarios');
+    if (paradasPorRuta > maxP) motivos.push('excede máx. paradas');
+    veredicto = `<span style="color:#dc2626;font-weight:700">⚠ Se sobrecarga</span> — ${motivos.join(' y ')}. Mínimo viable: <b>${kMinFisico}</b> rutas.`;
+  }
+
+  proyDiv.innerHTML = `
+    <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:10px;margin:4px 0 10px 0;font-size:11px">
+      <div style="font-weight:700;color:#3730a3;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.4px;font-size:10px">📊 Si haces ${n} rutas quedarían así:</div>
+      <div style="display:flex;gap:6px;text-align:center;margin-bottom:6px">
+        <div style="flex:1;background:#fff;border-radius:5px;padding:5px">
+          <div style="font-size:15px;font-weight:800;color:${ocupColor}">${usuariosPorRuta}</div>
+          <div style="font-size:9px;color:#64748b">usuarios/ruta</div>
+        </div>
+        <div style="flex:1;background:#fff;border-radius:5px;padding:5px">
+          <div style="font-size:15px;font-weight:800;color:${ocupColor}">${ocupPct}%</div>
+          <div style="font-size:9px;color:#64748b">ocupación</div>
+        </div>
+        <div style="flex:1;background:#fff;border-radius:5px;padding:5px">
+          <div style="font-size:15px;font-weight:800;color:${stopsColor}">${paradasPorRuta}</div>
+          <div style="font-size:9px;color:#64748b">paradas/ruta</div>
+        </div>
+      </div>
+      <div style="font-size:11px;line-height:1.4">${veredicto}</div>
+    </div>`;
+}
+
+// Eventos del modal reingeniería
+document.getElementById('btnReing').addEventListener('click', abrirModalReing);
+document.getElementById('reingClose').addEventListener('click', cerrarModalReing);
+
+// Exporta las rutas de reingeniería a CSV (formato compatible con el archivo original)
+function exportarReingenierias() {
+  const ids = Object.keys(rutas).filter(id => rutas[id].esReingenieria).sort();
+  if (!ids.length) { alert('No hay rutas de reingeniería para exportar.'); return; }
+
+  const header = ['Planta','TipServ','Descripcion','IDRuta','Sec','Pos','Parada','Lat','Lng','Horario','Aforo'];
+  const esc = s => `"${String(s == null ? '' : s).replace(/"/g,'""')}"`;
+  const filas = [header.map(esc).join(',')];
+
+  ids.forEach(id => {
+    const r = rutas[id];
+    r.puntos.slice().sort((a,b)=>a.sec-b.sec).forEach(p => {
+      filas.push([
+        esc(r.planta), esc(r.tipServ || 'REING'), esc(r.descRuta), esc(id),
+        p.sec, esc(p.pos || (p.tipoPos === 'planta' ? 'PLANTA' : p.tipoPos === 'inicio' ? 'INICIO' : 'INTR')),
+        esc(p.parada), p.lat, p.lng,
+        esc((p.horarios||[]).join(' ')), Number(p.beneficiados||0)
+      ].join(','));
+    });
+  });
+
+  const csv = filas.join('\n');
+  const blob = new Blob(["\ufeff" + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const fecha = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `reingenierias_${fecha}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  flashToast('⬇ Reingenierías exportadas');
+}
+
+// Botones del panel derecho de reingenierías
+document.getElementById('btnReingExport').addEventListener('click', exportarReingenierias);
+document.getElementById('btnReingClear').addEventListener('click', () => {
+  const ids = Object.keys(rutas).filter(id => rutas[id].esReingenieria);
+  if (!ids.length) return;
+  if (!confirm(`¿Quitar las ${ids.length} rutas de reingeniería?`)) return;
+  pushUndo();
+  ids.forEach(id => {
+    if (rutas[id].layer) map.removeLayer(rutas[id].layer);
+    delete rutas[id];
+  });
+  renderLista(document.getElementById('filtro').value);
+  flashToast('Reingenierías eliminadas');
+});
+document.getElementById('reingCancel').addEventListener('click', cerrarModalReing);
+document.getElementById('reingCalcular').addEventListener('click', calcularReingenieria);
+document.getElementById('reingAplicar').addEventListener('click', aplicarReingenieria);
+document.getElementById('reingFiltro').addEventListener('input', renderReingRutasList);
+document.getElementById('reingModalBg').addEventListener('click', (e) => {
+  if (e.target.id === 'reingModalBg') cerrarModalReing();
+});
+document.getElementById('reingSelAll').addEventListener('click', () => {
+  Object.keys(rutas).forEach(id => reingSel.add(id));
+  renderReingRutasList(); actualizarResumenReing(); actualizarPlantasReing();
+});
+document.getElementById('reingSelNone').addEventListener('click', () => {
+  reingSel.clear();
+  renderReingRutasList(); actualizarResumenReing(); actualizarPlantasReing();
+});
+document.getElementById('reingSelVisibles').addEventListener('click', () => {
+  reingSel.clear();
+  Object.keys(rutas).forEach(id => { if (rutas[id].visible) reingSel.add(id); });
+  renderReingRutasList(); actualizarResumenReing(); actualizarPlantasReing();
+});
+// Modo tabs
+document.querySelectorAll('#reingModal .modo-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#reingModal .modo-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    reingModo = tab.dataset.modo;
+    // El campo de "Nº de rutas" se muestra en objetivo y libre
+    const mostrarNum = (reingModo === 'libre' || reingModo === 'objetivo');
+    document.getElementById('rowNumRutas').style.display = mostrarNum ? 'flex' : 'none';
+    // Ajustar etiqueta según modo
+    const lbl = document.querySelector('#rowNumRutas span');
+    if (lbl) lbl.innerHTML = (reingModo === 'objetivo')
+        ? 'Nº de rutas objetivo'
+        : 'Nº de rutas a crear <b>(sin límites)</b>';
+    actualizarResumenReing();
+  });
+});
+// Recalcular resumen cuando cambian parámetros clave
+['reingCap','reingMaxParadas','reingNumRutas'].forEach(idc => {
+  const el = document.getElementById(idc);
+  if (el) el.addEventListener('input', actualizarResumenReing);
 });
 
 // Chips de turno
@@ -2901,13 +5643,15 @@ function insertarParada(id, latlng) {
   const nombre = prompt('Nombre de la nueva parada:', 'Nueva parada');
   if (nombre === null) return; // cancelado
 
+  pushUndo();
   const nuevaSec = r.puntos[mejorIdx].sec + 1;
   // Recorrer secuencias posteriores
   r.puntos.forEach(p => { if (p.sec >= nuevaSec) p.sec += 1; });
 
   r.puntos.push({
     sec: nuevaSec,
-    pos: '',
+    pos: 'INTR',
+    tipoPos: 'intermedia',
     parada: nombre || 'Nueva parada',
     lat: latlng.lat,
     lng: latlng.lng,
