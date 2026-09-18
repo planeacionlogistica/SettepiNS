@@ -1787,6 +1787,7 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
       <button id="btnEdit">Editar: OFF</button>
       <button id="btnParadas">✏ Editar paradas</button>
       <button id="btnExport" disabled>Exportar cambios <span id="badgeCambios"></span></button>
+      <button id="btnExportTodo" class="primary">📊 Exportar TODO</button>
       <button id="btnDesvio">Desvío: OFF</button>
       <button id="btnClearDesvio" disabled>Borrar desvíos</button>
       <button id="btnFusion">🔗 Fusionar rutas</button>
@@ -3938,6 +3939,7 @@ document.getElementById('btnEdit').addEventListener('click', async () => {
 });
 
 document.getElementById('btnExport').addEventListener('click', exportarCambios);
+document.getElementById('btnExportTodo').addEventListener('click', exportarTodoExcel);
 
 // --------- Botón Editar paradas ---------
 // Activa el modo edición (arrastre) y recuerda al usuario que en cada parada
@@ -5223,6 +5225,94 @@ function exportarCambios() {
   a.download = `cambios_paradas_${fecha}.csv`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+// =========================================================
+// EXPORTAR TODO — Excel completo (modificadas + sin modificar)
+// =========================================================
+// Genera un .xlsx con TODAS las rutas y TODAS sus paradas, marcando en una
+// columna cuáles se modificaron y cuáles no. Conserva el formato de columnas
+// del archivo original (Planta, TipServ, Descripción, ID, Sec, Pos, Parada,
+// Lat, Lng, Horarios..., Aforo) y agrega: Estado, Lat Original, Lng Original.
+function exportarTodoExcel() {
+  const ids = Object.keys(rutas).sort();
+  if (!ids.length) { alert('No hay rutas cargadas para exportar.'); return; }
+
+  // Máximo de horarios en cualquier parada (para armar columnas H1..Hn)
+  let maxHor = 0;
+  ids.forEach(id => rutas[id].puntos.forEach(p => {
+    maxHor = Math.max(maxHor, (p.horarios || []).length);
+  }));
+  if (maxHor === 0) maxHor = 1;
+
+  // Encabezados
+  const header = ['Planta','Tipo Servicio','Descripcion','ID Ruta','Sec','Pos','Parada','Lat','Lng'];
+  for (let h = 1; h <= maxHor; h++) header.push('Horario ' + h);
+  header.push('Aforo', 'Estado', 'Lat Original', 'Lng Original', 'Tipo Ruta');
+
+  const filas = [header];
+  let nModif = 0, nSin = 0, nNuevas = 0;
+
+  ids.forEach(id => {
+    const r = rutas[id];
+    const tipoRuta = r.esReingenieria ? 'Reingeniería' : (r.esFusion ? 'Fusión' : 'Original');
+    r.puntos.slice().sort((a,b) => a.sec - b.sec).forEach(p => {
+      // Determinar estado de la parada
+      let estado;
+      const movida = (p.latOrig != null && p.lngOrig != null)
+                   && (p.lat !== p.latOrig || p.lng !== p.lngOrig);
+      if (p.nuevo || r.esReingenieria || r.esFusion) { estado = 'Nueva'; nNuevas++; }
+      else if (movida) { estado = 'Modificada'; nModif++; }
+      else { estado = 'Sin cambio'; nSin++; }
+
+      const pos = p.pos || (p.tipoPos === 'planta' ? 'PLANTA'
+                : p.tipoPos === 'inicio' ? 'INICIO' : 'INTR');
+
+      const fila = [
+        r.planta || '', r.tipServ || '', r.descRuta || '', id,
+        p.sec, pos, p.parada || '',
+        p.lat, p.lng
+      ];
+      // Horarios
+      const hor = p.horarios || [];
+      for (let h = 0; h < maxHor; h++) fila.push(hor[h] || '');
+      // Aforo + estado + originales + tipo ruta
+      fila.push(Number(p.beneficiados || 0));
+      fila.push(estado);
+      fila.push(p.latOrig != null ? p.latOrig : p.lat);
+      fila.push(p.lngOrig != null ? p.lngOrig : p.lng);
+      fila.push(tipoRuta);
+      filas.push(fila);
+    });
+  });
+
+  // Construir workbook con SheetJS
+  try {
+    const ws = XLSX.utils.aoa_to_sheet(filas);
+    // Anchos de columna razonables
+    ws['!cols'] = header.map((h,i) => {
+      if (i === 6) return { wch: 40 };            // Parada
+      if (i === 2) return { wch: 28 };            // Descripcion
+      if (h === 'Estado' || h === 'Tipo Ruta') return { wch: 12 };
+      return { wch: 12 };
+    });
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Rutas');
+    const fecha = new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb, `rutas_completo_${fecha}.xlsx`);
+    flashToast(`📊 Exportado: ${ids.length} rutas · ${nNuevas} nuevas, ${nModif} modificadas, ${nSin} sin cambio`);
+  } catch(e) {
+    console.error(e);
+    // Respaldo: CSV si XLSX fallara
+    const esc = s => `"${String(s == null ? '' : s).replace(/"/g,'""')}"`;
+    const csv = filas.map(f => f.map(esc).join(',')).join('\n');
+    const blob = new Blob(["﻿" + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `rutas_completo_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    flashToast('Exportado como CSV (respaldo)');
+  }
 }
 
 // =========================================================
