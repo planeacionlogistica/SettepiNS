@@ -2921,40 +2921,35 @@ window.limpiarTrazo = limpiarTrazo;
 // =========================================================
 // COMPARTIR RECORRIDO POR QR / GOOGLE MAPS
 // =========================================================
-// Construye una URL de Google Maps Directions con las paradas de la ruta.
-// Formato: https://www.google.com/maps/dir/?api=1&origin=..&destination=..&waypoints=a|b|c&travelmode=driving
+// Construye una URL de Google Maps con TODAS las paradas de la ruta.
+// Usa el formato de ruta por tramos: https://www.google.com/maps/dir/A/B/C/.../Z
+// Este formato incluye cada parada en orden (no se muestrea ni se recorta), a
+// diferencia del parámetro ?waypoints= que sólo admite ~9. La primera parada es
+// el origen y la última (la planta) el destino; todas las de en medio son escalas.
 function construirUrlGoogleMaps(id) {
   const r = rutas[id];
   if (!r || !r.puntos.length) return { url: null, aviso: 'Ruta sin paradas.' };
   const pts = r.puntos.slice().sort((a,b) => a.sec - b.sec);
-  const origin = pts[0];
-  const destination = pts[pts.length - 1];
-  const intermedias = pts.slice(1, -1);
 
   const fmt = p => `${p.lat.toFixed(6)},${p.lng.toFixed(6)}`;
   let aviso = '';
 
-  // Google Maps (URL API) admite de forma confiable ~9 waypoints intermedios.
-  // Si hay más, tomamos una muestra uniforme para no romper el enlace.
-  let usadas = intermedias;
-  const MAX_WP = 9;
-  if (intermedias.length > MAX_WP) {
-    const paso = intermedias.length / MAX_WP;
-    usadas = [];
-    for (let i = 0; i < MAX_WP; i++) usadas.push(intermedias[Math.floor(i * paso)]);
-    aviso = `La ruta tiene ${intermedias.length} paradas intermedias; Google Maps solo admite ~${MAX_WP} en un enlace, ` +
-            `así que se incluyó una muestra representativa. El inicio y la planta (destino) siempre se respetan.`;
+  // TODAS las paradas en el path, en orden. Nada se descarta.
+  // (Google Maps usa modo carretera por defecto en este formato.)
+  const path = pts.map(fmt).join('/');
+  const url = 'https://www.google.com/maps/dir/' + path;
+
+  // Google Maps (consumidor) admite muchas escalas, pero puede topar en rutas
+  // muy largas (~25 paradas) o si el enlace es enorme. Avisamos sin recortar.
+  if (pts.length > 25) {
+    aviso = `Esta ruta tiene ${pts.length} paradas. Se incluyeron TODAS en el enlace, ` +
+            `pero Google Maps podría limitar rutas de más de ~25 escalas en algunos dispositivos.`;
+  } else if (url.length > 2000) {
+    aviso = `El enlace es largo (${url.length} caracteres) por la cantidad de paradas; ` +
+            `el QR queda denso pero funcional. Si tu lector falla, usa el botón "Abrir en Google Maps".`;
   }
 
-  const params = new URLSearchParams();
-  params.set('api', '1');
-  params.set('origin', fmt(origin));
-  params.set('destination', fmt(destination));
-  if (usadas.length) params.set('waypoints', usadas.map(fmt).join('|'));
-  params.set('travelmode', 'driving');
-
-  const url = 'https://www.google.com/maps/dir/?' + params.toString();
-  return { url, aviso };
+  return { url, aviso, nParadas: pts.length };
 }
 
 let _qrActual = { url: null, id: null };
@@ -2978,18 +2973,26 @@ function compartirRutaQR(id) {
   if (aviso) { av.textContent = '⚠ ' + aviso; av.classList.add('show'); }
   else { av.textContent = ''; av.classList.remove('show'); }
 
-  // Generar QR
+  // Generar QR — adaptar corrección de errores y tamaño a la longitud de la URL.
+  // Rutas con muchas paradas = URL larga = QR denso; bajamos a nivel L (más
+  // capacidad de datos) y agrandamos el código para que siga siendo escaneable.
   const cont = document.getElementById('qrCanvas');
   cont.innerHTML = '';
+  const nivel = url.length > 300 ? QRCode.CorrectLevel.L : QRCode.CorrectLevel.M;
+  const tam = url.length > 600 ? 340 : (url.length > 300 ? 300 : 240);
   try {
     new QRCode(cont, {
       text: url,
-      width: 240, height: 240,
+      width: tam, height: tam,
       colorDark: '#0f172a', colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
+      correctLevel: nivel
     });
   } catch(e) {
-    cont.innerHTML = '<div style="color:#dc2626;font-size:12px">No se pudo generar el QR.</div>';
+    // La URL excede la capacidad de un QR (ruta demasiado larga).
+    console.error(e);
+    cont.innerHTML = '<div style="color:#dc2626;font-size:12px;padding:20px">' +
+      'La ruta tiene demasiadas paradas para un solo QR.<br>' +
+      'Usa el botón <b>"Abrir en Google Maps"</b> o <b>"Copiar enlace"</b>.</div>';
   }
 
   document.getElementById('qrLinkText').textContent = url;
