@@ -289,6 +289,73 @@ tbody tr:hover { background: var(--bg-card-2); cursor: pointer; }
 }
 .modal-close:hover { background: var(--bad); border-color: var(--bad); }
 .modal-body { padding: 24px; }
+.btn-op-action {
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-print {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+.btn-print:hover { background: #2563eb; }
+.btn-ai {
+  background: linear-gradient(135deg, #8b5cf6, #ec4899);
+  color: white;
+  border-color: #8b5cf6;
+}
+.btn-ai:hover { filter: brightness(1.1); }
+th[data-sort] { cursor: pointer; user-select: none; position: relative; }
+th[data-sort]:hover { background: var(--bg-card-2); }
+th[data-sort]::after {
+  content: ' ⇅';
+  opacity: 0.35;
+  font-size: 11px;
+}
+th[data-sort].sort-desc::after { content: ' ▼'; opacity: 1; color: var(--good); }
+th[data-sort].sort-asc::after { content: ' ▲'; opacity: 1; color: var(--good); }
+
+/* IMPRESION TAMAÑO CARTA */
+@media print {
+  @page { size: letter; margin: 12mm; }
+  body * { visibility: hidden !important; }
+  #modal-operador, #modal-operador * { visibility: visible !important; }
+  #modal-operador {
+    position: absolute !important;
+    left: 0; top: 0;
+    background: white !important;
+    display: block !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  #modal-operador-content {
+    box-shadow: none !important;
+    border: none !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+    color: #000 !important;
+    page-break-inside: auto;
+  }
+  .no-print { display: none !important; }
+  .modal-body { padding: 6mm !important; }
+  .consejo-item, .card, .operador-info { page-break-inside: avoid; }
+  .section-title { page-break-after: avoid; }
+  .chart-box { max-height: 55mm !important; }
+  #modal-operador canvas { max-height: 55mm !important; }
+  .operador-info { background: #f8fafc !important; }
+}
 .operador-info {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -814,13 +881,17 @@ document.getElementById('brandLink').addEventListener('click', function(e){
 
 <!-- MODAL OPERADOR -->
 <div class="modal-overlay" id="modal-operador">
-  <div class="modal">
-    <div class="modal-header">
+  <div class="modal" id="modal-operador-content">
+    <div class="modal-header no-print">
       <div>
         <div style="font-size:20px;font-weight:700" id="mod-op-name"></div>
         <div style="font-size:12px;color:var(--text-muted);margin-top:4px" id="mod-op-meta"></div>
       </div>
-      <button class="modal-close" onclick="cerrarModal('modal-operador')">×</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-op-action btn-print" onclick="imprimirOperador()" title="Imprimir en tamaño carta">🖨️ Imprimir</button>
+        <button class="btn-op-action btn-ai" onclick="generarImagenIA()" title="Generar resumen visual con IA">🎨 Imagen IA</button>
+        <button class="modal-close" onclick="cerrarModal('modal-operador')">×</button>
+      </div>
     </div>
     <div class="modal-body" id="mod-op-body"></div>
   </div>
@@ -4067,6 +4138,323 @@ function procesarDatosExcel(scoreRaw, oddoRaw, rendRaw, asignRaw) {
     asignacion: asignacion_rows
   };
 }
+
+// ============================================================
+// IMPRIMIR MODAL OPERADOR (tamaño carta)
+// ============================================================
+function imprimirOperador() {
+  // Espera un tick para asegurar render limpio
+  setTimeout(() => window.print(), 100);
+}
+
+// ============================================================
+// GENERAR IMAGEN IA - Resumen visual de la situación del operador
+// ============================================================
+function generarImagenIA() {
+  const nameEl = document.getElementById('mod-op-name');
+  if (!nameEl || !nameEl.textContent.trim()) {
+    alert('No hay operador seleccionado.');
+    return;
+  }
+  // Extraer datos del operador desde el modal actual
+  const nombre = nameEl.childNodes[0].textContent.trim();
+  const calif = parseFloat((nameEl.querySelector('.chip')?.textContent || '0'));
+  const meta = document.getElementById('mod-op-meta').textContent;
+
+  // Buscar los top 3 eventos y km del cuerpo del modal
+  const body = document.getElementById('mod-op-body');
+  const consejoTitles = [...body.querySelectorAll('.consejo-evento')].slice(0,3).map(e => e.textContent.trim());
+  const infoItems = [...body.querySelectorAll('.info-item')];
+  let kmTxt = '', semTxt = '', vsJefe = '', vsGer = '';
+  infoItems.forEach(it => {
+    const lbl = it.querySelector('label')?.textContent?.toLowerCase() || '';
+    const val = it.querySelector('value')?.textContent || '';
+    if (lbl.includes('km')) kmTxt = val;
+    if (lbl.includes('semana')) semTxt = val;
+    if (lbl.includes('jefe')) vsJefe = val;
+    if (lbl.includes('gerente')) vsGer = val;
+  });
+
+  // Determinar estado y colores
+  let estado, colorPrincipal, colorSecundario, emoji, mensaje;
+  if (calif >= 85) {
+    estado = 'EXCELENTE';
+    colorPrincipal = '#22c55e';
+    colorSecundario = '#16a34a';
+    emoji = '🏆';
+    mensaje = '¡Manejo ejemplar! Sigue así.';
+  } else if (calif >= 70) {
+    estado = 'REGULAR';
+    colorPrincipal = '#f59e0b';
+    colorSecundario = '#d97706';
+    emoji = '⚠️';
+    mensaje = 'Zona de mejora. Enfoca los top 3 hábitos.';
+  } else {
+    estado = 'CRÍTICO';
+    colorPrincipal = '#ef4444';
+    colorSecundario = '#dc2626';
+    emoji = '🚨';
+    mensaje = 'Seguimiento prioritario URGENTE.';
+  }
+
+  // Canvas 1080x1350 (formato tipo póster/story)
+  const c = document.createElement('canvas');
+  c.width = 1080; c.height = 1350;
+  const ctx = c.getContext('2d');
+
+  // Fondo con gradiente
+  const grad = ctx.createLinearGradient(0,0,0,1350);
+  grad.addColorStop(0, '#0f172a');
+  grad.addColorStop(1, '#1e293b');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,1080,1350);
+
+  // Barra superior color estado
+  ctx.fillStyle = colorPrincipal;
+  ctx.fillRect(0,0,1080,12);
+
+  // Título "Diagnóstico del Operador"
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 24px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('DIAGNÓSTICO DEL OPERADOR', 540, 70);
+
+  // Nombre
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = 'bold 48px system-ui, sans-serif';
+  const nombreCorto = nombre.length > 28 ? nombre.slice(0,26)+'…' : nombre;
+  ctx.fillText(nombreCorto, 540, 130);
+
+  // Meta (nomina/unidad)
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '18px system-ui, sans-serif';
+  const metaCorta = meta.length > 60 ? meta.slice(0,58)+'…' : meta;
+  ctx.fillText(metaCorta, 540, 165);
+
+  // Círculo grande con calificación
+  const cx = 540, cy = 360, radio = 150;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radio+15, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(255,255,255,0.05)';
+  ctx.fill();
+
+  // Anillo de progreso
+  ctx.beginPath();
+  ctx.arc(cx, cy, radio, -Math.PI/2, -Math.PI/2 + (calif/100)*Math.PI*2);
+  ctx.lineWidth = 20;
+  ctx.strokeStyle = colorPrincipal;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Anillo de fondo
+  ctx.beginPath();
+  ctx.arc(cx, cy, radio, 0, Math.PI*2);
+  ctx.lineWidth = 20;
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.stroke();
+  // Redibujar progreso encima
+  ctx.beginPath();
+  ctx.arc(cx, cy, radio, -Math.PI/2, -Math.PI/2 + (calif/100)*Math.PI*2);
+  ctx.lineWidth = 20;
+  ctx.strokeStyle = colorPrincipal;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Numero calificación
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = 'bold 96px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(calif.toFixed(1), cx, cy - 10);
+  ctx.font = 'bold 22px system-ui, sans-serif';
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillText('/ 100 pts', cx, cy + 55);
+  ctx.textBaseline = 'alphabetic';
+
+  // Badge estado
+  const badgeW = 320, badgeH = 60, badgeX = cx - badgeW/2, badgeY = 555;
+  ctx.fillStyle = colorPrincipal;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 30);
+  else ctx.rect(badgeX, badgeY, badgeW, badgeH);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 28px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${emoji}  ${estado}`, cx, badgeY + 40);
+
+  // Mensaje principal
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = 'italic 22px system-ui, sans-serif';
+  ctx.fillText(mensaje, 540, 665);
+
+  // KPIs en fila
+  const kpis = [
+    { l:'Semanas', v: semTxt || '-' },
+    { l:'Km Recorridos', v: kmTxt || '-' },
+    { l:'vs Jefe', v: vsJefe || '-' },
+    { l:'vs Gerente', v: vsGer || '-' }
+  ];
+  const kpiY = 720, kpiW = 230, gap = 20;
+  const totalW = kpis.length * kpiW + (kpis.length-1)*gap;
+  let kpiX = (1080 - totalW)/2;
+  kpis.forEach(k => {
+    ctx.fillStyle = 'rgba(255,255,255,0.06)';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(kpiX, kpiY, kpiW, 100, 12);
+    else ctx.rect(kpiX, kpiY, kpiW, 100);
+    ctx.fill();
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '14px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(k.l.toUpperCase(), kpiX + kpiW/2, kpiY + 30);
+    ctx.fillStyle = '#f8fafc';
+    ctx.font = 'bold 24px system-ui, sans-serif';
+    const vTxt = k.v.length > 12 ? k.v.slice(0,11)+'…' : k.v;
+    ctx.fillText(vTxt, kpiX + kpiW/2, kpiY + 68);
+    kpiX += kpiW + gap;
+  });
+
+  // Título Top 3 puntos a mejorar
+  ctx.fillStyle = colorPrincipal;
+  ctx.font = 'bold 26px system-ui, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('🎯 TOP 3 PUNTOS DE ENFOQUE', 90, 895);
+
+  // Linea divisoria
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(90, 910);
+  ctx.lineTo(990, 910);
+  ctx.stroke();
+
+  // Lista top 3
+  const items = consejoTitles.length ? consejoTitles : ['Sin eventos críticos relevantes','',''];
+  let itemY = 955;
+  items.slice(0,3).forEach((it, i) => {
+    if (!it) return;
+    // Numero circular
+    ctx.beginPath();
+    ctx.arc(120, itemY+5, 22, 0, Math.PI*2);
+    ctx.fillStyle = colorPrincipal;
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 22px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(i+1), 120, itemY+6);
+    ctx.textBaseline = 'alphabetic';
+
+    // Texto: limpiar prefix "#N " si viene
+    let txt = it.replace(/^#\d+\s*/, '');
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '20px system-ui, sans-serif';
+    ctx.textAlign = 'left';
+    // Wrap simple
+    const maxWidth = 830;
+    const words = txt.split(' ');
+    let line = '', lineY = itemY;
+    let lines = 0;
+    for (const w of words) {
+      const test = line ? line+' '+w : w;
+      if (ctx.measureText(test).width > maxWidth && line) {
+        ctx.fillText(line, 160, lineY);
+        line = w;
+        lineY += 28;
+        lines++;
+        if (lines >= 2) { line += '…'; break; }
+      } else {
+        line = test;
+      }
+    }
+    if (line) ctx.fillText(line, 160, lineY);
+    itemY += Math.max(70, (lines+1)*35 + 20);
+  });
+
+  // Footer
+  ctx.fillStyle = '#64748b';
+  ctx.font = '16px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  const hoy = new Date().toLocaleDateString('es-MX', {year:'numeric',month:'long',day:'numeric'});
+  ctx.fillText(`Generado el ${hoy} · Sistema de Score de Operadores`, 540, 1300);
+
+  // Barra inferior
+  ctx.fillStyle = colorPrincipal;
+  ctx.fillRect(0,1338,1080,12);
+
+  // Descargar imagen
+  const link = document.createElement('a');
+  const safeName = nombre.replace(/[^a-z0-9]/gi,'_').slice(0,40);
+  link.download = `Resumen_${safeName}_${calif.toFixed(1)}.png`;
+  link.href = c.toDataURL('image/png');
+  link.click();
+}
+
+// ============================================================
+// ORDENAMIENTO DE TABLAS (todas las columnas)
+// ============================================================
+function activarOrdenTablas() {
+  document.querySelectorAll('table').forEach(tabla => {
+    const ths = tabla.querySelectorAll('thead th');
+    ths.forEach((th, colIdx) => {
+      if (th.dataset.sortInit) return;
+      th.dataset.sortInit = '1';
+      // Agregar data-sort si no existe para permitir ordenar cualquier columna
+      if (!th.hasAttribute('data-sort')) {
+        th.setAttribute('data-sort','col'+colIdx);
+      }
+      th.style.cursor = 'pointer';
+      th.addEventListener('click', () => ordenarTabla(tabla, colIdx, th));
+    });
+  });
+}
+
+function ordenarTabla(tabla, colIdx, thClicked) {
+  const tbody = tabla.querySelector('tbody');
+  if (!tbody) return;
+  const rows = [...tbody.querySelectorAll('tr')];
+  if (rows.length < 2) return;
+
+  // Estado: por defecto primer click = descendente (mayor a menor)
+  const yaDesc = thClicked.classList.contains('sort-desc');
+  const dir = yaDesc ? 'asc' : 'desc';
+  // Limpiar indicadores en headers hermanos
+  tabla.querySelectorAll('thead th').forEach(x => x.classList.remove('sort-desc','sort-asc'));
+  thClicked.classList.add(dir === 'desc' ? 'sort-desc' : 'sort-asc');
+
+  const getVal = (tr) => {
+    const td = tr.children[colIdx];
+    if (!td) return '';
+    // Prioridad: texto del chip (calificacion), luego texto del td
+    const chip = td.querySelector('.chip, .badge');
+    let raw = (chip ? chip.textContent : td.textContent).trim();
+    // Remover comas, símbolos comunes
+    const num = parseFloat(raw.replace(/,/g,'').replace(/[^\d.\-]/g,''));
+    if (!isNaN(num) && raw.match(/[\d]/)) return num;
+    return raw.toLowerCase();
+  };
+
+  rows.sort((a,b) => {
+    const va = getVal(a), vb = getVal(b);
+    if (typeof va === 'number' && typeof vb === 'number') {
+      return dir === 'desc' ? vb - va : va - vb;
+    }
+    return dir === 'desc'
+      ? String(vb).localeCompare(String(va), 'es', {numeric:true})
+      : String(va).localeCompare(String(vb), 'es', {numeric:true});
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
+// Observa cambios en tbody para re-activar sorting cuando se re-renderiza
+const _tablaObserver = new MutationObserver(() => activarOrdenTablas());
+document.addEventListener('DOMContentLoaded', () => {
+  activarOrdenTablas();
+  document.querySelectorAll('table tbody').forEach(tb => {
+    _tablaObserver.observe(tb, {childList:true});
+  });
+});
 
 // ============================================================
 // INICIAR
