@@ -138,6 +138,17 @@ var QRCode;!function(){function a(a){this.mode=c.MODE_8BIT_BYTE,this.data=a,this
   .pos-badge.planta { background: #ede9fe; color: #6d28d9; }
   .pos-badge.intr   { background: #f1f5f9; color: #475569; }
 
+  /* Botón lápiz para renombrar ruta/parada en el popup */
+  .pop-edit {
+    background: #eef2ff; color: #4f46e5;
+    border: 1px solid #ddd6fe; border-radius: 5px;
+    padding: 0 5px; margin-left: 4px;
+    font-size: 11px; line-height: 1.5; cursor: pointer;
+    vertical-align: middle;
+  }
+  .pop-edit:hover { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+  .pop-nombre { font-weight: 600; }
+
   /* Botones de acción en popup (eliminar / mover) */
   .popup-actions {
     display: flex; gap: 6px;
@@ -3422,12 +3433,14 @@ function popupHTML(id, p) {
           ? '<span class="pos-badge planta">PLANTA</span>'
           : '<span class="pos-badge intr">INTERMEDIA</span>');
   return `
-    <b>${id}</b> — ${r.descRuta}<br>
+    <b>${id}</b> — <span class="pop-nombre">${r.descRuta || '(sin nombre)'}</span>
+      <button class="pop-edit" title="Cambiar nombre de la ruta" onclick="renombrarRuta('${id}')">✏</button><br>
     <small>${r.planta}${r.tipServ ? ' · ' + r.tipServ : ''}</small><br>
     <small><b>Turno(s):</b> ${turnos}</small><br>
     <hr style="margin:6px 0; border:none; border-top:1px solid #ddd"/>
     <b>Sec ${p.sec}</b> ${tipoBadge}<br>
-    ${p.parada}<br>
+    <span class="pop-nombre">${p.parada || '(sin nombre)'}</span>
+      <button class="pop-edit" title="Cambiar nombre de la parada" onclick="renombrarParada('${id}', ${p.sec})">✏</button><br>
     <small><b>Horarios:</b> ${horariosStr}</small>
     <div class="benef-row">
       <label>👥 Usuarios beneficiados:</label>
@@ -3631,6 +3644,41 @@ async function eliminarParadaPopup(id, sec) {
   flashToast('🗑 Parada eliminada');
 }
 window.eliminarParadaPopup = eliminarParadaPopup;
+
+// ---- Renombrar RUTA (descripción) ----
+async function renombrarRuta(id) {
+  const r = rutas[id];
+  if (!r) return;
+  const nuevo = prompt('Nuevo nombre de la ruta ' + id + ':', r.descRuta || '');
+  if (nuevo === null) return;                 // cancelado
+  const limpio = nuevo.trim();
+  if (limpio === (r.descRuta || '')) return;  // sin cambios
+  pushUndo();
+  r.descRuta = limpio;
+  // Actualizar el popup abierto (línea de la ruta) y el de las paradas
+  await dibujarRuta(id);
+  renderLista(document.getElementById('filtro').value);
+  try { renderChipsFiltros(); } catch(e){}
+  flashToast('✏ Ruta renombrada');
+}
+window.renombrarRuta = renombrarRuta;
+
+// ---- Renombrar PARADA ----
+async function renombrarParada(id, sec) {
+  const p = _buscarPunto(id, sec);
+  if (!p) return;
+  const nuevo = prompt('Nuevo nombre de la parada (Sec ' + sec + '):', p.parada || '');
+  if (nuevo === null) return;
+  const limpio = nuevo.trim();
+  if (limpio === (p.parada || '')) return;
+  pushUndo();
+  p.parada = limpio;
+  // Refrescar el popup abierto de esta parada, si está abierto
+  await dibujarRuta(id);
+  renderLista(document.getElementById('filtro').value);
+  flashToast('✏ Parada renombrada');
+}
+window.renombrarParada = renombrarParada;
 
 // ---- Mover parada a otra ruta ----
 let moverCtx = null;   // { idOrigen, sec }
@@ -6195,4 +6243,3 @@ document.getElementById('counter').innerHTML =
 </script>
 </body>
 </html>
-    
