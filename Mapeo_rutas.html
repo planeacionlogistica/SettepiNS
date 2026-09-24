@@ -2064,6 +2064,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <button id="btnEdit">Editar: OFF</button>
       <button id="btnParadas">✏ Editar paradas</button>
       <button id="btnAddParada">➕ Agregar parada</button>
+      <button id="btnEditarTrazo">〰️ Editar trazo</button>
       <button id="btnExport" disabled>Exportar cambios <span id="badgeCambios"></span></button>
       <button id="btnExportTodo" class="primary">📊 Exportar TODO</button>
       <button id="btnDesvio">Desvío: OFF</button>
@@ -2800,6 +2801,7 @@ let rutas = {};       // { idRuta: { puntos:[], color, desc, planta, layer } }
 let allBounds = null;
 let modoCalles = true;             // true = sigue calles via OSRM, false = línea recta
 let modoEdicion = false;           // true = paradas arrastrables
+let modoEditarTrazo = false;       // true = editar la línea por donde pasa la unidad
 const cacheCalles = {};            // { idRuta: [[lat,lng],...] geometría OSRM cacheada }
 const plantasActivas = new Set();
 const turnosActivos = new Set();
@@ -3804,7 +3806,7 @@ async function dibujarRuta(id) {
   // Línea
   const polyline = L.polyline(geom, {
     color: r.color,
-    weight: modoEdicion ? 6 : 4,
+    weight: (modoEdicion || modoEditarTrazo) ? 7 : 4,
     opacity: 0.85
   }).bindPopup(
     `<b>${id}</b><br>${r.descRuta}<br>` +
@@ -3829,9 +3831,9 @@ async function dibujarRuta(id) {
     insertarParada(id, ev.latlng);
   });
 
-  // En modo edición: arrastrar la línea crea/mueve un punto de trazo (via-point)
-  // que obliga a la ruta a pasar por ahí (para evitar pistas/autopistas).
-  if (modoEdicion && !modoDesvio) {
+  // En modo edición o modo trazo: arrastrar la línea crea/mueve un punto de trazo
+  // (via-point) que obliga a la ruta a pasar por ahí (cambia por dónde va la unidad).
+  if ((modoEdicion || modoEditarTrazo) && !modoDesvio) {
     polyline.on('mousedown', (ev) => {
       L.DomEvent.stop(ev);
       iniciarArrastreTrazo(id, ev.latlng, geom);
@@ -3839,7 +3841,7 @@ async function dibujarRuta(id) {
   }
 
   // Marcadores de via-points existentes (arrastrables)
-  if (modoEdicion && r.viaPoints && r.viaPoints.length) {
+  if ((modoEdicion || modoEditarTrazo) && r.viaPoints && r.viaPoints.length) {
     r.viaPoints.forEach((v, vi) => {
       const vicon = L.divIcon({
         className: '',
@@ -4780,6 +4782,27 @@ map.on('click', (e) => {
   if (!modoAgregarParada) return;
   _addLatLng = e.latlng;
   abrirModalAgregar();
+});
+
+// --------- Botón Editar trazo (línea por donde pasa la unidad) ---------
+document.getElementById('btnEditarTrazo').addEventListener('click', async () => {
+  modoEditarTrazo = !modoEditarTrazo;
+  const btn = document.getElementById('btnEditarTrazo');
+  btn.classList.toggle('primary', modoEditarTrazo);
+  if (modoEditarTrazo) {
+    // Apagar modos que capturan clics/arrastres del mapa
+    if (modoAgregarParada) document.getElementById('btnAddParada').click();
+    if (modoDesvio) document.getElementById('btnDesvio').click();
+    // Evitar que el doble clic haga zoom (se usa para insertar parada)
+    map.doubleClickZoom.disable();
+    flashToast('〰️ Arrastra la línea para cambiar por dónde pasa la unidad. Clic derecho en un punto morado para borrarlo.');
+  } else {
+    map.doubleClickZoom.enable();
+  }
+  // Redibujar todas las rutas visibles para activar/desactivar el arrastre del trazo
+  for (const id of Object.keys(rutas)) {
+    if (rutas[id].visible) await dibujarRuta(id);
+  }
 });
 
 function abrirModalAgregar() {
