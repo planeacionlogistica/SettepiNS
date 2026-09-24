@@ -3831,9 +3831,18 @@ async function dibujarRuta(id) {
     insertarParada(id, ev.latlng);
   });
 
-  // En modo edición o modo trazo: arrastrar la línea crea/mueve un punto de trazo
-  // (via-point) que obliga a la ruta a pasar por ahí (cambia por dónde va la unidad).
-  if ((modoEdicion || modoEditarTrazo) && !modoDesvio) {
+  // MODO TRAZO: un clic en la línea agrega un punto morado (via-point) justo ahí,
+  // que luego se arrastra para cambiar por dónde pasa la unidad. Es más confiable
+  // que arrastrar la línea directamente.
+  if (modoEditarTrazo && !modoDesvio) {
+    polyline.unbindPopup();     // en modo trazo el clic agrega punto, no abre popup
+    polyline.off('click');
+    polyline.on('click', async (ev) => {
+      L.DomEvent.stop(ev);
+      await agregarViaPoint(id, ev.latlng);
+    });
+  } else if (modoEdicion && !modoDesvio) {
+    // En modo edición normal se mantiene el arrastre de la línea
     polyline.on('mousedown', (ev) => {
       L.DomEvent.stop(ev);
       iniciarArrastreTrazo(id, ev.latlng, geom);
