@@ -3562,9 +3562,21 @@ async function generarMapaPNG(id, W = 1040, H = 940) {
   ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,W,H);
   ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.strokeRect(3,3,W-6,H-6);
 
-  // Trazo de la ruta (línea gruesa)
-  ctx.lineWidth = 7; ctx.strokeStyle = r.color || '#1d4ed8';
+  // Colores del formato SETTEPI / ALCALI (fijos, no el color aleatorio de la ruta)
+  const COL_RUTA   = '#1d4ed8';   // azul SETTEPI para el trazo
+  const COL_INTER  = '#1d4ed8';   // paradas intermedias
+  const COL_INICIO = '#16a34a';   // inicio (verde)
+  const COL_PLANTA = '#f97316';   // planta (naranja)
+  const COL_CALLE  = '#1e3a8a';   // nombres de calle (azul oscuro)
+  const COL_PARADA_TXT = '#0f172a';
+
+  // Trazo de la ruta: casing blanco + línea azul (se ve limpio sobre blanco)
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+  ctx.lineWidth = 11; ctx.strokeStyle = '#ffffff';
+  ctx.beginPath();
+  geom.forEach((c, i) => { const [x,y] = proj(c[0], c[1]); if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+  ctx.stroke();
+  ctx.lineWidth = 7; ctx.strokeStyle = COL_RUTA;
   ctx.beginPath();
   geom.forEach((c, i) => { const [x,y] = proj(c[0], c[1]); if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
   ctx.stroke();
@@ -3597,7 +3609,7 @@ async function generarMapaPNG(id, W = 1040, H = 940) {
     const [x,y] = proj(c.lat, c.lng);
     if (colocadas.some(q => Math.hypot(q[0]-x, q[1]-y) < 55)) return;
     colocadas.push([x,y]);
-    texto(c.name, x, y, { size: 13, bold: true, color: '#1d4ed8', halo: 5 });
+    texto(c.name, x, y, { size: 13, bold: true, color: COL_CALLE, halo: 5 });
   });
 
   // --- Paradas numeradas + nombre ---
@@ -3608,7 +3620,7 @@ async function generarMapaPNG(id, W = 1040, H = 940) {
     const radio = (esInicio || esPlanta) ? 16 : 13;
     ctx.beginPath();
     ctx.arc(x, y, radio, 0, Math.PI*2);
-    ctx.fillStyle = esInicio ? '#22c55e' : (esPlanta ? '#f97316' : (r.color || '#1d4ed8'));
+    ctx.fillStyle = esInicio ? COL_INICIO : (esPlanta ? COL_PLANTA : COL_INTER);
     ctx.fill();
     ctx.lineWidth = 3; ctx.strokeStyle = '#fff'; ctx.stroke();
     ctx.fillStyle = '#fff';
@@ -3618,7 +3630,7 @@ async function generarMapaPNG(id, W = 1040, H = 940) {
     // Nombre de la parada arriba del marcador
     let nom = (p.parada || '').replace(/\s*\[[^\]]*\]\s*$/, '');   // quitar [ID] si viene
     if (nom.length > 22) nom = nom.slice(0, 21) + '…';
-    if (nom) texto(nom, x, y - radio - 8, { size: 12, bold: true, color: '#0f172a', halo: 4 });
+    if (nom) texto(nom, x, y - radio - 8, { size: 12, bold: true, color: COL_PARADA_TXT, halo: 4 });
   });
 
   try { return canvas.toDataURL('image/png'); }
@@ -4797,15 +4809,47 @@ function abrirModalAgregar() {
   document.getElementById('addParadaTipo').value = 'intermedia';
   document.getElementById('addNuevaRutaId').value = '';
   document.getElementById('addNuevaRutaDesc').value = '';
+  poblarOrdenParada();
   document.getElementById('addParadaModalBg').classList.add('open');
   setTimeout(() => document.getElementById('addParadaNombre').focus(), 50);
+}
+
+// Llena el desplegable de ORDEN según la ruta seleccionada
+function poblarOrdenParada() {
+  const sel = document.getElementById('addParadaOrden');
+  if (!sel) return;
+  const mk = (txt, val) => { const o = document.createElement('option'); o.value = val; o.textContent = txt; return o; };
+  try {
+    const rutaId = document.getElementById('addRutaSel').value;
+    sel.innerHTML = '';
+    sel.appendChild(mk('Al inicio (será la #1)', 'inicio'));
+    if (rutaId && rutaId !== '__nueva__' && rutas[rutaId]) {
+      const pts = rutas[rutaId].puntos.slice().sort((a,b) => a.sec - b.sec);
+      pts.forEach(p => {
+        let nom = (p.parada || '').replace(/\s*\[[^\]]*\]\s*$/, '');
+        if (nom.length > 26) nom = nom.slice(0, 25) + '…';
+        sel.appendChild(mk(`Después de #${p.sec} · ${nom}`, 'after:' + p.sec));
+      });
+    }
+    sel.appendChild(mk('Al final (última parada)', 'final'));
+    sel.value = 'final';   // por defecto, al final
+  } catch(e) {
+    console.error('poblarOrdenParada:', e);
+    sel.innerHTML = '';
+    sel.appendChild(mk('Al final (última parada)', 'final'));
+    sel.appendChild(mk('Al inicio', 'inicio'));
+    sel.value = 'final';
+  }
 }
 
 function toggleNuevaRutaCampos() {
   const esNueva = document.getElementById('addRutaSel').value === '__nueva__';
   document.getElementById('addNuevaRutaWrap').style.display = esNueva ? 'block' : 'none';
 }
-document.getElementById('addRutaSel').addEventListener('change', toggleNuevaRutaCampos);
+document.getElementById('addRutaSel').addEventListener('change', () => {
+  toggleNuevaRutaCampos();
+  poblarOrdenParada();
+});
 
 function cerrarModalAgregar() {
   document.getElementById('addParadaModalBg').classList.remove('open');
@@ -4817,74 +4861,95 @@ document.getElementById('addParadaModalBg').addEventListener('click', (e) => {
 });
 
 document.getElementById('addConfirm').addEventListener('click', async () => {
-  if (!_addLatLng) {
-    alert('Primero haz clic en el mapa para elegir la ubicación de la parada.');
-    return;
-  }
-  const selVal = document.getElementById('addRutaSel').value;
-  const nombre = document.getElementById('addParadaNombre').value.trim() || 'Nueva parada';
-  const hora = document.getElementById('addParadaHora').value.trim();
-  let aforo = parseInt(document.getElementById('addParadaAforo').value, 10);
-  if (isNaN(aforo) || aforo < 0) aforo = 0;
-  const tipo = document.getElementById('addParadaTipo').value;
+  try {
+    if (!_addLatLng) {
+      alert('Primero haz clic en el mapa para elegir la ubicación de la parada.');
+      return;
+    }
+    const selVal = document.getElementById('addRutaSel').value;
+    const nombre = (document.getElementById('addParadaNombre').value || '').trim() || 'Nueva parada';
+    const hora = (document.getElementById('addParadaHora').value || '').trim();
+    let aforo = parseInt(document.getElementById('addParadaAforo').value, 10);
+    if (isNaN(aforo) || aforo < 0) aforo = 0;
+    const tipo = document.getElementById('addParadaTipo').value || 'intermedia';
+    const ordenEl = document.getElementById('addParadaOrden');
+    const orden = ordenEl ? ordenEl.value : 'final';
 
-  // Validar ANTES de tocar el estado (para no ensuciar el undo)
-  let id = selVal;
-  if (selVal === '__nueva__') {
-    id = (document.getElementById('addNuevaRutaId').value || '').trim();
-    if (!id) { alert('Escribe el ID/nombre de la nueva ruta.'); return; }
-    if (rutas[id]) { alert('Ya existe una ruta con ese ID. Elige otro o selecciónala en la lista.'); return; }
-  }
+    // Validar ANTES de tocar el estado
+    let id = selVal;
+    if (selVal === '__nueva__') {
+      id = (document.getElementById('addNuevaRutaId').value || '').trim();
+      if (!id) { alert('Escribe el ID/nombre de la nueva ruta.'); return; }
+      if (rutas[id]) { alert('Ya existe una ruta con ese ID. Elige otro o selecciónala en la lista.'); return; }
+    }
+    if (!id) { alert('Selecciona una ruta destino.'); return; }
 
-  pushUndo();
+    pushUndo();
 
-  // Crear ruta nueva si aplica
-  if (selVal === '__nueva__') {
-    const desc = (document.getElementById('addNuevaRutaDesc').value || '').trim();
-    const colores = generarColores(Object.keys(rutas).length + 1);
-    rutas[id] = {
-      puntos: [], descRuta: desc || id, planta: '', tipServ: '',
-      turnos: [], color: colores[colores.length - 1],
-      layer: L.layerGroup(), visible: true
+    // Crear ruta nueva si aplica
+    if (selVal === '__nueva__') {
+      const desc = (document.getElementById('addNuevaRutaDesc').value || '').trim();
+      const colores = generarColores(Object.keys(rutas).length + 1);
+      rutas[id] = {
+        puntos: [], descRuta: desc || id, planta: '', tipServ: '',
+        turnos: [], color: colores[colores.length - 1],
+        layer: L.layerGroup(), visible: true
+      };
+    }
+
+    const r = rutas[id];
+    const p = {
+      sec: 0,
+      pos: tipo === 'planta' ? 'PLANTA' : (tipo === 'inicio' ? 'INICIO' : 'INTR'),
+      tipoPos: tipo,
+      parada: nombre,
+      lat: _addLatLng.lat, lng: _addLatLng.lng,
+      latOrig: _addLatLng.lat, lngOrig: _addLatLng.lng,
+      beneficiados: aforo,
+      horarios: hora ? [hora] : [],
+      marcadoRojo: false,
+      nuevo: true
     };
-  }
+    // Insertar en la posición (orden) elegida
+    r.puntos.sort((a,b) => a.sec - b.sec);
+    let insertAt = r.puntos.length;
+    if (orden === 'inicio') insertAt = 0;
+    else if (orden === 'final') insertAt = r.puntos.length;
+    else if (orden && orden.indexOf('after:') === 0) {
+      const secN = parseInt(orden.split(':')[1], 10);
+      const idx = r.puntos.findIndex(pp => pp.sec === secN);
+      insertAt = (idx >= 0) ? idx + 1 : r.puntos.length;
+    }
+    r.puntos.splice(insertAt, 0, p);
+    // Reasignar sec según la posición en el arreglo (para que renumerarSecuencias,
+    // que ordena por sec, respete la posición elegida y no mande la nueva al frente).
+    r.puntos.forEach((pp, i) => { pp.sec = i + 1; });
+    renumerarSecuencias(r);
+    detectarPlantaDeRuta(r);
+    delete cacheCalles[id];
 
-  const r = rutas[id];
-  const p = {
-    sec: 0,
-    pos: tipo === 'planta' ? 'PLANTA' : (tipo === 'inicio' ? 'INICIO' : 'INTR'),
-    tipoPos: tipo,
-    parada: nombre,
-    lat: _addLatLng.lat, lng: _addLatLng.lng,
-    latOrig: _addLatLng.lat, lngOrig: _addLatLng.lng,
-    beneficiados: aforo,
-    horarios: hora ? [hora] : [],
-    marcadoRojo: false,
-    nuevo: true
-  };
-  // Insertar respetando: inicio primero, planta al final, intermedia antes de planta
-  r.puntos.sort((a,b) => a.sec - b.sec);
-  const plantaIdx = r.puntos.findIndex(pp => pp.tipoPos === 'planta');
-  if (tipo === 'inicio') {
-    r.puntos.unshift(p);
-  } else if (tipo === 'planta') {
-    r.puntos.push(p);
-  } else {
-    if (plantaIdx >= 0) r.puntos.splice(plantaIdx, 0, p);
-    else r.puntos.push(p);
+    // Cerrar y dar feedback YA (para que el usuario vea que sí funcionó),
+    // aunque el redibujado tarde o falle.
+    cerrarModalAgregar();
+    flashToast(`➕ Parada agregada a ${id} (Sec ${p.sec})`);
+
+    // Redibujar (sin bloquear el cierre del modal)
+    try {
+      if (!r.visible) { r.visible = true; }
+      await dibujarRuta(id);
+      r.layer.addTo(map);
+      renderLista(document.getElementById('filtro').value);
+      try { renderChipsFiltros(); } catch(e){}
+      actualizarBadgeCambios();
+      actualizarOcupacion();
+    } catch (errDraw) {
+      console.error('Error al redibujar tras agregar parada:', errDraw);
+      renderLista(document.getElementById('filtro').value);
+    }
+  } catch (err) {
+    console.error('Error al agregar parada:', err);
+    alert('Ocurrió un error al agregar la parada: ' + (err && err.message ? err.message : err));
   }
-  renumerarSecuencias(r);
-  detectarPlantaDeRuta(r);
-  delete cacheCalles[id];
-  await dibujarRuta(id);
-  if (r.visible) r.layer.addTo(map);
-  renderLista(document.getElementById('filtro').value);
-  try { renderChipsFiltros(); } catch(e){}
-  actualizarBadgeCambios();
-  actualizarOcupacion();
-  cerrarModalAgregar();
-  flashToast(`➕ Parada agregada a ${id}`);
-  // Mantener el modo activo para seguir agregando; el usuario apaga el botón cuando termine
 });
 
 // --------- Botón Desvío ---------
