@@ -2308,13 +2308,18 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           <input type="number" id="addParadaAforo" min="0" max="200" value="0"/>
         </div>
         <div class="apm-field">
-          <label>Posición</label>
+          <label>Tipo de parada</label>
           <select id="addParadaTipo">
             <option value="intermedia">Intermedia</option>
             <option value="inicio">Inicio</option>
             <option value="planta">Planta (final)</option>
           </select>
         </div>
+      </div>
+      <div class="apm-field">
+        <label>Orden (posición en el recorrido)</label>
+        <select id="addParadaOrden"></select>
+        <div style="font-size:11px;color:#64748b;margin-top:4px">Elige después de qué parada quieres insertarla. Las demás se recorren automáticamente.</div>
       </div>
     </div>
     <div class="apm-footer">
@@ -6898,4 +6903,3 @@ document.getElementById('counter').innerHTML =
 </script>
 </body>
 </html>
-    
