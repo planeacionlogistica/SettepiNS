@@ -14,7 +14,7 @@
 .dropdown-menu a{display:block;padding:12px 20px;color:#e5e7eb;text-decoration:none;font-weight:600;transition:all .3s;}
 .dropdown-menu a:hover{background:#4b5563;padding-left:25px;}
 .dropdown-menu a.active{background:#84cc16;color:#1f2937;}
-nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48px;gap:14px;position:sticky;top:0;z-index:2000;box-shadow:0 2px 8px rgba(0,0,0,.3);flex-shrink:0;font-family:'Inter',sans-serif;}
+nav{background:#1f2937;padding:0 28px;display:flex;align-items:center;height:48px;gap:14px;position:sticky;top:0;z-index:2000;box-shadow:0 2px 8px rgba(0,0,0,.3);flex-shrink:0;font-family:"Inter, system-ui, sans-serif",sans-serif;}
 .nav-logo{color:#84cc16;font-weight:800;font-size:16px;text-decoration:none;}
 .nav-sep{color:#4b5563;font-size:14px;font-weight:300;}
 .nav-page{color:#e5e7eb;font-size:13px;font-weight:600;}
@@ -92,7 +92,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .th-inner span{flex:1}
 .sort-btn{background:none;border:none;cursor:pointer;padding:0 3px;color:rgba(255,255,255,.4);font-size:.7rem;line-height:1;transition:color .15s;}
 .sort-btn:hover{color:rgba(255,255,255,.9)}
-.btn-capture{display:flex;align-items:center;gap:.3rem;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:.28rem .65rem;font-size:.7rem;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn-capture{display:flex;align-items:center;gap:.3rem;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:.28rem .65rem;font-size:.7rem;font-family:"Inter, system-ui, sans-serif",sans-serif;font-weight:500;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .btn-capture:hover{border-color:#16a34a;color:#16a34a;background:rgba(22,163,74,.06)}
 .table-hdr-actions{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
 .tab-bar{display:flex;gap:0;border-bottom:2px solid var(--border);background:var(--white);padding:0 1.5rem;margin-bottom:1.1rem;}
@@ -263,6 +263,81 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
   .data-table thead th{font-size:.55rem;padding:.4rem .35rem;}
   .data-table tbody td{font-size:.67rem;padding:.35rem .35rem;}
 }
+
+/* ════════════ KPI + GRÁFICA v2 ════════════ */
+:root{--ink:#1a2236;--ink2:#4a5672;--muted2:#8a94ad;--line:#e6eaf2;--ok:#15803d;--ok-bg:#ecfdf3;--bad:#b42318;--bad-bg:#fef3f2;--c-solo:#F08A24;--c-ambos:#B3261E;}
+.kx-grid{display:grid;grid-template-columns:minmax(0,1.9fr) repeat(3,minmax(0,1fr));gap:14px}
+.kx{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px 16px;display:flex;flex-direction:column;gap:6px;position:relative;box-shadow:0 1px 2px rgba(16,24,40,.04);transition:border-color .15s,box-shadow .15s;min-width:0}
+.kx.kpi-clickable:hover{transform:none;border-color:#cdd5e3;box-shadow:0 6px 18px rgba(16,24,40,.07)}
+.kx.kpi-clickable.kpi-active{outline:none;border-color:var(--ink);box-shadow:0 0 0 3px rgba(26,34,54,.08)}
+.kx-lbl{font-size:12.5px;font-weight:600;color:var(--ink2);display:flex;align-items:center;gap:7px;min-width:0}
+.kx-lbl span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kx-sw{width:10px;height:10px;border-radius:3px;background:var(--kc);flex-shrink:0}
+.kx-tag{font-size:10.5px;font-weight:500;color:var(--muted2);background:#f3f5f9;border-radius:5px;padding:2px 7px;width:max-content;letter-spacing:.01em}
+.kx-val{font-size:30px;font-weight:700;color:var(--ink);letter-spacing:-.02em;line-height:1.1;margin-top:6px}
+.kx-sub{font-size:12px;color:var(--muted);line-height:1.45}
+.kx-sub b{color:var(--ink);font-weight:600}
+.kx-share{height:4px;background:#eef1f6;border-radius:2px;overflow:hidden;margin-top:auto}
+.kx-share>div{height:100%;background:var(--kc);border-radius:2px;width:0;transition:width .45s ease}
+.kx-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;min-height:14px}
+.kx .kpi-hint{margin:0;font-size:10.5px;color:var(--muted2);opacity:0;transition:opacity .15s;letter-spacing:0}
+.kx:hover .kpi-hint,.kx.kpi-active .kpi-hint{opacity:1}
+.kx.kpi-active .kpi-hint{color:var(--ink);font-weight:600}
+/* Hero */
+.kx-hero{flex-direction:row;gap:20px;align-items:stretch}
+.kx-hero-main{display:flex;flex-direction:column;gap:8px;flex:0 0 auto;min-width:0}
+.kx-hero-val{font-size:50px;font-weight:700;letter-spacing:-.035em;line-height:1;color:var(--ink);margin-top:4px}
+.kx-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;width:max-content}
+.kx-status.ok{color:var(--ok);background:var(--ok-bg)}
+.kx-status.bad{color:var(--bad);background:var(--bad-bg)}
+.kx-delta{font-size:12px;color:var(--muted)}
+.kx-delta b.up{color:var(--ok)} .kx-delta b.down{color:var(--bad)} .kx-delta b.flat{color:var(--ink2)}
+.kx-spark{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;border-left:1px solid var(--line);padding-left:20px}
+.kx-spark-hd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:11px;color:var(--muted2);font-weight:500}
+.kx-spark-box{flex:1;min-height:64px;position:relative}
+.kx-spark-box svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.kx-days{font-size:12px;color:var(--ink2);line-height:1.4}
+.kx-days b{color:var(--ink)}
+.kx-empty{font-size:11px;color:var(--muted2);padding-top:18px}
+/* Chart card */
+.cx-card{border:1px solid var(--line);box-shadow:0 1px 2px rgba(16,24,40,.04);border-radius:14px;padding:20px 22px 12px;gap:10px}
+.cx-title{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
+.cx-sub{font-size:12px;color:var(--muted);margin-top:3px}
+.cx-legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:12px}
+.cx-leg{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2);font-weight:500}
+.cx-leg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.cx-leg i.goal{width:18px;height:0;border-top:2px dashed var(--ok);border-radius:0}
+.cx-leg i.band{background:rgba(21,128,61,.14);border-radius:2px}
+.cx-card .chart-wrap{height:370px}
+@media(max-width:1100px){
+  .kx-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .kx-hero{grid-column:1/-1}
+}
+@media(max-width:768px){
+  .kx-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .kx-hero{grid-column:1/-1}
+  .kx{padding:14px 14px 12px}
+  .kx-val{font-size:24px}
+  .kx-hero-val{font-size:40px}
+  .kx-lbl span{white-space:normal}
+  .cx-card{padding:14px 12px 8px}
+  .cx-card .chart-wrap{height:260px}
+}
+@media(max-width:480px){
+  .kx-hero{flex-direction:column;gap:12px}
+  .kx-spark{border-left:none;border-top:1px solid var(--line);padding-left:0;padding-top:12px}
+  .kx-grid .kx:last-child{grid-column:1/-1}
+}
+.cx-right{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.cx-trend{display:flex;flex-direction:column;align-items:flex-end;gap:2px;text-align:right}
+.cx-trend>b{font-size:13px;padding:3px 10px;border-radius:999px}
+.cx-trend span{font-size:11.5px;color:var(--muted)} .cx-trend span b{color:var(--ink)}
+.cx-trend.good>b{color:var(--ok);background:var(--ok-bg)}
+.cx-trend.bad>b{color:var(--bad);background:var(--bad-bg)}
+.cx-trend.flat>b{color:var(--ink2);background:#f1f3f7}
+.cx-leg i.trend{width:18px;height:0;border-top:2.5px dashed var(--ink);border-radius:0}
+.cx-leg i.dot{width:9px;height:9px;border-radius:50%}
+@media(max-width:768px){.cx-right{align-items:flex-start}.cx-trend{align-items:flex-start;text-align:left}}
 </style>
 </head>
 <body>
@@ -432,46 +507,63 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 
     <!-- ═══════════════════ PANEL INICIOS ═══════════════════ -->
     <div class="tab-panel" id="panel-inicios">
-      <div class="kpi-grid" id="kpi-ini">
-        <div class="kpi kpi-clickable" style="--kc:#1a2236" id="kpi-ini-total" onclick="toggleKpiFilter('ini','total')">
-          <div class="kpi-val" id="kTotal">–</div>
-          <div class="kpi-lbl">Total Viajes</div>
-          <div class="kpi-hint">Ver todos</div>
+      <div class="kpi-grid kx-grid" id="kpi-ini">
+        <div class="kx kx-hero kpi-clickable" id="kpi-ini-pct" onclick="toggleKpiFilter('ini','total')">
+          <div class="kx-hero-main">
+            <div class="kx-lbl"><span>Cumplimiento de inicios</span></div>
+            <div class="kx-hero-val" id="kPct">–</div>
+            <div class="kx-status" id="kStatus"></div>
+            <div class="kx-delta" id="kDelta"></div>
+          </div>
+          <div class="kx-spark">
+            <div class="kx-spark-hd"><span>Tendencia diaria</span><span id="kSparkRange"></span></div>
+            <div class="kx-spark-box" id="kSpark"></div>
+            <div class="kx-days" id="kDays"></div>
+          </div>
         </div>
-        <div class="kpi kpi-clickable" style="--kc:#d97706" id="kpi-ini-tarde" onclick="toggleKpiFilter('ini','ini_solo')">
-          <div class="kpi-val" id="kTarde">–</div>
-          <div class="kpi-lbl">(ini tarde · lle ok)</div>
-          <div class="kpi-hint">Filtrar</div>
+        <div class="kx kpi-clickable" id="kpi-ini-total" onclick="toggleKpiFilter('ini','total')">
+          <div class="kx-lbl"><span>Viajes totales</span></div>
+          <div class="kx-tag" id="kPeriodo">–</div>
+          <div class="kx-val" id="kTotal">–</div>
+          <div class="kx-sub" id="kTotalSub"></div>
+          <div class="kx-bottom"><span></span><div class="kpi-hint">Ver todos</div></div>
         </div>
-        <div class="kpi kpi-clickable" style="--kc:#e53e3e" id="kpi-ini-ambos" onclick="toggleKpiFilter('ini','ambos')">
-          <div class="kpi-val" id="kAmbos">–</div>
-          <div class="kpi-lbl">Inicio Y Llegada Tarde</div>
-          <div class="kpi-hint">Filtrar</div>
+        <div class="kx kpi-clickable" style="--kc:var(--c-solo)" id="kpi-ini-tarde" onclick="toggleKpiFilter('ini','ini_solo')">
+          <div class="kx-lbl"><i class="kx-sw"></i><span>Salió tarde, llegó a tiempo</span></div>
+          <div class="kx-tag">ini tarde · lle ok</div>
+          <div class="kx-val" id="kTarde">–</div>
+          <div class="kx-sub" id="kTardeSub"></div>
+          <div class="kx-share"><div id="kTardeBar"></div></div>
+          <div class="kx-bottom"><span></span><div class="kpi-hint">Filtrar</div></div>
         </div>
-        <div class="kpi kpi-clickable" style="--kc:#7ed321" id="kpi-ini-pct" onclick="toggleKpiFilter('ini','total')">
-          <div class="kpi-val" id="kPct">–</div>
-          <div class="kpi-lbl">% Cumplimiento</div>
-          <div class="kpi-hint">Ver todos</div>
+        <div class="kx kpi-clickable" style="--kc:var(--c-ambos)" id="kpi-ini-ambos" onclick="toggleKpiFilter('ini','ambos')">
+          <div class="kx-lbl"><i class="kx-sw"></i><span>Salió y llegó tarde</span></div>
+          <div class="kx-tag">ini tarde · lle tarde</div>
+          <div class="kx-val" id="kAmbos">–</div>
+          <div class="kx-sub" id="kAmbosSub"></div>
+          <div class="kx-share"><div id="kAmbosBar"></div></div>
+          <div class="kx-bottom"><span></span><div class="kpi-hint">Filtrar</div></div>
         </div>
       </div>
-      <div class="chart-card">
+      <div class="chart-card cx-card">
         <div class="chart-hdr">
           <div>
-            <div class="chart-title" id="chartTitle">Inicios Tarde por Día</div>
-            <div class="chart-legend" style="margin-top:.4rem">
-              <div class="leg"><div class="leg-sq" style="background:#3f3f3f"></div>En tiempo</div>
-              <div class="leg"><div class="leg-sq" style="background:#e07010"></div>(ini tarde · lle ok)</div>
-              <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>(ini tarde · lle tarde)</div>
-              <div class="leg"><div style="width:8px;height:8px;border-radius:50%;background:rgba(22,163,74,.75);display:inline-block;margin-right:4px"></div>Cumple ≥98%</div>
-              <div class="leg"><div style="width:8px;height:8px;border-radius:50%;background:rgba(204,0,0,.65);display:inline-block;margin-right:4px"></div>No cumple</div>
+            <div class="cx-title" id="chartTitle">Cumplimiento de inicios por día</div>
+            <div class="cx-sub">% de viajes por resultado. La parte oscura es lo que inició en tiempo; el punto indica si se cumplió la meta.</div>
+            <div class="cx-legend">
+              <div class="cx-leg"><i style="background:#2B3445"></i>En tiempo</div>
+              <div class="cx-leg"><i style="background:var(--c-solo)"></i>Salió tarde, llegó a tiempo</div>
+              <div class="cx-leg"><i style="background:var(--c-ambos)"></i>Salió y llegó tarde</div>
+                            <div class="cx-leg"><i class="dot" style="background:#16a34a"></i><span class="metaLegOk">Cumple meta</span></div>
+              <div class="cx-leg"><i class="dot" style="background:#dc2626"></i>No cumple</div>
             </div>
           </div>
-          <div class="chart-group-btns" id="grp-ini" style="align-self:flex-start">
+          <div class="cx-right"><div class="chart-group-btns" id="grp-ini">
             <button class="grp-btn active" onclick="setGroup('ini','dia')">Día</button>
             <button class="grp-btn" onclick="setGroup('ini','semana')">Sem</button>
             <button class="grp-btn" onclick="setGroup('ini','mes')">Mes</button>
             <button class="grp-btn" onclick="setGroup('ini','año')">Año</button>
-          </div>
+          </div></div>
         </div>
         <div class="chart-wrap"><canvas id="chart-ini"></canvas></div>
       </div>
@@ -590,46 +682,63 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 
     <!-- ═══════════════════ PANEL LLEGADAS ═══════════════════ -->
     <div class="tab-panel active" id="panel-llegadas">
-      <div class="kpi-grid" id="kpi-lle">
-        <div class="kpi kpi-clickable" style="--kc:#1a2236" id="kpi-lle-total" onclick="toggleKpiFilter('lle','total')">
-          <div class="kpi-val" id="lkTotal">–</div>
-          <div class="kpi-lbl">Total Viajes</div>
-          <div class="kpi-hint">Ver todos</div>
+      <div class="kpi-grid kx-grid" id="kpi-lle">
+        <div class="kx kx-hero kpi-clickable" id="kpi-lle-pct" onclick="toggleKpiFilter('lle','total')">
+          <div class="kx-hero-main">
+            <div class="kx-lbl"><span>Cumplimiento de llegadas</span></div>
+            <div class="kx-hero-val" id="lkPct">–</div>
+            <div class="kx-status" id="lkStatus"></div>
+            <div class="kx-delta" id="lkDelta"></div>
+          </div>
+          <div class="kx-spark">
+            <div class="kx-spark-hd"><span>Tendencia diaria</span><span id="lkSparkRange"></span></div>
+            <div class="kx-spark-box" id="lkSpark"></div>
+            <div class="kx-days" id="lkDays"></div>
+          </div>
         </div>
-        <div class="kpi kpi-clickable" style="--kc:#d97706" id="kpi-lle-tarde" onclick="toggleKpiFilter('lle','lle_solo')">
-          <div class="kpi-val" id="lkTarde">–</div>
-          <div class="kpi-lbl">(ini ok · lle tarde)</div>
-          <div class="kpi-hint">Filtrar</div>
+        <div class="kx kpi-clickable" id="kpi-lle-total" onclick="toggleKpiFilter('lle','total')">
+          <div class="kx-lbl"><span>Viajes totales</span></div>
+          <div class="kx-tag" id="lkPeriodo">–</div>
+          <div class="kx-val" id="lkTotal">–</div>
+          <div class="kx-sub" id="lkTotalSub"></div>
+          <div class="kx-bottom"><span></span><div class="kpi-hint">Ver todos</div></div>
         </div>
-        <div class="kpi kpi-clickable" style="--kc:#e53e3e" id="kpi-lle-ambos" onclick="toggleKpiFilter('lle','ambos')">
-          <div class="kpi-val" id="lkAmbos">–</div>
-          <div class="kpi-lbl">Inicio Y Llegada Tarde</div>
-          <div class="kpi-hint">Filtrar</div>
+        <div class="kx kpi-clickable" style="--kc:var(--c-solo)" id="kpi-lle-tarde" onclick="toggleKpiFilter('lle','lle_solo')">
+          <div class="kx-lbl"><i class="kx-sw"></i><span>Salió a tiempo, llegó tarde</span></div>
+          <div class="kx-tag">ini ok · lle tarde</div>
+          <div class="kx-val" id="lkTarde">–</div>
+          <div class="kx-sub" id="lkTardeSub"></div>
+          <div class="kx-share"><div id="lkTardeBar"></div></div>
+          <div class="kx-bottom"><span></span><div class="kpi-hint">Filtrar</div></div>
         </div>
-        <div class="kpi kpi-clickable" style="--kc:#7ed321" id="kpi-lle-pct" onclick="toggleKpiFilter('lle','total')">
-          <div class="kpi-val" id="lkPct">–</div>
-          <div class="kpi-lbl">% Cumplimiento</div>
-          <div class="kpi-hint">Ver todos</div>
+        <div class="kx kpi-clickable" style="--kc:var(--c-ambos)" id="kpi-lle-ambos" onclick="toggleKpiFilter('lle','ambos')">
+          <div class="kx-lbl"><i class="kx-sw"></i><span>Salió y llegó tarde</span></div>
+          <div class="kx-tag">ini tarde · lle tarde</div>
+          <div class="kx-val" id="lkAmbos">–</div>
+          <div class="kx-sub" id="lkAmbosSub"></div>
+          <div class="kx-share"><div id="lkAmbosBar"></div></div>
+          <div class="kx-bottom"><span></span><div class="kpi-hint">Filtrar</div></div>
         </div>
       </div>
-      <div class="chart-card">
+      <div class="chart-card cx-card">
         <div class="chart-hdr">
           <div>
-            <div class="chart-title" id="lChartTitle">Llegadas Tarde por Día</div>
-            <div class="chart-legend" style="margin-top:.4rem">
-              <div class="leg"><div class="leg-sq" style="background:#3f3f3f"></div>En tiempo</div>
-              <div class="leg"><div class="leg-sq" style="background:#e07010"></div>(ini ok · lle tarde)</div>
-              <div class="leg"><div class="leg-sq" style="background:#cc0000"></div>(ini tarde · lle tarde)</div>
-              <div class="leg"><div style="width:8px;height:8px;border-radius:50%;background:rgba(22,163,74,.75);display:inline-block;margin-right:4px"></div>Cumple ≥98%</div>
-              <div class="leg"><div style="width:8px;height:8px;border-radius:50%;background:rgba(204,0,0,.65);display:inline-block;margin-right:4px"></div>No cumple</div>
+            <div class="cx-title" id="lChartTitle">Cumplimiento de llegadas por día</div>
+            <div class="cx-sub">% de viajes por resultado. La parte oscura es lo que llegó en tiempo; el punto indica si se cumplió la meta.</div>
+            <div class="cx-legend">
+              <div class="cx-leg"><i style="background:#2B3445"></i>En tiempo</div>
+              <div class="cx-leg"><i style="background:var(--c-solo)"></i>Salió a tiempo, llegó tarde</div>
+              <div class="cx-leg"><i style="background:var(--c-ambos)"></i>Salió y llegó tarde</div>
+                            <div class="cx-leg"><i class="dot" style="background:#16a34a"></i><span class="metaLegOk">Cumple meta</span></div>
+              <div class="cx-leg"><i class="dot" style="background:#dc2626"></i>No cumple</div>
             </div>
           </div>
-          <div class="chart-group-btns" id="grp-lle" style="align-self:flex-start">
+          <div class="cx-right"><div class="chart-group-btns" id="grp-lle">
             <button class="grp-btn active" onclick="setGroup('lle','dia')">Día</button>
             <button class="grp-btn" onclick="setGroup('lle','semana')">Sem</button>
             <button class="grp-btn" onclick="setGroup('lle','mes')">Mes</button>
             <button class="grp-btn" onclick="setGroup('lle','año')">Año</button>
-          </div>
+          </div></div>
         </div>
         <div class="chart-wrap"><canvas id="chart-lle"></canvas></div>
       </div>
@@ -759,7 +868,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
         <button onclick="document.getElementById('drillDetailModal').classList.remove('open')"
           style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
                  border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
-                 font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">← Volver</button>
+                 font-family:"Inter, system-ui, sans-serif",sans-serif;font-weight:600;white-space:nowrap;">← Volver</button>
         <button class="btn-capture" onclick="exportDetailModal()">⬇ Excel</button>
         <button class="modal-close" onclick="document.getElementById('drillDetailModal').classList.remove('open')">✕</button>
       </div>
@@ -843,7 +952,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
         <a id="auditModalLink" href="#" target="_blank"
           style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
                  border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
-                 font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;text-decoration:none">
+                 font-family:"Inter, system-ui, sans-serif",sans-serif;font-weight:600;white-space:nowrap;text-decoration:none">
           ↗ Abrir en pestaña</a>
         <button class="modal-close" onclick="closeAuditModal()">✕</button>
       </div>
@@ -855,7 +964,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
         <div style="font-size:.85rem;color:#6b7a99">Cargando auditoría...</div>
         <button onclick="retryAudit()" style="display:none;margin-top:.5rem;background:#1a2236;color:#7ed321;
           border:1px solid #7ed321;border-radius:7px;padding:.4rem 1rem;font-size:.78rem;font-weight:700;
-          cursor:pointer;font-family:'Inter',sans-serif" id="auditRetryBtn">🔄 Reintentar</button>
+          cursor:pointer;font-family:"Inter, system-ui, sans-serif",sans-serif" id="auditRetryBtn">🔄 Reintentar</button>
       </div>
       <div id="auditError" style="display:none;position:absolute;inset:0;align-items:center;justify-content:center;
            flex-direction:column;gap:.75rem;background:#f0f2f7;padding:2rem;text-align:center">
@@ -883,7 +992,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
         <button onclick="document.getElementById('operadorModal').classList.remove('open')"
           style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:#fff;
                  border-radius:6px;padding:.28rem .7rem;font-size:.72rem;cursor:pointer;
-                 font-family:'Inter',sans-serif;font-weight:600;white-space:nowrap;">← Volver</button>
+                 font-family:"Inter, system-ui, sans-serif",sans-serif;font-weight:600;white-space:nowrap;">← Volver</button>
         <button class="modal-close" onclick="document.getElementById('operadorModal').classList.remove('open')">✕</button>
       </div>
     </div>
@@ -899,7 +1008,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
         <button onclick="exportCoordExcel()" id="coordExportBtn"
           style="background:#7ed321;color:#1a2236;border:none;border-radius:6px;
                  padding:.28rem .8rem;font-size:.72rem;cursor:pointer;
-                 font-family:'Inter',sans-serif;font-weight:700;white-space:nowrap;">📥 Excel</button>
+                 font-family:"Inter, system-ui, sans-serif",sans-serif;font-weight:700;white-space:nowrap;">📥 Excel</button>
         <button class="modal-close" onclick="document.getElementById('coordModal').classList.remove('open')">✕</button>
       </div>
     </div>
@@ -1819,6 +1928,7 @@ function switchTab(tab){
   document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===(tab==='llegadas'?0:1)));
   document.getElementById('panel-inicios').classList.toggle('active',tab==='inicios');
   document.getElementById('panel-llegadas').classList.toggle('active',tab==='llegadas');
+  requestAnimationFrame(rerenderSparks);
 }
 
 // ── Table sort / render ───────────────────────────────────────────
@@ -2060,108 +2170,251 @@ function getGroupKey(r,group){
 function formatGroupLabel(key,group){
   if(group==='dia'){ const dt=new Date(key+'T12:00:00'); if(isNaN(dt.getTime())) return key; return dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short'}); }
   if(group==='mes'){ const[y,m]=key.split('-'); return (MESES[parseInt(m,10)-1]||m)+' '+y; }
+  if(group==='semana' && /^\d+$/.test(String(key).trim())) return 'Sem '+key;
   return key;
 }
-function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
-  const isIni=chartId==='ini';
-  const group=chartGroup[chartId||'ini'];
+// ── KPI + Gráfica v2 ──────────────────────────────────────────────
+// Meta de cumplimiento por panel (ajustar aquí si cambia la meta)
+const META={ini:90,lle:98};
+const COL={solo:'#F08A24',ambos:'#B3261E',ink:'#1a2236',ink2:'#4a5672',muted:'#6b7a99',grid:'#eef1f6',ok:'#15803d',bad:'#b42318'};
+const GROUP_WORD={dia:'por día',semana:'por semana',mes:'por mes','año':'por año'};
+let CHART_SFX='';
+
+function aggregate(rows,group,isIni){
   const by={};
   rows.forEach(r=>{
     const key=getGroupKey(r,group); if(!key||key==='?') return;
-    if(!by[key]) by[key]={t:0,lSolo:0,lAmbos:0};
-    by[key].t+=countViajes(r[C.viajes]);
-    const iniT=countLate(r[C.retardo])===1, lleT=countLate(r[C.llegada])===1;
-    if(isIni){ if(iniT&&lleT) by[key].lAmbos++; else if(iniT&&!lleT) by[key].lSolo++; }
-    else     { if(lleT&&iniT) by[key].lAmbos++; else if(lleT&&!iniT) by[key].lSolo++; }
+    const b=by[key]||(by[key]={t:0,s:0,a:0});
+    b.t+=countViajes(r[C.viajes]);
+    const iT=countLate(r[C.retardo])===1, lT=countLate(r[C.llegada])===1;
+    if(iT&&lT) b.a++;
+    else if(isIni?(iT&&!lT):(lT&&!iT)) b.s++;
   });
-  const keys=Object.keys(by).sort((a,b)=>{ if(group==='semana') return(parseInt(a)||0)-(parseInt(b)||0); return a.localeCompare(b); });
-  const tots=keys.map(k=>by[k].t), solos=keys.map(k=>by[k].lSolo), ambos=keys.map(k=>by[k].lAmbos);
-  const entiem=keys.map((_,i)=>tots[i]-solos[i]-ambos[i]);
-  const labels=keys.map(k=>formatGroupLabel(k,group));
-  const entiemPct=keys.map((_,i)=>tots[i]>0?+(entiem[i]/tots[i]*100).toFixed(2):0);
-  const solosPct =keys.map((_,i)=>tots[i]>0?+(solos[i]/tots[i]*100).toFixed(2):0);
-  const ambosPct =keys.map((_,i)=>tots[i]>0?+(ambos[i]/tots[i]*100).toFixed(2):0);
-  const soloLbl  =isIni?'Inició tarde, llegó bien (ini tarde · lle ok)':'Salió bien, llegó tarde (ini ok · lle tarde)';
-  const ambosLbl =isIni?'Inició Y llegó tarde (ini tarde · lle tarde)':'Salió Y llegó tarde (ini tarde · lle tarde)';
+  const keys=Object.keys(by).sort((a,b)=>group==='semana'?(parseInt(a)||0)-(parseInt(b)||0):a.localeCompare(b));
+  return keys.map(k=>{
+    const b=by[k], pc=v=>b.t>0?v/b.t*100:0;
+    return {key:k,label:formatGroupLabel(k,group),t:b.t,s:b.s,a:b.a,sP:pc(b.s),aP:pc(b.a),cP:b.t>0?Math.max(0,(b.t-b.s-b.a)/b.t*100):0};
+  });
+}
 
-  // Y-axis mínimo dinámico: piso del menor %cumplimiento menos 3pp, redondeado a 5
-  const minPct = entiemPct.length ? Math.min(...entiemPct) : 0;
-  const yMin   = Math.max(0, Math.floor((minPct - 3) / 5) * 5);
+function hexA(hex,a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
+
+function buildChart(canvasId,rows,lateField,lateLbl,existing,chartId){
+  const isIni=chartId==='ini', group=chartGroup[chartId]||'dia', meta=META[chartId];
+  const pts=aggregate(rows,group,isIni);
+  const pfx=isIni?'k':'lk';
+  const titleEl=document.getElementById(isIni?'chartTitle':'lChartTitle');
+  if(titleEl) titleEl.textContent=(isIni?'Cumplimiento de inicios ':'Cumplimiento de llegadas ')+GROUP_WORD[group]+CHART_SFX;
+  const legEl=document.getElementById(isIni?'panel-inicios':'panel-llegadas')?.querySelector('.metaLegOk');
+  if(legEl) legEl.textContent='Cumple meta (≥'+meta+'%)';
+  const soloLbl=isIni?'Salió tarde, llegó a tiempo':'Salió a tiempo, llegó tarde';
+  const ambosLbl='Salió y llegó tarde';
+  const EN='#2B3445';
+
+  // Eje Y con zoom: un poco debajo del peor valor (o la meta) hasta 100%
+  const minC=pts.length?Math.min(...pts.map(p=>p.cP)):meta;
+  let yMin=Math.floor(Math.min(minC,meta)-1.5), step=1;
+  if(100-yMin>20){ yMin=Math.floor(yMin/5)*5; step=5; }
+  else if(100-yMin>8){ yMin=Math.floor(yMin/2)*2; step=2; }
+  yMin=Math.max(0,yMin);
 
   if(existing) existing.destroy();
   const ctx=document.getElementById(canvasId).getContext('2d');
+  let hoverIdx=-1;
+  const fill=hex=>c=>(hoverIdx<0||c.dataIndex===hoverIdx)?hex:hexA(hex,.28);
+  const common={stack:'s',barPercentage:.8,categoryPercentage:.9,maxBarThickness:48,borderSkipped:false,borderWidth:0};
+  const n=pts.length||1;
+
   return new Chart(ctx,{
     type:'bar',
-    data:{labels,datasets:[
-      {label:'En tiempo',data:entiemPct,_raw:entiem,_pct:entiemPct,_tots:tots,backgroundColor:'#3f3f3f',stack:'s',order:2,borderRadius:{topLeft:0,topRight:0,bottomLeft:4,bottomRight:4},barPercentage:.82},
-      {label:soloLbl,data:solosPct,_raw:solos,_pct:solosPct,_tots:tots,backgroundColor:'#e07010',stack:'s',order:2,borderRadius:{topLeft:0,topRight:0,bottomLeft:0,bottomRight:0},barPercentage:.82},
-      {label:ambosLbl,data:ambosPct,_raw:ambos,_pct:ambosPct,_tots:tots,backgroundColor:'#cc0000',stack:'s',order:2,borderRadius:{topLeft:4,topRight:4,bottomLeft:0,bottomRight:0},barPercentage:.82},
+    data:{labels:pts.map(p=>p.label),datasets:[
+      {...common,label:'En tiempo',data:pts.map(p=>p.cP),backgroundColor:fill(EN),hoverBackgroundColor:EN,borderRadius:0},
+      {...common,label:soloLbl,data:pts.map(p=>p.sP),backgroundColor:fill(COL.solo),hoverBackgroundColor:COL.solo,
+        borderRadius:c=>{const p=pts[c.dataIndex]; return (p&&p.a===0)?{topLeft:6,topRight:6,bottomLeft:0,bottomRight:0}:0;}},
+      {...common,label:ambosLbl,data:pts.map(p=>p.aP),backgroundColor:fill(COL.ambos),hoverBackgroundColor:COL.ambos,
+        borderRadius:{topLeft:6,topRight:6,bottomLeft:0,bottomRight:0}},
     ]},
     options:{
       responsive:true,maintainAspectRatio:false,
-      layout:{padding:{top:16}},
+      animation:{
+        duration:700,easing:'easeOutQuart',
+        delay:c=>(c.type==='data'&&c.mode==='default')?c.dataIndex*(600/n)+c.datasetIndex*60:0
+      },
+      layout:{padding:{top:22,right:8,left:0,bottom:0}},
       interaction:{mode:'index',intersect:false},
+      onHover(e,els,chart){
+        const i=els.length?els[0].index:-1;
+        if(i!==hoverIdx){ hoverIdx=i; chart.update('none'); }
+      },
       plugins:{
         legend:{display:false},
         tooltip:{
-          backgroundColor:'#1a2236',borderColor:'#6b7a99',borderWidth:1,
-          titleColor:'#fff',bodyColor:'rgba(255,255,255,.75)',padding:12,
+          backgroundColor:'rgba(255,255,255,.98)',borderColor:'#dfe4ee',borderWidth:1,cornerRadius:10,
+          titleColor:COL.ink,bodyColor:COL.ink2,footerColor:COL.ink,padding:12,boxPadding:5,
+          titleFont:{family:"Inter, system-ui, sans-serif",weight:'700',size:12.5},bodyFont:{family:"Inter, system-ui, sans-serif",size:12},footerFont:{family:"Inter, system-ui, sans-serif",weight:'600',size:12},
+          caretSize:6,itemSort:(a,b)=>b.datasetIndex-a.datasetIndex,
           callbacks:{
-            title(items){ const i=items[0]; const tot=i.dataset._tots?i.dataset._tots[i.dataIndex]:null; return i.label+(tot!=null?' · '+tot.toLocaleString('es-MX')+' viajes':''); },
-            label(c){
-              if(c.dataset.label==='% Cumplimiento') return '  % Cumpl.: '+c.raw+'%';
-              const rawVal=c.dataset._raw?c.dataset._raw[c.dataIndex]:null;
-              if(rawVal===null||rawVal===0) return null;
-              const pctStr=c.raw>0?' ('+c.raw.toFixed(1)+'%)':'';
-              return '  '+c.dataset.label+': '+rawVal.toLocaleString('es-MX')+pctStr;
-            }
+            title(items){ const p=pts[items[0].dataIndex]; return p.label+'  ·  '+N(p.t)+' viajes'; },
+            label(c){ const p=pts[c.dataIndex]; const k=c.datasetIndex;
+              const cnt=k===0?Math.max(0,p.t-p.s-p.a):k===1?p.s:p.a, pc=k===0?p.cP:k===1?p.sP:p.aP;
+              if(k>0&&cnt===0) return null;
+              return ' '+c.dataset.label+': '+N(cnt)+'  ('+pc.toFixed(1)+'%)'; },
+            labelColor(c){ const col=[EN,COL.solo,COL.ambos][c.datasetIndex]; return {backgroundColor:col,borderColor:col,borderWidth:0,borderRadius:2}; },
+            footer(items){ const p=pts[items[0].dataIndex];
+              return p.cP>=meta?'✓ Cumple la meta de '+meta+'%':'✕ '+(meta-p.cP).toFixed(1)+' pp debajo de la meta ('+meta+'%)'; }
           }
         }
       },
       scales:{
-        x:{stacked:true,ticks:{color:'#6b7a99',font:{size:10,family:'Inter'}},grid:{color:'rgba(0,0,0,.04)'}},
-        y:{stacked:true,min:yMin,max:100,ticks:{color:'#6b7a99',font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(0,0,0,.04)'}},
+        x:{stacked:true,grid:{display:false},border:{color:'#dfe4ee'},ticks:{color:COL.muted,font:{size:11,family:"Inter, system-ui, sans-serif"},maxRotation:0,autoSkipPadding:10}},
+        y:{stacked:true,min:yMin,max:100,border:{display:false},grid:{color:COL.grid,lineWidth:1},
+           ticks:{stepSize:step,color:COL.muted,font:{size:11,family:"Inter, system-ui, sans-serif"},padding:8,callback:v=>v+'%'}},
       }
     },
-    plugins:[{id:'lbl',afterDatasetsDraw(chart){
-      const c2=chart.ctx,area=chart.chartArea,yScale=chart.scales.y,META=98;
-      const eBi=chart.data.datasets.findIndex(d=>d.label==='En tiempo');
-      if(eBi>=0){
-        chart.getDatasetMeta(eBi).data.forEach((bar,i)=>{
-          const pct=chart.data.datasets[eBi]._pct?.[i];
-          const raw=chart.data.datasets[eBi]._raw?.[i];
-          if(!pct||!raw) return;
-          const topPx=yScale.getPixelForValue(pct),bottomPx=area.bottom,centerY=topPx+(bottomPx-topPx)*0.55;
-          if(bottomPx-topPx<18) return;
-          c2.save();c2.font='bold 12px Inter';c2.fillStyle='#ffffff';c2.textAlign='center';c2.textBaseline='middle';
-          c2.fillText(pct.toFixed(1)+'%',bar.x,centerY);c2.restore();
+    plugins:[{
+      id:'nsLabels',
+      afterDatasetsDraw(chart){
+        const {ctx:c,chartArea:a,scales:{y}}=chart;
+        const F=' Inter, system-ui, sans-serif';
+        const prog=chart.getDatasetMeta(0).data.length?1:0; if(!prog) return;
+        const m0=chart.getDatasetMeta(0), m1=chart.getDatasetMeta(1), m2=chart.getDatasetMeta(2);
+        const slot=pts.length?(a.right-a.left)/pts.length:0;
+        pts.forEach((p,i)=>{
+          const P=el=>el?el.getProps(['x','y','base','width'],true):null;
+          const b0=P(m0.data[i]), b1=P(m1.data[i]), b2=P(m2.data[i]); if(!b0) return;
+          const x=b0.x, w=b0.width, dim=hoverIdx>=0&&hoverIdx!==i;
+          c.save(); c.globalAlpha=dim?.35:1;
+          // separadores de 2px entre segmentos
+          c.fillStyle='#ffffff';
+          if(p.s>0||p.a>0) c.fillRect(x-w/2-1,b0.y-1,w+2,2);
+          if(p.s>0&&p.a>0) c.fillRect(x-w/2-1,b1.y-1,w+2,2);
+          // % en tiempo dentro de la barra oscura
+          const segH=b0.base-b0.y;
+          if(segH>22){
+            const t=p.cP.toFixed(1)+'%'; let fs=12;
+            do{ c.font='700 '+fs+'px'+F; }while(c.measureText(t).width>w-4&&--fs>8);
+            c.fillStyle='#ffffff'; c.textAlign='center'; c.textBaseline='top';
+            if(c.measureText(t).width<=w) c.fillText(t,x,b0.y+8);
+          }
+          // % naranja / rojo cuando caben
+          c.font='600 '+(slot<40?'9.5px':'10.5px')+F; c.textBaseline='middle'; c.textAlign='center';
+          [[b1,p.sP,p.s],[b2,p.aP,p.a]].forEach(([b,v,cnt])=>{
+            if(!b||!cnt) return; const h=Math.abs(b.base-b.y);
+            const txt=v.toFixed(1)+'%'; if(h<15||c.measureText(txt).width>w-4) return;
+            c.fillStyle='#ffffff'; c.fillText(txt,x,(b.y+b.base)/2);
+          });
+          // punto de estatus arriba de la barra
+          const ok=p.cP>=meta, ty=y.getPixelForValue(100)-11;
+          c.beginPath(); c.arc(x,ty,4.5,0,Math.PI*2);
+          c.fillStyle=ok?'#16a34a':'#dc2626'; c.fill();
+          c.lineWidth=2; c.strokeStyle='#ffffff'; c.stroke();
+          c.restore();
         });
       }
-      [{lbl:soloLbl},{lbl:ambosLbl}].forEach(({lbl})=>{
-        const bi=chart.data.datasets.findIndex(d=>d.label===lbl);
-        if(bi<0) return;
-        chart.getDatasetMeta(bi).data.forEach((bar,i)=>{
-          const pct=chart.data.datasets[bi]._pct?.[i];
-          const raw=chart.data.datasets[bi]._raw?.[i];
-          if(!pct||!raw||bar.height<11) return;
-          c2.save();c2.font='bold 10px Inter';c2.fillStyle='#fff';c2.textAlign='center';c2.textBaseline='middle';
-          c2.fillText(pct.toFixed(1)+'%',bar.x,bar.y+bar.height/2);c2.restore();
-        });
-      });
-      const aBi=chart.data.datasets.findIndex(d=>d.label===ambosLbl);
-      const sBi=chart.data.datasets.findIndex(d=>d.label===soloLbl);
-      if(aBi<0||sBi<0||eBi<0) return;
-      chart.getDatasetMeta(aBi).data.forEach((amboBar,i)=>{
-        const ePct=chart.data.datasets[eBi]._pct?.[i]??0;
-        const sPct=chart.data.datasets[sBi]._pct?.[i]??0;
-        const aPct=chart.data.datasets[aBi]._pct?.[i]??0;
-        const x=amboBar.x,topVal=ePct+sPct+aPct,topPx=yScale.getPixelForValue(topVal)-8;
-        c2.save();c2.fillStyle=(ePct>=META)?'rgba(22,163,74,.75)':'rgba(204,0,0,.65)';
-        c2.beginPath();c2.arc(x,topPx,4,0,Math.PI*2);c2.fill();c2.restore();
-      });
-    }}]
+    }]
   });
 }
+
+// Sparkline SVG del cumplimiento diario
+const SPARK_CACHE={};
+function rerenderSparks(){ Object.entries(SPARK_CACHE).forEach(([id,v])=>renderSpark(id,v.pts,v.meta)); }
+function renderSpark(elId,pts,meta){
+  SPARK_CACHE[elId]={pts,meta};
+  const el=document.getElementById(elId); if(!el) return;
+  if(!el.offsetParent) return; // panel oculto: se dibuja al mostrarse
+  if(pts.length<2){ el.innerHTML='<div class="kx-empty">Se necesita más de un día para ver la tendencia</div>'; return; }
+  const W=Math.max(120,el.clientWidth||260), H=Math.max(56,el.clientHeight||64), px=5, py=6;
+  const vals=pts.map(p=>p.cP);
+  const lo=Math.min(...vals,meta)-0.8, hi=Math.max(100,...vals);
+  const X=i=>px+i*(W-2*px)/(pts.length-1), Y=v=>py+(hi-v)/(hi-lo)*(H-2*py);
+  const line=pts.map((p,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(p.cP).toFixed(1)).join(' ');
+  const area=line+` L${X(pts.length-1).toFixed(1)} ${H} L${X(0).toFixed(1)} ${H} Z`;
+  const ym=Y(meta).toFixed(1);
+  const last=pts[pts.length-1], lc=last.cP>=meta?COL.ok:COL.bad;
+  const misses=pts.map((p,i)=>p.cP<meta?`<circle cx="${X(i).toFixed(1)}" cy="${Y(p.cP).toFixed(1)}" r="2.2" fill="${COL.bad}" opacity=".55"/>`:'').join('');
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Tendencia diaria de cumplimiento">
+    <rect x="0" y="0" width="${W}" height="${ym}" fill="rgba(21,128,61,.06)"/>
+    <line x1="0" x2="${W}" y1="${ym}" y2="${ym}" stroke="${COL.ok}" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <path d="${area}" fill="rgba(26,34,54,.05)"/>
+    <path d="${line}" fill="none" stroke="${COL.ink2}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    ${misses}
+    <circle cx="${X(pts.length-1).toFixed(1)}" cy="${Y(last.cP).toFixed(1)}" r="4.5" fill="${lc}" stroke="#fff" stroke-width="2"/>
+  </svg>`;
+}
+
+// % cumplimiento del periodo anterior (mes o semana) con los mismos filtros
+function prevPeriod(isIni){
+  const f=getF(); if(f.fi||f.ff) return null;
+  const sv={mes:SC_SEL.mes,sem:SC_SEL.sem,ki:kpiFilter.ini,kl:kpiFilter.lle};
+  let label='', yearFix='';
+  if(f.sem){
+    const raw=String(f.sem).trim(), n=parseInt(raw,10);
+    if(!(n>1)||String(n)!==raw) return null;
+    SC_SEL.sem=String(n-1); yearFix=f.mes?f.mes.slice(0,4):''; SC_SEL.mes=''; label='sem '+(n-1);
+  } else if(f.mes){
+    const [yy,mm]=f.mes.split('-').map(Number); const d=new Date(yy,mm-2,1);
+    SC_SEL.mes=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; label=MESES[d.getMonth()].toLowerCase();
+  } else return null;
+  kpiFilter.ini=''; kpiFilter.lle='';
+  let rows;
+  try{ rows=filterRows('ini'); }
+  finally{ SC_SEL.mes=sv.mes; SC_SEL.sem=sv.sem; kpiFilter.ini=sv.ki; kpiFilter.lle=sv.kl; }
+  if(yearFix) rows=rows.filter(r=>getFecha(r).slice(0,4)===yearFix);
+  if(!rows.length) return null;
+  const tot=rows.reduce((s,r)=>s+countViajes(r[C.viajes]),0);
+  const late=rows.reduce((s,r)=>s+countLate(r[isIni?C.retardo:C.llegada]),0);
+  return tot>0?{pct:(tot-late)/tot*100,label}:null;
+}
+
+function renderKpis(isIni,allBase){
+  const pfx=isIni?'k':'lk', meta=META[isIni?'ini':'lle'];
+  const $=id=>document.getElementById(pfx+id);
+  const tot=allBase.reduce((s,r)=>s+countViajes(r[C.viajes]),0);
+  const late=allBase.reduce((s,r)=>s+countLate(r[isIni?C.retardo:C.llegada]),0);
+  let solo=0, ambos=0;
+  allBase.forEach(r=>{
+    const iT=countLate(r[C.retardo])===1, lT=countLate(r[C.llegada])===1;
+    if(iT&&lT) ambos++; else if(isIni?(iT&&!lT):(lT&&!iT)) solo++;
+  });
+  const pct=tot>0?(tot-late)/tot*100:null;
+  const pctOf=v=>tot>0?(v/tot*100):0;
+  const lateSum=solo+ambos;
+
+  // Hero
+  $('Pct').textContent=pct==null?'–':pct.toFixed(1)+'%';
+  const st=$('Status');
+  if(pct==null){ st.className='kx-status'; st.textContent=''; }
+  else if(pct>=meta){ st.className='kx-status ok'; st.textContent='✓ En meta · '+(pct-meta).toFixed(1)+' pp arriba de '+meta+'%'; }
+  else { st.className='kx-status bad'; st.textContent='✕ '+(meta-pct).toFixed(1)+' pp debajo de la meta ('+meta+'%)'; }
+  const pv=pct==null?null:prevPeriod(isIni), dEl=$('Delta');
+  if(pv){
+    const d=pct-pv.pct, cls=Math.abs(d)<0.05?'flat':(d>0?'up':'down'), arrow=cls==='flat'?'＝':(d>0?'▲':'▼');
+    dEl.innerHTML=`<b class="${cls}">${arrow} ${Math.abs(d).toFixed(1)} pp</b> vs ${pv.label} (${pv.pct.toFixed(1)}%)`;
+  } else dEl.textContent='';
+  const daily=aggregate(allBase,'dia',isIni);
+  const ok=daily.filter(p=>p.cP>=meta).length;
+  $('SparkRange').textContent=daily.length?daily[0].label+' – '+daily[daily.length-1].label:'';
+  if(daily.length){
+    let w=daily[0]; daily.forEach(p=>{ if(p.cP<w.cP) w=p; });
+    $('Days').innerHTML=`<b>${ok} de ${daily.length}</b> días en meta · Peor día: <b>${w.label}</b> (${w.cP.toFixed(1)}%)`;
+  } else $('Days').textContent='';
+  requestAnimationFrame(()=>renderSpark(pfx+'Spark',daily,meta));
+
+  // Tarjetas
+  $('Total').textContent=N(tot);
+  const f=getF();
+  $('Periodo').textContent=(f.fi||f.ff)?((f.fi||'…')+' → '+(f.ff||'…')):f.sem?('Semana '+f.sem):f.mes?mesLabel(f.mes):'Todos los periodos';
+  $('TotalSub').innerHTML=`<b>${N(Math.max(0,tot-late))}</b> a tiempo · <b>${N(late)}</b> tarde`;
+  $('Tarde').textContent=N(solo);
+  $('TardeSub').innerHTML=`<b>${pctOf(solo).toFixed(1)}%</b> de los viajes · ${lateSum?Math.round(solo/lateSum*100):0}% de los retrasos`;
+  $('TardeBar').style.width=(lateSum?solo/lateSum*100:0)+'%';
+  $('Ambos').textContent=N(ambos);
+  $('AmbosSub').innerHTML=`<b>${pctOf(ambos).toFixed(1)}%</b> de los viajes · ${lateSum?Math.round(ambos/lateSum*100):0}% de los retrasos`;
+  $('AmbosBar').style.width=(lateSum?ambos/lateSum*100:0)+'%';
+}
+// Redibuja sparklines al cambiar tamaño / pestaña
+let _sparkT=null;
+window.addEventListener('resize',()=>{ clearTimeout(_sparkT); _sparkT=setTimeout(rerenderSparks,200); });
 
 // ── Main draw ─────────────────────────────────────────────────────
 function draw(){
@@ -2190,31 +2443,14 @@ function draw(){
   const rowsIni=filterRows('ini');
   const rowsLle=filterRows('lle');
 
-  const totAll   =allBase.reduce((s,r)=>s+countViajes(r[C.viajes]),0);
-  const totIniT  =allBase.reduce((s,r)=>s+countLate(r[C.retardo]),0);
-  const totLleT  =allBase.reduce((s,r)=>s+countLate(r[C.llegada]),0);
-  const totAmbos =allBase.filter(r=>countLate(r[C.retardo])===1&&countLate(r[C.llegada])===1).length;
-  const totIniSolo=allBase.filter(r=>countLate(r[C.retardo])===1&&countLate(r[C.llegada])!==1).length;
-  const totLleSolo=allBase.filter(r=>countLate(r[C.llegada])===1&&countLate(r[C.retardo])!==1).length;
+  CHART_SFX=sfx;
+  renderKpis(true,allBase);
+  renderKpis(false,allBase);
 
-  document.getElementById('kTotal').textContent=N(totAll);
-  document.getElementById('kTarde').textContent=N(totIniSolo);
-  document.getElementById('kAmbos').textContent=N(totAmbos);
-  const kp=document.getElementById('kPct');
-  kp.textContent=totAll>0?((totAll-totIniT)/totAll*100).toFixed(1)+'%':'–';
-  kp.style.color=pctColor(totAll>0?(totAll-totIniT)/totAll*100:0);
-
-  document.getElementById('lkTotal').textContent=N(totAll);
-  document.getElementById('lkTarde').textContent=N(totLleSolo);
-  document.getElementById('lkAmbos').textContent=N(totAmbos);
-  const lp=document.getElementById('lkPct');
-  lp.textContent=totAll>0?((totAll-totLleT)/totAll*100).toFixed(1)+'%':'–';
-  lp.style.color=pctColorLlegadas(totAll>0?(totAll-totLleT)/totAll*100:0);
-
-  ['chartTitle','tCliTitle','tGerTitle','tJefTitle','tCoordTitle','tOperTitle'].forEach((id,i)=>
-    document.getElementById(id).textContent=['Inicios Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe','Resumen por Coordinador','Resumen por Operador'][i]+sfx);
-  ['lChartTitle','ltCliTitle','ltGerTitle','ltJefTitle','ltCoordTitle','ltOperTitle'].forEach((id,i)=>
-    document.getElementById(id).textContent=['Llegadas Tarde por Día','Resumen por Cliente','Resumen por Gerente','Resumen por Jefe','Resumen por Coordinador','Resumen por Operador'][i]+sfx);
+  ['tCliTitle','tGerTitle','tJefTitle','tCoordTitle','tOperTitle'].forEach((id,i)=>
+    document.getElementById(id).textContent=['Resumen por Cliente','Resumen por Gerente','Resumen por Jefe','Resumen por Coordinador','Resumen por Operador'][i]+sfx);
+  ['ltCliTitle','ltGerTitle','ltJefTitle','ltCoordTitle','ltOperTitle'].forEach((id,i)=>
+    document.getElementById(id).textContent=['Resumen por Cliente','Resumen por Gerente','Resumen por Jefe','Resumen por Coordinador','Resumen por Operador'][i]+sfx);
 
   myChartIni=buildChart('chart-ini',rowsIni,C.retardo,'Inicios tarde',myChartIni,'ini');
   myChartLle=buildChart('chart-lle',rowsLle,C.llegada,'Llegadas tarde',myChartLle,'lle');
@@ -2692,7 +2928,7 @@ function rerenderDetailModal(){
     const eEta =(r[C.endEta]   ||'–').trim();
     const tripId=(r[C.id]||'').trim();
     const driverEsc=driver.replace(/'/g,"\\'");
-    const auditBtn=tripId?`<button onclick="openAuditModal('${tripId}')" style="background:#1a2236;color:#7ed321;border:1px solid #7ed321;border-radius:5px;padding:.15rem .35rem;font-size:.62rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;line-height:1.4" title="Auditoría del viaje">📍</button>`:'';
+    const auditBtn=tripId?`<button onclick="openAuditModal('${tripId}')" style="background:#1a2236;color:#7ed321;border:1px solid #7ed321;border-radius:5px;padding:.15rem .35rem;font-size:.62rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:"Inter, system-ui, sans-serif",sans-serif;line-height:1.4" title="Auditoría del viaje">📍</button>`:'';
     const kmOp=kmOperadorRuta(r[C.workerId], rutaActual);
     return`<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
       <td style="text-align:center;padding:.3rem .4rem">${auditBtn}</td>
@@ -3204,7 +3440,7 @@ function openDrillDetail(rutaK,clienteK,tbl){
       ? `<button onclick="openAuditModal('${tripId}')"
            style="background:#1a2236;color:#7ed321;border:1px solid #7ed321;border-radius:5px;
                   padding:.15rem .35rem;font-size:.62rem;font-weight:700;cursor:pointer;
-                  white-space:nowrap;font-family:'Inter',sans-serif;line-height:1.4"
+                  white-space:nowrap;font-family:"Inter, system-ui, sans-serif",sans-serif;line-height:1.4"
            title="Auditoría del viaje">📍</button>`
       : '';
     const kmOp=kmOperadorRuta(r[C.workerId], rutaK);
