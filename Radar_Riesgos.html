@@ -212,9 +212,9 @@ h1{margin:4px 0;font-size:clamp(29px,4vh,42px);line-height:1;color:var(--navy);l
       <div class="normbar"><button id="normBtn" class="norm-btn" type="button">ⓘ Ver sustento normativo y documental</button></div>
       <div id="normPanel" class="norm-panel">
         <div class="norm-grid">
-          <b>ISO 39001</b><span id="isoText"></span>
-          <b>Documento interno</b><span id="internalText"></span>
-          <b>Relación</b><span id="relationText"></span>
+          <b>Normativa externa</b><span id="externalText"></span>
+          <b>Documentación interna</b><span id="internalText"></span>
+          <b>Relación con el control</b><span id="relationText"></span>
         </div>
       </div>
     </div>
@@ -261,9 +261,9 @@ const data = {
     no:"01 / 06",label:"Prevención",title:"Identificamos",pattern:"risk",
     lead:"Ubicamos dónde se concentra la exposición para decidir dónde actuar primero.",
     objective:"Priorizar el riesgo antes de que se convierta en un siniestro.",
-    iso:"Sistema de Gestión de la Seguridad Vial.",
+    external:"ISO 39001 · Ley General de Movilidad y Seguridad Vial · Reglamento de Tránsito en Carreteras y Puentes de Jurisdicción Federal.",
     internal:"PR-OPX-07 Seguridad Vial · PR-PLE-03 Gestión de riesgos y oportunidades · FR-PLE-06 Matriz de Gestión Integral de Riesgos.",
-    relation:"El procedimiento interno contempla el análisis de riesgos de Seguridad Vial y la definición de controles.",
+    relation:"El marco externo orienta la gestión preventiva y la seguridad vial; internamente se identifican riesgos, se valoran y se definen controles.",
     bullets:[
       {k:"Riesgo",title:"Tendencias",summary:"Detectamos patrones y desviaciones recurrentes.",items:["Concentración por tipo de evento","Variación semanal / mensual","Comportamientos repetitivos","Señales que requieren atención"],related:"Control semanal + siniestralidad",relatedText:"Cruza indicadores y eventos para detectar cambios y recurrencias.",use:"Priorización",useText:"Ayuda a decidir qué tema debe atenderse primero.",objective:"Ver la tendencia antes de que el evento se repita."},
       {k:"Exposición",title:"Operación / zona",summary:"Ubicamos dónde se concentra el riesgo operativo.",items:["Gerencia / jefatura con mayor exposición","Planta u operación con recurrencia","Ruta o zona de atención","Operadores con mayor concentración"],related:"Siniestralidad + análisis operativo",relatedText:"Permite ubicar dónde se acumulan eventos o desviaciones.",use:"Foco operativo",useText:"Orienta supervisión, patrullaje y revisión puntual.",objective:"Saber dónde concentrar el control."},
@@ -274,9 +274,9 @@ const data = {
     no:"02 / 06",label:"Detección temprana",title:"Monitoreamos",pattern:"monitor",
     lead:"Convertimos el comportamiento real de conducción en información útil para detectar desviaciones.",
     objective:"Detectar oportunamente conductas y condiciones que elevan el riesgo.",
-    iso:"Sistema de Gestión de la Seguridad Vial.",
+    external:"ISO 39001 · NOM-068-SCT-2-2014 · NOM-012-SCT-2-2017 (cuando aplique por configuración/peso y dimensiones) · Reglamento de Tránsito en Carreteras y Puentes de Jurisdicción Federal.",
     internal:"PR-OPX-07 Seguridad Vial · PL-OPX-02 Indicadores de Seguridad Vial.",
-    relation:"El procedimiento incluye Score de Seguridad, Score ADAS, cargas de trabajo e infracciones como indicadores de control.",
+    relation:"Se monitorean desempeño de conducción, sistemas de asistencia y señales de condición vehicular; la NOM-068 complementa el control sobre condiciones físico-mecánicas y de seguridad.",
     bullets:[
       {k:"Score",title:"Comportamiento",summary:"Medimos el desempeño de conducción y su tendencia.",items:["Resultado de Score","Eventos por severidad","Reprobación / reincidencia","Evolución del operador"],related:"Score de Seguridad",relatedText:"Concentra el comportamiento del operador y sus eventos.",use:"Seguimiento",useText:"Permite focalizar operadores y tendencias de bajo desempeño.",objective:"Medir cómo se está conduciendo."},
       {k:"DMAS / ADAS",title:"Tecnología",summary:"Verificamos uso y alertamiento de sistemas de asistencia.",items:["Porcentaje de uso / logueo","Alertas de conducción","Unidades con bajo cumplimiento","Posibles fallas de equipo"],related:"Uso DMAS / ADAS",relatedText:"Mide utilización y comportamiento asociado a los sistemas de asistencia.",use:"Control tecnológico",useText:"Distingue entre desviación operativa y posible falla técnica.",objective:"Aprovechar la tecnología como barrera preventiva."},
@@ -287,9 +287,9 @@ const data = {
     no:"03 / 06",label:"Condición segura",title:"Aptitud para el servicio",pattern:"aptitud",
     lead:"Controlamos condiciones que pueden afectar la capacidad del operador para realizar un servicio seguro.",
     objective:"Asegurar condiciones adecuadas antes y durante la operación.",
-    iso:"Sistema de Gestión de la Seguridad Vial.",
+    external:"ISO 39001 · NOM-087-SCT-2-2017 · Ley General de Movilidad y Seguridad Vial · Reglamento de Tránsito en Carreteras y Puentes de Jurisdicción Federal.",
     internal:"PR-OPX-07 Seguridad Vial · PL-OPX-01 Políticas de Seguridad Vial · PL-OPX-02 Indicadores de Seguridad Vial · FR-CHU-36 Programa de alcohol y drogas · PR-CHU-07 Salud y ambiente de trabajo.",
-    relation:"PR-OPX-07 contempla descansos, alcoholemias y antidoping como controles preventivos del sistema.",
+    relation:"La NOM-087 establece tiempos de conducción y pausas para prevenir siniestros por fatiga; los controles internos complementan descansos, alcoholemia y antidoping.",
     bullets:[
       {k:"Fatiga",title:"Descansos y jornadas",summary:"Controlamos exposición acumulada y días continuos trabajados.",items:["Días continuos sin descanso","Horas de conducción","Jornadas prolongadas","Semáforo / condición crítica"],related:"Descansos y Jornadas",relatedText:"Permite detectar operadores con exposición elevada por carga de trabajo.",use:"Programación segura",useText:"Apoya decisiones de descanso y ajuste de servicio.",objective:"Evitar que la fatiga incremente la exposición al riesgo."},
       {k:"Alcohol",title:"Alcoholemias",summary:"Aplicamos un control preventivo previo o durante la operación.",items:["Aplicación de pruebas","Cumplimiento del programa","Resultados detectados","Seguimiento de desviaciones"],related:"Tablero de Alcoholemias",relatedText:"Da visibilidad al avance y cumplimiento del control preventivo.",use:"Cero tolerancia",useText:"Evita liberar o mantener en servicio una condición incompatible con conducción segura.",objective:"Prevenir conducción bajo efectos del alcohol."},
@@ -300,9 +300,9 @@ const data = {
     no:"04 / 06",label:"Gestión de desviaciones",title:"Intervenimos",pattern:"intervention",
     lead:"Cuando un indicador muestra riesgo, la desviación debe convertirse en una acción concreta.",
     objective:"Reducir la exposición y evitar que una desviación se repita.",
-    iso:"Sistema de Gestión de la Seguridad Vial.",
+    external:"ISO 39001 · Ley General de Movilidad y Seguridad Vial · Reglamento de Tránsito en Carreteras y Puentes de Jurisdicción Federal.",
     internal:"PR-OPX-07 Seguridad Vial · PR-CHU-06 Administración y retiro del personal · FR-OPX-25 Verificación a bordo.",
-    relation:"El procedimiento establece acciones ante bajo desempeño, reincidencia y verificación de hábitos de manejo.",
+    relation:"La intervención interna convierte desviaciones, reincidencias y hallazgos de supervisión en acciones preventivas o correctivas verificables.",
     bullets:[
       {k:"Críticos",title:"Operadores",summary:"Priorizamos casos con mayor nivel de exposición.",items:["Score reprobatorio","Jornadas críticas","Eventos recurrentes","Antecedentes relevantes"],related:"Operadores críticos",relatedText:"Concentra los casos que requieren atención prioritaria.",use:"Foco inmediato",useText:"Evita dispersar acciones en casos de baja prioridad.",objective:"Atender primero a quien concentra mayor exposición."},
       {k:"Reincidencia",title:"Seguimiento",summary:"Diferenciamos una desviación aislada de un patrón repetitivo.",items:["Semanas consecutivas","Mismo tipo de evento","Reincidencia en siniestralidad","Seguimiento a corrección"],related:"Score + siniestralidad",relatedText:"Permite observar si el comportamiento mejora o persiste.",use:"Escalamiento",useText:"Ayuda a definir si una intervención debe reforzarse.",objective:"Evitar normalizar conductas repetitivas."},
@@ -313,9 +313,9 @@ const data = {
     no:"05 / 06",label:"Aprendizaje del evento",title:"Investigamos",pattern:"investigation",
     lead:"Analizamos cada evento relevante para comprender qué ocurrió y qué debe cambiar.",
     objective:"Transformar cada evento en aprendizaje preventivo.",
-    iso:"ISO 39001 · Numeral 8.2 citado expresamente en el procedimiento interno de atención y seguimiento a incidentes y accidentes.",
+    external:"ISO 39001 · Numeral 8.2 citado en PR-OPX-06 · Ley General de Movilidad y Seguridad Vial.",
     internal:"PR-OPX-06 Atención y Seguimiento a Incidentes y Accidentes · FR-OPX-18 Investigación de Accidentes · FR-OPX-19 Lecciones Aprendidas.",
-    relation:"PR-OPX-06 cubre el aviso, atención, investigación y seguimiento hasta el cierre del evento.",
+    relation:"La investigación documenta el evento, determina causas y alimenta acciones y lecciones aprendidas hasta su cierre.",
     bullets:[
       {k:"Evento",title:"Siniestralidad",summary:"Clasificamos y medimos los eventos ocurridos.",items:["Responsabilidad","Gravedad","Tipo de evento","Afectación / monto"],related:"Control de Siniestralidad",relatedText:"Integra los eventos y permite analizarlos por diferentes niveles de operación.",use:"Lectura del resultado",useText:"Muestra dónde y cómo se materializó el riesgo.",objective:"Entender qué ocurrió y con qué impacto."},
       {k:"Causa",title:"Investigación",summary:"Buscamos causas y factores que originaron el evento.",items:["¿Cómo pasó?","Evidencias","Causa raíz","Factores contribuyentes"],related:"FR-OPX-18 Investigación",relatedText:"Estructura la investigación y documentación del evento.",use:"Aprendizaje",useText:"Evita cerrar el caso solo con una descripción superficial.",objective:"Llegar a la causa, no solo al síntoma."},
@@ -326,9 +326,9 @@ const data = {
     no:"06 / 06",label:"Mejora continua",title:"Mejoramos",pattern:"improve",
     lead:"Los hallazgos e indicadores se convierten en planes, seguimiento y decisiones.",
     objective:"Cerrar el ciclo y fortalecer continuamente los controles de Seguridad Vial.",
-    iso:"Sistema de Gestión de la Seguridad Vial.",
+    external:"ISO 39001 · Ley General de Movilidad y Seguridad Vial.",
     internal:"PR-OPX-07 Seguridad Vial · PR-OPX-08 Comité de Seguridad Vial · PR-OPX-04 Acciones Correctivas.",
-    relation:"El modelo interno contempla seguimiento de indicadores, comité y acciones correctivas como parte de la mejora.",
+    relation:"El seguimiento de indicadores, los comités y las acciones correctivas sostienen el ciclo de mejora continua del sistema.",
     bullets:[
       {k:"Plan",title:"Acciones",summary:"Definimos qué debe hacerse, quién lo hará y cómo se verificará.",items:["Acción definida","Responsable","Fecha compromiso","Evidencia requerida"],related:"Planes de Acción",relatedText:"Da seguimiento a compromisos derivados de riesgos y eventos.",use:"Ejecución",useText:"Evita que las decisiones queden solo en acuerdos verbales.",objective:"Convertir hallazgos en compromisos medibles."},
       {k:"Comité",title:"Seguimiento",summary:"Revisamos periódicamente indicadores, desviaciones y avances.",items:["Score","Descansos","DMAS / ADAS","Siniestralidad y planes"],related:"Comité de Seguridad Vial",relatedText:"Integra la revisión periódica y la toma de decisiones.",use:"Gobernanza",useText:"Mantiene visibles los riesgos y compromisos prioritarios.",objective:"Asegurar seguimiento colectivo a los riesgos clave."},
@@ -361,7 +361,7 @@ function openFactor(key){
   document.getElementById("factorTitle").textContent=d.title;
   document.getElementById("factorLead").textContent=d.lead;
   document.getElementById("objectiveText").textContent=d.objective;
-  document.getElementById("isoText").textContent=d.iso;
+  document.getElementById("externalText").textContent=d.external;
   document.getElementById("internalText").textContent=d.internal;
   document.getElementById("relationText").textContent=d.relation;
 
