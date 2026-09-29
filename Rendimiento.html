@@ -302,6 +302,172 @@
     font-size: 14px; user-select: none;
   }
   #debug-panel .close-x:hover { color: #fff; }
+
+  /* ============ PROGRESO — botón en panel ============ */
+  .prog-open-btn {
+    background: #84cc16; color: #14532d; border: none; padding: 3px 9px; border-radius: 4px;
+    cursor: pointer; font-size: 10.5px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;
+    text-transform: none; letter-spacing: 0; transition: background .15s, transform .1s;
+  }
+  .prog-open-btn:hover { background: #a3e635; }
+  .prog-open-btn:active { transform: scale(.97); }
+  .prog-open-btn svg { width: 12px; height: 12px; }
+  .prog-open-badge {
+    background: rgba(20,83,45,.18); color: #14532d; border-radius: 10px; padding: 0 6px;
+    font-size: 9.5px; font-weight: 700; min-width: 30px; text-align: center;
+  }
+  /* indicador por unidad dentro de la tabla */
+  .prog-mini {
+    display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 9px;
+    font-size: 9px; font-weight: 700; cursor: pointer; vertical-align: middle;
+    background: #e5e7eb; color: #6b7280; border: 1px solid transparent; line-height: 15px;
+  }
+  .prog-mini:hover { border-color: #84cc16; }
+  .prog-mini.wip  { background: #fef3c7; color: #92400e; }
+  .prog-mini.done { background: #dcfce7; color: #166534; }
+
+  /* ============ PROGRESO — overlay/modal ============ */
+  .prog-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(17,24,39,.55); backdrop-filter: blur(2px);
+    align-items: flex-start; justify-content: center; padding: 28px 14px;
+  }
+  .prog-overlay.show { display: flex; animation: fadeIn .18s ease-out; }
+  .prog-modal {
+    background: #f9fafb; width: 100%; max-width: 900px; max-height: 90vh;
+    border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    display: flex; flex-direction: column; overflow: hidden; border: 1px solid #d1d5db;
+  }
+  .prog-head {
+    background: linear-gradient(90deg,#1f2937,#111827); color: #fff;
+    padding: 12px 16px; display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; border-bottom: 3px solid #84cc16;
+  }
+  .prog-title { font-size: 14px; font-weight: 700; }
+  .prog-title span { color: #84cc16; }
+  .prog-sub { font-size: 10.5px; color: #9ca3af; margin-top: 2px; }
+  .prog-head-actions { display: flex; align-items: center; gap: 6px; }
+  .pbtn {
+    background: #84cc16; color: #14532d; border: none; padding: 6px 11px; border-radius: 5px;
+    cursor: pointer; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 5px;
+    transition: background .15s, transform .1s; white-space: nowrap;
+  }
+  .pbtn:hover:not(:disabled) { background: #a3e635; }
+  .pbtn:active:not(:disabled) { transform: scale(.97); }
+  .pbtn:disabled { opacity: .55; cursor: not-allowed; }
+  .pbtn.ghost { background: rgba(255,255,255,.08); color: #e5e7eb; border: 1px solid rgba(255,255,255,.2); }
+  .pbtn.ghost:hover:not(:disabled) { background: rgba(132,204,22,.22); }
+  .pbtn.spin svg { animation: spin 1s linear infinite; }
+
+  /* panel de configuración de guardado */
+  .prog-cfg { background: #eef2ff; border-bottom: 1px solid #c7d2fe; padding: 12px 16px; font-size: 11px; color: #1e293b; }
+  .prog-cfg h5 { margin: 0 0 6px; font-size: 11.5px; color: #3730a3; }
+  .prog-cfg .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; }
+  .prog-cfg label { font-weight: 600; color: #475569; min-width: 92px; }
+  .prog-cfg input[type=text] {
+    flex: 1; min-width: 240px; padding: 6px 8px; border: 1px solid #a5b4fc; border-radius: 5px; font-size: 11px;
+  }
+  .prog-cfg .hint { color: #64748b; margin-top: 8px; line-height: 1.5; }
+  .prog-cfg code { background: #e0e7ff; padding: 1px 4px; border-radius: 3px; font-size: 10px; }
+  .prog-conn { font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 10px; }
+  .prog-conn.on  { background: #dcfce7; color: #166534; }
+  .prog-conn.off { background: #fee2e2; color: #991b1b; }
+  .prog-conn.wait{ background: #fef3c7; color: #92400e; }
+
+  /* toolbar (búsqueda + filtros + leyenda) */
+  .prog-toolbar {
+    padding: 10px 16px; background: #fff; border-bottom: 1px solid #e5e7eb;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  #prog-search {
+    padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 11px; min-width: 180px; flex: 0 0 auto;
+  }
+  .prog-filters { display: flex; gap: 4px; }
+  .prog-filters button {
+    background: #f3f4f6; border: 1px solid #e5e7eb; color: #4b5563; padding: 5px 10px; border-radius: 6px;
+    cursor: pointer; font-size: 10.5px; font-weight: 600;
+  }
+  .prog-filters button.active { background: #1f2937; color: #fff; border-color: #1f2937; }
+  .prog-legend { display: flex; gap: 12px; margin-left: auto; font-size: 10px; color: #6b7280; }
+  .prog-legend span { display: inline-flex; align-items: center; gap: 4px; }
+  .prog-legend i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+
+  /* lista de unidades */
+  .prog-list { overflow-y: auto; padding: 10px 14px; background: #f9fafb; }
+  .prog-empty { text-align: center; color: #9ca3af; padding: 30px; font-size: 12px; }
+  .prog-card { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; overflow: hidden; }
+  .prog-card.is-open { border-color: #84cc16; box-shadow: 0 2px 8px rgba(132,204,22,.15); }
+  .prog-card-head {
+    display: flex; align-items: center; gap: 10px; padding: 9px 12px; cursor: pointer; user-select: none;
+  }
+  .prog-card-head:hover { background: #f7fee7; }
+  .prog-caret { color: #9ca3af; font-size: 11px; width: 10px; transition: transform .15s; }
+  .prog-card.is-open .prog-caret { transform: rotate(90deg); color: #65a30d; }
+  .prog-uid { font-weight: 700; font-size: 13px; color: #111827; min-width: 62px; }
+  .prog-meta { font-size: 10px; color: #6b7280; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prog-bar { width: 130px; height: 8px; background: #e5e7eb; border-radius: 5px; overflow: hidden; flex: 0 0 auto; }
+  .prog-bar-fill { height: 100%; background: #84cc16; width: 0; transition: width .25s; }
+  .prog-bar-fill.done { background: #16a34a; }
+  .prog-count { font-size: 10.5px; font-weight: 700; color: #374151; min-width: 38px; text-align: right; }
+
+  .prog-card-body { padding: 4px 14px 12px; border-top: 1px dashed #e5e7eb; }
+  .prog-block { margin-top: 10px; }
+  .prog-block-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+  .prog-block-title b { font-size: 9.5px; background: #f3f4f6; color: #6b7280; border-radius: 8px; padding: 0 6px; font-weight: 700; }
+  .prog-item {
+    display: flex; align-items: flex-start; gap: 8px; padding: 5px 8px; border-radius: 6px;
+    font-size: 11.5px; color: #374151; cursor: pointer;
+  }
+  .prog-item:hover { background: #f9fafb; }
+  .prog-item input { width: 15px; height: 15px; margin-top: 1px; cursor: pointer; accent-color: #65a30d; flex: 0 0 auto; }
+  .prog-item.checked { color: #166534; text-decoration: none; }
+  .prog-item.checked span { text-decoration: line-through; text-decoration-color: #86efac; }
+  .prog-card-foot { margin-top: 10px; font-size: 9.5px; color: #9ca3af; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .prog-syncdot { font-size: 9.5px; font-weight: 700; }
+  .prog-syncdot.ok { color: #16a34a; }
+  .prog-syncdot.local { color: #d97706; }
+  .prog-syncdot.err { color: #dc2626; }
+
+  /* evidencia fotográfica por punto */
+  .prog-item-row { display: flex; align-items: center; gap: 6px; }
+  .prog-item-row .prog-item { flex: 1; min-width: 0; }
+  .prog-evi { display: flex; align-items: center; gap: 5px; flex: 0 0 auto; }
+  .prog-photo-btn {
+    background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3; border-radius: 6px;
+    cursor: pointer; font-size: 12px; padding: 2px 7px; line-height: 1.5;
+  }
+  .prog-photo-btn:hover { background: #e0e7ff; }
+  .prog-photo-btn.busy { opacity: .6; cursor: progress; }
+  .prog-photo-link { font-size: 10px; color: #2563eb; text-decoration: none; white-space: nowrap; font-weight: 600; }
+  .prog-photo-link:hover { text-decoration: underline; }
+
+  /* encabezados ordenables */
+  table.pbi thead th.sortable, table.pbi-matrix thead th.sortable { cursor: pointer; user-select: none; }
+  table.pbi thead th.sortable:hover, table.pbi-matrix thead th.sortable:hover { color: #84cc16; }
+  table.pbi thead th.sorted-asc::after  { content: ' ▲'; font-size: 8px; color: #84cc16; }
+  table.pbi thead th.sorted-desc::after { content: ' ▼'; font-size: 8px; color: #84cc16; }
+  table.pbi-matrix thead th.sorted-asc::after  { content: ' ▲'; font-size: 8px; color: #84cc16; }
+  table.pbi-matrix thead th.sorted-desc::after { content: ' ▼'; font-size: 8px; color: #84cc16; }
+
+  /* ventana para pegar imagen de evidencia (Ctrl+V) */
+  .prog-paste-overlay { display:none; position:fixed; inset:0; z-index:1100; background:rgba(17,24,39,.6); align-items:center; justify-content:center; padding:20px; }
+  .prog-paste-overlay.show { display:flex; }
+  .prog-paste-box { background:#fff; width:100%; max-width:480px; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,.4); overflow:hidden; outline:none; }
+  .prog-paste-head { background:#1f2937; color:#fff; padding:10px 14px; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .prog-paste-head #prog-paste-label { color:#84cc16; font-weight:600; font-size:11px; }
+  .prog-paste-head button { background:transparent; border:none; color:#9ca3af; font-size:16px; cursor:pointer; line-height:1; }
+  .prog-paste-head button:hover { color:#fff; }
+  .prog-paste-zone { margin:14px; border:2px dashed #c7d2fe; border-radius:10px; min-height:190px; display:flex; align-items:center; justify-content:center; text-align:center; cursor:pointer; background:#f8fafc; }
+  .prog-paste-zone.drag { border-color:#84cc16; background:#f0fdf4; }
+  .prog-paste-hint { color:#6b7280; font-size:12.5px; line-height:1.7; padding:22px; }
+  .prog-paste-hint b { color:#3730a3; }
+  #prog-paste-preview { max-width:100%; max-height:340px; border-radius:6px; }
+  .prog-paste-actions { display:flex; gap:8px; justify-content:flex-end; padding:0 14px 14px; }
+  .prog-paste-actions button { padding:8px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid #d1d5db; background:#fff; color:#374151; }
+  .prog-paste-actions button:hover:not(:disabled) { background:#f3f4f6; }
+  #prog-paste-save { background:#84cc16; color:#14532d; border-color:#84cc16; }
+  #prog-paste-save:hover:not(:disabled) { background:#a3e635; }
+  #prog-paste-save:disabled { opacity:.5; cursor:not-allowed; }
 </style>
 </head>
 <body>
@@ -325,6 +491,10 @@
     <button class="action-btn secondary" id="btn-debug" title="Ver diagnóstico de columnas detectadas">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
       Diagnóstico
+    </button>
+    <button class="action-btn secondary" id="btn-local-topbar" title="Cargar los datos desde un archivo Excel (.xlsx) local">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Excel local
     </button>
     <button class="action-btn secondary" id="btn-download" title="Descargar el XLSX crudo del Google Sheet">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -350,6 +520,32 @@
     <li id="p-render" class="pending">Renderizar el dashboard</li>
   </ul>
   <div id="ls-error" style="display:none;" class="err-box"></div>
+  <div id="ls-fallback" style="display:none; margin-top:18px; max-width:600px; margin-left:auto; margin-right:auto;">
+    <!-- Opción recomendada: alimentar automático del Sheet vía Web App -->
+    <div style="border:1px solid #bbf7d0; background:#f0fdf4; border-radius:8px; padding:14px; text-align:left;">
+      <div style="font-weight:700; color:#166534; margin-bottom:6px; font-size:12.5px;">✅ Recomendado — que se alimente solo del Google Sheet</div>
+      <div style="font-size:11px; color:#4b5563; margin-bottom:10px; line-height:1.5;">
+        Pega la URL del <b>Web App</b> de Apps Script (la que termina en <code>/exec</code>). Con esto el dashboard carga
+        automáticamente del Sheet — sin volver a fallar y sin cargar archivos. Solo se configura una vez.
+        (El código y los pasos están en <code>AppsScript_Progreso.gs</code>.)
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <input type="text" id="ls-webapp" placeholder="https://script.google.com/macros/s/…/exec"
+               style="flex:1; min-width:240px; padding:8px 10px; border:1px solid #86efac; border-radius:6px; font-size:12px;">
+        <button class="action-btn" id="btn-ls-connect" style="font-size:12px; padding:8px 14px;">Conectar y cargar</button>
+      </div>
+    </div>
+    <!-- Opción manual -->
+    <div style="margin-top:12px; text-align:center;">
+      <div style="font-size:11px; color:#9ca3af; margin-bottom:6px;">— o, solo por esta vez, carga manual —</div>
+      <button class="action-btn secondary" id="btn-local-xlsx" style="font-size:12px; padding:8px 14px; color:#374151; border-color:#d1d5db;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Cargar Excel local
+      </button>
+      <div style="margin-top:6px; font-size:10.5px; color:#9ca3af;">Archivo ▸ Descargar ▸ Excel (.xlsx) en tu Sheet, y elígelo aquí.</div>
+      <input type="file" id="file-xlsx" accept=".xlsx,.xls" style="display:none;">
+    </div>
+  </div>
 </div>
 
 <!-- ============ DASHBOARD ============ -->
@@ -388,7 +584,13 @@
 
     <!-- ROW 2 -->
     <div class="panel" style="grid-column: 1 / span 2; grid-row: 2;">
-      <div class="panel-title">Terapia intensiva</div>
+      <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <span>Terapia intensiva</span>
+        <button id="btn-progreso" class="prog-open-btn" title="Registrar el proceso de revisión de estas unidades">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Progreso <span class="prog-open-badge" id="prog-open-badge">0/0</span>
+        </button>
+      </div>
       <div class="scroll-area" style="max-height: 220px;"><table class="pbi" id="tbl-terapia"></table></div>
     </div>
 
@@ -514,12 +716,125 @@
   <div id="debug-content">Cargando…</div>
 </div>
 
+<!-- ============ MODAL PROGRESO DE REVISIÓN ============ -->
+<div id="prog-overlay" class="prog-overlay">
+  <div class="prog-modal">
+    <div class="prog-head">
+      <div>
+        <div class="prog-title">Progreso de revisión · <span>Terapia intensiva</span></div>
+        <div class="prog-sub" id="prog-sub">—</div>
+      </div>
+      <div class="prog-head-actions">
+        <span class="prog-conn off" id="prog-conn">Solo local</span>
+        <button class="pbtn ghost" id="prog-cfg-btn" title="Configurar guardado en el Google Sheet">⚙ Guardado</button>
+        <button class="pbtn" id="prog-sync-btn" title="Enviar todo el progreso al Google Sheet">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Sincronizar
+        </button>
+        <button class="pbtn ghost" id="prog-close" title="Cerrar">✕</button>
+      </div>
+    </div>
+
+    <div class="prog-cfg" id="prog-cfg" style="display:none;">
+      <h5>Guardar el progreso dentro del mismo Google Sheet</h5>
+      <div class="row">
+        <label>URL del Web App</label>
+        <input type="text" id="prog-webapp" placeholder="https://script.google.com/macros/s/…/exec">
+        <button class="pbtn" id="prog-webapp-save">Guardar</button>
+        <button class="pbtn ghost" id="prog-webapp-test">Probar</button>
+      </div>
+      <div class="row">
+        <label>Responsable</label>
+        <input type="text" id="prog-resp" placeholder="Tu nombre (aparece en la columna «Actualizó»)" style="min-width:220px;">
+      </div>
+      <div class="hint">
+        Pega aquí la URL del <b>Web App de Apps Script</b> que registra el progreso en la pestaña <code>Progreso</code> del Sheet.
+        Si lo dejas vacío, todo se guarda solo en este navegador (<code>localStorage</code>). El código para desplegarlo viene en el archivo <code>AppsScript_Progreso.gs</code> que se entregó junto a este dashboard.
+      </div>
+    </div>
+
+    <div class="prog-toolbar">
+      <input type="text" id="prog-search" placeholder="Buscar unidad…" autocomplete="off">
+      <div class="prog-filters" id="prog-filters">
+        <button data-pf="all" class="active">Todas</button>
+        <button data-pf="none">Sin iniciar</button>
+        <button data-pf="wip">En proceso</button>
+        <button data-pf="done">Completadas</button>
+      </div>
+      <div class="prog-legend">
+        <span><i style="background:#2563eb"></i>Mantenimiento</span>
+        <span><i style="background:#7c3aed"></i>Capacitación</span>
+        <span><i style="background:#ea580c"></i>Factores externos</span>
+      </div>
+    </div>
+
+    <div class="prog-list" id="prog-list"></div>
+  </div>
+</div>
+
+<!-- ============ VENTANA PARA PEGAR EVIDENCIA (Ctrl+V) ============ -->
+<div id="prog-paste-overlay" class="prog-paste-overlay">
+  <div class="prog-paste-box" tabindex="0">
+    <div class="prog-paste-head">
+      <span>Evidencia — <span id="prog-paste-label"></span></span>
+      <button id="prog-paste-close" title="Cerrar">✕</button>
+    </div>
+    <div id="prog-paste-zone" class="prog-paste-zone">
+      <div class="prog-paste-hint" id="prog-paste-hint">Pega la imagen con <b>Ctrl + V</b><br>o haz clic aquí / arrástrala para elegir un archivo</div>
+      <img id="prog-paste-preview" alt="" style="display:none">
+    </div>
+    <div class="prog-paste-actions">
+      <button id="prog-paste-file">Elegir archivo…</button>
+      <button id="prog-paste-save" disabled>Guardar evidencia</button>
+    </div>
+    <input type="file" id="prog-paste-input" accept="image/*" style="display:none">
+  </div>
+</div>
+
 <script>
 /* =========================================================
    CONFIG
 ========================================================= */
 const GSHEET_PUB_BASE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTP_6TFUv97y9tY0OlEcn9FCKcG38M5Qc0m-G2uPPN3sw1ItT8bdV8a_gCLIIMXDeOiLFzgxKxIVV4D/pub';
 const GSHEET_XLSX_URL = `${GSHEET_PUB_BASE}?output=xlsx`;
+
+/* =========================================================
+   PROGRESO DE REVISIÓN (Terapia intensiva)
+   13 puntos en 3 bloques. Se guarda en localStorage y,
+   si se configura un Web App, también en la pestaña
+   "Progreso" del mismo Google Sheet.
+========================================================= */
+const PROGRESO_BLOCKS = [
+  { id:'mtto', titulo:'Revisión de mantenimiento', color:'#2563eb', items:[
+    { key:'mtto1', label:'Preventivo (Diagnóstico 21)' },
+    { key:'mtto2', label:'Reparación de la falla' },
+    { key:'mtto3', label:'Se audita con la falla y se registra como meta' },
+    { key:'mtto4', label:'Carro certificado' },
+  ]},
+  { id:'cap', titulo:'Capacitación', color:'#7c3aed', items:[
+    { key:'cap1', label:'Capacitación mtto técnico (mtto rendimiento)' },
+    { key:'cap2', label:'Cartas compromiso (1ª semana)' },
+    { key:'cap3', label:'Carta administrativa (2ª semana)' },
+    { key:'cap4', label:'Carta administrativa (3ª semana)' },
+    { key:'cap5', label:'Coacheo (retroalimentación)' },
+    { key:'cap6', label:'Carta administrativa (4ª semana)' },
+  ]},
+  { id:'ext', titulo:'Factores externos', color:'#ea580c', items:[
+    { key:'ext1', label:'Revisión de Ralentí' },
+    { key:'ext2', label:'Auditoría de sustracción' },
+    { key:'ext3', label:'Proceso de sellado' },
+  ]},
+];
+// Lista plana ordenada (13 puntos) — el orden define las columnas en el Sheet.
+const PROGRESO_ITEMS = PROGRESO_BLOCKS.flatMap(b => b.items.map(it => ({ ...it, block:b.id, blockTitle:b.titulo })));
+const PROGRESO_TOTAL = PROGRESO_ITEMS.length;
+// Claves de almacenamiento local
+const LS_PROG_KEY   = 'settepi_progreso_v1';
+const LS_WEBAPP_KEY = 'settepi_progreso_webapp';
+const LS_RESP_KEY   = 'settepi_progreso_resp';
+// Web App de Apps Script ya desplegado (acceso: Cualquiera). El dashboard se alimenta del Sheet
+// y guarda el Progreso a través de esta URL sin que tengas que configurar nada.
+const DEFAULT_WEBAPP = 'https://script.google.com/macros/s/AKfycbyq1me0wfow0vkcnQVUVjym_ukrD3IPjPHS5pmsxqHcMA-m746c9BWn8W3A2Apnc_phHw/exec';
 
 // Nombres esperados de pestañas (normalizados, sin acentos)
 const SHEET_NAMES = {
@@ -537,6 +852,10 @@ const STATE = {
   vehPlantaMap: {}, vehGpsKm: {}, vehGpsKmDia: {},
   lastSync: null,
   rawXlsxBlob: null,
+  progreso: {},        // { [idVehiculo]: { items:{key:bool}, updatedAt, updatedBy } }
+  terapiaUnits: [],    // unidades críticas actuales (bajo el objetivo)
+  progFilter: 'all',   // filtro activo del modal
+  progHydrated: false, // ya se leyó el progreso del Sheet
   diagnostic: { rendimiento: {}, trafilink: {}, asignacion: {}, unidades: {} },
   f: {
     gerente: new Set(), jefe: new Set(), estatus: new Set(['Activo']),
@@ -617,8 +936,14 @@ function excelDateToJS(v) {
   if (typeof v === 'number' && isFinite(v)) {
     // Serial de Excel (rango razonable: 1900 a 2200)
     if (v > 1 && v < 110000) {
-      const epoch = new Date(Date.UTC(1899, 11, 30));
-      const d = new Date(epoch.getTime() + v * 86400000);
+      // El serial es el nº de días desde 1899-12-30. Se construye en HORA LOCAL para que
+      // getDate()/getMonth()/getFullYear() den el día correcto. (Antes se armaba en UTC y al
+      // leerlo en hora local UTC−6 cada fecha se corría un día atrás: el día 23 salía como 22.)
+      const days = Math.floor(v);
+      const frac = v - days;
+      const d = new Date(1899, 11, 30);
+      d.setDate(d.getDate() + days);
+      if (frac) d.setTime(d.getTime() + Math.round(frac * 86400000));
       return isNaN(d) ? null : d;
     }
     // Unix timestamp en segundos (2001 a 2100)
@@ -761,6 +1086,11 @@ function showError(msg, detail) {
   box.innerHTML = `<b>${esc(msg)}</b>${detail ? '<br><br>' + fmt(detail) : ''}`;
   document.getElementById('ls-spinner').style.display = 'none';
   document.getElementById('ls-title').textContent = 'Error al cargar';
+  // Mostrar las salidas: conectar Web App (recomendado) o cargar Excel local
+  const fb = document.getElementById('ls-fallback');
+  if (fb) fb.style.display = 'block';
+  const wi = document.getElementById('ls-webapp');
+  if (wi) wi.value = getWebAppUrl();
   setStatus('Error', 'error');
 }
 
@@ -959,7 +1289,9 @@ function parseUnidadesSheet(wb) {
     year:       findColIdx(headers, ['Year','Año','Anio','Modelo','Año Unidad','Año de la unidad'], 1),
     ac:         findColIdx(headers, ['AC','A/C','Aire','Aire Acondicionado','Clima','A.C.'], 2),
     jefe:       findColIdx(headers, ['Jefe','JEFE','Jefe de Operaciones','Supervisor'], 3),
-    gerente:    findColIdx(headers, ['Gerente','GERENTE','Gerente de Operaciones'], 4)
+    gerente:    findColIdx(headers, ['Gerente','GERENTE','Gerente de Operaciones'], 4),
+    marca:      findColIdx(headers, ['Marca','MARCA','Marca Unidad','Brand'], 5),
+    modelo:     findColIdx(headers, ['Modelo','MODELO','Modelo Unidad','Model'], 6)
   };
   STATE.diagnostic.unidades = { sheet: sheetName, headers, idx, rowsRaw: rows.length, sampleRows: rows.slice(1, 3) };
 
@@ -991,7 +1323,9 @@ function parseUnidadesSheet(wb) {
       year,
       ac,
       jefe:    idx.jefe    >= 0 ? String(r[idx.jefe]    ?? '').trim() : '',
-      gerente: idx.gerente >= 0 ? String(r[idx.gerente] ?? '').trim() : ''
+      gerente: idx.gerente >= 0 ? String(r[idx.gerente] ?? '').trim() : '',
+      marca:   idx.marca   >= 0 ? String(r[idx.marca]   ?? '').trim() : '',
+      modelo:  idx.modelo  >= 0 ? String(r[idx.modelo]  ?? '').trim() : ''
     };
   }
   STATE.diagnostic.unidades.rowsOut = Object.keys(map).length;
@@ -1103,7 +1437,17 @@ function enrichCargas() {
 
     const partsTU = c.tipoUnidad.split(/[-–]/).map(x => x.trim()).filter(Boolean);
     c.tipoVehiculo = partsTU[0] || c.tipoUnidad || 'Otro';
-    c.marcaModelo  = partsTU.length >= 3 ? `${partsTU[1]} - ${partsTU[2]}` : (partsTU[1] || c.tipoUnidad);
+    // Marca-Modelo: prioridad a la pestaña "unidades" (columnas Marca / Modelo).
+    // Si el vehículo no está en unidades, se usa lo que trae el rendimiento (tipoUnidad).
+    if (u && (u.marca || u.modelo)) {
+      c.marca = u.marca || '';
+      c.modelo = u.modelo || '';
+      c.marcaModelo = [u.marca, u.modelo].filter(Boolean).join(' - ') || (partsTU[1] || c.tipoUnidad);
+    } else {
+      c.marca = partsTU[1] || '';
+      c.modelo = partsTU[2] || '';
+      c.marcaModelo = partsTU.length >= 3 ? `${partsTU[1]} - ${partsTU[2]}` : (partsTU[1] || c.tipoUnidad);
+    }
   });
 
   STATE.enrichStats = {
@@ -1607,6 +1951,87 @@ function renderResumen(filtered, target) {
   </tr></tbody>`;
   tbl.innerHTML = html;
   wireCaret(tbl);
+  makeSortable(tbl);
+}
+
+/* =========================================================
+   ORDENAR por encabezado (números menor→mayor, texto A→Z).
+   Respeta la jerarquía: ordena hermanos dentro de cada grupo.
+========================================================= */
+function _sortCellValue(row, ci, type){
+  const cell = row.children[ci];
+  let t = cell ? cell.textContent.trim().replace(/^[▸▾\s]+/,'') : '';
+  if (type === 'num') {
+    const n = parseFloat(t.replace(/[^0-9.\-]/g, ''));
+    return isFinite(n) ? n : -Infinity;
+  }
+  return t.toLowerCase();
+}
+function _colType(rows, ci){
+  let nums = 0, tot = 0;
+  rows.slice(0, 25).forEach(r => {
+    const c = r.children[ci]; if (!c) return;
+    const t = c.textContent.replace(/[^0-9.\-]/g, '');
+    tot++; if (t !== '' && isFinite(parseFloat(t))) nums++;
+  });
+  return (tot > 0 && nums / tot >= 0.6) ? 'num' : 'text';
+}
+function _sortTable(tbl, ci, type, dir){
+  const tbody = tbl.querySelector('tbody'); if (!tbody) return;
+  const all = [...tbody.querySelectorAll('tr')];
+  const total = all.filter(r => r.classList.contains('total'));
+  const rows = all.filter(r => !r.classList.contains('total'));
+  const cmp = (a, b) => {
+    const va = _sortCellValue(a, ci, type), vb = _sortCellValue(b, ci, type);
+    let c = va < vb ? -1 : va > vb ? 1 : 0;
+    return dir === 'desc' ? -c : c;
+  };
+  const isTree = rows.some(r => r.hasAttribute('data-parent') || r.hasAttribute('data-grp'));
+  if (!isTree) {
+    rows.sort(cmp).forEach(r => tbody.appendChild(r));
+  } else {
+    const childrenOf = {}, roots = [];
+    rows.forEach(r => {
+      const p = r.getAttribute('data-parent');
+      if (p) { (childrenOf[p] = childrenOf[p] || []).push(r); } else roots.push(r);
+    });
+    const out = [];
+    (function walk(list){
+      list.sort(cmp).forEach(r => {
+        out.push(r);
+        const g = r.getAttribute('data-grp');
+        if (g && childrenOf[g]) walk(childrenOf[g]);
+      });
+    })(roots);
+    out.forEach(r => tbody.appendChild(r));
+  }
+  total.forEach(r => tbody.appendChild(r));
+}
+function makeSortable(tbl){
+  const ths = [...tbl.querySelectorAll('thead th')];
+  ths.forEach((th, ci) => {
+    th.classList.add('sortable');
+    th.addEventListener('click', () => {
+      const rows = [...tbl.querySelectorAll('tbody tr')].filter(r => !r.classList.contains('total'));
+      const type = th.getAttribute('data-sort') || _colType(rows, ci);
+      let dir = 'asc';
+      if (tbl.getAttribute('data-sort-col') === String(ci))
+        dir = tbl.getAttribute('data-sort-dir') === 'asc' ? 'desc' : 'asc';
+      tbl.setAttribute('data-sort-col', String(ci));
+      tbl.setAttribute('data-sort-dir', dir);
+      _sortTable(tbl, ci, type, dir);
+      ths.forEach(h => h.classList.remove('sorted-asc', 'sorted-desc'));
+      th.classList.add(dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+    });
+  });
+  // Re-aplicar el orden elegido tras un re-render (por cambio de filtro).
+  const col = tbl.getAttribute('data-sort-col');
+  if (col != null) {
+    const ci = +col, dir = tbl.getAttribute('data-sort-dir') || 'asc';
+    const rows = [...tbl.querySelectorAll('tbody tr')].filter(r => !r.classList.contains('total'));
+    _sortTable(tbl, ci, ths[ci] ? (ths[ci].getAttribute('data-sort') || _colType(rows, ci)) : 'num', dir);
+    if (ths[ci]) ths[ci].classList.add(dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+  }
 }
 
 function wireCaret(tbl) {
@@ -1650,14 +2075,31 @@ function renderTerapia(filtered, target) {
     clasif: classifyKMS(v.km)
   }));
 
-  vehList = vehList.filter(v => v.litros > 0 && v.km > 0 && v.rendimiento < target);
+  vehList = vehList.filter(v => v.litros > 0 && v.km > 0);
 
-  const tree = {};
+  // Percentil 25% por Marca-Modelo (umbral) y por Tipo, con TODOS los vehículos del dato ya filtrado.
+  const byMarca = {}, byTipo = {};
   vehList.forEach(v => {
-    if (!tree[v.clasif]) tree[v.clasif] = {};
-    if (!tree[v.clasif][v.tipoVehiculo]) tree[v.clasif][v.tipoVehiculo] = {};
-    if (!tree[v.clasif][v.tipoVehiculo][v.marca]) tree[v.clasif][v.tipoVehiculo][v.marca] = [];
-    tree[v.clasif][v.tipoVehiculo][v.marca].push(v);
+    (byMarca[v.marca] = byMarca[v.marca] || []).push(v.rendimiento);
+    (byTipo[v.tipoVehiculo] = byTipo[v.tipoVehiculo] || []).push(v.rendimiento);
+  });
+  const p25Marca = {}, p25Tipo = {};
+  Object.keys(byMarca).forEach(k => p25Marca[k] = percentile(byMarca[k], 25));
+  Object.keys(byTipo).forEach(k => p25Tipo[k] = percentile(byTipo[k], 25));
+
+  // CRÍTICOS = vehículos por debajo del Percentil 25% de su Marca-Modelo (lo más crítico).
+  const criticos = vehList.filter(v => v.rendimiento < p25Marca[v.marca]);
+
+  // Solo los críticos alimentan el módulo de Progreso.
+  STATE.terapiaUnits = criticos
+    .map(v => ({ idVehiculo:String(v.idVehiculo), marca:v.marca, tipoVehiculo:v.tipoVehiculo, rendimiento:v.rendimiento, clasif:classifyKMS(v.km), cargas:v.cargas, km:v.km, p25:p25Marca[v.marca] }))
+    .sort((a,b)=> a.rendimiento - b.rendimiento);
+
+  // Árbol Tipo -> Marca-Modelo -> [vehículos críticos]
+  const tree = {};
+  criticos.forEach(v => {
+    (tree[v.tipoVehiculo] = tree[v.tipoVehiculo] || {});
+    (tree[v.tipoVehiculo][v.marca] = tree[v.tipoVehiculo][v.marca] || []).push(v);
   });
 
   function aggArr(arr) {
@@ -1686,70 +2128,54 @@ function renderTerapia(filtered, target) {
     return p;
   }
 
-  const clasifOrder = ['< 3000','3000 a 6000','6000 a 9000','9000 a 12000','> 12000'];
   let html = `<thead><tr>
-    <th>Clasificación KMS</th><th>Unidades</th><th># Cargas</th><th>(Km/L)</th><th>1er Carga Mes</th><th>Percentil 25%</th><th>$$ Pérdida</th>
+    <th>Tipo vehículo</th><th>Unidades</th><th># Cargas</th><th>(Km/L)</th><th>1er Carga Mes</th><th>Percentil 25%</th><th>$$ Pérdida</th>
   </tr></thead><tbody>`;
 
-  let totU = 0, totC = 0, totKm = 0, totL = 0, totP = 0;
-  let idx = 0;
-  clasifOrder.forEach(clasif => {
-    if (!tree[clasif]) return;
-    const allInClasif = Object.values(tree[clasif]).flatMap(t => Object.values(t).flat());
-    const m = aggArr(allInClasif);
-    const perd = perdidaArr(allInClasif);
-    totU += m.unidades; totC += m.cargas; totKm += m.km; totL += m.litros; totP += perd;
-    const id = `clasif-${idx++}`;
+  let totU = 0, totC = 0, totKm = 0, totL = 0, totP = 0, idx = 0;
+  Object.keys(tree).sort().forEach(tipo => {
+    const marcas = tree[tipo];
+    const allInTipo = Object.values(marcas).flat();
+    const mt = aggArr(allInTipo);
+    const perdT = perdidaArr(allInTipo);
+    totU += mt.unidades; totC += mt.cargas; totKm += mt.km; totL += mt.litros; totP += perdT;
+    const id = `ti-${idx++}`;
     html += `<tr class="lvl-0" data-grp="${id}">
-      <td><span class="caret" data-toggle="${id}">▸</span> ${clasif}</td>
-      <td>${fmtNum(m.unidades)}</td><td>${fmtNum(m.cargas)}</td>
-      <td class="${colorClass(m.rendimiento, target)}">${fmtNum(m.rendimiento,2)}</td>
-      <td>${fmtNum(m.p1Carga,2)}</td>
-      <td>${fmtNum(m.p25,2)}</td>
-      <td>${fmtMoney(perd)}</td>
+      <td><span class="caret" data-toggle="${id}">▾</span> ${tipo}</td>
+      <td>${fmtNum(mt.unidades)}</td><td>${fmtNum(mt.cargas)}</td>
+      <td class="${colorClass(mt.rendimiento, target)}">${fmtNum(mt.rendimiento,2)}</td>
+      <td>${fmtNum(mt.p1Carga,2)}</td>
+      <td>${fmtNum(p25Tipo[tipo],2)}</td>
+      <td>${fmtMoney(perdT)}</td>
     </tr>`;
 
-    Object.entries(tree[clasif]).forEach(([tipo, marcas], i2) => {
-      const allInTipo = Object.values(marcas).flat();
-      const m2 = aggArr(allInTipo);
-      const id2 = `${id}-tipo-${i2}`;
-      html += `<tr class="lvl-1" data-parent="${id}" style="display:none;">
-        <td><span class="caret" data-toggle="${id2}">▸</span> ${tipo}</td>
-        <td>${fmtNum(m2.unidades)}</td><td>${fmtNum(m2.cargas)}</td>
-        <td class="${colorClass(m2.rendimiento, target)}">${fmtNum(m2.rendimiento,2)}</td>
-        <td>${fmtNum(m2.p1Carga,2)}</td>
-        <td>${fmtNum(m2.p25,2)}</td>
-        <td>${fmtMoney(perdidaArr(allInTipo))}</td>
+    Object.keys(marcas).sort().forEach((marca, i2) => {
+      const vehs = marcas[marca].slice().sort((a,b) => a.rendimiento - b.rendimiento);
+      const mm = aggArr(vehs);
+      const id2 = `${id}-m-${i2}`;
+      html += `<tr class="lvl-1" data-parent="${id}" data-grp="${id2}">
+        <td><span class="caret" data-toggle="${id2}">▾</span> ${marca}</td>
+        <td>${fmtNum(mm.unidades)}</td><td>${fmtNum(mm.cargas)}</td>
+        <td class="${colorClass(mm.rendimiento, target)}">${fmtNum(mm.rendimiento,2)}</td>
+        <td>${fmtNum(mm.p1Carga,2)}</td>
+        <td>${fmtNum(p25Marca[marca],2)}</td>
+        <td>${fmtMoney(perdidaArr(vehs))}</td>
       </tr>`;
 
-      Object.entries(marcas).forEach(([marca, vehs], i3) => {
-        const m3 = aggArr(vehs);
-        const id3 = `${id2}-marca-${i3}`;
-        html += `<tr class="lvl-2" data-parent="${id2}" style="display:none;">
-          <td><span class="caret" data-toggle="${id3}">▸</span> ${marca}</td>
-          <td>${fmtNum(m3.unidades)}</td><td>${fmtNum(m3.cargas)}</td>
-          <td class="${colorClass(m3.rendimiento, target)}">${fmtNum(m3.rendimiento,2)}</td>
-          <td>${fmtNum(m3.p1Carga,2)}</td>
-          <td>${fmtNum(m3.p25,2)}</td>
-          <td>${fmtMoney(perdidaArr(vehs))}</td>
+      vehs.forEach(v => {
+        html += `<tr class="lvl-2" data-parent="${id2}">
+          <td>${v.idVehiculo} ${miniBadgeHtml(v.idVehiculo)}</td>
+          <td>1</td><td>${fmtNum(v.cargas)}</td>
+          <td class="cell-bad">${fmtNum(v.rendimiento,2)}</td>
+          <td>${fmtNum(v.firstRend||0,2)}</td>
+          <td>${fmtNum(p25Marca[v.marca],2)}</td>
+          <td>${fmtMoney(perdidaArr([v]))}</td>
         </tr>`;
-
-        vehs.sort((a,b) => a.rendimiento - b.rendimiento);
-        vehs.forEach(v => {
-          html += `<tr class="lvl-3" data-parent="${id3}" style="display:none;">
-            <td>${v.idVehiculo}</td>
-            <td>1</td><td>${fmtNum(v.cargas)}</td>
-            <td class="${colorClass(v.rendimiento, target)}">${fmtNum(v.rendimiento,2)}</td>
-            <td>${fmtNum(v.firstRend||0,2)}</td>
-            <td>${fmtNum(percentile(v.rendArr,25),2)}</td>
-            <td>${fmtMoney(perdidaArr([v]))}</td>
-          </tr>`;
-        });
       });
     });
   });
   html += `<tr class="total">
-    <td>Total bajo ${target.toFixed(2)} Km/L</td>
+    <td>Total críticos (bajo su Percentil 25%)</td>
     <td>${fmtNum(totU)}</td><td>${fmtNum(totC)}</td>
     <td>${fmtNum(totL>0 ? totKm/totL : 0,2)}</td>
     <td></td><td></td>
@@ -1757,6 +2183,11 @@ function renderTerapia(filtered, target) {
   </tr></tbody>`;
   tbl.innerHTML = html;
   wireCaret(tbl);
+  makeSortable(tbl);
+
+  // Refrescar indicadores de Progreso (badge del botón, mini-badges y modal si está abierto)
+  updateProgresoBadge();
+  if (document.getElementById('prog-overlay')?.classList.contains('show')) renderProgresoList();
 }
 
 function renderDetalle(filtered, target) {
@@ -1773,23 +2204,23 @@ function renderDetalle(filtered, target) {
   });
 
   function tipoMetrics(t) {
-    let unidades = new Set(), km=0, litros=0;
+    let unidades = new Set(), km=0, litros=0, rendArr=[];
     Object.values(t).forEach(m => Object.entries(m).forEach(([veh,x]) => {
-      unidades.add(veh); km += x.km; litros += x.litros;
+      unidades.add(veh); km += x.km; litros += x.litros; rendArr = rendArr.concat(x.rendArr);
     }));
-    return { unidades: unidades.size, km, litros, rendimiento: litros>0 ? km/litros : 0 };
+    return { unidades: unidades.size, km, litros, rendimiento: litros>0 ? km/litros : 0, p50: percentile(rendArr, 25) };
   }
   function marcaMetrics(m) {
-    let unidades = new Set(), km=0, litros=0;
-    Object.entries(m).forEach(([veh,x]) => { unidades.add(veh); km += x.km; litros += x.litros; });
-    return { unidades: unidades.size, km, litros, rendimiento: litros>0 ? km/litros : 0 };
+    let unidades = new Set(), km=0, litros=0, rendArr=[];
+    Object.entries(m).forEach(([veh,x]) => { unidades.add(veh); km += x.km; litros += x.litros; rendArr = rendArr.concat(x.rendArr); });
+    return { unidades: unidades.size, km, litros, rendimiento: litros>0 ? km/litros : 0, p50: percentile(rendArr, 25) };
   }
 
   let html = `<thead><tr>
-    <th>Tipo vehículo</th><th>Unidades</th><th>Kms Cargas</th><th>Suma de Litros</th><th>Rendimiento (Km/L)</th><th>Rendimiento</th>
+    <th>Tipo vehículo</th><th>Unidades</th><th>Kms Cargas</th><th>Suma de Litros</th><th>Rendimiento (Km/L)</th><th>Percentil 25%</th><th>Rendimiento</th>
   </tr></thead><tbody>`;
 
-  let totU = new Set(), totK=0, totL=0;
+  let totU = new Set(), totK=0, totL=0, totRend=[];
   Object.entries(tree).sort().forEach(([tipo, marcas], i1) => {
     const m = tipoMetrics(marcas);
     const id1 = `det-${i1}`;
@@ -1801,6 +2232,7 @@ function renderDetalle(filtered, target) {
       <td>${fmtNum(m.km,2)}</td>
       <td>${fmtNum(m.litros,2)}</td>
       <td class="${colorClass(m.rendimiento, target)}">${fmtNum(m.rendimiento,2)}</td>
+      <td>${fmtNum(m.p50,2)}</td>
       <td>${renderMiniBar(m.rendimiento, target)}</td>
     </tr>`;
 
@@ -1813,17 +2245,20 @@ function renderDetalle(filtered, target) {
         <td>${fmtNum(mm.km,2)}</td>
         <td>${fmtNum(mm.litros,2)}</td>
         <td class="${colorClass(mm.rendimiento, target)}">${fmtNum(mm.rendimiento,2)}</td>
+        <td>${fmtNum(mm.p50,2)}</td>
         <td>${renderMiniBar(mm.rendimiento, target)}</td>
       </tr>`;
 
       Object.entries(vehs).forEach(([veh, x]) => {
         const rend = x.litros>0 ? x.km/x.litros : 0;
+        totRend = totRend.concat(x.rendArr);
         html += `<tr class="lvl-2" data-parent="${id2}" style="display:none;">
           <td>${veh}</td>
           <td>1</td>
           <td>${fmtNum(x.km,2)}</td>
           <td>${fmtNum(x.litros,2)}</td>
           <td class="${colorClass(rend, target)}">${fmtNum(rend,2)}</td>
+          <td>${fmtNum(percentile(x.rendArr,25),2)}</td>
           <td>${renderMiniBar(rend, target)}</td>
         </tr>`;
       });
@@ -1832,10 +2267,11 @@ function renderDetalle(filtered, target) {
 
   html += `<tr class="total">
     <td>Total</td><td>${fmtNum(totU.size)}</td><td>${fmtNum(totK,2)}</td><td>${fmtNum(totL,2)}</td>
-    <td>${fmtNum(totL>0 ? totK/totL : 0,2)}</td><td></td>
+    <td>${fmtNum(totL>0 ? totK/totL : 0,2)}</td><td>${fmtNum(percentile(totRend,25),2)}</td><td></td>
   </tr></tbody>`;
   tbl.innerHTML = html;
   wireCaret(tbl);
+  makeSortable(tbl);
 }
 
 function renderCargasDiarias(filtered, target) {
@@ -1894,6 +2330,7 @@ function renderCargasDiarias(filtered, target) {
   }
   html += '</tr></tbody>';
   tbl.innerHTML = html;
+  makeSortable(tbl);
 }
 
 function renderMiniBar(rend, target) {
@@ -1935,6 +2372,7 @@ function renderCargas(filtered) {
     <td>${fmtNum(totL>0?totKm/totL:0,2)}</td>
   </tr></tbody>`;
   tbl.innerHTML = html;
+  makeSortable(tbl);
 }
 
 function renderGauge(actual, target) {
@@ -2229,6 +2667,393 @@ function renderDiagnostic() {
 }
 
 /* =========================================================
+   MÓDULO PROGRESO DE REVISIÓN
+========================================================= */
+// ---- helpers de almacenamiento ----
+function getWebAppUrl(){ try { return (localStorage.getItem(LS_WEBAPP_KEY)||DEFAULT_WEBAPP).trim(); } catch(e){ return DEFAULT_WEBAPP; } }
+function setWebAppUrl(v){ try { localStorage.setItem(LS_WEBAPP_KEY, (v||'').trim()); } catch(e){} }
+function getResp(){ try { return (localStorage.getItem(LS_RESP_KEY)||'').trim(); } catch(e){ return ''; } }
+function setResp(v){ try { localStorage.setItem(LS_RESP_KEY, (v||'').trim()); } catch(e){} }
+function loadProgresoLocal(){ try { const r=JSON.parse(localStorage.getItem(LS_PROG_KEY)||'{}'); if(r&&typeof r==='object') STATE.progreso=r; } catch(e){ STATE.progreso={}; } }
+function saveProgresoLocal(){ try { localStorage.setItem(LS_PROG_KEY, JSON.stringify(STATE.progreso)); } catch(e){} }
+
+// ---- utilidades ----
+function escAttr(s){ return String(s).replace(/"/g,'&quot;'); }
+function truthy(v){ if(v===true) return true; if(v===false||v==null) return false; const s=String(v).trim().toLowerCase(); return s==='1'||s==='true'||s==='x'||s==='si'||s==='sí'||s==='verdadero'||s==='✓'||s==='ok'; }
+function fmtDateTime(iso){ if(!iso) return '—'; const d=new Date(iso); if(isNaN(d)) return String(iso); return d.toLocaleString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function ensureRec(u){ u=String(u); if(!STATE.progreso[u]) STATE.progreso[u]={items:{},updatedAt:'',updatedBy:''}; if(!STATE.progreso[u].items) STATE.progreso[u].items={}; return STATE.progreso[u]; }
+function progCount(u){ const r=STATE.progreso[String(u)]; if(!r||!r.items) return 0; let n=0; for(const it of PROGRESO_ITEMS) if(r.items[it.key]) n++; return n; }
+function progStatus(u){ const c=progCount(u); return c===0?'none':(c>=PROGRESO_TOTAL?'done':'wip'); }
+function miniClass(u){ const s=progStatus(u); return s==='done'?'done':(s==='wip'?'wip':''); }
+function miniBadgeHtml(u){ const c=progCount(u); return `<span class="prog-mini ${miniClass(u)}" data-prog-unidad="${escAttr(u)}" title="Progreso de revisión: ${c}/${PROGRESO_TOTAL} — clic para abrir">${c}/${PROGRESO_TOTAL}</span>`; }
+function cardOf(u){ u=String(u); return [...document.querySelectorAll('.prog-card')].find(c=>c.getAttribute('data-unidad')===u); }
+
+// ---- badges (botón + tabla) ----
+function updateProgresoBadge(){
+  const units=STATE.terapiaUnits||[];
+  const done=units.filter(u=>progStatus(u.idVehiculo)==='done').length;
+  const badge=document.getElementById('prog-open-badge');
+  if(badge) badge.textContent=`${done}/${units.length}`;
+  document.querySelectorAll('.prog-mini').forEach(el=>{
+    const u=el.getAttribute('data-prog-unidad'); const c=progCount(u);
+    el.textContent=`${c}/${PROGRESO_TOTAL}`;
+    el.classList.remove('wip','done'); const cls=miniClass(u); if(cls) el.classList.add(cls);
+  });
+  if(document.getElementById('prog-overlay')?.classList.contains('show')) updateProgresoSub();
+}
+
+// ---- render del modal ----
+function updateProgresoSub(){
+  const units=STATE.terapiaUnits||[]; const n=units.length;
+  let done=0,wip=0,none=0,pts=0;
+  units.forEach(u=>{ const c=progCount(u.idVehiculo); pts+=c; const s=progStatus(u.idVehiculo); if(s==='done')done++; else if(s==='wip')wip++; else none++; });
+  const totalPts=n*PROGRESO_TOTAL;
+  const sub=document.getElementById('prog-sub');
+  if(sub) sub.textContent=`${n} unidades · ${done} completas · ${wip} en proceso · ${none} sin iniciar · ${totalPts?Math.round(pts/totalPts*100):0}% avance global`;
+}
+function blockItemsHtml(u, rec){
+  return PROGRESO_BLOCKS.map(b=>{
+    const done=b.items.filter(it=>rec.items&&rec.items[it.key]).length;
+    const items=b.items.map(it=>{
+      const ck=rec.items&&rec.items[it.key]?'checked':'';
+      const url=(rec.photos && rec.photos[it.key]) ? rec.photos[it.key] : '';
+      return `<div class="prog-item-row">
+        <label class="prog-item ${ck?'checked':''}"><input type="checkbox" data-u="${escAttr(u)}" data-k="${it.key}" ${ck}><span>${it.label}</span></label>
+        <span class="prog-evi">
+          <a class="prog-photo-link" data-k="${it.key}" href="${escAttr(url)}" target="_blank" rel="noopener" title="Ver la evidencia" style="${url?'':'display:none'}">📷 ver</a>
+          <button type="button" class="prog-photo-btn" data-u="${escAttr(u)}" data-k="${it.key}" title="Subir foto de evidencia">📷</button>
+          <input type="file" accept="image/*" capture="environment" class="prog-photo-input" data-u="${escAttr(u)}" data-k="${it.key}" style="display:none">
+        </span>
+      </div>`;
+    }).join('');
+    return `<div class="prog-block"><div class="prog-block-title" style="color:${b.color}">${b.titulo} <b>${done}/${b.items.length}</b></div>${items}</div>`;
+  }).join('');
+}
+function footHtml(u){
+  const rec=STATE.progreso[String(u)]; const url=getWebAppUrl();
+  const upd= rec&&rec.updatedAt ? `Actualizado ${fmtDateTime(rec.updatedAt)}${rec.updatedBy?(' · '+rec.updatedBy):''}` : 'Sin registro aún';
+  const cls = url ? (STATE.progHydrated?'ok':'') : 'local';
+  const txt = url ? (STATE.progHydrated?'✓ Guardado en Sheet':'● Sheet configurado') : '● Solo local';
+  return `<div class="prog-card-foot"><span class="prog-foot-txt">${upd}</span><span class="prog-syncdot ${cls}">${txt}</span></div>`;
+}
+function cardHeadHtml(u){
+  const rec=STATE.progreso[String(u.idVehiculo)]||{items:{}};
+  const c=progCount(u.idVehiculo), pct=Math.round(c/PROGRESO_TOTAL*100), done=c>=PROGRESO_TOTAL;
+  const meta=[u.marca,u.tipoVehiculo,(u.rendimiento?fmtNum(u.rendimiento,2)+' Km/L':''),u.clasif].filter(Boolean).join(' · ');
+  return `<div class="prog-card-head" data-acc="${escAttr(u.idVehiculo)}">
+    <span class="prog-caret">▸</span>
+    <span class="prog-uid">${u.idVehiculo}</span>
+    <span class="prog-meta">${meta}</span>
+    <span class="prog-bar"><span class="prog-bar-fill ${done?'done':''}" style="width:${pct}%"></span></span>
+    <span class="prog-count">${c}/${PROGRESO_TOTAL}</span>
+  </div>`;
+}
+function renderProgresoList(){
+  const listEl=document.getElementById('prog-list'); if(!listEl) return;
+  const q=(document.getElementById('prog-search').value||'').trim().toLowerCase();
+  const f=STATE.progFilter;
+  let units=(STATE.terapiaUnits||[]).slice();
+  if(q) units=units.filter(u=> String(u.idVehiculo).toLowerCase().includes(q) || String(u.marca||'').toLowerCase().includes(q) || String(u.tipoVehiculo||'').toLowerCase().includes(q));
+  if(f!=='all') units=units.filter(u=>{ const s=progStatus(u.idVehiculo); return f===s; });
+  const openSet=STATE._progOpen||(STATE._progOpen=new Set());
+  if(!units.length){ listEl.innerHTML=`<div class="prog-empty">No hay unidades que coincidan con el filtro/búsqueda.</div>`; updateProgresoSub(); return; }
+  listEl.innerHTML=units.map(u=>{
+    const id=String(u.idVehiculo); const open=openSet.has(id); const rec=STATE.progreso[id]||{items:{}};
+    const body= open ? `<div class="prog-card-body" data-built="1" style="display:block;">${blockItemsHtml(id,rec)}${footHtml(id)}</div>` : `<div class="prog-card-body" style="display:none;"></div>`;
+    return `<div class="prog-card ${open?'is-open':''}" data-unidad="${escAttr(id)}">${cardHeadHtml(u)}${body}</div>`;
+  }).join('');
+  updateProgresoSub();
+}
+function refreshUnitUI(u){
+  u=String(u);
+  const card=cardOf(u);
+  if(card){
+    const c=progCount(u), pct=Math.round(c/PROGRESO_TOTAL*100), done=c>=PROGRESO_TOTAL;
+    const fill=card.querySelector('.prog-bar-fill'); if(fill){ fill.style.width=pct+'%'; fill.classList.toggle('done',done); }
+    const cnt=card.querySelector('.prog-count'); if(cnt) cnt.textContent=`${c}/${PROGRESO_TOTAL}`;
+    card.querySelectorAll('.prog-item').forEach(lbl=>{ const cb=lbl.querySelector('input'); if(cb) lbl.classList.toggle('checked', cb.checked); });
+    // actualizar contadores por bloque
+    card.querySelectorAll('.prog-block').forEach(bl=>{
+      const cbs=[...bl.querySelectorAll('input[data-k]')]; const on=cbs.filter(x=>x.checked).length; const b=bl.querySelector('b'); if(b) b.textContent=`${on}/${cbs.length}`;
+    });
+    const rec=STATE.progreso[u]; const foot=card.querySelector('.prog-foot-txt');
+    if(foot&&rec) foot.textContent=`Actualizado ${fmtDateTime(rec.updatedAt)}${rec.updatedBy?(' · '+rec.updatedBy):''}`;
+  }
+  updateProgresoSub();
+}
+
+// ---- cambios ----
+function setItem(u,key,val){
+  u=String(u);
+  const rec=ensureRec(u);
+  rec.items[key]=!!val;
+  rec.updatedAt=new Date().toISOString();
+  rec.updatedBy=getResp();
+  saveProgresoLocal();
+  refreshUnitUI(u);
+  updateProgresoBadge();
+  pushUnidadDebounced(u);
+}
+
+// ---- evidencia fotográfica ----
+// Redimensiona la imagen a un máximo de lado y la devuelve como data URL JPEG (para no subir MB de más).
+function resizeImage(file, maxDim, quality){
+  return new Promise((res, rej)=>{
+    const url=URL.createObjectURL(file); const img=new Image();
+    img.onload=()=>{ try{
+      let w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+      const s=Math.min(1, maxDim/Math.max(w,h||1));
+      w=Math.max(1,Math.round(w*s)); h=Math.max(1,Math.round(h*s));
+      const c=document.createElement('canvas'); c.width=w; c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      res(c.toDataURL('image/jpeg', quality||0.7));
+    }catch(e){ URL.revokeObjectURL(url); rej(e); } };
+    img.onerror=()=>{ URL.revokeObjectURL(url); rej(new Error('imagen no válida')); };
+    img.src=url;
+  });
+}
+function photoBtnOf(u,key){ return [...document.querySelectorAll('.prog-photo-btn')].find(b=>b.getAttribute('data-u')===String(u) && b.getAttribute('data-k')===key); }
+function refreshPhotoUI(u,key,url){
+  const card=cardOf(u); if(!card) return;
+  const link=[...card.querySelectorAll('.prog-photo-link')].find(a=>a.getAttribute('data-k')===key);
+  if(link){ link.href=url||''; link.style.display=url?'inline':'none'; }
+}
+async function uploadPhoto(u,key,file){
+  u=String(u);
+  const url=getWebAppUrl();
+  if(!url){ showToast('Configura primero el Web App (⚙ Guardado) para subir fotos','err'); toggleCfg(true); return; }
+  if(!/^image\//.test(file.type||'')){ showToast('Elige un archivo de imagen','err'); return; }
+  const btn=photoBtnOf(u,key); const prev=btn?btn.textContent:'';
+  if(btn){ btn.classList.add('busy'); btn.textContent='⏳'; }
+  try{
+    const dataUrl=await resizeImage(file, 1280, 0.7);
+    const resp=await fetch(url,{ method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({ action:'photo', unidad:u, key:key, dataUrl:dataUrl, updatedBy:getResp(), updatedAt:new Date().toISOString() }) });
+    const j=await resp.json();
+    if(j && j.ok && j.url){
+      const rec=ensureRec(u); rec.photos=rec.photos||{}; rec.photos[key]=j.url;
+      rec.updatedAt=new Date().toISOString(); rec.updatedBy=getResp();
+      saveProgresoLocal(); refreshPhotoUI(u,key,j.url);
+      showToast('Foto guardada en el Sheet ✓','ok');
+    } else throw new Error((j&&j.error)||'respuesta inválida del Web App');
+  }catch(e){ showToast('No se pudo subir la foto: '+e.message,'err'); }
+  finally{ if(btn){ btn.classList.remove('busy'); btn.textContent=prev||'📷'; } }
+}
+
+// ---- ventana para pegar imagen (Ctrl+V), arrastrar o elegir archivo ----
+function openPasteModal(u, key){
+  const it = PROGRESO_ITEMS.find(x=>x.key===key);
+  STATE._pasteTarget = { u:String(u), key };
+  STATE._pasteBlob = null;
+  document.getElementById('prog-paste-label').textContent = (it?it.label:key) + ' · Unidad ' + u;
+  const prev=document.getElementById('prog-paste-preview'); prev.style.display='none'; prev.src='';
+  document.getElementById('prog-paste-hint').style.display='block';
+  document.getElementById('prog-paste-save').disabled = true;
+  document.getElementById('prog-paste-overlay').classList.add('show');
+  setTimeout(()=>{ const b=document.querySelector('.prog-paste-box'); if(b&&b.focus) b.focus(); }, 30);
+  document.addEventListener('paste', onPasteEvidencia);
+}
+function closePasteModal(){
+  document.getElementById('prog-paste-overlay').classList.remove('show');
+  document.removeEventListener('paste', onPasteEvidencia);
+  STATE._pasteTarget=null; STATE._pasteBlob=null;
+}
+function setPasteBlob(blob){
+  if(!blob) return;
+  if(!/^image\//.test(blob.type||'')){ showToast('Eso no es una imagen','err'); return; }
+  STATE._pasteBlob = blob;
+  const prev=document.getElementById('prog-paste-preview');
+  try{ prev.src=URL.createObjectURL(blob); prev.style.display='block'; document.getElementById('prog-paste-hint').style.display='none'; }catch(e){}
+  document.getElementById('prog-paste-save').disabled = false;
+}
+function onPasteEvidencia(e){
+  if(!STATE._pasteTarget) return;
+  const dt = e.clipboardData || window.clipboardData; if(!dt) return;
+  const items = dt.items || [];
+  for(let i=0;i<items.length;i++){
+    const it = items[i];
+    if(it && it.type && it.type.indexOf('image')===0){
+      const blob = it.getAsFile();
+      if(blob){ e.preventDefault(); setPasteBlob(blob); return; }
+    }
+  }
+  showToast('El portapapeles no tiene una imagen. Copia una captura y pega con Ctrl+V','err');
+}
+function wirePasteModal(){
+  if(STATE._pasteWired) return; STATE._pasteWired=true;
+  document.getElementById('prog-paste-close').addEventListener('click', closePasteModal);
+  document.getElementById('prog-paste-overlay').addEventListener('mousedown', ev=>{ if(ev.target.id==='prog-paste-overlay') closePasteModal(); });
+  const zone=document.getElementById('prog-paste-zone');
+  const fileInp=document.getElementById('prog-paste-input');
+  zone.addEventListener('click', ()=>fileInp.click());
+  document.getElementById('prog-paste-file').addEventListener('click', ()=>fileInp.click());
+  fileInp.addEventListener('change', e=>{ const f=e.target.files&&e.target.files[0]; if(f) setPasteBlob(f); e.target.value=''; });
+  zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', ()=>zone.classList.remove('drag'));
+  zone.addEventListener('drop', e=>{ e.preventDefault(); zone.classList.remove('drag'); const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) setPasteBlob(f); });
+  document.getElementById('prog-paste-save').addEventListener('click', async ()=>{
+    const t=STATE._pasteTarget, blob=STATE._pasteBlob;
+    if(!t||!blob){ showToast('Primero pega o elige una imagen','err'); return; }
+    closePasteModal();
+    await uploadPhoto(t.u, t.key, blob);
+  });
+  window.addEventListener('keydown', ev=>{ if(ev.key==='Escape' && document.getElementById('prog-paste-overlay').classList.contains('show')) closePasteModal(); });
+}
+
+// ---- guardado en el Google Sheet (Web App) ----
+const _pushTimers={};
+function pushUnidadDebounced(u){ clearTimeout(_pushTimers[u]); _pushTimers[u]=setTimeout(()=>pushUnidad(u),450); }
+function rowPayload(u){
+  const rec=STATE.progreso[String(u)]||{items:{}}; const items={};
+  PROGRESO_ITEMS.forEach(it=> items[it.key]= (rec.items&&rec.items[it.key])?1:0 );
+  return { unidad:String(u), items, avance:progCount(u), total:PROGRESO_TOTAL, updatedBy:rec.updatedBy||getResp(), updatedAt:rec.updatedAt||new Date().toISOString() };
+}
+function setUnitSync(u,state){
+  const card=cardOf(u); if(!card) return; const dot=card.querySelector('.prog-syncdot'); if(!dot) return;
+  const map={ ok:['ok','✓ Guardado en Sheet'], wait:['','⏳ Guardando…'], local:['local','● Solo local'], err:['err','⚠ Solo local (revisa la conexión)'] };
+  const [cls,txt]=map[state]||map.local; dot.className='prog-syncdot '+cls; dot.textContent=txt;
+}
+async function pushUnidad(u){
+  const url=getWebAppUrl(); if(!url){ setUnitSync(u,'local'); return; }
+  setUnitSync(u,'wait');
+  try{
+    const resp=await fetch(url,{ method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({ action:'upsert', ...rowPayload(u) }) });
+    let ok=resp.ok; try{ const j=await resp.json(); ok = ok && (j.ok!==false); }catch(_){}
+    setUnitSync(u, ok?'ok':'err'); if(ok){ STATE.progHydrated=true; updateConnBadge('on'); }
+  }catch(e){ setUnitSync(u,'err'); updateConnBadge('off'); }
+}
+async function pushAll(){
+  const url=getWebAppUrl();
+  if(!url){ showToast('Primero pega la URL del Web App en ⚙ Guardado','err'); toggleCfg(true); return; }
+  const btn=document.getElementById('prog-sync-btn'); btn.disabled=true; btn.classList.add('spin');
+  try{
+    // Subir TODAS las unidades de Terapia (aunque no tengan checks) + cualquier registro adicional,
+    // para que la pestaña "progreso" del Sheet muestre la lista completa desde el inicio.
+    const ids=new Set(Object.keys(STATE.progreso));
+    (STATE.terapiaUnits||[]).forEach(u=>ids.add(String(u.idVehiculo)));
+    const rows=[...ids].map(rowPayload);
+    if(!rows.length){ showToast('Aún no hay unidades cargadas (carga primero los datos)','err'); return; }
+    const resp=await fetch(url,{ method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({ action:'bulk', rows }) });
+    const j=await resp.json().catch(()=>({ok:resp.ok}));
+    if(resp.ok && j.ok!==false){
+      showToast(`Progreso sincronizado con el Sheet · ${rows.length} unidades`,'ok');
+      STATE.progHydrated=true; updateConnBadge('on'); Object.keys(STATE.progreso).forEach(u=>setUnitSync(u,'ok'));
+    } else throw new Error(j.error||('HTTP '+resp.status));
+  }catch(e){ showToast('No se pudo sincronizar con el Sheet: '+e.message,'err'); updateConnBadge('off'); }
+  finally{ btn.disabled=false; btn.classList.remove('spin'); }
+}
+async function hydrateProgresoFromSheet(){
+  const url=getWebAppUrl(); if(!url){ updateConnBadge('off'); return; }
+  updateConnBadge('wait');
+  try{
+    const full=url+(url.includes('?')?'&':'?')+'action=list&_ts='+Date.now();
+    const resp=await fetch(full,{ method:'GET' });
+    const j=await resp.json();
+    const rows = Array.isArray(j) ? j : (j && Array.isArray(j.rows) ? j.rows : null);
+    if(rows){
+      rows.forEach(row=>{
+        const id=String(row.unidad!=null?row.unidad:(row.Unidad!=null?row.Unidad:'')).trim(); if(!id) return;
+        const src = row.items || row;
+        const items={}; PROGRESO_ITEMS.forEach(it=> items[it.key]=truthy(src[it.key]) );
+        const local=STATE.progreso[id];
+        const photos=Object.assign({}, (local&&local.photos)||{}, row.photos||{});
+        const remote={ items, updatedAt: row.updatedAt||row.Actualizado||'', updatedBy: row.updatedBy||row['Actualizó']||row.Por||'', photos };
+        if(!local || String(remote.updatedAt||'') >= String(local.updatedAt||'')) STATE.progreso[id]=remote;
+        else if(local) local.photos=photos;
+      });
+      STATE.progHydrated=true; updateConnBadge('on'); saveProgresoLocal(); updateProgresoBadge();
+      if(document.getElementById('prog-overlay').classList.contains('show')) renderProgresoList();
+    } else { updateConnBadge('off'); }
+  }catch(e){ updateConnBadge('off'); }
+}
+function updateConnBadge(state){
+  const el=document.getElementById('prog-conn'); if(!el) return;
+  if(state==='on'){ el.className='prog-conn on'; el.textContent='Sheet conectado'; }
+  else if(state==='wait'){ el.className='prog-conn wait'; el.textContent='Conectando…'; }
+  else { el.className='prog-conn off'; el.textContent=getWebAppUrl()?'Sin conexión':'Solo local'; }
+}
+
+// ---- abrir/cerrar modal ----
+function toggleCfg(force){
+  const c=document.getElementById('prog-cfg'); if(!c) return;
+  const show = force!=null ? force : c.style.display==='none';
+  c.style.display = show?'block':'none';
+}
+function openProgresoModal(focusUnidad){
+  document.getElementById('prog-webapp').value=getWebAppUrl();
+  document.getElementById('prog-resp').value=getResp();
+  updateConnBadge(getWebAppUrl()?(STATE.progHydrated?'on':'off'):'off');
+  if(focusUnidad){
+    // asegurar que la unidad enfocada sea visible: limpiar búsqueda y filtro
+    document.getElementById('prog-search').value='';
+    STATE.progFilter='all';
+    document.querySelectorAll('#prog-filters button').forEach(x=>x.classList.toggle('active', x.getAttribute('data-pf')==='all'));
+    (STATE._progOpen||(STATE._progOpen=new Set())).add(String(focusUnidad));
+  }
+  renderProgresoList();
+  document.getElementById('prog-overlay').classList.add('show');
+  if(focusUnidad){ const card=cardOf(String(focusUnidad)); if(card && card.scrollIntoView) card.scrollIntoView({block:'center'}); }
+  if(getWebAppUrl() && !STATE.progHydrated) hydrateProgresoFromSheet();
+}
+function closeProgresoModal(){ document.getElementById('prog-overlay').classList.remove('show'); }
+
+// ---- wiring (una sola vez) ----
+function wireProgreso(){
+  if(STATE._progWired) return; STATE._progWired=true;
+  wirePasteModal();
+  document.getElementById('btn-progreso').addEventListener('click', ()=>openProgresoModal());
+  document.getElementById('prog-close').addEventListener('click', closeProgresoModal);
+  document.getElementById('prog-overlay').addEventListener('mousedown', ev=>{ if(ev.target.id==='prog-overlay') closeProgresoModal(); });
+  document.getElementById('prog-cfg-btn').addEventListener('click', ()=>toggleCfg());
+  document.getElementById('prog-sync-btn').addEventListener('click', pushAll);
+  document.getElementById('prog-webapp-save').addEventListener('click', ()=>{
+    setWebAppUrl(document.getElementById('prog-webapp').value);
+    STATE.progHydrated=false; showToast('URL guardada · leyendo progreso del Sheet…','ok');
+    hydrateProgresoFromSheet();
+  });
+  document.getElementById('prog-webapp-test').addEventListener('click', async ()=>{
+    setWebAppUrl(document.getElementById('prog-webapp').value);
+    const url=getWebAppUrl(); if(!url){ showToast('Pega primero la URL','err'); return; }
+    updateConnBadge('wait');
+    try{ const r=await fetch(url+(url.includes('?')?'&':'?')+'action=ping&_ts='+Date.now()); const j=await r.json().catch(()=>({})); if(r.ok){ showToast('Conexión correcta con el Web App ✓','ok'); updateConnBadge('on'); } else throw new Error('HTTP '+r.status); }
+    catch(e){ showToast('No respondió: '+e.message+' — revisa que el Web App esté desplegado con acceso «Cualquiera»','err'); updateConnBadge('off'); }
+  });
+  document.getElementById('prog-resp').addEventListener('change', e=>setResp(e.target.value));
+  let st; document.getElementById('prog-search').addEventListener('input', ()=>{ clearTimeout(st); st=setTimeout(renderProgresoList,180); });
+  document.getElementById('prog-filters').addEventListener('click', ev=>{
+    const b=ev.target.closest('button[data-pf]'); if(!b) return;
+    STATE.progFilter=b.getAttribute('data-pf');
+    document.querySelectorAll('#prog-filters button').forEach(x=>x.classList.toggle('active',x===b));
+    renderProgresoList();
+  });
+  const listEl=document.getElementById('prog-list');
+  listEl.addEventListener('change', ev=>{
+    const cb=ev.target.closest('input[type="checkbox"][data-k]');
+    if(cb){ setItem(cb.getAttribute('data-u'), cb.getAttribute('data-k'), cb.checked); return; }
+    const fi=ev.target.closest('input.prog-photo-input');
+    if(fi){ const file=fi.files && fi.files[0]; if(file) uploadPhoto(fi.getAttribute('data-u'), fi.getAttribute('data-k'), file); fi.value=''; }
+  });
+  listEl.addEventListener('click', ev=>{
+    const pbtn=ev.target.closest('.prog-photo-btn');
+    if(pbtn){ ev.stopPropagation(); openPasteModal(pbtn.getAttribute('data-u'), pbtn.getAttribute('data-k')); return; }
+    if(ev.target.closest('.prog-evi')) return;   // clic en la zona de evidencia: no togglear
+    if(ev.target.closest('.prog-item')) return;  // el clic en el label lo maneja el checkbox
+    const head=ev.target.closest('.prog-card-head'); if(!head) return;
+    const id=head.getAttribute('data-acc'); const card=head.closest('.prog-card'); const body=card.querySelector('.prog-card-body');
+    const openSet=STATE._progOpen||(STATE._progOpen=new Set());
+    if(!card.classList.contains('is-open')){
+      if(body.getAttribute('data-built')!=='1'){ const rec=STATE.progreso[id]||{items:{}}; body.innerHTML=blockItemsHtml(id,rec)+footHtml(id); body.setAttribute('data-built','1'); }
+      body.style.display='block'; card.classList.add('is-open'); openSet.add(id);
+    } else { body.style.display='none'; card.classList.remove('is-open'); openSet.delete(id); }
+  });
+  // clic en el mini-badge dentro de la tabla de Terapia
+  document.addEventListener('click', ev=>{ const m=ev.target.closest('.prog-mini'); if(m){ ev.stopPropagation(); openProgresoModal(m.getAttribute('data-prog-unidad')); } });
+  // Escape cierra
+  window.addEventListener('keydown', ev=>{ if(ev.key==='Escape') closeProgresoModal(); });
+}
+
+/* =========================================================
    LOAD DATA FROM GOOGLE SHEETS
 ========================================================= */
 async function fetchXlsxWithFallbacks() {
@@ -2264,6 +3089,39 @@ async function fetchXlsxWithFallbacks() {
   throw err;
 }
 
+// base64 -> ArrayBuffer
+function b64ToArrayBuffer(b64) {
+  const bin = atob(b64);
+  const len = bin.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes.buffer;
+}
+
+// Pide el XLSX al Web App de Apps Script (vía confiable: sí manda cabeceras CORS).
+async function fetchXlsxFromWebApp() {
+  const wa = getWebAppUrl();
+  if (!wa) throw new Error('sin Web App configurado');
+  const u = wa + (wa.includes('?') ? '&' : '?') + 'action=xlsx&_ts=' + Date.now();
+  const resp = await fetch(u, { cache: 'no-store', redirect: 'follow' });
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  const j = await resp.json();
+  if (!j || !j.ok || !j.b64) throw new Error(j && j.error ? j.error : 'el Web App no devolvió el XLSX');
+  const buf = b64ToArrayBuffer(j.b64);
+  const b = new Uint8Array(buf.slice(0, 2));
+  if (b[0] !== 0x50 || b[1] !== 0x4B) throw new Error('el Web App no devolvió un XLSX válido');
+  return { buf, source: 'Google Sheet (Web App)' };
+}
+
+// Estrategia inteligente: primero el Web App (confiable), luego los proxies públicos.
+async function fetchXlsxSmart() {
+  if (getWebAppUrl()) {
+    try { return await fetchXlsxFromWebApp(); }
+    catch (e) { console.warn('Web App no sirvió el XLSX, intento con proxies:', e.message); }
+  }
+  return await fetchXlsxWithFallbacks();
+}
+
 // Procesa un ArrayBuffer o Blob y renderiza el dashboard
 async function processWorkbookBuffer(buf, sourceLabel = 'archivo') {
   setProgress('p-fetch', 'done', `Cargado ✓ (${(buf.byteLength/1024).toFixed(0)} KB · vía ${sourceLabel})`);
@@ -2297,6 +3155,13 @@ async function processWorkbookBuffer(buf, sourceLabel = 'archivo') {
   updateSyncLabel();
   renderDiagnostic();
 
+  // Guardar el Excel en caché local (IndexedDB) para abrir directo la próxima vez,
+  // sin depender de la descarga automática ni de los proxies.
+  if (!/^cach/i.test(sourceLabel)) { try { idbSetXlsx(buf); } catch(e){} }
+
+  // Leer el progreso de revisión guardado en el Sheet (si hay Web App configurado)
+  hydrateProgresoFromSheet();
+
   // Advertencia visual si el cruce GPS falló
   const dtStats = STATE.diagnostic.trafilink || {};
   if (STATE.gps.length > 0 && dtStats.withDate === 0 && dtStats.rowsOut > 0) {
@@ -2308,7 +3173,48 @@ async function processWorkbookBuffer(buf, sourceLabel = 'archivo') {
   }
 }
 
-async function loadFromGoogleSheets({ initial = false } = {}) {
+/* ---- Caché del Excel en IndexedDB (para abrir sin descarga automática) ---- */
+const IDB_NAME = 'settepi_dash', IDB_STORE = 'files', IDB_KEY = 'lastXlsx';
+function idbOpen(){
+  return new Promise((res, rej) => {
+    const r = indexedDB.open(IDB_NAME, 1);
+    r.onupgradeneeded = () => { try { r.result.createObjectStore(IDB_STORE); } catch(e){} };
+    r.onsuccess = () => res(r.result);
+    r.onerror   = () => rej(r.error);
+  });
+}
+async function idbSetXlsx(buf){
+  try{
+    const db = await idbOpen();
+    await new Promise((res, rej) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).put({ buf, ts: Date.now() }, IDB_KEY);
+      tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+    });
+    db.close();
+  }catch(e){ /* sin caché disponible: no pasa nada */ }
+}
+async function idbGetXlsx(){
+  try{
+    const db = await idbOpen();
+    const v = await new Promise((res, rej) => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const rq = tx.objectStore(IDB_STORE).get(IDB_KEY);
+      rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error);
+    });
+    db.close();
+    return v || null;
+  }catch(e){ return null; }
+}
+async function idbClearXlsx(){
+  try{
+    const db = await idbOpen();
+    await new Promise((res) => { const tx = db.transaction(IDB_STORE,'readwrite'); tx.objectStore(IDB_STORE).delete(IDB_KEY); tx.oncomplete = res; tx.onerror = res; });
+    db.close();
+  }catch(e){}
+}
+
+async function loadFromGoogleSheets({ initial = false, silent = false } = {}) {
   const btnRefresh = document.getElementById('btn-refresh');
   btnRefresh.disabled = true;
   btnRefresh.classList.add('spinning');
@@ -2326,15 +3232,31 @@ async function loadFromGoogleSheets({ initial = false } = {}) {
     });
 
     setStatus('Descargando…', 'loading');
-    setProgress('p-fetch', 'working', 'Descargando XLSX desde Google Sheets…');
+    setProgress('p-fetch', 'working', getWebAppUrl() ? 'Pidiendo datos al Web App del Sheet…' : 'Descargando XLSX desde Google Sheets…');
 
-    const { buf, source } = await fetchXlsxWithFallbacks();
+    const { buf, source } = await fetchXlsxSmart();
     await processWorkbookBuffer(buf, source);
 
-    if (!initial) showToast(`Actualizado · ${STATE.cargas.length} cargas · ${STATE.gps.length} viajes GPS`, 'ok');
+    if (!initial && !silent) showToast(`Actualizado · ${STATE.cargas.length} cargas · ${STATE.gps.length} viajes GPS`, 'ok');
 
   } catch (err) {
     console.error(err);
+    if (silent) {
+      // Refresco en segundo plano: ya hay datos en pantalla (desde el caché). No mostramos error.
+      console.warn('Refresco en segundo plano falló (se mantiene el Excel en caché):', err && err.message);
+    } else {
+    // Antes de mostrar el error, intentar el último Excel en caché para no dejar la pantalla en rojo.
+    if (!STATE.cargas.length) {
+      try {
+        const c = await idbGetXlsx();
+        if (c && c.buf) {
+          await processWorkbookBuffer(c.buf, 'caché local');
+          showToast('Sin conexión con el Sheet · mostrando el último Excel guardado', 'err');
+          btnRefresh.disabled = false; btnRefresh.classList.remove('spinning');
+          return;
+        }
+      } catch (_) {}
+    }
     const detail = err && err.message ? err.message : String(err);
     const isCors = err && err.corsLikely;
     const help = isCors
@@ -2353,6 +3275,7 @@ Esto pasa cuando abres el HTML con doble click (protocolo <code>file://</code>) 
       if (el && !el.classList.contains('done')) { el.classList.remove('working','pending'); el.classList.add('error'); }
     });
     if (!initial) showToast('Error al actualizar', 'err');
+    }
   } finally {
     btnRefresh.disabled = false;
     btnRefresh.classList.remove('spinning');
@@ -2383,6 +3306,48 @@ document.getElementById('btn-download').onclick = () => {
   setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
 };
 
+/* ---- Respaldo: cargar los datos desde un Excel local (sin internet/proxies) ---- */
+function loadLocalXlsx(file) {
+  if (!file) return;
+  if (typeof XLSX === 'undefined') { showError('No se pudo leer el Excel local', 'La librería de lectura (XLSX) no se cargó. Verifica tu conexión a internet y recarga la página.'); return; }
+  const reader = new FileReader();
+  document.getElementById('load-state').style.display = 'block';
+  document.getElementById('dashboard').classList.remove('ready');
+  document.getElementById('ls-error').style.display = 'none';
+  document.getElementById('ls-fallback').style.display = 'none';
+  document.getElementById('ls-spinner').style.display = '';
+  document.getElementById('ls-title').textContent = 'Cargando Excel local…';
+  ['p-fetch','p-parse','p-columns','p-enrich','p-render'].forEach(pid => {
+    const el = document.getElementById(pid);
+    if (el) { el.classList.remove('done','working','error'); el.classList.add('pending'); }
+  });
+  setStatus('Leyendo archivo local…', 'loading');
+  reader.onload = async (e) => {
+    try {
+      await processWorkbookBuffer(e.target.result, 'Excel local · ' + file.name);
+      showToast('Cargado desde archivo local ✓', 'ok');
+    } catch (err) {
+      showError('No se pudo leer el Excel local', (err && err.message) ? err.message : String(err));
+    }
+  };
+  reader.onerror = () => showError('No se pudo leer el archivo', 'Error del lector de archivos. Intenta de nuevo.');
+  reader.readAsArrayBuffer(file);
+}
+const _fileXlsx = document.getElementById('file-xlsx');
+document.getElementById('btn-local-xlsx').onclick  = () => _fileXlsx.click();
+document.getElementById('btn-local-topbar').onclick = () => _fileXlsx.click();
+_fileXlsx.onchange = (e) => { const f = e.target.files && e.target.files[0]; loadLocalXlsx(f); e.target.value = ''; };
+
+// Conectar el Web App desde la pantalla de carga (para alimentar automático del Sheet)
+document.getElementById('btn-ls-connect').onclick = () => {
+  const v = (document.getElementById('ls-webapp').value || '').trim();
+  if (!/\/exec\b/.test(v)) { showToast('Pega la URL del Web App que termina en /exec', 'err'); return; }
+  setWebAppUrl(v);
+  STATE.progHydrated = false;
+  showToast('Web App conectado · cargando datos del Sheet…', 'ok');
+  loadFromGoogleSheets({ initial: true });
+};
+
 // Ctrl+R / Cmd+R → recargar datos del sheet (no la página)
 window.addEventListener('keydown', ev => {
   if ((ev.ctrlKey || ev.metaKey) && ev.key.toLowerCase() === 'r') {
@@ -2391,8 +3356,30 @@ window.addEventListener('keydown', ev => {
   }
 });
 
-// Kickoff
-loadFromGoogleSheets({ initial: true });
+// Progreso de revisión: cargar el estado local y cablear la UI antes de arrancar
+loadProgresoLocal();
+wireProgreso();
+
+// Kickoff.
+async function boot(){
+  // Si YA hay un Web App configurado, alimentar directo del Google Sheet (vía confiable).
+  if (getWebAppUrl()) { loadFromGoogleSheets({ initial: true }); return; }
+
+  // Sin Web App: abrir con el último Excel en caché (instantáneo, sin esperar los proxies) y refrescar en 2º plano.
+  let cached = null;
+  try { cached = await idbGetXlsx(); } catch(e){}
+  if (cached && cached.buf) {
+    try {
+      await processWorkbookBuffer(cached.buf, 'caché local');
+      const ts = cached.ts ? new Date(cached.ts) : null;
+      showToast('Abierto desde el último Excel guardado' + (ts ? ' · ' + fmtRelative(ts) : '') + ' · usa «Recargar» o «Excel local» para actualizar', 'ok');
+      loadFromGoogleSheets({ initial: false, silent: true });   // intento de refresco silencioso
+      return;
+    } catch(e) { /* caché dañado: seguimos al flujo normal */ }
+  }
+  loadFromGoogleSheets({ initial: true });
+}
+boot();
 </script>
 </body>
 </html>
