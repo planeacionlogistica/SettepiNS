@@ -335,13 +335,15 @@
     border-radius: 50%; animation: spin .6s linear infinite;
   }
   .retry-link { margin-left: .5rem; color: #b91c1c; text-decoration: underline; cursor: pointer; font-weight: 700; }
-  .photo-actions { display: flex; gap: .5rem; padding: .6rem .85rem .85rem; }
+  .photo-actions { display: flex; gap: .4rem; padding: .6rem .85rem .85rem; flex-wrap: wrap; }
   .mini-btn {
-    flex: 1; border: 1px solid #d1d5db; background: #fff; color: #1f2937;
-    padding: .45rem .5rem; border-radius: 7px; font-size: .78rem; font-weight: 600;
-    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: .35rem;
+    flex: 1 1 28%; min-width: 84px; border: 1px solid #d1d5db; background: #fff; color: #1f2937;
+    padding: .5rem .4rem; border-radius: 7px; font-size: .78rem; font-weight: 600;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: .3rem;
     transition: all .12s;
   }
+  .mini-btn.cam { border-color: #84cc16; background: #f7fee7; color: #3f6212; }
+  .mini-btn.cam:hover { background: #ecfccb; }
   .mini-btn svg { width: 14px; height: 14px; }
   .mini-btn:hover { border-color: #84cc16; background: #f7fee7; }
   .mini-btn.armed { border-color: #f59e0b; background: #fffbeb; color: #92400e; }
@@ -509,7 +511,7 @@
     </div>
     <div class="modal-hint">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-      <span>Para cada aspecto: usa <b>Archivo</b> para buscar una foto, o <b>Pegar</b> para pegarla con Ctrl+V. Se guardan en el Google Sheet.</span>
+      <span>Para cada aspecto: <b>Cámara</b> para tomar la foto (celular), <b>Archivo</b> para elegir una, o <b>Pegar</b> con Ctrl+V. Se guardan en el Google Sheet.</span>
     </div>
     <div class="meta-edit">
       <div class="meta-field">
@@ -576,8 +578,9 @@
   </div>
 </div>
 
-<!-- Input de archivo compartido para las tarjetas -->
+<!-- Inputs compartidos para las tarjetas: archivo/galeria y camara -->
 <input id="cardFileInput" type="file" accept="image/*" style="display:none;">
+<input id="cardCamInput" type="file" accept="image/*" capture="environment" style="display:none;">
 
 <script>
 /* ============================================================
@@ -640,6 +643,7 @@ const updatedText = document.getElementById('updatedText');
 const refreshBtn = document.getElementById('refreshBtn');
 const warnBar = document.getElementById('warnBar');
 const cardFileInput = document.getElementById('cardFileInput');
+const cardCamInput = document.getElementById('cardCamInput');
 const configOverlay = document.getElementById('configOverlay');
 const conectorDot = document.getElementById('conectorDot');
 const conectorState = document.getElementById('conectorState');
@@ -657,6 +661,7 @@ const newStatus = document.getElementById('newStatus');
 const TRUCK_SVG = `<svg class="card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`;
 const FILE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>`;
 const PASTE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>`;
+const CAM_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>`;
 
 /* ============ Configuracion del conector ============ */
 function getConfig() {
@@ -1015,13 +1020,15 @@ document.addEventListener('paste', (e) => {
     }
   }
 });
-cardFileInput.addEventListener('change', (e) => {
+function handleCardInput(e) {
   const file = e.target.files[0];
   const target = pendingFileTarget;
   pendingFileTarget = null;
   e.target.value = '';
   if (target && file) handleNewImage(target.unit, target.header, file);
-});
+}
+cardFileInput.addEventListener('change', handleCardInput);
+cardCamInput.addEventListener('change', handleCardInput);
 
 /* ============ Render de tarjetas de foto ============ */
 function setMedia(header, url, unit) {
@@ -1069,11 +1076,13 @@ function buildPhotoCard(unit, header) {
     `<div class="photo-media"></div>` +
     `<div class="photo-status"></div>` +
     `<div class="photo-actions">` +
+      `<button class="mini-btn cam">${CAM_SVG} Cámara</button>` +
       `<button class="mini-btn file">${FILE_SVG} Archivo</button>` +
       `<button class="mini-btn paste">${PASTE_SVG} Pegar</button>` +
     `</div>`;
   photoCardEls[header] = card;
   setMedia(header, unit.photos[header] || null, unit);
+  card.querySelector('.cam').onclick = () => { pendingFileTarget = { unit, header }; cardCamInput.click(); };
   card.querySelector('.file').onclick = () => { pendingFileTarget = { unit, header }; cardFileInput.click(); };
   card.querySelector('.paste').onclick = () => armPaste(unit, header);
   return card;
