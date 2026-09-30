@@ -468,9 +468,11 @@
   .prog-paste-hint { color:#6b7280; font-size:12.5px; line-height:1.7; padding:22px; }
   .prog-paste-hint b { color:#3730a3; }
   #prog-paste-preview { max-width:100%; max-height:340px; border-radius:6px; }
-  .prog-paste-actions { display:flex; gap:8px; justify-content:flex-end; padding:0 14px 14px; }
+  .prog-paste-actions { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; padding:0 14px 14px; }
   .prog-paste-actions button { padding:8px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid #d1d5db; background:#fff; color:#374151; }
   .prog-paste-actions button:hover:not(:disabled) { background:#f3f4f6; }
+  #prog-paste-camera { background:#2563eb; color:#fff; border-color:#2563eb; }
+  #prog-paste-camera:hover:not(:disabled) { background:#1d4ed8; }
   #prog-paste-save { background:#84cc16; color:#14532d; border-color:#84cc16; }
   #prog-paste-save:hover:not(:disabled) { background:#a3e635; }
   #prog-paste-save:disabled { opacity:.5; cursor:not-allowed; }
@@ -820,14 +822,17 @@
       <button id="prog-paste-close" title="Cerrar">✕</button>
     </div>
     <div id="prog-paste-zone" class="prog-paste-zone">
-      <div class="prog-paste-hint" id="prog-paste-hint">Pega la imagen con <b>Ctrl + V</b><br>o haz clic aquí / arrástrala para elegir un archivo</div>
+      <div class="prog-paste-hint" id="prog-paste-hint">En celular toca <b>📷 Tomar foto</b>.<br>En computadora pega con <b>Ctrl + V</b>, arrastra o elige un archivo.</div>
       <img id="prog-paste-preview" alt="" style="display:none">
     </div>
     <div class="prog-paste-actions">
+      <button id="prog-paste-camera">📷 Tomar foto</button>
       <button id="prog-paste-file">Elegir archivo…</button>
       <button id="prog-paste-save" disabled>Guardar evidencia</button>
     </div>
     <input type="file" id="prog-paste-input" accept="image/*" style="display:none">
+    <!-- capture="environment" abre directo la cámara (trasera) en el celular -->
+    <input type="file" id="prog-paste-camera-input" accept="image/*" capture="environment" style="display:none">
   </div>
 </div>
 
@@ -3000,6 +3005,13 @@ function wirePasteModal(){
   zone.addEventListener('click', ()=>fileInp.click());
   document.getElementById('prog-paste-file').addEventListener('click', ()=>fileInp.click());
   fileInp.addEventListener('change', e=>{ const f=e.target.files&&e.target.files[0]; if(f) setPasteBlob(f); e.target.value=''; });
+  // Cámara del celular (capture="environment"): tomar foto directo
+  const camInp=document.getElementById('prog-paste-camera-input');
+  const camBtn=document.getElementById('prog-paste-camera');
+  if(camBtn&&camInp){
+    camBtn.addEventListener('click', ()=>camInp.click());
+    camInp.addEventListener('change', e=>{ const f=e.target.files&&e.target.files[0]; if(f) setPasteBlob(f); e.target.value=''; });
+  }
   zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('drag'); });
   zone.addEventListener('dragleave', ()=>zone.classList.remove('drag'));
   zone.addEventListener('drop', e=>{ e.preventDefault(); zone.classList.remove('drag'); const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0]; if(f) setPasteBlob(f); });
