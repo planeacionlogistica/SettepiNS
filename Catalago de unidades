@@ -1,0 +1,1429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catalogo de unidades</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f3f4f6;
+    color: #1f2937;
+    min-height: 100vh;
+  }
+  header {
+    background: #1f2937;
+    color: white;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .brand { display: flex; align-items: center; gap: .75rem; }
+  .brand-bar { width: 4px; height: 32px; background: #84cc16; border-radius: 2px; }
+  .brand h1 { font-size: 1.25rem; font-weight: 600; letter-spacing: .3px; }
+  .brand small { display: block; font-size: .75rem; color: #9ca3af; font-weight: 400; }
+  .header-actions { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+  .btn {
+    padding: .55rem 1rem;
+    border-radius: 8px;
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: .5rem;
+    border: none;
+    transition: background .15s, opacity .15s;
+    white-space: nowrap;
+  }
+  .btn svg { width: 16px; height: 16px; }
+  .btn-primary { background: #84cc16; color: #1f2937; }
+  .btn-primary:hover { background: #a3e635; }
+  .btn-ghost { background: #374151; color: #e5e7eb; border: 1px solid #4b5563; }
+  .btn-ghost:hover { background: #4b5563; }
+  .btn input { display: none; }
+  .btn.loading { opacity: .6; pointer-events: none; }
+  .btn.loading svg { animation: spin .7s linear infinite; }
+  .conector-dot { width: 8px; height: 8px; border-radius: 50%; background: #9ca3af; }
+  .conector-dot.ok { background: #84cc16; }
+  .conector-dot.warn { background: #f59e0b; }
+  .search {
+    flex: 1;
+    max-width: 280px;
+    position: relative;
+  }
+  .search input {
+    width: 100%;
+    padding: .55rem .9rem .55rem 2.25rem;
+    background: #374151;
+    border: 1px solid #4b5563;
+    border-radius: 8px;
+    color: white;
+    font-size: .9rem;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .search input:focus { border-color: #84cc16; }
+  .search input:disabled { opacity: .5; cursor: not-allowed; }
+  .search svg {
+    position: absolute;
+    left: .75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: #9ca3af;
+  }
+  main { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
+  .source-bar {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    background: #ecfccb;
+    border: 1px solid #d9f99d;
+    color: #3f6212;
+    padding: .5rem .85rem;
+    border-radius: 8px;
+    font-size: .8rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .source-bar .dot { width: 8px; height: 8px; border-radius: 50%; background: #65a30d; flex-shrink: 0; }
+  .source-bar a { color: #3f6212; font-weight: 600; }
+  .source-bar .sep { color: #a3a3a3; }
+  .warn-bar {
+    display: flex; align-items: center; gap: .6rem;
+    background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+    padding: .6rem .85rem; border-radius: 8px; font-size: .82rem;
+    margin-bottom: 1.25rem; flex-wrap: wrap;
+  }
+  .warn-bar button {
+    margin-left: auto; background: #f59e0b; color: #1f2937; border: none;
+    padding: .35rem .8rem; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: .78rem;
+  }
+  .filters-bar {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    background: white;
+    padding: .55rem .85rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    flex-wrap: wrap;
+  }
+  .filter-group label {
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #6b7280;
+    font-weight: 600;
+  }
+  .filter-group select {
+    border: 1px solid #d1d5db;
+    background: white;
+    padding: .35rem .6rem;
+    border-radius: 6px;
+    font-size: .9rem;
+    color: #1f2937;
+    cursor: pointer;
+    outline: none;
+    transition: border-color .15s;
+    min-width: 220px;
+  }
+  .filter-group select:focus { border-color: #84cc16; }
+  .filter-count {
+    background: #1f2937;
+    color: #84cc16;
+    padding: .25rem .6rem;
+    border-radius: 999px;
+    font-size: .75rem;
+    font-weight: 700;
+  }
+  .stats {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .stat {
+    background: white;
+    padding: .85rem 1.1rem;
+    border-radius: 10px;
+    border-left: 3px solid #84cc16;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+    flex: 1;
+    min-width: 150px;
+  }
+  .stat-label { font-size: .7rem; text-transform: uppercase; letter-spacing: 1px; color: #6b7280; }
+  .stat-value { font-size: 1.6rem; font-weight: 700; color: #1f2937; margin-top: .15rem; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.25rem 1rem;
+    cursor: pointer;
+    text-align: center;
+    transition: all .15s;
+    border: 2px solid transparent;
+    box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: #84cc16;
+    transform: translateY(-3px);
+    transition: transform .15s;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0,0,0,.1);
+    border-color: #84cc16;
+  }
+  .card:hover::before { transform: translateY(0); }
+  .card-icon { width: 36px; height: 36px; margin: 0 auto .6rem; color: #84cc16; }
+  .card-id { font-size: 1.35rem; font-weight: 700; color: #1f2937; letter-spacing: .5px; }
+  .card-label { font-size: .7rem; text-transform: uppercase; letter-spacing: 1.2px; color: #6b7280; margin-top: .25rem; }
+  .card-meta {
+    margin-top: .6rem; padding-top: .6rem;
+    border-top: 1px solid #f3f4f6;
+    font-size: .72rem; color: #6b7280; line-height: 1.4;
+  }
+  .card-meta strong { color: #1f2937; font-weight: 600; }
+  .card-badge {
+    display: inline-block; margin-top: .5rem;
+    padding: .12rem .5rem; border-radius: 999px;
+    font-size: .65rem; font-weight: 700; letter-spacing: .5px;
+  }
+  .badge-full { background: #dcfce7; color: #166534; }
+  .badge-partial { background: #fef9c3; color: #854d0e; }
+  .badge-empty { background: #f3f4f6; color: #9ca3af; }
+  .empty-state {
+    text-align: center; padding: 4rem 1.5rem; color: #6b7280;
+    background: white; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06);
+  }
+  .empty-state svg { width: 64px; height: 64px; color: #84cc16; margin-bottom: 1rem; }
+  .empty-state h2 { font-size: 1.15rem; color: #1f2937; margin-bottom: .5rem; }
+  .empty-state p { font-size: .9rem; margin-bottom: 1.5rem; max-width: 480px; margin-left: auto; margin-right: auto; }
+  .empty-state .btn { justify-content: center; display: inline-flex; }
+  .loading { text-align: center; padding: 3rem; color: #6b7280; }
+  .loading::after {
+    content: ''; display: inline-block; width: 20px; height: 20px;
+    margin-left: .5rem; border: 3px solid #d1d5db; border-top-color: #84cc16;
+    border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15, 23, 42, .85); z-index: 100;
+    overflow-y: auto; padding: 1rem; backdrop-filter: blur(4px);
+  }
+  .overlay.open { display: block; }
+  .modal {
+    max-width: 1300px; margin: 0 auto; background: white;
+    border-radius: 14px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,.4);
+  }
+  .modal-header {
+    background: #1f2937; color: white; padding: 1.1rem 1.5rem;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 1rem;
+  }
+  .modal-title { display: flex; align-items: center; gap: .75rem; }
+  .modal-title .bar { width: 4px; height: 28px; background: #84cc16; border-radius: 2px; }
+  .modal-title h2 { font-size: 1.15rem; font-weight: 500; }
+  .modal-title h2 strong { font-weight: 700; color: #84cc16; margin-left: .35rem; }
+  .modal-meta { display: flex; gap: 1rem; flex-wrap: wrap; font-size: .8rem; color: #9ca3af; }
+  .modal-meta span strong { color: white; font-weight: 600; }
+  .close-btn {
+    background: transparent; border: 1px solid #4b5563; color: white;
+    width: 34px; height: 34px; border-radius: 8px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: background .15s;
+  }
+  .close-btn:hover { background: #ef4444; border-color: #ef4444; }
+  .close-btn svg { width: 16px; height: 16px; }
+  .modal-hint {
+    background: #f0f9ff; border-bottom: 1px solid #e0f2fe; color: #075985;
+    padding: .6rem 1.5rem; font-size: .8rem; display: flex; align-items: center; gap: .5rem;
+  }
+  .modal-hint svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .meta-edit {
+    display: flex; gap: .75rem; align-items: flex-end; flex-wrap: wrap;
+    padding: .85rem 1.5rem; background: #fff; border-bottom: 1px solid #eef2f7;
+  }
+  .meta-field { display: flex; flex-direction: column; gap: .25rem; }
+  .meta-field label {
+    font-size: .68rem; text-transform: uppercase; letter-spacing: .5px;
+    color: #6b7280; font-weight: 700;
+  }
+  .meta-field input {
+    border: 1px solid #d1d5db; border-radius: 7px; padding: .45rem .6rem;
+    font-size: .9rem; min-width: 220px; outline: none; color: #1f2937;
+  }
+  .meta-field input:focus { border-color: #84cc16; }
+  .meta-status { font-size: .8rem; font-weight: 600; display: inline-flex; align-items: center; gap: .35rem; }
+  .meta-status.saving { color: #b45309; }
+  .meta-status.saved { color: #15803d; }
+  .meta-status.error { color: #b91c1c; }
+  @media (max-width: 640px) {
+    .meta-field input { min-width: 0; width: 100%; }
+    .meta-field { width: 100%; }
+    .meta-edit .btn { width: 100%; justify-content: center; }
+  }
+  .photos {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 1rem; padding: 1.5rem; background: #f9fafb;
+  }
+  .photo {
+    background: white; border-radius: 10px; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08); display: flex; flex-direction: column;
+  }
+  .photo-label {
+    background: #1f2937; color: white; padding: .55rem .85rem;
+    font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .photo-label::before {
+    content: ''; width: 6px; height: 6px; background: #84cc16;
+    border-radius: 50%; flex-shrink: 0;
+  }
+  .photo-media { position: relative; }
+  .photo-img {
+    width: 100%; aspect-ratio: 4/3; object-fit: cover;
+    background: #e5e7eb; cursor: zoom-in; transition: opacity .15s; display: block;
+  }
+  .photo-img:hover { opacity: .9; }
+  .photo-missing {
+    width: 100%; aspect-ratio: 4/3; background: #f3f4f6;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #9ca3af; font-size: .85rem; gap: .5rem; text-align: center; padding: .5rem;
+  }
+  .photo-missing svg { width: 36px; height: 36px; }
+  .photo-status { font-size: .75rem; padding: 0 .85rem; min-height: 1.4rem; display: flex; align-items: center; }
+  .photo-status .chip { display: inline-flex; align-items: center; gap: .35rem; font-weight: 600; }
+  .chip.processing, .chip.uploading { color: #b45309; }
+  .chip.saved { color: #15803d; }
+  .chip.error { color: #b91c1c; }
+  .photo-status .spin-mini {
+    width: 12px; height: 12px; border: 2px solid #fcd34d; border-top-color: #b45309;
+    border-radius: 50%; animation: spin .6s linear infinite;
+  }
+  .retry-link { margin-left: .5rem; color: #b91c1c; text-decoration: underline; cursor: pointer; font-weight: 700; }
+  .photo-actions { display: flex; gap: .5rem; padding: .6rem .85rem .85rem; }
+  .mini-btn {
+    flex: 1; border: 1px solid #d1d5db; background: #fff; color: #1f2937;
+    padding: .45rem .5rem; border-radius: 7px; font-size: .78rem; font-weight: 600;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: .35rem;
+    transition: all .12s;
+  }
+  .mini-btn svg { width: 14px; height: 14px; }
+  .mini-btn:hover { border-color: #84cc16; background: #f7fee7; }
+  .mini-btn.armed { border-color: #f59e0b; background: #fffbeb; color: #92400e; }
+  .lightbox {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,.95);
+    z-index: 200; align-items: center; justify-content: center; padding: 2rem; cursor: zoom-out;
+  }
+  .lightbox.open { display: flex; flex-direction: column; gap: 1rem; }
+  .lightbox img { max-width: 100%; max-height: 85vh; border-radius: 6px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+  .lightbox .lb-label { color: white; font-size: 1rem; text-transform: uppercase; letter-spacing: 2px; }
+  .lightbox .lb-label strong { color: #84cc16; }
+  .empty { text-align: center; padding: 3rem; color: #6b7280; }
+  .error-msg {
+    background: #fef2f2; border-left: 3px solid #ef4444; color: #991b1b;
+    padding: 1rem 1.25rem; border-radius: 8px; margin-bottom: 1rem; font-size: .9rem; line-height: 1.5;
+  }
+  .error-msg strong { display: block; margin-bottom: .35rem; }
+  /* Config modal */
+  .config-modal {
+    max-width: 480px; margin: 6vh auto; background: white; border-radius: 14px;
+    padding: 1.5rem; box-shadow: 0 20px 50px rgba(0,0,0,.4);
+  }
+  .config-modal h3 { font-size: 1.1rem; margin-bottom: .4rem; display: flex; align-items: center; gap: .5rem; }
+  .config-modal h3 .bar { width: 4px; height: 22px; background: #84cc16; border-radius: 2px; }
+  .config-modal p { font-size: .85rem; color: #6b7280; line-height: 1.5; margin-bottom: 1rem; }
+  .config-modal label { display: block; font-size: .75rem; text-transform: uppercase; letter-spacing: .5px; color: #6b7280; font-weight: 700; margin: .8rem 0 .3rem; }
+  .config-modal input {
+    width: 100%; padding: .6rem .8rem; border: 1px solid #d1d5db; border-radius: 8px;
+    font-size: .9rem; outline: none;
+  }
+  .config-modal input:focus { border-color: #84cc16; }
+  .config-actions { display: flex; gap: .6rem; justify-content: flex-end; margin-top: 1.25rem; }
+  .config-test { font-size: .8rem; margin-top: .75rem; min-height: 1.2rem; }
+  .config-test.ok { color: #15803d; }
+  .config-test.err { color: #b91c1c; }
+  /* Boton flotante + (nueva unidad) */
+  .fab {
+    position: fixed; right: 24px; bottom: 24px; z-index: 90;
+    display: inline-flex; align-items: center; gap: .6rem;
+    background: #84cc16; color: #14532d;
+    border: none; border-radius: 999px; cursor: pointer;
+    padding: 1rem 1.5rem 1rem 1.25rem;
+    font-size: 1rem; font-weight: 800; letter-spacing: .3px;
+    box-shadow: 0 8px 24px rgba(101,163,13,.45);
+    transition: transform .12s, background .15s, box-shadow .15s;
+  }
+  .fab:hover { background: #a3e635; transform: translateY(-2px); box-shadow: 0 12px 28px rgba(101,163,13,.55); }
+  .fab:active { transform: translateY(0); }
+  .fab .plus {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #14532d; color: #ecfccb; font-size: 1.35rem; font-weight: 700; line-height: 1;
+  }
+  @media (max-width: 640px) {
+    .fab { right: 16px; bottom: 16px; padding: .9rem 1.25rem .9rem 1rem; font-size: .95rem; }
+  }
+  /* Formulario nueva unidad */
+  .newunit-modal {
+    max-width: 460px; margin: 8vh auto; background: white; border-radius: 14px;
+    padding: 1.5rem; box-shadow: 0 20px 50px rgba(0,0,0,.4);
+  }
+  .newunit-modal h3 { font-size: 1.15rem; margin-bottom: .5rem; display: flex; align-items: center; gap: .5rem; }
+  .newunit-modal h3 .bar { width: 4px; height: 24px; background: #84cc16; border-radius: 2px; }
+  .newunit-modal p { font-size: .85rem; color: #6b7280; line-height: 1.5; margin-bottom: 1rem; }
+  .newunit-modal label { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .5px; color: #6b7280; font-weight: 700; margin: .8rem 0 .3rem; }
+  .newunit-modal input {
+    width: 100%; padding: .6rem .8rem; border: 1px solid #d1d5db; border-radius: 8px;
+    font-size: .95rem; outline: none; color: #1f2937;
+  }
+  .newunit-modal input:focus { border-color: #84cc16; }
+  .newunit-actions { display: flex; gap: .6rem; justify-content: flex-end; margin-top: 1.25rem; }
+  .newunit-status { font-size: .82rem; margin-top: .75rem; min-height: 1.1rem; font-weight: 600; }
+  .newunit-status.saving { color: #b45309; }
+  .newunit-status.error { color: #b91c1c; }
+  @media (max-width: 640px) {
+    .brand h1 { font-size: 1rem; }
+    .search { max-width: none; order: 3; width: 100%; }
+    main { padding: 1rem; }
+    .modal-title h2 { font-size: .95rem; }
+    .photos { padding: 1rem; gap: .75rem; }
+    .filter-group select { min-width: 0; width: 100%; }
+    .filter-group { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-bar"></div>
+      <div>
+        <h1>Catalogo de unidades</h1>
+        <small>Inspeccion fotografica por unidad</small>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="searchInput" type="text" placeholder="Buscar ID o ruta..." autocomplete="off" disabled>
+      </div>
+      <button class="btn btn-ghost" id="configBtn" title="Configurar el conector para guardar fotos en el Sheet">
+        <span class="conector-dot" id="conectorDot"></span>
+        <span id="conectorState">Conector</span>
+      </button>
+      <button class="btn btn-primary" id="refreshBtn" title="Volver a leer el Google Sheet">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span>Actualizar</span>
+      </button>
+      <label class="btn btn-ghost" title="Alternativa: cargar un Excel manualmente">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Excel</span>
+        <input id="fileInput" type="file" accept=".xlsx">
+      </label>
+    </div>
+  </div>
+</header>
+<main>
+  <div id="errorBox"></div>
+  <div id="warnBar" class="warn-bar" style="display:none;">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span>Aun no configuras el conector: podras <b>ver</b> el catalogo, pero para <b>guardar fotos en el Sheet</b> necesitas pegar la URL del conector.</span>
+    <button id="warnConfigBtn">Configurar</button>
+  </div>
+  <div id="sourceBar" class="source-bar" style="display:none;">
+    <span class="dot"></span>
+    <span>Origen: <a href="https://docs.google.com/spreadsheets/d/e/2PACX-1vTewjLgrwY_P8MRVsQNnHGf6bzIyhj-DA5_I39o2UH2-l6BgauBR4KXZuuNWsGzJZF3cYgQMDpIpIjy/pubhtml" target="_blank" rel="noopener">Google Sheet publicado</a></span>
+    <span class="sep">|</span>
+    <span id="updatedText">Actualizado ahora</span>
+    <span class="sep">|</span>
+    <span>Datos en vivo desde tu Google Sheet</span>
+  </div>
+  <div id="filtersBar" class="filters-bar" style="display:none;">
+    <div class="filter-group">
+      <label for="plantFilter">Planta / Cliente:</label>
+      <select id="plantFilter"></select>
+      <span class="filter-count" id="plantCount">0</span>
+    </div>
+  </div>
+  <div id="statsBox" class="stats" style="display:none;">
+    <div class="stat"><div class="stat-label">Unidades</div><div class="stat-value" id="statUnits">0</div></div>
+    <div class="stat"><div class="stat-label">Fotografias</div><div class="stat-value" id="statPhotos">0</div></div>
+    <div class="stat"><div class="stat-label">Con fotos</div><div class="stat-value" id="statWithPhotos">0</div></div>
+    <div class="stat"><div class="stat-label">Plantas</div><div class="stat-value" id="statPlants">0</div></div>
+  </div>
+  <div id="content">
+    <div class="loading">Conectando con el Google Sheet...</div>
+  </div>
+</main>
+
+<!-- Modal de unidad -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">
+        <div class="bar"></div>
+        <h2>Unidad <strong id="modalId"></strong></h2>
+      </div>
+      <div class="modal-meta">
+        <span id="modalPlant"></span>
+        <span id="modalRoute"></span>
+      </div>
+      <button class="close-btn" id="closeBtn" title="Cerrar (Esc)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-hint">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span>Para cada aspecto: usa <b>Archivo</b> para buscar una foto, o <b>Pegar</b> para pegarla con Ctrl+V. Se guardan en el Google Sheet.</span>
+    </div>
+    <div class="meta-edit">
+      <div class="meta-field">
+        <label>Planta / Cliente</label>
+        <input id="editPlanta" type="text" autocomplete="off" placeholder="Ej. CONMET F1">
+      </div>
+      <div class="meta-field">
+        <label>Ruta</label>
+        <input id="editRuta" type="text" autocomplete="off" placeholder="Ej. CIENEGA PROGRESO">
+      </div>
+      <button class="btn btn-primary" id="saveMetaBtn">Guardar datos</button>
+      <span id="metaStatus" class="meta-status"></span>
+    </div>
+    <div class="photos" id="photos"></div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <img id="lbImg" alt="">
+  <div class="lb-label" id="lbLabel"></div>
+</div>
+
+<!-- Config del conector -->
+<div class="overlay" id="configOverlay">
+  <div class="config-modal">
+    <h3><span class="bar"></span> Conector de Google Sheet</h3>
+    <p>Pega aqui la URL de la aplicacion web de Apps Script (termina en <b>/exec</b>). Sirve para guardar las fotos dentro de tu Sheet. Solo se configura una vez por dispositivo.</p>
+    <label>URL del conector</label>
+    <input id="cfgUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+    <label>Clave (opcional)</label>
+    <input id="cfgSecret" type="text" placeholder="Solo si pusiste una en el codigo">
+    <div class="config-test" id="cfgTest"></div>
+    <div class="config-actions">
+      <button class="btn btn-ghost" id="cfgTestBtn">Probar</button>
+      <button class="btn btn-ghost" id="cfgCancel">Cancelar</button>
+      <button class="btn btn-primary" id="cfgSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Boton flotante: nueva unidad -->
+<button class="fab" id="fabNewUnit" title="Agregar una unidad nueva">
+  <span class="plus">+</span>
+  <span>Nueva unidad</span>
+</button>
+
+<!-- Formulario nueva unidad -->
+<div class="overlay" id="newUnitOverlay">
+  <div class="newunit-modal">
+    <h3><span class="bar"></span> Agregar unidad nueva</h3>
+    <p>Escribe los datos de la unidad. Se crea en tu Google Sheet y enseguida puedes subirle las fotos.</p>
+    <label>ID de la unidad *</label>
+    <input id="newId" type="text" inputmode="numeric" autocomplete="off" placeholder="Ej. 15999">
+    <label>Planta / Cliente</label>
+    <input id="newPlanta" type="text" autocomplete="off" placeholder="Ej. CONMET F1">
+    <label>Ruta</label>
+    <input id="newRuta" type="text" autocomplete="off" placeholder="Ej. CIENEGA PROGRESO">
+    <div class="newunit-status" id="newStatus"></div>
+    <div class="newunit-actions">
+      <button class="btn btn-ghost" id="newCancel">Cancelar</button>
+      <button class="btn btn-primary" id="newCreate">Crear y subir fotos</button>
+    </div>
+  </div>
+</div>
+
+<!-- Input de archivo compartido para las tarjetas -->
+<input id="cardFileInput" type="file" accept="image/*" style="display:none;">
+
+<script>
+/* ============================================================
+   ORIGEN DE DATOS: Google Sheet publicado (lectura).
+   GUARDADO DE FOTOS: conector Apps Script (escritura).
+   ============================================================ */
+const SHEET_BASE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTewjLgrwY_P8MRVsQNnHGf6bzIyhj-DA5_I39o2UH2-l6BgauBR4KXZuuNWsGzJZF3cYgQMDpIpIjy";
+const SHEET_PUBHTML = SHEET_BASE + "/pubhtml";
+const SHEET_CSV = SHEET_BASE + "/pub?output=csv";
+
+/* URL del conector (Apps Script) ya configurada. La pagina guarda las
+   fotos en el Google Sheet automaticamente, sin que nadie tenga que pegar nada. */
+const CONECTOR_URL_FIJA = "https://script.google.com/macros/s/AKfycbwTLM9TAfm762nQKJyxzQgHqZBKj_XuNCkEQkEyJW1gMhhJSFvROu8XCQ8-rC4oxxJD/exec";
+
+const PHOTO_HEADERS = [
+  "Frente",
+  "Trasera",
+  "Interior",
+  "Lado izquierdo",
+  "Lado derecho",
+  "Documentos / Botiquin / Extintor",
+  "Check list",
+  "Imagen"
+];
+
+const PROXIES = [
+  (u) => u,
+  (u) => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
+  (u) => "https://api.codetabs.com/v1/proxy/?quest=" + encodeURIComponent(u),
+  (u) => "https://corsproxy.io/?url=" + encodeURIComponent(u),
+];
+
+let UNITS = [];
+let currentPlant = "__ALL__";
+let currentUnit = null;
+let photoCardEls = {};   // header -> elemento .photo (valido con modal abierto)
+let lastBlob = {};       // "id|header" -> blob listo (para reintentar)
+let armed = null;        // {unit, header} armado para pegar
+let pendingFileTarget = null;
+
+/* ---- refs ---- */
+const overlay = document.getElementById('overlay');
+const modalId = document.getElementById('modalId');
+const modalPlant = document.getElementById('modalPlant');
+const modalRoute = document.getElementById('modalRoute');
+const photosBox = document.getElementById('photos');
+const closeBtn = document.getElementById('closeBtn');
+const searchInput = document.getElementById('searchInput');
+const lightbox = document.getElementById('lightbox');
+const lbImg = document.getElementById('lbImg');
+const lbLabel = document.getElementById('lbLabel');
+const content = document.getElementById('content');
+const errorBox = document.getElementById('errorBox');
+const statsBox = document.getElementById('statsBox');
+const filtersBar = document.getElementById('filtersBar');
+const plantFilter = document.getElementById('plantFilter');
+const plantCount = document.getElementById('plantCount');
+const sourceBar = document.getElementById('sourceBar');
+const updatedText = document.getElementById('updatedText');
+const refreshBtn = document.getElementById('refreshBtn');
+const warnBar = document.getElementById('warnBar');
+const cardFileInput = document.getElementById('cardFileInput');
+const configOverlay = document.getElementById('configOverlay');
+const conectorDot = document.getElementById('conectorDot');
+const conectorState = document.getElementById('conectorState');
+const editPlanta = document.getElementById('editPlanta');
+const editRuta = document.getElementById('editRuta');
+const saveMetaBtn = document.getElementById('saveMetaBtn');
+const metaStatus = document.getElementById('metaStatus');
+const fabNewUnit = document.getElementById('fabNewUnit');
+const newUnitOverlay = document.getElementById('newUnitOverlay');
+const newId = document.getElementById('newId');
+const newPlanta = document.getElementById('newPlanta');
+const newRuta = document.getElementById('newRuta');
+const newStatus = document.getElementById('newStatus');
+
+const TRUCK_SVG = `<svg class="card-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 3h15v13H1z"/><path d="M16 8h4l3 3v5h-7"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>`;
+const FILE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>`;
+const PASTE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg>`;
+
+/* ============ Configuracion del conector ============ */
+function getConfig() {
+  let url = CONECTOR_URL_FIJA || '';
+  let secret = '';
+  try {
+    url = url || localStorage.getItem('catalogo_conector_url') || '';
+    secret = localStorage.getItem('catalogo_conector_secret') || '';
+  } catch (e) {}
+  return { url: url.trim(), secret: secret };
+}
+function setConfig(url, secret) {
+  try {
+    localStorage.setItem('catalogo_conector_url', url.trim());
+    localStorage.setItem('catalogo_conector_secret', secret || '');
+  } catch (e) {}
+  updateConectorIndicator();
+}
+function updateConectorIndicator() {
+  const cfg = getConfig();
+  if (cfg.url) {
+    conectorDot.className = 'conector-dot ok';
+    conectorState.textContent = 'Conector listo';
+    warnBar.style.display = 'none';
+  } else {
+    conectorDot.className = 'conector-dot warn';
+    conectorState.textContent = 'Sin conector';
+    warnBar.style.display = 'flex';
+  }
+}
+function openConfig() {
+  const cfg = getConfig();
+  document.getElementById('cfgUrl').value = cfg.url;
+  document.getElementById('cfgSecret').value = cfg.secret;
+  document.getElementById('cfgTest').textContent = '';
+  document.getElementById('cfgTest').className = 'config-test';
+  configOverlay.classList.add('open');
+}
+function closeConfig() { configOverlay.classList.remove('open'); }
+
+document.getElementById('configBtn').onclick = openConfig;
+document.getElementById('warnConfigBtn').onclick = openConfig;
+document.getElementById('cfgCancel').onclick = closeConfig;
+document.getElementById('cfgSave').onclick = () => {
+  const url = document.getElementById('cfgUrl').value.trim();
+  const secret = document.getElementById('cfgSecret').value;
+  if (url && !/\/exec\s*$/.test(url)) {
+    const t = document.getElementById('cfgTest');
+    t.textContent = 'La URL deberia terminar en /exec. Revisala.';
+    t.className = 'config-test err';
+    return;
+  }
+  setConfig(url, secret);
+  closeConfig();
+};
+document.getElementById('cfgTestBtn').onclick = async () => {
+  const url = document.getElementById('cfgUrl').value.trim();
+  const t = document.getElementById('cfgTest');
+  if (!url) { t.textContent = 'Pega primero la URL.'; t.className = 'config-test err'; return; }
+  t.textContent = 'Probando...'; t.className = 'config-test';
+  try {
+    const res = await fetch(url, { method: 'GET' });
+    const txt = await res.text();
+    if (/activo|ok/i.test(txt)) { t.textContent = 'Conector activo y respondiendo.'; t.className = 'config-test ok'; }
+    else { t.textContent = 'Respondio, pero revisa que sea la URL correcta.'; t.className = 'config-test err'; }
+  } catch (e) {
+    t.textContent = 'No respondio. Revisa la URL o que este implementado para "Cualquier usuario".';
+    t.className = 'config-test err';
+  }
+};
+
+/* ============ Utilidades de imagen ============ */
+function blobToDataURL(blob) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(blob);
+  });
+}
+function blobToImage(blob) {
+  return new Promise((res, rej) => {
+    const u = URL.createObjectURL(blob);
+    const i = new Image();
+    i.onload = () => { URL.revokeObjectURL(u); res(i); };
+    i.onerror = (e) => { URL.revokeObjectURL(u); rej(e); };
+    i.src = u;
+  });
+}
+// Reduce la foto antes de subir (mas rapido y ligero para el celular)
+async function processForUpload(blob) {
+  try {
+    const img = await blobToImage(blob);
+    const maxDim = 1600;
+    let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+    if (Math.max(w, h) > maxDim) {
+      const s = maxDim / Math.max(w, h);
+      w = Math.round(w * s); h = Math.round(h * s);
+    }
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    const out = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.82));
+    return out || blob;
+  } catch (e) {
+    return blob; // p.ej. HEIC no decodificable: sube el original
+  }
+}
+
+/* ============ Descarga de texto (lectura del Sheet) ============ */
+async function fetchText(url) {
+  let lastErr = null;
+  for (const wrap of PROXIES) {
+    try {
+      const res = await fetch(wrap(url), { redirect: 'follow' });
+      if (!res.ok) { lastErr = new Error('HTTP ' + res.status); continue; }
+      const txt = await res.text();
+      if (txt && txt.trim().length > 0) return txt;
+    } catch (e) { lastErr = e; }
+  }
+  throw lastErr || new Error('No se pudo descargar.');
+}
+
+function normalizeImageUrl(t) {
+  if (!t) return null;
+  t = String(t).trim();
+  if (!t) return null;
+  let m = t.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) return "https://lh3.googleusercontent.com/d/" + m[1];
+  m = t.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m && /google\.com/.test(t)) return "https://lh3.googleusercontent.com/d/" + m[1];
+  if (/^https?:\/\/[^\s]*googleusercontent\.com/i.test(t)) return t;
+  if (/^https?:\/\/[^\s]+\.(png|jpe?g|gif|webp|bmp|heic|heif)(\?[^\s]*)?$/i.test(t)) return t;
+  if (/^https?:\/\/[^\s]+$/i.test(t)) return t;
+  return null;
+}
+
+function parsePubhtml(htmlStr) {
+  const doc = new DOMParser().parseFromString(htmlStr, 'text/html');
+  const tables = Array.from(doc.querySelectorAll('table'));
+  if (!tables.length) throw new Error('No se encontro la tabla en el Sheet publicado.');
+  let table = tables.find(t => /\bIds\b/i.test(t.textContent));
+  if (!table) table = tables.sort((a, b) => b.querySelectorAll('tr').length - a.querySelectorAll('tr').length)[0];
+
+  const trs = Array.from(table.querySelectorAll('tr'));
+  const units = [];
+  for (const tr of trs) {
+    const tds = Array.from(tr.children).filter(el => el.tagName === 'TD');
+    if (!tds.length) continue;
+    const txt = (i) => (tds[i] ? tds[i].textContent.replace(/\u00a0/g, ' ').trim() : '');
+    const id = txt(0);
+    if (!id || id.toLowerCase() === 'ids') continue;
+    const planta = txt(1) || 'Sin planta';
+    const ruta = txt(2) || '';
+    const photos = {};
+    for (let k = 0; k < PHOTO_HEADERS.length; k++) {
+      const td = tds[3 + k];
+      if (!td) continue;
+      const img = td.querySelector('img');
+      let src = null;
+      if (img && (img.getAttribute('src') || img.getAttribute('data-src'))) {
+        src = img.getAttribute('src') || img.getAttribute('data-src');
+      } else {
+        src = normalizeImageUrl(td.textContent);
+      }
+      if (src) photos[PHOTO_HEADERS[k]] = src;
+    }
+    units.push({ id, planta, ruta, photos });
+  }
+  return units;
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; }
+      else cur += c;
+    } else {
+      if (c === '"') q = true;
+      else if (c === ',') { row.push(cur); cur = ''; }
+      else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+      else if (c === '\r') {}
+      else cur += c;
+    }
+  }
+  if (cur.length || row.length) { row.push(cur); rows.push(row); }
+  const units = [];
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const id = (r[0] || '').trim();
+    if (!id || id.toLowerCase() === 'ids') continue;
+    const photos = {};
+    for (let k = 0; k < PHOTO_HEADERS.length; k++) {
+      const src = normalizeImageUrl(r[3 + k]);
+      if (src) photos[PHOTO_HEADERS[k]] = src;
+    }
+    units.push({ id, planta: (r[1] || 'Sin planta').trim(), ruta: (r[2] || '').trim(), photos });
+  }
+  return units;
+}
+
+async function loadFromSheet() {
+  clearError();
+  refreshBtn.classList.add('loading');
+  showLoading('Leyendo datos del catalogo...');
+  try {
+    const cfg = getConfig();
+    if (cfg.url) {
+      // Lectura robusta via el conector: datos EN VIVO desde tu Sheet,
+      // sin proxies externos ni problemas de CORS/401.
+      const sep = cfg.url.indexOf('?') === -1 ? '?' : '&';
+      let params = 'action=data';
+      if (cfg.secret) params += '&secret=' + encodeURIComponent(cfg.secret);
+      const res = await fetch(cfg.url + sep + params, { method: 'GET' });
+      const data = await res.json();
+      if (!data || !data.ok || !Array.isArray(data.units)) {
+        throw new Error((data && data.error) || 'Respuesta no valida del conector');
+      }
+      UNITS = data.units.map(function (u) {
+        return { id: String(u.id), planta: u.planta || 'Sin planta', ruta: u.ruta || '', photos: u.photos || {} };
+      });
+      if (!UNITS.length) throw new Error('El conector no devolvio unidades.');
+      currentPlant = '__ALL__';
+      updatedText.textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+      sourceBar.style.display = 'flex';
+      renderInterface();
+      return;
+    }
+    // Sin conector configurado: intento leer el Sheet publicado (proxies).
+    await loadFromPublished();
+  } catch (err) {
+    console.error(err);
+    // Respaldo: Sheet publicado via proxies (menos confiable).
+    try { await loadFromPublished(); return; } catch (e2) { console.error(e2); }
+    sourceBar.style.display = 'none';
+    statsBox.style.display = 'none';
+    filtersBar.style.display = 'none';
+    content.innerHTML = '';
+    showError(
+      `<strong>No se pudo leer el catalogo</strong>Detalle: ${err.message}<br><br>` +
+      `Revisa tu conexion a internet y que el conector siga activo. Usa <b>Actualizar</b> para reintentar, o carga un <b>Excel</b> de respaldo.`
+    );
+  } finally {
+    refreshBtn.classList.remove('loading');
+  }
+}
+
+// Respaldo: leer el Sheet publicado con proxies publicos (poco confiable).
+async function loadFromPublished() {
+  let units = [];
+  try { units = parsePubhtml(await fetchText(SHEET_PUBHTML)); }
+  catch (e) { console.warn('pubhtml fallo, intento CSV:', e); }
+  if (!units.length) units = parseCsv(await fetchText(SHEET_CSV));
+  if (!units.length) throw new Error('El Sheet no devolvio unidades.');
+  UNITS = units;
+  currentPlant = '__ALL__';
+  updatedText.textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+  sourceBar.style.display = 'flex';
+  renderInterface();
+}
+
+/* ============ Guardado en el Sheet (via conector) ============ */
+async function saveToSheet(unit, header, blob) {
+  const cfg = getConfig();
+  const dataUrl = await blobToDataURL(blob);
+  const base64 = dataUrl.split(',')[1];
+  const payload = {
+    id: unit.id,
+    column: header,
+    image: base64,
+    mime: 'image/jpeg',
+    filename: unit.id + '_' + header.replace(/[^\w]+/g, '_') + '.jpg'
+  };
+  if (cfg.secret) payload.secret = cfg.secret;
+  // Sin encabezados personalizados -> evita el "preflight" CORS de Google
+  const res = await fetch(cfg.url, { method: 'POST', body: JSON.stringify(payload) });
+  const text = await res.text();
+  let result;
+  try { result = JSON.parse(text); } catch (e) { throw new Error('Respuesta no valida del conector'); }
+  if (!result.ok) throw new Error(result.error || 'Error del conector');
+  return result.url;
+}
+
+async function handleNewImage(unit, header, blob) {
+  if (!blob) return;
+  const key = unit.id + '|' + header;
+  setStatus(header, 'processing', 'Procesando imagen...');
+  const ready = await processForUpload(blob);
+  lastBlob[key] = ready;
+  const previewUrl = await blobToDataURL(ready);
+
+  unit.photos[header] = previewUrl;      // se ve al instante
+  setMedia(header, previewUrl, unit);
+  recountGridAndStats();
+
+  const cfg = getConfig();
+  if (!cfg.url) {
+    setStatus(header, 'error', 'Falta el conector para guardar en el Sheet.', unit, header);
+    openConfig();
+    return;
+  }
+  setStatus(header, 'uploading', 'Guardando en el Sheet...');
+  try {
+    await saveToSheet(unit, header, ready);
+    setStatus(header, 'saved', 'Guardado en el Sheet');
+  } catch (e) {
+    setStatus(header, 'error', 'No se guardo: ' + e.message, unit, header);
+  }
+}
+
+/* ============ Pegar (Ctrl+V) y Archivo ============ */
+function armPaste(unit, header) {
+  armed = { unit, header };
+  // marca visual del boton
+  Object.values(photoCardEls).forEach(c => { const b = c.querySelector('.paste'); if (b) b.classList.remove('armed'); });
+  const card = photoCardEls[header];
+  if (card) { const b = card.querySelector('.paste'); if (b) b.classList.add('armed'); }
+  setStatus(header, 'processing', 'Copia una imagen y presiona Ctrl+V...');
+  // intento directo (un solo clic) si el navegador lo permite
+  tryClipboardRead();
+}
+async function tryClipboardRead() {
+  if (!(navigator.clipboard && navigator.clipboard.read)) return;
+  try {
+    const items = await navigator.clipboard.read();
+    for (const it of items) {
+      const type = (it.types || []).find(t => t.startsWith('image/'));
+      if (type) { const blob = await it.getType(type); consumePaste(blob); return; }
+    }
+  } catch (e) { /* requiere Ctrl+V manual; se maneja abajo */ }
+}
+function consumePaste(blob) {
+  const target = armed;
+  armed = null;
+  if (target) {
+    const card = photoCardEls[target.header];
+    if (card) { const b = card.querySelector('.paste'); if (b) b.classList.remove('armed'); }
+  }
+  if (target && blob) handleNewImage(target.unit, target.header, blob);
+}
+document.addEventListener('paste', (e) => {
+  if (!armed) return;
+  const items = e.clipboardData && e.clipboardData.items;
+  if (!items) return;
+  for (const it of items) {
+    if (it.type && it.type.startsWith('image/')) {
+      const blob = it.getAsFile();
+      e.preventDefault();
+      consumePaste(blob);
+      return;
+    }
+  }
+});
+cardFileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  const target = pendingFileTarget;
+  pendingFileTarget = null;
+  e.target.value = '';
+  if (target && file) handleNewImage(target.unit, target.header, file);
+});
+
+/* ============ Render de tarjetas de foto ============ */
+function setMedia(header, url, unit) {
+  const card = photoCardEls[header];
+  if (!card) return;
+  const media = card.querySelector('.photo-media');
+  if (url) {
+    media.innerHTML = `<img class="photo-img" src="${url}" alt="${header} - Unidad ${unit.id}" loading="lazy" referrerpolicy="no-referrer">`;
+    const img = media.querySelector('img');
+    img.onclick = () => openLightbox(url, header, unit.id);
+    img.onerror = () => {
+      media.innerHTML = `<div class="photo-missing"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>No se pudo cargar la imagen</div>`;
+    };
+  } else {
+    media.innerHTML = `<div class="photo-missing"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Sin foto</div>`;
+  }
+}
+function setStatus(header, status, msg, retryUnit, retryHeader) {
+  const card = photoCardEls[header];
+  if (!card) return;
+  const box = card.querySelector('.photo-status');
+  if (status === 'idle' || !status) { box.innerHTML = ''; return; }
+  let inner = '';
+  if (status === 'processing' || status === 'uploading') {
+    inner = `<span class="chip ${status}"><span class="spin-mini"></span>${msg || ''}</span>`;
+  } else if (status === 'saved') {
+    inner = `<span class="chip saved">✓ ${msg || 'Guardado'}</span>`;
+  } else if (status === 'error') {
+    inner = `<span class="chip error">⚠ ${msg || 'Error'}</span>`;
+    if (retryUnit && retryHeader) inner += `<span class="retry-link" data-h="${retryHeader}">Reintentar</span>`;
+  }
+  box.innerHTML = inner;
+  const retry = box.querySelector('.retry-link');
+  if (retry) retry.onclick = () => {
+    const key = retryUnit.id + '|' + retryHeader;
+    if (lastBlob[key]) handleNewImage(retryUnit, retryHeader, lastBlob[key]);
+  };
+}
+function buildPhotoCard(unit, header) {
+  const card = document.createElement('div');
+  card.className = 'photo';
+  card.dataset.header = header;
+  card.innerHTML =
+    `<div class="photo-label">${header}</div>` +
+    `<div class="photo-media"></div>` +
+    `<div class="photo-status"></div>` +
+    `<div class="photo-actions">` +
+      `<button class="mini-btn file">${FILE_SVG} Archivo</button>` +
+      `<button class="mini-btn paste">${PASTE_SVG} Pegar</button>` +
+    `</div>`;
+  photoCardEls[header] = card;
+  setMedia(header, unit.photos[header] || null, unit);
+  card.querySelector('.file').onclick = () => { pendingFileTarget = { unit, header }; cardFileInput.click(); };
+  card.querySelector('.paste').onclick = () => armPaste(unit, header);
+  return card;
+}
+
+/* ============ Render general ============ */
+function showError(html) { errorBox.innerHTML = `<div class="error-msg">${html}</div>`; }
+function clearError() { errorBox.innerHTML = ''; }
+function showLoading(msg) { content.innerHTML = `<div class="loading">${msg}</div>`; }
+
+function getPlantCounts() {
+  const counts = {};
+  UNITS.forEach(u => { counts[u.planta] = (counts[u.planta] || 0) + 1; });
+  return counts;
+}
+function populatePlantFilter() {
+  const counts = getPlantCounts();
+  const plants = Object.keys(counts).sort((a, b) => a.localeCompare(b));
+  plantFilter.innerHTML = '';
+  const allOpt = document.createElement('option');
+  allOpt.value = '__ALL__';
+  allOpt.textContent = `Todas (${UNITS.length})`;
+  plantFilter.appendChild(allOpt);
+  plants.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p; opt.textContent = `${p} (${counts[p]})`;
+    plantFilter.appendChild(opt);
+  });
+  plantFilter.value = currentPlant;
+  updatePlantCount();
+}
+function updatePlantCount() {
+  const counts = getPlantCounts();
+  if (currentPlant === '__ALL__') plantCount.textContent = `${UNITS.length} unidades`;
+  else { const n = counts[currentPlant] || 0; plantCount.textContent = `${n} ${n === 1 ? 'unidad' : 'unidades'}`; }
+}
+function photoCount(u) { return PHOTO_HEADERS.reduce((n, h) => n + (u.photos[h] ? 1 : 0), 0); }
+
+function renderInterface() {
+  statsBox.style.display = 'flex';
+  filtersBar.style.display = 'flex';
+  searchInput.disabled = false;
+  content.innerHTML = `<div class="grid" id="grid"></div><div class="empty" id="emptyMsg" style="display:none;">No se encontraron unidades.</div>`;
+  recountGridAndStats(true);
+  populatePlantFilter();
+  renderGrid();
+}
+function recountGridAndStats(full) {
+  if (full) document.getElementById('statUnits').textContent = UNITS.length;
+  let totalPhotos = 0, withPhotos = 0;
+  UNITS.forEach(u => { const c = photoCount(u); totalPhotos += c; if (c > 0) withPhotos++; });
+  const sp = document.getElementById('statPhotos'); if (sp) sp.textContent = totalPhotos;
+  const sw = document.getElementById('statWithPhotos'); if (sw) sw.textContent = withPhotos;
+  const spl = document.getElementById('statPlants'); if (spl) spl.textContent = Object.keys(getPlantCounts()).length;
+  renderGrid();
+}
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  const emptyMsg = document.getElementById('emptyMsg');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const q = searchInput.value.trim().toLowerCase();
+  const visible = UNITS.filter(u => {
+    const matchPlant = currentPlant === '__ALL__' || u.planta === currentPlant;
+    const matchSearch = !q || u.id.toLowerCase().includes(q) || (u.ruta || '').toLowerCase().includes(q);
+    return matchPlant && matchSearch;
+  });
+  visible.forEach(u => {
+    const c = photoCount(u);
+    const badge = c === PHOTO_HEADERS.length
+      ? `<div class="card-badge badge-full">Completa</div>`
+      : c > 0
+        ? `<div class="card-badge badge-partial">${c}/${PHOTO_HEADERS.length} fotos</div>`
+        : `<div class="card-badge badge-empty">Sin fotos</div>`;
+    const card = document.createElement('div');
+    card.className = 'card';
+    const meta = (u.planta || u.ruta)
+      ? `<div class="card-meta">${u.planta ? `<div><strong>${u.planta}</strong></div>` : ''}${u.ruta ? `<div>Ruta: ${u.ruta}</div>` : ''}</div>`
+      : '';
+    card.innerHTML = `${TRUCK_SVG}<div class="card-id">${u.id}</div><div class="card-label">Unidad</div>${meta}${badge}`;
+    card.onclick = () => openModal(u);
+    grid.appendChild(card);
+  });
+  emptyMsg.style.display = visible.length === 0 ? 'block' : 'none';
+}
+
+function openModal(unit) {
+  currentUnit = unit;
+  photoCardEls = {};
+  armed = null;
+  modalId.textContent = unit.id;
+  modalPlant.innerHTML = unit.planta ? `Planta: <strong>${unit.planta}</strong>` : '';
+  modalRoute.innerHTML = unit.ruta ? `Ruta: <strong>${unit.ruta}</strong>` : '';
+  editPlanta.value = (unit.planta && unit.planta !== 'Sin planta') ? unit.planta : '';
+  editRuta.value = unit.ruta || '';
+  setMetaStatus('', '');
+  photosBox.innerHTML = '';
+  PHOTO_HEADERS.forEach(h => photosBox.appendChild(buildPhotoCard(unit, h)));
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function setMetaStatus(cls, msg) {
+  metaStatus.className = 'meta-status' + (cls ? ' ' + cls : '');
+  metaStatus.textContent = msg || '';
+}
+
+async function saveMeta() {
+  if (!currentUnit) return;
+  const cfg = getConfig();
+  if (!cfg.url) { setMetaStatus('error', 'Falta el conector.'); openConfig(); return; }
+  const planta = editPlanta.value.trim();
+  const ruta = editRuta.value.trim();
+  setMetaStatus('saving', 'Guardando...');
+  saveMetaBtn.classList.add('loading');
+  try {
+    const payload = { op: 'updateMeta', id: currentUnit.id, planta: planta, ruta: ruta };
+    if (cfg.secret) payload.secret = cfg.secret;
+    const res = await fetch(cfg.url, { method: 'POST', body: JSON.stringify(payload) });
+    const result = await res.json();
+    if (!result.ok) throw new Error(result.error || 'Error del conector');
+    currentUnit.planta = planta || 'Sin planta';
+    currentUnit.ruta = ruta;
+    modalPlant.innerHTML = currentUnit.planta ? `Planta: <strong>${currentUnit.planta}</strong>` : '';
+    modalRoute.innerHTML = currentUnit.ruta ? `Ruta: <strong>${currentUnit.ruta}</strong>` : '';
+    populatePlantFilter();
+    renderGrid();
+    setMetaStatus('saved', '✓ Guardado en el Sheet');
+  } catch (e) {
+    setMetaStatus('error', 'No se guardo: ' + e.message);
+  } finally {
+    saveMetaBtn.classList.remove('loading');
+  }
+}
+function closeModal() {
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
+  armed = null;
+  currentUnit = null;
+}
+function openLightbox(src, label, id) {
+  lbImg.src = src;
+  lbLabel.innerHTML = `${label} &mdash; Unidad <strong>${id}</strong>`;
+  lightbox.classList.add('open');
+}
+
+/* ============ Nueva unidad ============ */
+function openNewUnit() {
+  newId.value = ''; newPlanta.value = ''; newRuta.value = '';
+  newStatus.textContent = ''; newStatus.className = 'newunit-status';
+  newUnitOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(function () { newId.focus(); }, 50);
+}
+function closeNewUnit() {
+  newUnitOverlay.classList.remove('open');
+  if (!overlay.classList.contains('open')) document.body.style.overflow = '';
+}
+async function createUnit() {
+  const cfg = getConfig();
+  if (!cfg.url) { newStatus.className = 'newunit-status error'; newStatus.textContent = 'Falta el conector.'; return; }
+  const id = newId.value.trim();
+  const planta = newPlanta.value.trim();
+  const ruta = newRuta.value.trim();
+  if (!id) { newStatus.className = 'newunit-status error'; newStatus.textContent = 'Escribe el ID de la unidad.'; newId.focus(); return; }
+  if (UNITS.some(function (u) { return u.id === id; })) {
+    newStatus.className = 'newunit-status error'; newStatus.textContent = 'Ya existe la unidad ' + id + '.'; return;
+  }
+  newStatus.className = 'newunit-status saving'; newStatus.textContent = 'Creando unidad...';
+  const btn = document.getElementById('newCreate'); btn.classList.add('loading');
+  try {
+    const payload = { op: 'addUnit', id: id, planta: planta, ruta: ruta };
+    if (cfg.secret) payload.secret = cfg.secret;
+    const res = await fetch(cfg.url, { method: 'POST', body: JSON.stringify(payload) });
+    const result = await res.json();
+    if (!result.ok) throw new Error(result.error || 'Error del conector');
+    const unit = { id: id, planta: planta || 'Sin planta', ruta: ruta, photos: {} };
+    UNITS.push(unit);
+    populatePlantFilter();
+    recountGridAndStats(true);
+    closeNewUnit();
+    openModal(unit); // abrir la ficha para subir fotos de inmediato
+  } catch (e) {
+    newStatus.className = 'newunit-status error'; newStatus.textContent = 'No se creo: ' + e.message;
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
+fabNewUnit.addEventListener('click', openNewUnit);
+document.getElementById('newCancel').addEventListener('click', closeNewUnit);
+document.getElementById('newCreate').addEventListener('click', createUnit);
+newUnitOverlay.addEventListener('click', function (e) { if (e.target === newUnitOverlay) closeNewUnit(); });
+newId.addEventListener('keydown', function (e) { if (e.key === 'Enter') createUnit(); });
+newRuta.addEventListener('keydown', function (e) { if (e.key === 'Enter') createUnit(); });
+
+closeBtn.onclick = closeModal;
+overlay.onclick = e => { if (e.target === overlay) closeModal(); };
+configOverlay.onclick = e => { if (e.target === configOverlay) closeConfig(); };
+lightbox.onclick = () => lightbox.classList.remove('open');
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (lightbox.classList.contains('open')) lightbox.classList.remove('open');
+    else if (newUnitOverlay.classList.contains('open')) closeNewUnit();
+    else if (configOverlay.classList.contains('open')) closeConfig();
+    else if (overlay.classList.contains('open')) closeModal();
+  }
+});
+searchInput.addEventListener('input', renderGrid);
+plantFilter.addEventListener('change', e => { currentPlant = e.target.value; updatePlantCount(); renderGrid(); });
+refreshBtn.addEventListener('click', loadFromSheet);
+saveMetaBtn.addEventListener('click', saveMeta);
+
+/* ============ Respaldo: Excel (.xlsx) ============ */
+const HEADERS = PHOTO_HEADERS;
+const COLUMN_MAP = { D: 0, E: 1, F: 2, G: 3, H: 4, I: 5, J: 6, K: 7 };
+function parseXml(str) { return new DOMParser().parseFromString(str, 'application/xml'); }
+async function readSharedStrings(zip) {
+  const f = zip.file('xl/sharedStrings.xml');
+  if (!f) return [];
+  const doc = parseXml(await f.async('string'));
+  const sis = doc.getElementsByTagName('si');
+  const strings = [];
+  for (let i = 0; i < sis.length; i++) {
+    const ts = sis[i].getElementsByTagName('t');
+    let s = '';
+    for (let j = 0; j < ts.length; j++) s += ts[j].textContent;
+    strings.push(s);
+  }
+  return strings;
+}
+function getCellText(cell, sharedStrings) {
+  const t = cell.getAttribute('t');
+  const v = cell.getElementsByTagName('v')[0];
+  if (!v) {
+    const is = cell.getElementsByTagName('is')[0];
+    if (is) {
+      const ts = is.getElementsByTagName('t');
+      let s = '';
+      for (let j = 0; j < ts.length; j++) s += ts[j].textContent;
+      return s;
+    }
+    return null;
+  }
+  const val = v.textContent;
+  if (t === 's') return sharedStrings[parseInt(val)] || '';
+  return val;
+}
+async function processXlsx(file) {
+  clearError();
+  showLoading('Procesando archivo Excel...');
+  try {
+    const zip = await JSZip.loadAsync(file);
+    const sheetFile = zip.file('xl/worksheets/sheet1.xml');
+    if (!sheetFile) throw new Error('No se encontro la hoja de calculo.');
+    const sheetDoc = parseXml(await sheetFile.async('string'));
+    const sharedStrings = await readSharedStrings(zip);
+    let vmToTarget = {};
+    const rvFile = zip.file('xl/richData/rdrichvalue.xml');
+    const rvRelFile = zip.file('xl/richData/richValueRel.xml');
+    const rvRelRelsFile = zip.file('xl/richData/_rels/richValueRel.xml.rels');
+    const metaFile = zip.file('xl/metadata.xml');
+    if (rvFile && rvRelFile && rvRelRelsFile && metaFile) {
+      const metaDoc = parseXml(await metaFile.async('string'));
+      const bks = metaDoc.getElementsByTagName('bk');
+      const vmToRv = {};
+      for (let i = 0; i < bks.length; i++) {
+        const rvb = bks[i].getElementsByTagName('xlrd:rvb')[0] || bks[i].querySelector('*|rvb');
+        if (rvb) vmToRv[i + 1] = parseInt(rvb.getAttribute('i'));
+      }
+      const rvDoc = parseXml(await rvFile.async('string'));
+      const rvs = rvDoc.getElementsByTagName('rv');
+      const rvToImg = {};
+      for (let i = 0; i < rvs.length; i++) {
+        const vs = rvs[i].getElementsByTagName('v');
+        if (vs.length > 0) rvToImg[i] = parseInt(vs[0].textContent);
+      }
+      const rvRelDoc = parseXml(await rvRelFile.async('string'));
+      const rels = rvRelDoc.getElementsByTagName('rel');
+      const imgToRid = {};
+      for (let i = 0; i < rels.length; i++) imgToRid[i] = rels[i].getAttribute('r:id');
+      const rvRelRelsDoc = parseXml(await rvRelRelsFile.async('string'));
+      const rships = rvRelRelsDoc.getElementsByTagName('Relationship');
+      const ridToTarget = {};
+      for (let i = 0; i < rships.length; i++) ridToTarget[rships[i].getAttribute('Id')] = rships[i].getAttribute('Target');
+      for (const vm in vmToRv) {
+        const target = ridToTarget[imgToRid[rvToImg[vmToRv[vm]]]];
+        if (target) vmToTarget[vm] = target.replace(/^\.\.\//, 'xl/');
+      }
+    }
+    const mediaCache = {};
+    async function getDataUrl(path) {
+      if (mediaCache[path]) return mediaCache[path];
+      const f = zip.file(path);
+      if (!f) return null;
+      const blob = await f.async('blob');
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      mediaCache[path] = dataUrl;
+      return dataUrl;
+    }
+    const rows = sheetDoc.getElementsByTagName('row');
+    const units = [];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      if (parseInt(row.getAttribute('r')) === 1) continue;
+      const cells = row.getElementsByTagName('c');
+      let id = null, planta = '', ruta = '';
+      const photos = {};
+      for (let j = 0; j < cells.length; j++) {
+        const cell = cells[j];
+        const col = cell.getAttribute('r').match(/^[A-Z]+/)[0];
+        if (col === 'A') { const t = getCellText(cell, sharedStrings); if (t && String(t).trim()) id = String(t).trim(); }
+        else if (col === 'B') { const t = getCellText(cell, sharedStrings); if (t) planta = String(t).trim(); }
+        else if (col === 'C') { const t = getCellText(cell, sharedStrings); if (t) ruta = String(t).trim(); }
+        else if (COLUMN_MAP.hasOwnProperty(col)) {
+          const vm = cell.getAttribute('vm');
+          if (vm) {
+            const mediaPath = vmToTarget[parseInt(vm)];
+            if (mediaPath) { const d = await getDataUrl(mediaPath); if (d) photos[HEADERS[COLUMN_MAP[col]]] = d; }
+          }
+        }
+      }
+      if (id) units.push({ id, planta: planta || 'Sin planta', ruta: ruta || '', photos });
+    }
+    if (!units.length) throw new Error('No se encontraron unidades en el Excel.');
+    UNITS = units;
+    currentPlant = '__ALL__';
+    updatedText.textContent = 'Cargado desde Excel: ' + file.name;
+    sourceBar.style.display = 'flex';
+    renderInterface();
+  } catch (err) {
+    console.error(err);
+    showError(`Error al procesar el Excel: ${err.message}`);
+    content.innerHTML = '';
+  }
+}
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  processXlsx(file);
+  e.target.value = '';
+});
+
+/* ============ Arranque ============ */
+updateConectorIndicator();
+loadFromSheet();
+</script>
+</body>
+</html>
