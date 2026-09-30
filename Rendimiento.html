@@ -80,6 +80,12 @@
     color: #c0392b; font-weight: 700; font-size: 11.5px; letter-spacing: .3px;
     margin: 0 0 4px 0; text-transform: uppercase;
   }
+  #btn-reset-filtros {
+    text-transform: none; letter-spacing: 0; font-size: 10.5px; font-weight: 700;
+    color: #166534; background: #dcfce7; border: 1px solid #86efac; border-radius: 6px;
+    padding: 3px 10px; cursor: pointer;
+  }
+  #btn-reset-filtros:hover { background: #bbf7d0; }
 
   /* Tables */
   table.pbi { width: 100%; border-collapse: collapse; font-size: 10.5px; }
@@ -468,6 +474,32 @@
   #prog-paste-save { background:#84cc16; color:#14532d; border-color:#84cc16; }
   #prog-paste-save:hover:not(:disabled) { background:#a3e635; }
   #prog-paste-save:disabled { opacity:.5; cursor:not-allowed; }
+
+  /* barra de sesión (candado de acceso) */
+  .prog-auth-bar { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 16px; border-bottom:1px solid #e5e7eb; font-size:12px; }
+  .prog-auth-bar.locked { background:#fff7ed; }
+  .prog-auth-bar.authed { background:#f0fdf4; }
+  .prog-auth-info { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .prog-auth-badge { font-weight:700; padding:3px 9px; border-radius:10px; white-space:nowrap; }
+  .prog-auth-badge.on  { background:#dcfce7; color:#166534; }
+  .prog-auth-badge.off { background:#ffedd5; color:#9a3412; }
+  .prog-auth-tip { color:#6b7280; }
+  #prog-auth-btn { flex:0 0 auto; }
+  /* estado bloqueado: checks y fotos atenuados */
+  .prog-list.locked .prog-item { cursor:default; opacity:.9; }
+  .prog-list.locked .prog-item input[type="checkbox"] { pointer-events:none; opacity:.4; }
+  .prog-list.locked .prog-photo-btn { opacity:.4; cursor:not-allowed; }
+  /* modal de inicio de sesión */
+  .prog-login-box { background:#fff; width:100%; max-width:380px; border-radius:10px; box-shadow:0 20px 60px rgba(0,0,0,.4); overflow:hidden; outline:none; }
+  .prog-login-body { padding:16px; display:flex; flex-direction:column; gap:6px; }
+  .prog-login-body label { font-size:11px; font-weight:700; color:#374151; margin-top:6px; }
+  .prog-login-body input { padding:9px 11px; border:1px solid #d1d5db; border-radius:6px; font-size:13px; }
+  .prog-login-body input:focus { outline:none; border-color:#84cc16; box-shadow:0 0 0 3px rgba(132,204,22,.15); }
+  #prog-login-submit { margin-top:12px; padding:10px 14px; border:none; border-radius:6px; background:#84cc16; color:#14532d; font-weight:700; font-size:13px; cursor:pointer; }
+  #prog-login-submit:hover:not(:disabled) { background:#a3e635; }
+  #prog-login-submit:disabled { opacity:.6; cursor:progress; }
+  .prog-login-err { color:#b91c1c; font-size:12px; min-height:16px; font-weight:600; }
+  .prog-login-hint { color:#6b7280; font-size:11px; line-height:1.6; margin-top:8px; }
 </style>
 </head>
 <body>
@@ -617,7 +649,10 @@
     </div>
 
     <div class="panel" style="grid-column: 4; grid-row: 3;">
-      <div class="panel-title">Filtros rápidos</div>
+      <div class="panel-title" style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+        <span>Filtros rápidos</span>
+        <button id="btn-reset-filtros" type="button" title="Quitar todos los filtros y volver a mostrar todos los datos">↺ Limpiar filtros</button>
+      </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 6px;">
         <div class="slicer">
           <label>Nombre op.</label>
@@ -735,6 +770,11 @@
       </div>
     </div>
 
+    <div class="prog-auth-bar locked" id="prog-auth-bar">
+      <div class="prog-auth-info" id="prog-auth-info"></div>
+      <button class="pbtn" id="prog-auth-btn">Iniciar sesión</button>
+    </div>
+
     <div class="prog-cfg" id="prog-cfg" style="display:none;">
       <h5>Guardar el progreso dentro del mismo Google Sheet</h5>
       <div class="row">
@@ -791,6 +831,25 @@
   </div>
 </div>
 
+<!-- ============ INICIO DE SESIÓN (candado para sellar) ============ -->
+<div id="prog-login-overlay" class="prog-paste-overlay">
+  <div class="prog-login-box" tabindex="0">
+    <div class="prog-paste-head">
+      <span>🔒 Iniciar sesión para sellar</span>
+      <button id="prog-login-close" title="Cerrar">✕</button>
+    </div>
+    <div class="prog-login-body">
+      <label for="prog-login-user">Usuario</label>
+      <input type="text" id="prog-login-user" autocomplete="username" placeholder="ej. ericks" autocapitalize="none" spellcheck="false">
+      <label for="prog-login-pass">Contraseña</label>
+      <input type="password" id="prog-login-pass" autocomplete="current-password" placeholder="Tu contraseña">
+      <div class="prog-login-err" id="prog-login-err"></div>
+      <button id="prog-login-submit">Entrar</button>
+      <div class="prog-login-hint">Solo los usuarios registrados en la pestaña «usuarios» del Sheet pueden marcar los puntos y subir evidencia. Tu nombre queda registrado como quien revisó.</div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* =========================================================
    CONFIG
@@ -812,6 +871,7 @@ const PROGRESO_BLOCKS = [
     { key:'mtto4', label:'Carro certificado' },
   ]},
   { id:'cap', titulo:'Capacitación', color:'#7c3aed', items:[
+    { key:'cap7', label:'Coacheo sobre score de operaciones' },
     { key:'cap1', label:'Capacitación mtto técnico (mtto rendimiento)' },
     { key:'cap2', label:'Cartas compromiso (1ª semana)' },
     { key:'cap3', label:'Carta administrativa (2ª semana)' },
@@ -825,13 +885,15 @@ const PROGRESO_BLOCKS = [
     { key:'ext3', label:'Proceso de sellado' },
   ]},
 ];
-// Lista plana ordenada (13 puntos) — el orden define las columnas en el Sheet.
+// Lista plana ordenada (14 puntos) — el orden define las columnas en el Sheet.
 const PROGRESO_ITEMS = PROGRESO_BLOCKS.flatMap(b => b.items.map(it => ({ ...it, block:b.id, blockTitle:b.titulo })));
 const PROGRESO_TOTAL = PROGRESO_ITEMS.length;
 // Claves de almacenamiento local
 const LS_PROG_KEY   = 'settepi_progreso_v1';
 const LS_WEBAPP_KEY = 'settepi_progreso_webapp';
 const LS_RESP_KEY   = 'settepi_progreso_resp';
+const LS_AUTH_KEY   = 'settepi_progreso_auth';   // sesión del gerente que puede sellar
+const AUTH_TTL_MS   = 12 * 60 * 60 * 1000;       // la sesión dura 12 horas
 // Web App de Apps Script ya desplegado (acceso: Cualquiera). El dashboard se alimenta del Sheet
 // y guarda el Progreso a través de esta URL sin que tengas que configurar nada.
 const DEFAULT_WEBAPP = 'https://script.google.com/macros/s/AKfycbyq1me0wfow0vkcnQVUVjym_ukrD3IPjPHS5pmsxqHcMA-m746c9BWn8W3A2Apnc_phHw/exec';
@@ -856,6 +918,7 @@ const STATE = {
   terapiaUnits: [],    // unidades críticas actuales (bajo el objetivo)
   progFilter: 'all',   // filtro activo del modal
   progHydrated: false, // ya se leyó el progreso del Sheet
+  authUser: null,      // gerente con sesión iniciada (puede marcar y sellar)
   diagnostic: { rendimiento: {}, trafilink: {}, asignacion: {}, unidades: {} },
   f: {
     gerente: new Set(), jefe: new Set(), estatus: new Set(['Activo']),
@@ -1643,6 +1706,28 @@ function wireFilterEvents() {
 
   document.getElementById('precio-diesel').onchange = render;
   document.getElementById('objetivo-rend').onchange = render;
+
+  const rb = document.getElementById('btn-reset-filtros');
+  if (rb) rb.onclick = resetFilters;
+}
+
+// Quita TODOS los filtros y vuelve a mostrar todos los datos (año/mes más reciente con datos).
+function resetFilters() {
+  const f = STATE.f;
+  f.gerente.clear(); f.jefe.clear(); f.tipoVeh.clear(); f.combustible.clear();
+  f.estatus = new Set(['Activo']);
+  f.anio = ''; f.mes = ''; f.semana = ''; f.dia = '';
+  f.vehiculo = ''; f.operador = ''; f.ac = ''; f.yearUnidad = '';
+  // limpiar el buscador de vehículo
+  const sIn = document.getElementById('f-vehiculo-search'); if (sIn) sIn.value = '';
+  const sClr = document.getElementById('f-vehiculo-clear'); if (sClr) sClr.style.display = 'none';
+  // botones AC → «Todas»; estatus → «Activo»
+  document.querySelectorAll('.ac-buttons button').forEach(x => x.classList.toggle('active', (x.dataset.ac || '') === ''));
+  document.querySelectorAll('#f-estatus .chip').forEach(x => x.classList.toggle('active', x.dataset.val === 'Activo'));
+  // reconstruye dropdowns/chips desde el estado limpio y re-renderiza
+  populateFilters();
+  render();
+  if (typeof showToast === 'function') showToast('Filtros reiniciados · mostrando todos los datos', 'ok');
 }
 
 // Buscador de vehículos con autocompletado y navegación por teclado
@@ -2674,6 +2759,30 @@ function getWebAppUrl(){ try { return (localStorage.getItem(LS_WEBAPP_KEY)||DEFA
 function setWebAppUrl(v){ try { localStorage.setItem(LS_WEBAPP_KEY, (v||'').trim()); } catch(e){} }
 function getResp(){ try { return (localStorage.getItem(LS_RESP_KEY)||'').trim(); } catch(e){ return ''; } }
 function setResp(v){ try { localStorage.setItem(LS_RESP_KEY, (v||'').trim()); } catch(e){} }
+
+// ---- sesión / candado (solo los usuarios de la pestaña «usuarios» pueden sellar) ----
+function getAuth(){
+  try{
+    const a=JSON.parse(localStorage.getItem(LS_AUTH_KEY)||'null');
+    if(a && a.nombre && a.ts && (Date.now()-a.ts < AUTH_TTL_MS)){ STATE.authUser=a; return a; }
+  }catch(e){}
+  STATE.authUser=null; return null;
+}
+function setAuth(a){ try{ localStorage.setItem(LS_AUTH_KEY, JSON.stringify(a)); }catch(e){} STATE.authUser=a; }
+function clearAuth(){ try{ localStorage.removeItem(LS_AUTH_KEY); }catch(e){} STATE.authUser=null; }
+function isAuthed(){ return !!getAuth(); }
+// Nombre que se registra como «quién revisó»: el gerente con sesión, o el responsable manual.
+function currentActor(){ const a=getAuth(); return a ? a.nombre : getResp(); }
+// Valida usuario+contraseña contra la pestaña «usuarios» a través del Web App.
+async function doAuth(user, password){
+  const url=getWebAppUrl();
+  if(!url) throw new Error('No hay conexión con el Sheet. Revisa ⚙ Guardado.');
+  const r=await fetch(url,{ method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({ action:'auth', user, password }) });
+  const j=await r.json().catch(()=>null);
+  if(!j || !j.ok) throw new Error((j&&j.error)||'Usuario o contraseña incorrectos');
+  return { nombre:j.nombre||user, user:j.user||user, tipo:j.tipo||'', tableros:j.tableros||'', ts:Date.now() };
+}
 function loadProgresoLocal(){ try { const r=JSON.parse(localStorage.getItem(LS_PROG_KEY)||'{}'); if(r&&typeof r==='object') STATE.progreso=r; } catch(e){ STATE.progreso={}; } }
 function saveProgresoLocal(){ try { localStorage.setItem(LS_PROG_KEY, JSON.stringify(STATE.progreso)); } catch(e){} }
 
@@ -2785,10 +2894,11 @@ function refreshUnitUI(u){
 // ---- cambios ----
 function setItem(u,key,val){
   u=String(u);
+  if(!isAuthed()){ openLoginModal(); return; }   // candado: solo con sesión
   const rec=ensureRec(u);
   rec.items[key]=!!val;
   rec.updatedAt=new Date().toISOString();
-  rec.updatedBy=getResp();
+  rec.updatedBy=currentActor();
   saveProgresoLocal();
   refreshUnitUI(u);
   updateProgresoBadge();
@@ -2821,6 +2931,7 @@ function refreshPhotoUI(u,key,url){
 }
 async function uploadPhoto(u,key,file){
   u=String(u);
+  if(!isAuthed()){ openLoginModal(); return; }   // candado: solo con sesión
   const url=getWebAppUrl();
   if(!url){ showToast('Configura primero el Web App (⚙ Guardado) para subir fotos','err'); toggleCfg(true); return; }
   if(!/^image\//.test(file.type||'')){ showToast('Elige un archivo de imagen','err'); return; }
@@ -2829,11 +2940,11 @@ async function uploadPhoto(u,key,file){
   try{
     const dataUrl=await resizeImage(file, 1280, 0.7);
     const resp=await fetch(url,{ method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({ action:'photo', unidad:u, key:key, dataUrl:dataUrl, updatedBy:getResp(), updatedAt:new Date().toISOString() }) });
+      body:JSON.stringify({ action:'photo', unidad:u, key:key, dataUrl:dataUrl, updatedBy:currentActor(), updatedAt:new Date().toISOString() }) });
     const j=await resp.json();
     if(j && j.ok && j.url){
       const rec=ensureRec(u); rec.photos=rec.photos||{}; rec.photos[key]=j.url;
-      rec.updatedAt=new Date().toISOString(); rec.updatedBy=getResp();
+      rec.updatedAt=new Date().toISOString(); rec.updatedBy=currentActor();
       saveProgresoLocal(); refreshPhotoUI(u,key,j.url);
       showToast('Foto guardada en el Sheet ✓','ok');
     } else throw new Error((j&&j.error)||'respuesta inválida del Web App');
@@ -2980,6 +3091,54 @@ function toggleCfg(force){
   const show = force!=null ? force : c.style.display==='none';
   c.style.display = show?'block':'none';
 }
+// ---- barra de sesión + modal de login ----
+function renderAuthBar(){
+  const a=getAuth();
+  const info=document.getElementById('prog-auth-info');
+  const btn=document.getElementById('prog-auth-btn');
+  const bar=document.getElementById('prog-auth-bar');
+  const list=document.getElementById('prog-list');
+  if(!info||!btn||!bar) return;
+  if(a){
+    bar.classList.remove('locked'); bar.classList.add('authed');
+    info.innerHTML=`<span class="prog-auth-badge on">👤 ${a.nombre}</span><span class="prog-auth-tip">sesión activa · puede marcar y sellar</span>`;
+    btn.textContent='Cerrar sesión'; btn.className='pbtn ghost';
+    if(list) list.classList.remove('locked');
+  }else{
+    bar.classList.add('locked'); bar.classList.remove('authed');
+    info.innerHTML=`<span class="prog-auth-badge off">🔒 Modo lectura</span><span class="prog-auth-tip">inicia sesión para marcar y subir evidencia</span>`;
+    btn.textContent='Iniciar sesión'; btn.className='pbtn';
+    if(list) list.classList.add('locked');
+  }
+}
+function openLoginModal(){
+  document.getElementById('prog-login-err').textContent='';
+  document.getElementById('prog-login-user').value='';
+  document.getElementById('prog-login-pass').value='';
+  document.getElementById('prog-login-overlay').classList.add('show');
+  setTimeout(()=>{ const u=document.getElementById('prog-login-user'); if(u) u.focus(); }, 40);
+}
+function closeLoginModal(){ document.getElementById('prog-login-overlay').classList.remove('show'); }
+async function submitLogin(){
+  const u=(document.getElementById('prog-login-user').value||'').trim();
+  const p=document.getElementById('prog-login-pass').value||'';
+  const err=document.getElementById('prog-login-err');
+  const btn=document.getElementById('prog-login-submit');
+  if(!u){ err.textContent='Escribe tu usuario'; return; }
+  err.textContent=''; btn.disabled=true; btn.textContent='Entrando…';
+  try{
+    const a=await doAuth(u,p);
+    setAuth(a);
+    setResp(a.nombre);                                  // el nombre va a la columna «Actualizó»
+    const rp=document.getElementById('prog-resp'); if(rp) rp.value=a.nombre;
+    closeLoginModal();
+    renderAuthBar();
+    showToast('Bienvenido, '+a.nombre+' ✓','ok');
+  }catch(e){ err.textContent=e.message||'No se pudo iniciar sesión'; }
+  finally{ btn.disabled=false; btn.textContent='Entrar'; }
+}
+function logout(){ clearAuth(); renderAuthBar(); showToast('Sesión cerrada','ok'); }
+
 function openProgresoModal(focusUnidad){
   document.getElementById('prog-webapp').value=getWebAppUrl();
   document.getElementById('prog-resp').value=getResp();
@@ -2992,6 +3151,7 @@ function openProgresoModal(focusUnidad){
     (STATE._progOpen||(STATE._progOpen=new Set())).add(String(focusUnidad));
   }
   renderProgresoList();
+  renderAuthBar();
   document.getElementById('prog-overlay').classList.add('show');
   if(focusUnidad){ const card=cardOf(String(focusUnidad)); if(card && card.scrollIntoView) card.scrollIntoView({block:'center'}); }
   if(getWebAppUrl() && !STATE.progHydrated) hydrateProgresoFromSheet();
@@ -3020,6 +3180,13 @@ function wireProgreso(){
     catch(e){ showToast('No respondió: '+e.message+' — revisa que el Web App esté desplegado con acceso «Cualquiera»','err'); updateConnBadge('off'); }
   });
   document.getElementById('prog-resp').addEventListener('change', e=>setResp(e.target.value));
+  // ---- candado de acceso: botón de sesión + modal de login ----
+  document.getElementById('prog-auth-btn').addEventListener('click', ()=>{ if(getAuth()) logout(); else openLoginModal(); });
+  document.getElementById('prog-login-close').addEventListener('click', closeLoginModal);
+  document.getElementById('prog-login-overlay').addEventListener('mousedown', ev=>{ if(ev.target.id==='prog-login-overlay') closeLoginModal(); });
+  document.getElementById('prog-login-submit').addEventListener('click', submitLogin);
+  document.getElementById('prog-login-user').addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); document.getElementById('prog-login-pass').focus(); } });
+  document.getElementById('prog-login-pass').addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); submitLogin(); } });
   let st; document.getElementById('prog-search').addEventListener('input', ()=>{ clearTimeout(st); st=setTimeout(renderProgresoList,180); });
   document.getElementById('prog-filters').addEventListener('click', ev=>{
     const b=ev.target.closest('button[data-pf]'); if(!b) return;
@@ -3030,13 +3197,19 @@ function wireProgreso(){
   const listEl=document.getElementById('prog-list');
   listEl.addEventListener('change', ev=>{
     const cb=ev.target.closest('input[type="checkbox"][data-k]');
-    if(cb){ setItem(cb.getAttribute('data-u'), cb.getAttribute('data-k'), cb.checked); return; }
+    if(cb){
+      if(!isAuthed()){ cb.checked=!cb.checked; openLoginModal(); return; }   // candado
+      setItem(cb.getAttribute('data-u'), cb.getAttribute('data-k'), cb.checked); return;
+    }
     const fi=ev.target.closest('input.prog-photo-input');
-    if(fi){ const file=fi.files && fi.files[0]; if(file) uploadPhoto(fi.getAttribute('data-u'), fi.getAttribute('data-k'), file); fi.value=''; }
+    if(fi){
+      if(!isAuthed()){ fi.value=''; openLoginModal(); return; }               // candado
+      const file=fi.files && fi.files[0]; if(file) uploadPhoto(fi.getAttribute('data-u'), fi.getAttribute('data-k'), file); fi.value='';
+    }
   });
   listEl.addEventListener('click', ev=>{
     const pbtn=ev.target.closest('.prog-photo-btn');
-    if(pbtn){ ev.stopPropagation(); openPasteModal(pbtn.getAttribute('data-u'), pbtn.getAttribute('data-k')); return; }
+    if(pbtn){ ev.stopPropagation(); if(!isAuthed()){ openLoginModal(); return; } openPasteModal(pbtn.getAttribute('data-u'), pbtn.getAttribute('data-k')); return; }
     if(ev.target.closest('.prog-evi')) return;   // clic en la zona de evidencia: no togglear
     if(ev.target.closest('.prog-item')) return;  // el clic en el label lo maneja el checkbox
     const head=ev.target.closest('.prog-card-head'); if(!head) return;
@@ -3049,8 +3222,13 @@ function wireProgreso(){
   });
   // clic en el mini-badge dentro de la tabla de Terapia
   document.addEventListener('click', ev=>{ const m=ev.target.closest('.prog-mini'); if(m){ ev.stopPropagation(); openProgresoModal(m.getAttribute('data-prog-unidad')); } });
-  // Escape cierra
-  window.addEventListener('keydown', ev=>{ if(ev.key==='Escape') closeProgresoModal(); });
+  // Escape cierra (primero el login, luego deja el modal de pegar a su propio manejador)
+  window.addEventListener('keydown', ev=>{
+    if(ev.key!=='Escape') return;
+    if(document.getElementById('prog-login-overlay').classList.contains('show')){ closeLoginModal(); return; }
+    if(document.getElementById('prog-paste-overlay').classList.contains('show')) return;
+    closeProgresoModal();
+  });
 }
 
 /* =========================================================
