@@ -2064,6 +2064,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <button id="btnEdit">Editar: OFF</button>
       <button id="btnParadas">✏ Editar paradas</button>
       <button id="btnAddParada">➕ Agregar parada</button>
+      <button id="btnImportMaps">📍 Subir liga de Maps</button>
       <button id="btnEditarTrazo">〰️ Editar trazo</button>
       <button id="btnExport" disabled>Exportar cambios <span id="badgeCambios"></span></button>
       <button id="btnExportTodo" class="primary">📊 Exportar TODO</button>
@@ -2326,6 +2327,51 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     <div class="apm-footer">
       <button class="apm-btn-cancel" id="addCancel">Cancelar</button>
       <button class="apm-btn-ok" id="addConfirm">✓ Agregar parada</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: subir liga de Google Maps (reutiliza estilos apm-) -->
+<div id="mapsModalBg" class="apm-bg">
+  <div class="apm-card">
+    <div class="apm-header">
+      <span>📍 Subir liga de Google Maps</span>
+      <button class="apm-close" id="mapsClose">×</button>
+    </div>
+    <div class="apm-body">
+      <div class="apm-hint">
+        Pega una liga de Google Maps con <b>indicaciones de varios puntos</b>
+        (del tipo <code>.../maps/dir/A/B/C/…</code>). Se leen todas las coordenadas
+        en orden y se dibujan como una <b>ruta nueva</b>: el primer punto es el inicio
+        y el último la planta. También funciona con ligas de un solo lugar.
+      </div>
+      <div class="apm-field">
+        <label>Liga de Google Maps</label>
+        <textarea id="mapsUrlInput" rows="4"
+          placeholder="Pega aquí la liga completa (https://www.google.com/maps/dir/...)"
+          style="width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:6px;font-size:12px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+      <div class="apm-row">
+        <div class="apm-field">
+          <label>ID / nombre de la ruta</label>
+          <input type="text" id="mapsRutaId" placeholder="Ej. MAPS-001" maxlength="60"/>
+        </div>
+        <div class="apm-field">
+          <label>Planta (opcional)</label>
+          <input type="text" id="mapsRutaPlanta" placeholder="Ej. GARCIA" maxlength="60"/>
+        </div>
+      </div>
+      <div class="apm-field">
+        <label>Descripción (opcional)</label>
+        <input type="text" id="mapsRutaDesc" placeholder="Se autollena si la dejas vacía" maxlength="120"/>
+      </div>
+      <div id="mapsPreview" style="font-size:12px;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:8px 10px;min-height:38px">
+        Esperando una liga…
+      </div>
+    </div>
+    <div class="apm-footer">
+      <button class="apm-btn-cancel" id="mapsCancel">Cancelar</button>
+      <button class="apm-btn-ok" id="mapsConfirm">✓ Mapear puntos</button>
     </div>
   </div>
 </div>
@@ -6981,6 +7027,196 @@ async function cargarArchivo(file) {
     zone.classList.remove('loading');
   }
 }
+
+// =========================================================
+// SUBIR LIGA DE GOOGLE MAPS → mapear puntos como ruta nueva
+// =========================================================
+// Lee una URL de Google Maps y extrae las coordenadas (lat,lng) EN ORDEN.
+// Soporta:
+//   • Rutas de varios puntos:  .../maps/dir/LAT,LNG/LAT,LNG/.../@centro...
+//   • Lugar / un punto:        .../@LAT,LNG...  ·  ?q=LAT,LNG  ·  !3dLAT!4dLNG
+// NO sigue ligas cortas (maps.app.goo.gl / goo.gl): avisa para pegar la larga.
+
+function _limpiaTokenCoord(t) {
+  return (t || '').replace(/%2C/gi, ',').replace(/\+/g, '').replace(/\s+/g, '');
+}
+function _coordValida(lat, lng) {
+  return !isNaN(lat) && !isNaN(lng) &&
+         Math.abs(lat) <= 90 && Math.abs(lng) <= 180 &&
+         !(lat === 0 && lng === 0);
+}
+
+function extraerCoordsDeMapsUrl(raw) {
+  let url = (raw || '').trim();
+  if (!url) return { coords: [], aviso: 'Pega una liga primero.' };
+
+  // Liga corta → no trae coordenadas; hay que expandirla en el navegador.
+  if (/(maps\.app\.goo\.gl|goo\.gl\/maps)/i.test(url)) {
+    return { coords: [], aviso: 'Es una liga CORTA. Ábrela en el navegador y, cuando cargue el mapa, copia la liga larga de la barra de direcciones (la que incluye /maps/dir/ y las coordenadas).' };
+  }
+
+  let dec = url;
+  try { dec = decodeURIComponent(url); } catch (e) { dec = url; }
+
+  const coords = [];
+  const push = (lat, lng) => {
+    lat = parseFloat(lat); lng = parseFloat(lng);
+    if (!_coordValida(lat, lng)) return;
+    const last = coords[coords.length - 1];
+    const key = lat.toFixed(6) + ',' + lng.toFixed(6);
+    if (last && (last.lat.toFixed(6) + ',' + last.lng.toFixed(6)) === key) return; // dup consecutivo
+    coords.push({ lat, lng });
+  };
+
+  let omitidos = 0;
+
+  // 1) Ruta por tramos: /maps/dir/A/B/C/...  (en ORDEN, excluyendo el centro /@)
+  const iDir = dec.indexOf('/dir/');
+  if (iDir >= 0) {
+    let seg = dec.slice(iDir + 5);
+    let cut = seg.length;
+    ['/@', '/data', '?'].forEach(m => { const i = seg.indexOf(m); if (i >= 0 && i < cut) cut = i; });
+    seg = seg.slice(0, cut);
+    seg.split('/').forEach(tok => {
+      if (!tok) return;
+      const c = _limpiaTokenCoord(tok);
+      const m = c.match(/^(-?\d{1,2}(?:\.\d+)?),(-?\d{1,3}(?:\.\d+)?)$/);
+      if (m) push(m[1], m[2]);
+      else omitidos++;   // segmento con nombre de lugar (sin coordenadas)
+    });
+  }
+
+  // 2) Fallbacks para ligas de un solo punto / lugar
+  if (!coords.length) {
+    let m;
+    m = dec.match(/@(-?\d{1,2}\.\d+),(-?\d{1,3}\.\d+)/);
+    if (m) push(m[1], m[2]);
+    const rxKV = /[?&](?:q|query|ll|sll|daddr|saddr)=(-?\d{1,2}\.\d+),(-?\d{1,3}\.\d+)/gi;
+    while ((m = rxKV.exec(dec)) !== null) push(m[1], m[2]);
+    const rx3d = /!3d(-?\d{1,2}\.\d+)!4d(-?\d{1,3}\.\d+)/g;
+    while ((m = rx3d.exec(dec)) !== null) push(m[1], m[2]);
+  }
+
+  // 3) Último recurso: pares del bloque data !1dLNG!2dLAT
+  if (!coords.length) {
+    const rxData = /!1d(-?\d{1,3}\.\d+)!2d(-?\d{1,2}\.\d+)/g;
+    let m;
+    while ((m = rxData.exec(dec)) !== null) push(m[2], m[1]); // 2d=lat, 1d=lng
+  }
+
+  let aviso = '';
+  if (!coords.length) {
+    aviso = 'No se encontraron coordenadas en la liga. Pega la URL larga de Google Maps (la que contiene números como 25.6651,-100.4343).';
+  } else if (omitidos > 0) {
+    aviso = `Se omitieron ${omitidos} punto(s) que venían como nombre de lugar (sin coordenadas); solo se mapean los que traen lat/lng.`;
+  }
+  return { coords, aviso, omitidos };
+}
+
+function _siguienteIdMaps() {
+  let n = 1, id;
+  do { id = 'MAPS-' + String(n).padStart(3, '0'); n++; } while (rutas[id]);
+  return id;
+}
+
+function abrirModalMaps() {
+  document.getElementById('mapsUrlInput').value = '';
+  document.getElementById('mapsRutaId').value = '';
+  document.getElementById('mapsRutaPlanta').value = '';
+  document.getElementById('mapsRutaDesc').value = '';
+  document.getElementById('mapsPreview').innerHTML = 'Esperando una liga…';
+  document.getElementById('mapsModalBg').classList.add('open');
+  setTimeout(() => { try { document.getElementById('mapsUrlInput').focus(); } catch(e){} }, 50);
+}
+function cerrarModalMaps() {
+  document.getElementById('mapsModalBg').classList.remove('open');
+}
+
+function _actualizarPreviewMaps() {
+  const raw = document.getElementById('mapsUrlInput').value;
+  const box = document.getElementById('mapsPreview');
+  if (!raw.trim()) { box.innerHTML = 'Esperando una liga…'; return; }
+  const { coords, aviso } = extraerCoordsDeMapsUrl(raw);
+  if (!coords.length) {
+    box.innerHTML = `<span style="color:#b91c1c">⚠ ${aviso || 'Sin coordenadas.'}</span>`;
+    return;
+  }
+  const n = coords.length, ini = coords[0], fin = coords[n - 1];
+  let html = `<b style="color:#15803d">✓ ${n} punto${n>1?'s':''} detectado${n>1?'s':''}</b><br>` +
+             `<span style="color:#64748b">Inicio: ${ini.lat.toFixed(5)}, ${ini.lng.toFixed(5)}` +
+             (n > 1 ? ` · Planta: ${fin.lat.toFixed(5)}, ${fin.lng.toFixed(5)}` : '') + `</span>`;
+  if (aviso) html += `<br><span style="color:#9a3412;font-size:11px">⚠ ${aviso}</span>`;
+  box.innerHTML = html;
+}
+
+async function confirmarImportMaps() {
+  const raw = document.getElementById('mapsUrlInput').value;
+  const { coords, aviso } = extraerCoordsDeMapsUrl(raw);
+  if (!coords.length) { alert(aviso || 'No se encontraron coordenadas en la liga.'); return; }
+
+  let id = (document.getElementById('mapsRutaId').value || '').trim();
+  if (!id) id = _siguienteIdMaps();
+  if (rutas[id]) { alert('Ya existe una ruta con el ID "' + id + '". Elige otro.'); return; }
+
+  const planta = (document.getElementById('mapsRutaPlanta').value || '').trim();
+  const desc = (document.getElementById('mapsRutaDesc').value || '').trim() ||
+               ('Ruta importada de Maps (' + coords.length + ' puntos)');
+
+  pushUndo();
+
+  const colores = generarColores(Object.keys(rutas).length + 1);
+  rutas[id] = {
+    puntos: [], descRuta: desc, planta: planta, tipServ: '',
+    turnos: [], color: colores[colores.length - 1],
+    layer: L.layerGroup(), visible: true
+  };
+  const r = rutas[id];
+  const n = coords.length;
+  coords.forEach((c, i) => {
+    const esInicio = (i === 0);
+    const esPlanta = (i === n - 1) && n > 1;
+    r.puntos.push({
+      sec: i + 1,
+      pos: esInicio ? 'INICIO' : (esPlanta ? 'PLANTA' : 'INTR'),
+      tipoPos: esInicio ? 'inicio' : (esPlanta ? 'planta' : 'intermedia'),
+      parada: esInicio ? 'Inicio' : (esPlanta ? 'Planta' : ('Parada ' + (i + 1))),
+      lat: c.lat, lng: c.lng,
+      latOrig: c.lat, lngOrig: c.lng,
+      beneficiados: 0,
+      horarios: [],
+      nuevo: true
+    });
+  });
+  try { if (typeof renumerarSecuencias === 'function') renumerarSecuencias(r); } catch (e) {}
+  detectarPlantaDeRuta(r);
+
+  cerrarModalMaps();
+  flashToast(`📍 Ruta "${id}" mapeada con ${n} punto${n>1?'s':''}`);
+
+  try {
+    await dibujarRuta(id);
+    r.layer.addTo(map);
+    renderLista(document.getElementById('filtro').value);
+    try { renderChipsFiltros(); } catch (e) {}
+    try { if (typeof actualizarBadgeCambios === 'function') actualizarBadgeCambios(); } catch (e) {}
+    try { if (typeof actualizarOcupacion === 'function') actualizarOcupacion(); } catch (e) {}
+    const lats = coords.map(c => c.lat), lngs = coords.map(c => c.lng);
+    const bounds = L.latLngBounds([[Math.min(...lats), Math.min(...lngs)], [Math.max(...lats), Math.max(...lngs)]]);
+    map.fitBounds(bounds, { padding: [40, 40] });
+  } catch (errDraw) {
+    console.error('Error al dibujar la ruta importada:', errDraw);
+    flashToast('La ruta se creó pero hubo un problema al dibujarla; revisa la consola.');
+  }
+}
+
+document.getElementById('btnImportMaps').addEventListener('click', abrirModalMaps);
+document.getElementById('mapsClose').addEventListener('click', cerrarModalMaps);
+document.getElementById('mapsCancel').addEventListener('click', cerrarModalMaps);
+document.getElementById('mapsModalBg').addEventListener('click', (e) => {
+  if (e.target.id === 'mapsModalBg') cerrarModalMaps();
+});
+document.getElementById('mapsUrlInput').addEventListener('input', _actualizarPreviewMaps);
+document.getElementById('mapsConfirm').addEventListener('click', confirmarImportMaps);
 
 // Wire up del botón y del input
 document.getElementById('btnCargarArchivo').addEventListener('click', () => {
