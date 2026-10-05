@@ -332,6 +332,29 @@
   .prog-mini.wip  { background: #fef3c7; color: #92400e; }
   .prog-mini.done { background: #dcfce7; color: #166534; }
 
+  /* botón rojo: mostrar solo unidades con rendimiento ≤ umbral */
+  .terapia-max-pill {
+    display: inline-flex; align-items: center; gap: 3px; background: #fee2e2; color: #b91c1c;
+    border: 1.5px solid #ef4444; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 800;
+    cursor: pointer; user-select: none; text-transform: none; letter-spacing: 0; white-space: nowrap;
+  }
+  .terapia-max-pill:hover { background: #fecaca; }
+  .terapia-max-pill.active { background: #dc2626; color: #fff; border-color: #dc2626; box-shadow: 0 1px 5px rgba(220,38,38,.45); }
+  .terapia-max-pill input {
+    width: 40px; border: none; border-radius: 4px; background: rgba(255,255,255,.9); color: #b91c1c;
+    font-weight: 800; font-size: 11px; text-align: center; padding: 1px 2px; -moz-appearance: textfield;
+  }
+  .terapia-max-pill input::-webkit-outer-spin-button, .terapia-max-pill input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .terapia-max-pill input:focus { outline: 2px solid #fff; }
+  /* insignia verde "Rendimiento aprobado de X" junto al 0/14 */
+  .aprobado-badge {
+    display: inline-flex; align-items: center; gap: 3px; margin-left: 5px; vertical-align: middle;
+    background: #16a34a; color: #fff; border-radius: 5px; padding: 1px 7px 1px 5px;
+    font-size: 9px; font-weight: 700; white-space: nowrap; line-height: 15px;
+  }
+  .aprobado-badge svg { width: 11px; height: 11px; flex: 0 0 auto; stroke: #fff; }
+  .aprobado-badge.insignia-creada { background: #059669; }
+
   /* ============ PROGRESO — overlay/modal ============ */
   .prog-overlay {
     display: none; position: fixed; inset: 0; z-index: 1000;
@@ -569,7 +592,6 @@
         <button class="action-btn" id="btn-ls-connect" style="font-size:12px; padding:8px 14px;">Conectar y cargar</button>
       </div>
     </div>
-    <!-- Opción manual -->
     <div style="margin-top:12px; text-align:center;">
       <div style="font-size:11px; color:#9ca3af; margin-bottom:6px;">— o, solo por esta vez, carga manual —</div>
       <button class="action-btn secondary" id="btn-local-xlsx" style="font-size:12px; padding:8px 14px; color:#374151; border-color:#d1d5db;">
@@ -594,7 +616,7 @@
     </div>
 
     <div class="panel logo-panel" style="grid-column: 2; grid-row: 1;">
-      <div class="logo-text">sette<span class="green">pi</span></div>
+      <div class="logo-text">SETTE<span class="green">PI</span></div>
       <div class="unidades-card">
         <div class="num" id="kpi-unidades">—</div>
         <div class="lbl">Unidades</div>
@@ -619,7 +641,10 @@
     <!-- ROW 2 -->
     <div class="panel" style="grid-column: 1 / span 2; grid-row: 2;">
       <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-        <span>Terapia intensiva</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span>Terapia intensiva</span>
+          <span id="terapia-max-pill" class="terapia-max-pill" role="button" tabindex="0" aria-pressed="false" title="Clic para mostrar solo las unidades con rendimiento igual o menor al umbral (respeta los filtros). El contador de Progreso se ajusta a estas unidades.">≤&nbsp;<input type="number" id="terapia-max-val" value="3.5" step="0.1" min="0" max="20">&nbsp;Km/L</span>
+        </div>
         <button id="btn-progreso" class="prog-open-btn" title="Registrar el proceso de revisión de estas unidades">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
           Progreso <span class="prog-open-badge" id="prog-open-badge">0/0</span>
@@ -797,6 +822,7 @@
 
     <div class="prog-toolbar">
       <input type="text" id="prog-search" placeholder="Buscar unidad…" autocomplete="off">
+      <button class="pbtn" id="prog-badge-create-btn" title="Crear una insignia de rendimiento para una unidad">🏅 Crear insignia</button>
       <div class="prog-filters" id="prog-filters">
         <button data-pf="all" class="active">Todas</button>
         <button data-pf="none">Sin iniciar</button>
@@ -850,7 +876,26 @@
       <input type="password" id="prog-login-pass" autocomplete="current-password" placeholder="Tu contraseña">
       <div class="prog-login-err" id="prog-login-err"></div>
       <button id="prog-login-submit">Entrar</button>
-      <div class="prog-login-hint">Solo los usuarios registrados en la pestaña «usuarios» del Sheet pueden marcar los puntos y subir evidencia. Tu nombre queda registrado como quien revisó.</div>
+      <div class="prog-login-hint">El acceso se valida con el Web App y la pestaña «usuarios» del Sheet. Para cada insignia debe volver a iniciar sesión como arturog.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CREAR INSIGNIA DE RENDIMIENTO ============ -->
+<div id="prog-badge-overlay" class="prog-paste-overlay">
+  <div class="prog-login-box" tabindex="-1">
+    <div class="prog-paste-head">
+      <span>🏅 Crear insignia de rendimiento</span>
+      <button id="prog-badge-close" title="Cerrar">✕</button>
+    </div>
+    <div class="prog-login-body">
+      <label for="prog-badge-unit">Unidad</label>
+      <select id="prog-badge-unit" style="padding:9px 11px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;background:#fff;"></select>
+      <label for="prog-badge-value">Rendimiento aprobado (Km/L)</label>
+      <input type="number" id="prog-badge-value" min="0.1" max="20" step="0.1" value="3.8">
+      <div class="prog-login-err" id="prog-badge-err"></div>
+      <button id="prog-badge-save">Guardar insignia</button>
+      <div class="prog-login-hint">La insignia aparecerá junto al número de unidad en la tabla de Terapia intensiva. Se guarda en este navegador.</div>
     </div>
   </div>
 </div>
@@ -898,6 +943,7 @@ const LS_PROG_KEY   = 'settepi_progreso_v1';
 const LS_WEBAPP_KEY = 'settepi_progreso_webapp';
 const LS_RESP_KEY   = 'settepi_progreso_resp';
 const LS_AUTH_KEY   = 'settepi_progreso_auth';   // sesión del gerente que puede sellar
+const LS_BADGE_KEY  = 'settepi_insignias_v1';    // insignias creadas en este navegador
 const AUTH_TTL_MS   = 12 * 60 * 60 * 1000;       // la sesión dura 12 horas
 // Web App de Apps Script ya desplegado (acceso: Cualquiera). El dashboard se alimenta del Sheet
 // y guarda el Progreso a través de esta URL sin que tengas que configurar nada.
@@ -920,7 +966,11 @@ const STATE = {
   lastSync: null,
   rawXlsxBlob: null,
   progreso: {},        // { [idVehiculo]: { items:{key:bool}, updatedAt, updatedBy } }
-  terapiaUnits: [],    // unidades críticas actuales (bajo el objetivo)
+  insignias: {},       // { [idVehiculo]: { valor, creadaPor, creadaAt } } — solo en este navegador
+  terapiaUnits: [],    // unidades críticas mostradas (puede estar filtrado por el botón ≤)
+  terapiaAll: [],      // TODAS las unidades críticas (sin el filtro del botón ≤) — para sincronizar
+  terapiaMaxOn: false, // botón rojo ≤ activo
+  terapiaMax: 3.5,     // umbral de rendimiento del botón rojo
   progFilter: 'all',   // filtro activo del modal
   progHydrated: false, // ya se leyó el progreso del Sheet
   authUser: null,      // gerente con sesión iniciada (puede marcar y sellar)
@@ -1714,6 +1764,34 @@ function wireFilterEvents() {
 
   const rb = document.getElementById('btn-reset-filtros');
   if (rb) rb.onclick = resetFilters;
+
+  wireTerapiaMax();
+}
+
+// Botón rojo "≤ X Km/L": filtra Terapia a las unidades de rendimiento ≤ umbral y ajusta el contador de Progreso.
+function wireTerapiaMax() {
+  const pill = document.getElementById('terapia-max-pill');
+  const inp = document.getElementById('terapia-max-val');
+  if (!pill || !inp) return;
+  // reflejar el estado actual
+  pill.classList.toggle('active', STATE.terapiaMaxOn);
+  pill.setAttribute('aria-pressed', STATE.terapiaMaxOn ? 'true' : 'false');
+  inp.value = STATE.terapiaMax;
+  pill.onclick = (e) => {
+    if (e.target === inp) return;               // clic en el número: no togglear
+    STATE.terapiaMaxOn = !STATE.terapiaMaxOn;
+    pill.classList.toggle('active', STATE.terapiaMaxOn);
+    pill.setAttribute('aria-pressed', STATE.terapiaMaxOn ? 'true' : 'false');
+    render();
+  };
+  pill.onkeydown = (e) => { if ((e.key === ' ' || e.key === 'Enter') && e.target !== inp) { e.preventDefault(); pill.onclick(e); } };
+  inp.onclick = (e) => e.stopPropagation();
+  inp.onchange = () => {
+    const v = parseFloat(inp.value);
+    if (isFinite(v) && v > 0) STATE.terapiaMax = v; else inp.value = STATE.terapiaMax;
+    if (STATE.terapiaMaxOn) render();
+  };
+  inp.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } };
 }
 
 // Quita TODOS los filtros y vuelve a mostrar todos los datos (año/mes más reciente con datos).
@@ -2178,12 +2256,15 @@ function renderTerapia(filtered, target) {
   Object.keys(byTipo).forEach(k => p25Tipo[k] = percentile(byTipo[k], 25));
 
   // CRÍTICOS = vehículos por debajo del Percentil 25% de su Marca-Modelo (lo más crítico).
-  const criticos = vehList.filter(v => v.rendimiento < p25Marca[v.marca]);
-
-  // Solo los críticos alimentan el módulo de Progreso.
-  STATE.terapiaUnits = criticos
-    .map(v => ({ idVehiculo:String(v.idVehiculo), marca:v.marca, tipoVehiculo:v.tipoVehiculo, rendimiento:v.rendimiento, clasif:classifyKMS(v.km), cargas:v.cargas, km:v.km, p25:p25Marca[v.marca] }))
-    .sort((a,b)=> a.rendimiento - b.rendimiento);
+  const criticosAll = vehList.filter(v => v.rendimiento < p25Marca[v.marca]);
+  // Botón rojo ≤ umbral: si está activo, se muestran SOLO las de rendimiento igual o menor al umbral.
+  const criticos = STATE.terapiaMaxOn
+    ? criticosAll.filter(v => v.rendimiento <= STATE.terapiaMax)
+    : criticosAll;
+  const _mapUnit = v => ({ idVehiculo:String(v.idVehiculo), marca:v.marca, tipoVehiculo:v.tipoVehiculo, rendimiento:v.rendimiento, clasif:classifyKMS(v.km), cargas:v.cargas, km:v.km, p25:p25Marca[v.marca] });
+  // Mantener todas las unidades críticas visibles; solo las insignias creadas manualmente se muestran.
+  STATE.terapiaAll   = criticosAll.map(_mapUnit).sort((a,b)=> a.rendimiento - b.rendimiento);
+  STATE.terapiaUnits = criticos.map(_mapUnit).sort((a,b)=> a.rendimiento - b.rendimiento);
 
   // Árbol Tipo -> Marca-Modelo -> [vehículos críticos]
   const tree = {};
@@ -2254,7 +2335,7 @@ function renderTerapia(filtered, target) {
 
       vehs.forEach(v => {
         html += `<tr class="lvl-2" data-parent="${id2}">
-          <td>${v.idVehiculo} ${miniBadgeHtml(v.idVehiculo)}</td>
+          <td>${v.idVehiculo} ${miniBadgeHtml(v.idVehiculo)} ${insigniaCreadaHtml(v.idVehiculo)}</td>
           <td>1</td><td>${fmtNum(v.cargas)}</td>
           <td class="cell-bad">${fmtNum(v.rendimiento,2)}</td>
           <td>${fmtNum(v.firstRend||0,2)}</td>
@@ -2776,6 +2857,10 @@ function getAuth(){
 function setAuth(a){ try{ localStorage.setItem(LS_AUTH_KEY, JSON.stringify(a)); }catch(e){} STATE.authUser=a; }
 function clearAuth(){ try{ localStorage.removeItem(LS_AUTH_KEY); }catch(e){} STATE.authUser=null; }
 function isAuthed(){ return !!getAuth(); }
+function canCreateInsignia(){
+  const a=getAuth();
+  return !!a && normKey(a.user||'')==='arturog';
+}
 // Nombre que se registra como «quién revisó»: el gerente con sesión, o el responsable manual.
 function currentActor(){ const a=getAuth(); return a ? a.nombre : getResp(); }
 // Valida usuario+contraseña contra la pestaña «usuarios» a través del Web App.
@@ -2790,6 +2875,8 @@ async function doAuth(user, password){
 }
 function loadProgresoLocal(){ try { const r=JSON.parse(localStorage.getItem(LS_PROG_KEY)||'{}'); if(r&&typeof r==='object') STATE.progreso=r; } catch(e){ STATE.progreso={}; } }
 function saveProgresoLocal(){ try { localStorage.setItem(LS_PROG_KEY, JSON.stringify(STATE.progreso)); } catch(e){} }
+function loadInsigniasLocal(){ try { const r=JSON.parse(localStorage.getItem(LS_BADGE_KEY)||'{}'); if(r&&typeof r==='object') STATE.insignias=r; } catch(e){ STATE.insignias={}; } }
+function saveInsigniasLocal(){ try { localStorage.setItem(LS_BADGE_KEY, JSON.stringify(STATE.insignias)); } catch(e){} }
 
 // ---- utilidades ----
 function escAttr(s){ return String(s).replace(/"/g,'&quot;'); }
@@ -2800,6 +2887,14 @@ function progCount(u){ const r=STATE.progreso[String(u)]; if(!r||!r.items) retur
 function progStatus(u){ const c=progCount(u); return c===0?'none':(c>=PROGRESO_TOTAL?'done':'wip'); }
 function miniClass(u){ const s=progStatus(u); return s==='done'?'done':(s==='wip'?'wip':''); }
 function miniBadgeHtml(u){ const c=progCount(u); return `<span class="prog-mini ${miniClass(u)}" data-prog-unidad="${escAttr(u)}" title="Progreso de revisión: ${c}/${PROGRESO_TOTAL} — clic para abrir">${c}/${PROGRESO_TOTAL}</span>`; }
+function insigniaCreadaHtml(u){
+  const badge=STATE.insignias[String(u)];
+  const value=Number(badge&&badge.valor);
+  if(!Number.isFinite(value)||value<=0) return '';
+  return `<span class="aprobado-badge insignia-creada" title="Insignia creada por ${escAttr(badge.creadaPor||'arturog')}">`
+    + `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>`
+    + `Rendimiento aprobado de ${fmtNum(value,1)}</span>`;
+}
 function cardOf(u){ u=String(u); return [...document.querySelectorAll('.prog-card')].find(c=>c.getAttribute('data-unidad')===u); }
 
 // ---- badges (botón + tabla) ----
@@ -3054,7 +3149,8 @@ async function pushAll(){
     // Subir TODAS las unidades de Terapia (aunque no tengan checks) + cualquier registro adicional,
     // para que la pestaña "progreso" del Sheet muestre la lista completa desde el inicio.
     const ids=new Set(Object.keys(STATE.progreso));
-    (STATE.terapiaUnits||[]).forEach(u=>ids.add(String(u.idVehiculo)));
+    // usar SIEMPRE todas las críticas (terapiaAll), aunque el botón ≤ esté filtrando la vista
+    ((STATE.terapiaAll && STATE.terapiaAll.length ? STATE.terapiaAll : STATE.terapiaUnits)||[]).forEach(u=>ids.add(String(u.idVehiculo)));
     const rows=[...ids].map(rowPayload);
     if(!rows.length){ showToast('Aún no hay unidades cargadas (carga primero los datos)','err'); return; }
     const resp=await fetch(url,{ method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify({ action:'bulk', rows }) });
@@ -3130,8 +3226,47 @@ function openLoginModal(){
   document.getElementById('prog-login-overlay').classList.add('show');
   setTimeout(()=>{ const u=document.getElementById('prog-login-user'); if(u) u.focus(); }, 40);
 }
-function closeLoginModal(){ document.getElementById('prog-login-overlay').classList.remove('show'); }
+function closeLoginModal(){ document.getElementById('prog-login-overlay').classList.remove('show'); STATE._pendingInsignia=false; }
+function openInsigniaModal(){
+  STATE._pendingInsignia=true;
+  openLoginModal();
+}
+function showInsigniaModal(){
+  if(!canCreateInsignia()){
+    showToast('Solo el usuario arturog puede crear insignias','err');
+    return;
+  }
+  const units=STATE.terapiaAll||[];
+  const select=document.getElementById('prog-badge-unit');
+  const err=document.getElementById('prog-badge-err');
+  err.textContent='';
+  select.innerHTML=units.map(u=>`<option value="${escAttr(u.idVehiculo)}">${escAttr(u.idVehiculo)} · ${fmtNum(u.rendimiento,2)} Km/L</option>`).join('');
+  if(!units.length){
+    err.textContent='Primero carga los datos y confirma que haya unidades en Terapia intensiva.';
+    showToast('No hay unidades de Terapia intensiva para seleccionar','err');
+  } else {
+    const first=units[0];
+    document.getElementById('prog-badge-value').value=Number(first.p25||3.8).toFixed(1);
+  }
+  document.getElementById('prog-badge-overlay').classList.add('show');
+}
+function closeInsigniaModal(){ document.getElementById('prog-badge-overlay').classList.remove('show'); }
+function saveInsignia(){
+  if(!canCreateInsignia()){ showToast('Inicia sesión como arturog para crear insignias','err'); closeInsigniaModal(); return; }
+  const unit=document.getElementById('prog-badge-unit').value;
+  const value=Number(document.getElementById('prog-badge-value').value);
+  const err=document.getElementById('prog-badge-err');
+  if(!unit){ err.textContent='Selecciona una unidad'; return; }
+  if(!Number.isFinite(value)||value<=0||value>20){ err.textContent='Escribe un rendimiento entre 0.1 y 20 Km/L'; return; }
+  const actor=getAuth();
+  STATE.insignias[String(unit)]={ valor:value, creadaPor:actor.nombre||'arturog', creadaAt:new Date().toISOString() };
+  saveInsigniasLocal();
+  closeInsigniaModal();
+  render();
+  showToast(`Insignia guardada para la unidad ${unit} ✓`,'ok');
+}
 async function submitLogin(){
+  const forBadge=!!STATE._pendingInsignia;
   const u=(document.getElementById('prog-login-user').value||'').trim();
   const p=document.getElementById('prog-login-pass').value||'';
   const err=document.getElementById('prog-login-err');
@@ -3140,12 +3275,17 @@ async function submitLogin(){
   err.textContent=''; btn.disabled=true; btn.textContent='Entrando…';
   try{
     const a=await doAuth(u,p);
+    if(forBadge && normKey(a.user||'')!=='arturog'){
+      err.textContent='Solo el usuario arturog puede crear insignias';
+      return;
+    }
     setAuth(a);
     setResp(a.nombre);                                  // el nombre va a la columna «Actualizó»
     const rp=document.getElementById('prog-resp'); if(rp) rp.value=a.nombre;
     closeLoginModal();
     renderAuthBar();
     showToast('Bienvenido, '+a.nombre+' ✓','ok');
+    if(forBadge) showInsigniaModal();
   }catch(e){ err.textContent=e.message||'No se pudo iniciar sesión'; }
   finally{ btn.disabled=false; btn.textContent='Entrar'; }
 }
@@ -3179,6 +3319,10 @@ function wireProgreso(){
   document.getElementById('prog-overlay').addEventListener('mousedown', ev=>{ if(ev.target.id==='prog-overlay') closeProgresoModal(); });
   document.getElementById('prog-cfg-btn').addEventListener('click', ()=>toggleCfg());
   document.getElementById('prog-sync-btn').addEventListener('click', pushAll);
+  document.getElementById('prog-badge-create-btn').addEventListener('click', openInsigniaModal);
+  document.getElementById('prog-badge-close').addEventListener('click', closeInsigniaModal);
+  document.getElementById('prog-badge-overlay').addEventListener('mousedown', ev=>{ if(ev.target.id==='prog-badge-overlay') closeInsigniaModal(); });
+  document.getElementById('prog-badge-save').addEventListener('click', saveInsignia);
   document.getElementById('prog-webapp-save').addEventListener('click', ()=>{
     setWebAppUrl(document.getElementById('prog-webapp').value);
     STATE.progHydrated=false; showToast('URL guardada · leyendo progreso del Sheet…','ok');
@@ -3237,6 +3381,7 @@ function wireProgreso(){
   // Escape cierra (primero el login, luego deja el modal de pegar a su propio manejador)
   window.addEventListener('keydown', ev=>{
     if(ev.key!=='Escape') return;
+    if(document.getElementById('prog-badge-overlay').classList.contains('show')){ closeInsigniaModal(); return; }
     if(document.getElementById('prog-login-overlay').classList.contains('show')){ closeLoginModal(); return; }
     if(document.getElementById('prog-paste-overlay').classList.contains('show')) return;
     closeProgresoModal();
@@ -3548,6 +3693,7 @@ window.addEventListener('keydown', ev => {
 
 // Progreso de revisión: cargar el estado local y cablear la UI antes de arrancar
 loadProgresoLocal();
+loadInsigniasLocal();
 wireProgreso();
 
 // Kickoff.
