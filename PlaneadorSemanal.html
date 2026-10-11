@@ -660,6 +660,37 @@ renderPlantaMultiSelect();
     rebuild();
   }
 
+  // ---- CARGA AUTOMÁTICA DESDE GOOGLE SHEET PUBLICADO ----
+  const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTdgWTYie2EIZ3cfixtzUyoUIb2RU95HOTc4-dhTF-h8U361U--faL_R3BWbGIB07e3MZVpkcVJ-c48/pub?output=csv';
+  async function loadFromSheet(){
+    try {
+      if(dateSpan) dateSpan.textContent = 'Cargando Google Sheet…';
+      const res = await fetch(SHEET_CSV_URL + '&_=' + Date.now(), {cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const text = await res.text();
+      const rows = parseCSV(text);
+      const services = csvToServices(rows);
+      if(!services.length) throw new Error('Sin filas de servicios.');
+      reloadData(services, 'Google Sheet ' + new Date().toISOString().slice(0,10));
+      if(dateSpan) dateSpan.textContent = 'Google Sheet · ' + new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+    } catch(err){
+      console.error('Error cargando Google Sheet:', err);
+      if(dateSpan) dateSpan.textContent = 'Error al cargar Sheet · usa CSV';
+      alert('No se pudo cargar el Google Sheet: ' + err.message + '\n\nPuedes subir un CSV manualmente.');
+    }
+  }
+  // Botón para recargar manualmente
+  if(label){
+    label.title = 'Click para recargar desde Google Sheet (shift+click para subir CSV)';
+    label.addEventListener('click', (e) => {
+      if(e.shiftKey) return; // deja pasar al input file
+      e.preventDefault();
+      loadFromSheet();
+    });
+  }
+  // Carga inicial automática
+  loadFromSheet();
+
   input.addEventListener('change', (ev) => {
     const file = ev.target.files && ev.target.files[0];
     if(!file) return;
