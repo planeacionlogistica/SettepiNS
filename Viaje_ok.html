@@ -174,64 +174,56 @@
 </header>
 
 <main>
-  <div class="toolbar" style="flex-direction:column;align-items:stretch;gap:12px;">
-    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
-      <div class="title">Origen de datos</div>
-      <button class="btn" id="gsFetchBtn" title="Descargar la pestaña NS desde Google Sheets">
-        <span>&#8635;</span> Actualizar desde Google Sheets
-      </button>
-      <label for="csvInput" class="btn secondary" title="Sube un CSV con el mismo formato">
-        <span>&#8593;</span> Viajes facturación para Viajes ok
-      </label>
-      <input type="file" id="csvInput" accept=".csv,text/csv" style="display:none" />
-      <button class="btn secondary" id="resetBtn" title="Volver a los datos originales embebidos">Datos base</button>
-      <div class="file-info" id="fileInfo">Datos base embebidos · export_Viajes_Facturación_20260725.csv</div>
-    </div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12px;">
-      <span style="color:var(--muted);">Google Sheet ID:</span>
-      <input type="text" id="gsIdInput" value="1YZG92UT4EI8VbNoKy0Vm0mWrujTr-8mSccJHphswKeg"
-             style="flex:1;min-width:280px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-family:monospace;font-size:12px;" />
-      <span style="color:var(--muted);">Pestaña:</span>
-      <input type="text" id="gsTabInput" value="NS"
-             style="width:100px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-family:monospace;font-size:12px;" />
-      <span class="file-info" id="gsStatus" style="margin-left:auto;">Listo</span>
-    </div>
+  <div class="filter-bar" style="gap:16px;">
+    <span class="label">Período:</span>
+    <label style="font-size:12px;color:var(--navy);">Año
+      <select id="yearSel" style="margin-left:4px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;"></select>
+    </label>
+    <label style="font-size:12px;color:var(--navy);">Mes
+      <select id="monthSel" style="margin-left:4px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;">
+        <option value="0">Todos</option>
+        <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+        <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+        <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+        <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+      </select>
+    </label>
+    <label style="font-size:12px;color:var(--navy);">Semana
+      <select id="weekSel" style="margin-left:4px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;">
+        <option value="0">Todas</option>
+      </select>
+    </label>
+    <button class="btn mini secondary" id="clearPeriodBtn">Limpiar período</button>
   </div>
 
   <div class="filter-bar">
-    <span class="label">Filtro · Tipo de Viaje (E):</span>
+    <span class="label">Filtro · Tipo de Viaje:</span>
     <div id="tipoChips" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
     <button class="btn mini secondary" id="allTiposBtn">Todos</button>
     <button class="btn mini secondary" id="noneTiposBtn">Ninguno</button>
-    <span class="hint" id="tipoHint">Haz clic en cada chip para incluir/excluir</span>
   </div>
 
   <div class="kpi-row">
     <div class="kpi">
       <div class="value" id="kTotal">0</div>
-      <div class="label">Total Viajes (IN)</div>
-      <div class="sub">Sin GRUPO VIAJES ESPECIALES</div>
+      <div class="label">Total Viajes</div>
     </div>
     <div class="kpi green">
       <div class="value" id="kOk">0</div>
       <div class="label">Viajes 100% OK</div>
-      <div class="sub">Inicio done + Fin done</div>
     </div>
     <div class="kpi red">
       <div class="value" id="kRev">0</div>
       <div class="label">Por Revisar</div>
-      <div class="sub">Estatus distinto a done</div>
     </div>
     <div class="kpi green">
       <div class="value" id="kPct">0%</div>
       <div class="label">% Cumplimiento</div>
-      <div class="sub">Meta &ge; 98%</div>
     </div>
   </div>
 
   <div class="section">
     <h2><span class="icon">&#9679;</span> Cumplimiento por Planta</h2>
-    <p class="desc">Haz clic en una planta para ver sus rutas; luego haz clic en una ruta para ver el detalle de cada viaje con su <b>start_status (O)</b> y <b>end_status (S)</b>. Sólo shift = <b>IN</b>; se omite <b>GRUPO VIAJES ESPECIALES - set_gar</b>. Se considera 100% cuando ambos estatus son <b>done</b>.</p>
     <div class="legend" style="justify-content:space-between;align-items:center;">
       <div style="display:flex;flex-wrap:wrap;gap:14px;">
         <span><span class="dot g"></span>Cumple (&ge;98%)</span>
@@ -250,9 +242,6 @@
     <div class="plants" id="plantsGrid"></div>
   </div>
 
-  <div class="footer-note">
-    Columnas usadas: D (des), E (Tipo de Viaje), F (ID Ruta), J (shift), K (group), O (start_status), S (end_status).
-  </div>
 </main>
 
 <div class="modal-back" id="modalBack">
@@ -274,6 +263,33 @@ const BASE_DATA = {"plants":[{"name":"ACU-ACUMENT","routes":[{"id":"0001","name"
 let currentData = BASE_DATA;
 let currentFilter = new Set();
 let hadUserToggle = false;
+let periodState = {year:0, month:0, week:0};
+
+function collectDates(data){
+  const years = new Set(), weeksByYM = {};
+  for(const p of data.plants) for(const r of p.routes) for(const t of r.trips){
+    if(!t.d) continue;
+    const y = +t.d.slice(0,4), m = +t.d.slice(5,7);
+    years.add(y);
+    const w = isoWeek(t.d);
+    const key = y+'-'+m;
+    (weeksByYM[key] = weeksByYM[key] || new Set()).add(w);
+    (weeksByYM[y+'-0'] = weeksByYM[y+'-0'] || new Set()).add(w);
+  }
+  return {years:[...years].sort(), weeksByYM};
+}
+function refreshPeriodControls(){
+  const info = collectDates(currentData);
+  const yearSel = document.getElementById('yearSel');
+  const current = periodState.year || 0;
+  yearSel.innerHTML = '<option value="0">Todos</option>' + info.years.map(y=>`<option value="${y}" ${y===current?'selected':''}>${y}</option>`).join('');
+  const weekSel = document.getElementById('weekSel');
+  const key = (periodState.year||0)+'-'+(periodState.month||0);
+  const weeks = (periodState.year ? (info.weeksByYM[key] || new Set()) : new Set());
+  const wArr = [...weeks].sort((a,b)=>a-b);
+  weekSel.innerHTML = '<option value="0">Todas</option>' + wArr.map(w=>`<option value="${w}" ${w===periodState.week?'selected':''}>Semana ${w}</option>`).join('');
+  document.getElementById('monthSel').value = periodState.month;
+}
 let modalState = null;
 
 function escapeHtml(s){
@@ -301,6 +317,24 @@ function tipoCounts(data){
   return counts;
 }
 
+function isoWeek(d){
+  const dt = new Date(d+'T00:00:00');
+  const target = new Date(dt.valueOf());
+  const dayNr = (dt.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = target.valueOf();
+  target.setMonth(0, 1);
+  if (target.getDay() !== 4) target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+  return 1 + Math.ceil((firstThursday - target) / 604800000);
+}
+function periodMatch(dateStr){
+  if(!dateStr) return true;
+  const y = +dateStr.slice(0,4), m = +dateStr.slice(5,7);
+  if(periodState.year && y !== periodState.year) return false;
+  if(periodState.month && m !== periodState.month) return false;
+  if(periodState.week && isoWeek(dateStr) !== periodState.week) return false;
+  return true;
+}
 function aggregate(data, filter){
   const plants = [];
   for(const p of data.plants){
@@ -312,6 +346,7 @@ function aggregate(data, filter){
       for(const t of r.trips){
         const tipo = (t.t||'').trim() || '(vacío)';
         if(!filter.has(tipo)) continue;
+        if(!periodMatch(t.d)) continue;
         total++;
         kept.push(t);
         const sOk = t.o === 'done';
@@ -689,41 +724,6 @@ function processRows(rows){
   return {plants};
 }
 
-document.getElementById('csvInput').addEventListener('change', async (e)=>{
-  const file = e.target.files && e.target.files[0];
-  if(!file) return;
-  const fileInfo = document.getElementById('fileInfo');
-  fileInfo.textContent = 'Procesando ' + file.name + '…';
-  try{
-    const text = await file.text();
-    const rows = parseCSV(text);
-    const data = processRows(rows);
-    if(!data.plants.length){
-      fileInfo.textContent = 'No se encontraron viajes IN válidos en ' + file.name;
-      return;
-    }
-    currentData = data;
-    currentFilter = new Set();
-    hadUserToggle = false;
-    renderTipoChips();
-    renderAll();
-    fileInfo.textContent = 'Cargado: ' + file.name + ' · ' + data.plants.length + ' plantas';
-    document.getElementById('badgeSource').textContent = 'Archivo cargado';
-  }catch(err){
-    fileInfo.textContent = 'Error al procesar el archivo: ' + err.message;
-  }
-});
-
-document.getElementById('resetBtn').addEventListener('click', ()=>{
-  currentData = BASE_DATA;
-  currentFilter = new Set();
-  hadUserToggle = false;
-  renderTipoChips();
-  renderAll();
-  document.getElementById('fileInfo').textContent = 'Datos base embebidos · export_Viajes_Facturación_20260725.csv';
-  document.getElementById('badgeSource').textContent = 'Julio 2026';
-  document.getElementById('csvInput').value = '';
-});
 
 /* ====== Google Sheets fetch ====== */
 function buildSheetUrls(id, tab){
@@ -796,8 +796,6 @@ async function loadFromGoogleSheet(){
   }
 }
 
-document.getElementById('gsFetchBtn').addEventListener('click', loadFromGoogleSheet);
-
 /* ====== Search + only-review filter ====== */
 document.getElementById('plantSearch').addEventListener('input', renderAll);
 document.getElementById('onlyReviewChk').addEventListener('change', renderAll);
@@ -836,10 +834,32 @@ function exportReviewCsv(){
 }
 document.getElementById('exportReviewBtn').addEventListener('click', exportReviewCsv);
 
+/* ====== Period selectors ====== */
+refreshPeriodControls();
+document.getElementById('yearSel').addEventListener('change', (e)=>{
+  periodState.year = +e.target.value;
+  periodState.week = 0;
+  refreshPeriodControls();
+  renderAll();
+});
+document.getElementById('monthSel').addEventListener('change', (e)=>{
+  periodState.month = +e.target.value;
+  periodState.week = 0;
+  refreshPeriodControls();
+  renderAll();
+});
+document.getElementById('weekSel').addEventListener('change', (e)=>{
+  periodState.week = +e.target.value;
+  renderAll();
+});
+document.getElementById('clearPeriodBtn').addEventListener('click', ()=>{
+  periodState = {year:0, month:0, week:0};
+  refreshPeriodControls();
+  renderAll();
+});
+
 renderTipoChips();
 renderAll();
-// Auto-fetch on first load
-loadFromGoogleSheet();
 </script>
 </body>
 </html>
