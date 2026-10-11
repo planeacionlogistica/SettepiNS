@@ -1076,7 +1076,7 @@ const LS_BADGE_KEY  = 'settepi_insignias_v1';    // insignias creadas en este na
 const AUTH_TTL_MS   = 12 * 60 * 60 * 1000;       // la sesión dura 12 horas
 // Web App de Apps Script ya desplegado (acceso: Cualquiera). El dashboard se alimenta del Sheet
 // y guarda el Progreso a través de esta URL sin que tengas que configurar nada.
-const DEFAULT_WEBAPP = 'https://script.google.com/macros/s/AKfycbyq1me0wfow0vkcnQVUVjym_ukrD3IPjPHS5pmsxqHcMA-m746c9BWn8W3A2Apnc_phHw/exec';
+const DEFAULT_WEBAPP = 'https://script.google.com/macros/s/AKfycbw7tvpITCPt28LBZzf4x_aLi8AnslZ8fv1M12vGikyGtf24sKstvwCfVfxuZS3zlJ1m/exec';
 
 // Nombres esperados de pestañas (normalizados, sin acentos)
 const SHEET_NAMES = {
@@ -2973,7 +2973,18 @@ function renderDiagnostic() {
    MÓDULO PROGRESO DE REVISIÓN
 ========================================================= */
 // ---- helpers de almacenamiento ----
-function getWebAppUrl(){ try { return (localStorage.getItem(LS_WEBAPP_KEY)||DEFAULT_WEBAPP).trim(); } catch(e){ return DEFAULT_WEBAPP; } }
+function getWebAppUrl(){
+  try {
+    const saved = (localStorage.getItem(LS_WEBAPP_KEY)||'').trim();
+    // Si lo guardado es una URL vieja (distinta a la del DEFAULT_WEBAPP), limpiarlo y usar la nueva.
+    // Así, al actualizar el DEFAULT_WEBAPP en el código, todos los navegadores arrancan con la URL buena.
+    if (saved && saved !== DEFAULT_WEBAPP) {
+      try { localStorage.setItem(LS_WEBAPP_KEY, DEFAULT_WEBAPP); } catch(e){}
+      return DEFAULT_WEBAPP;
+    }
+    return saved || DEFAULT_WEBAPP;
+  } catch(e){ return DEFAULT_WEBAPP; }
+}
 function setWebAppUrl(v){ try { localStorage.setItem(LS_WEBAPP_KEY, (v||'').trim()); } catch(e){} }
 function getResp(){ try { return (localStorage.getItem(LS_RESP_KEY)||'').trim(); } catch(e){ return ''; } }
 function setResp(v){ try { localStorage.setItem(LS_RESP_KEY, (v||'').trim()); } catch(e){} }
