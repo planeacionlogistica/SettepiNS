@@ -8,7 +8,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; background: #f3f4f6; font-family: 'Segoe UI', 'Inter', system-ui, sans-serif; color: #1f2937; font-size: 12px; }
+  html, body { margin: 0; padding: 0; background: #f3f4f6; font-family: 'Segoe UI', 'Inter', system-ui, sans-serif; color: #1f2937; font-size: 12px; min-width: 1200px; }
 
   /* ============ TOP BAR ============ */
   .topbar {
@@ -68,9 +68,10 @@
   @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
   .grid {
     display: grid;
-    grid-template-columns: 720px 130px 200px 1fr;
+    grid-template-columns: minmax(560px, 720px) 130px 200px minmax(380px, 1fr);
     grid-template-rows: auto auto auto auto;
     gap: 8px;
+    min-width: 1180px;
   }
   .panel {
     background: #fff; border: 1px solid #d1d5db; border-radius: 3px;
@@ -86,6 +87,18 @@
     padding: 3px 10px; cursor: pointer;
   }
   #btn-reset-filtros:hover { background: #bbf7d0; }
+
+  /* Botón Exportar dentro de cada panel — respeta los filtros aplicados */
+  .export-btn {
+    text-transform: none; letter-spacing: 0; font-size: 10.5px; font-weight: 700;
+    color: #14532d; background: #84cc16; border: 1px solid #65a30d; border-radius: 5px;
+    padding: 3px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+    transition: background .15s;
+  }
+  .export-btn:hover { background: #a3e635; }
+  .export-btn svg { width: 11px; height: 11px; }
+  .panel-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .panel-title > .title-text { display: inline-flex; align-items: center; gap: 8px; }
 
   /* Tables */
   table.pbi { width: 100%; border-collapse: collapse; font-size: 10.5px; }
@@ -254,10 +267,8 @@
   #toast.err { background: #dc2626; }
   #toast.ok { background: #059669; }
 
-  /* responsive guard */
-  @media (max-width: 1300px) {
-    .grid { grid-template-columns: 1fr 1fr; }
-  }
+  /* responsive guard — mantenemos el layout original siempre;
+     en pantallas más chicas se desplaza horizontal para no cortar paneles */
 
   /* ============ CARGAS DIARIAS (matriz) ============ */
   .cargas-diarias-wrap { margin-top: 10px; }
@@ -469,6 +480,29 @@
   .prog-photo-btn.busy { opacity: .6; cursor: progress; }
   .prog-photo-link { font-size: 10px; color: #2563eb; text-decoration: none; white-space: nowrap; font-weight: 600; }
   .prog-photo-link:hover { text-decoration: underline; }
+  /* Miniatura de evidencia al lado del botón */
+  .prog-photo-thumb {
+    width: 34px; height: 34px; object-fit: cover; border-radius: 5px; border: 1.5px solid #c7d2fe;
+    cursor: pointer; display: inline-block; vertical-align: middle; transition: transform .15s, border-color .15s;
+    background: #f3f4f6;
+  }
+  .prog-photo-thumb:hover { transform: scale(1.1); border-color: #84cc16; }
+  /* Modal para ver la evidencia en grande + poder actualizarla */
+  .prog-view-overlay { display:none; position:fixed; inset:0; z-index:1150; background:rgba(0,0,0,.78); align-items:center; justify-content:center; padding:20px; }
+  .prog-view-overlay.show { display:flex; }
+  .prog-view-box { background:#fff; max-width:720px; width:100%; max-height:92vh; border-radius:10px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+  .prog-view-head { background:#1f2937; color:#fff; padding:10px 14px; display:flex; align-items:center; justify-content:space-between; font-size:13px; font-weight:700; gap:10px; }
+  .prog-view-head #prog-view-label { color:#84cc16; font-weight:600; font-size:11.5px; }
+  .prog-view-head button { background:transparent; border:none; color:#9ca3af; font-size:16px; cursor:pointer; line-height:1; }
+  .prog-view-head button:hover { color:#fff; }
+  .prog-view-img { max-width:100%; max-height:65vh; margin:14px auto; display:block; border-radius:6px; }
+  .prog-view-actions { padding:0 14px 14px; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+  .prog-view-actions .prog-view-meta { font-size:11px; color:#6b7280; }
+  .prog-view-actions button { padding:8px 14px; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; border:none; }
+  #prog-view-update { background:#2563eb; color:#fff; }
+  #prog-view-update:hover { background:#1d4ed8; }
+  #prog-view-open { background:#f3f4f6; color:#374151; border:1px solid #d1d5db; }
+  #prog-view-open:hover { background:#e5e7eb; }
 
   /* encabezados ordenables */
   table.pbi thead th.sortable, table.pbi-matrix thead th.sortable { cursor: pointer; user-select: none; }
@@ -545,37 +579,43 @@
   </div>
 
   <div class="topbar-right">
-    <button class="action-btn secondary" id="btn-debug" title="Ver diagnóstico de columnas detectadas">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-      Diagnóstico
-    </button>
-    <button class="action-btn secondary" id="btn-local-topbar" title="Cargar los datos desde un archivo Excel (.xlsx) local">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      Excel local
-    </button>
-    <button class="action-btn secondary" id="btn-download" title="Descargar el XLSX crudo del Google Sheet">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      XLSX
-    </button>
     <button class="action-btn" id="btn-refresh" title="Recargar datos desde Google Sheets (Ctrl+R)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
       Recargar
     </button>
     <span id="status"><span class="status-dot"></span><span id="status-text">Iniciando…</span></span>
+    <!-- Botones ocultos pero funcionales (acceso programático / atajos) -->
+    <button id="btn-debug" style="display:none" title="Diagnóstico"></button>
+    <button id="btn-local-topbar" style="display:none"></button>
+    <button id="btn-download" style="display:none"></button>
   </div>
 </div>
 
 <!-- ============ LOADING / ERROR STATE ============ -->
 <div id="load-state" class="load-state">
-  <h2 id="ls-title">Conectando con Google Sheets…</h2>
+  <!-- Título oculto (sigue existiendo para los mensajes de error) -->
+  <h2 id="ls-title" style="display:none;">Conectando…</h2>
   <div class="spinner" id="ls-spinner"></div>
-  <ul class="progress-list" id="ls-progress">
+  <!-- Lista de progreso oculta — se mantiene en el DOM para que las funciones setProgress() sigan funcionando -->
+  <ul class="progress-list" id="ls-progress" style="display:none;">
     <li id="p-fetch" class="pending">Descargar XLSX del Sheet publicado</li>
     <li id="p-parse" class="pending">Leer las pestañas (rendimiento · trafilink · asignacion · unidades)</li>
     <li id="p-columns" class="pending">Detectar columnas por nombre</li>
     <li id="p-enrich" class="pending">Cruzar cargas + GPS + asignaciones</li>
     <li id="p-render" class="pending">Renderizar el dashboard</li>
   </ul>
+  <!-- Mientras carga, consejos de rendimiento para camiones de personal (41 asientos) -->
+  <div id="ls-tips" style="margin:22px auto 0; max-width:620px; background:linear-gradient(135deg,#f0fdf4 0%,#ecfdf5 100%); border:1px solid #86efac; border-radius:10px; padding:16px 20px; text-align:left; box-shadow:0 2px 6px rgba(132,204,22,.12);">
+    <div style="display:flex;align-items:center;gap:8px;font-weight:700;color:#166534;font-size:12px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;">
+      <span style="font-size:16px;">💡</span>
+      <span>Tip de rendimiento</span>
+    </div>
+    <div id="ls-tip-text" style="color:#1f2937;font-size:13px;line-height:1.65;font-family:'Segoe UI',system-ui,sans-serif;min-height:68px;">—</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
+      <div id="ls-tip-counter" style="font-size:10.5px;color:#6b7280;font-weight:600;">Tip 1 de 12</div>
+      <button id="ls-tip-next" type="button" style="background:#84cc16;color:#14532d;border:none;padding:4px 12px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:700;">Siguiente ›</button>
+    </div>
+  </div>
   <div id="ls-error" style="display:none;" class="err-box"></div>
   <div id="ls-fallback" style="display:none; margin-top:18px; max-width:600px; margin-left:auto; margin-right:auto;">
     <!-- Opción recomendada: alimentar automático del Sheet vía Web App -->
@@ -611,7 +651,13 @@
 
     <!-- ROW 1 -->
     <div class="panel" style="grid-column: 1; grid-row: 1;">
-      <div class="panel-title">Resumen general de rendimiento</div>
+      <div class="panel-title">
+        <span class="title-text">Resumen general de rendimiento</span>
+        <button class="export-btn" data-export="resumen" title="Exportar a Excel respetando los filtros aplicados">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar
+        </button>
+      </div>
       <div class="scroll-area"><table class="pbi" id="tbl-resumen"></table></div>
     </div>
 
@@ -645,22 +691,40 @@
           <span>Terapia intensiva</span>
           <span id="terapia-max-pill" class="terapia-max-pill" role="button" tabindex="0" aria-pressed="false" title="Clic para mostrar solo las unidades con rendimiento igual o menor al umbral (respeta los filtros). El contador de Progreso se ajusta a estas unidades.">≤&nbsp;<input type="number" id="terapia-max-val" value="3.5" step="0.1" min="0" max="20">&nbsp;Km/L</span>
         </div>
-        <button id="btn-progreso" class="prog-open-btn" title="Registrar el proceso de revisión de estas unidades">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-          Progreso <span class="prog-open-badge" id="prog-open-badge">0/0</span>
-        </button>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button class="export-btn" data-export="terapia" title="Exportar a Excel respetando los filtros aplicados">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar
+          </button>
+          <button id="btn-progreso" class="prog-open-btn" title="Registrar el proceso de revisión de estas unidades">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Progreso <span class="prog-open-badge" id="prog-open-badge">0/0</span>
+          </button>
+        </div>
       </div>
       <div class="scroll-area" style="max-height: 220px;"><table class="pbi" id="tbl-terapia"></table></div>
     </div>
 
     <div class="panel" style="grid-column: 3 / span 2; grid-row: 2;">
-      <div class="panel-title">Detalle por tipo vehículo</div>
+      <div class="panel-title">
+        <span class="title-text">Detalle por tipo vehículo</span>
+        <button class="export-btn" data-export="detalle" title="Exportar a Excel respetando los filtros aplicados">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar
+        </button>
+      </div>
       <div class="scroll-area" style="max-height: 220px;"><table class="pbi" id="tbl-detalle"></table></div>
     </div>
 
     <!-- ROW 3 -->
     <div class="panel" style="grid-column: 1 / span 2; grid-row: 3;">
-      <div class="panel-title">Cargas</div>
+      <div class="panel-title">
+        <span class="title-text">Cargas</span>
+        <button class="export-btn" data-export="cargas" title="Exportar a Excel respetando los filtros aplicados">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar
+        </button>
+      </div>
       <div class="scroll-area" style="max-height: 200px;"><table class="pbi" id="tbl-cargas"></table></div>
     </div>
 
@@ -755,11 +819,17 @@
 
   <!-- ============ CARGAS DIARIAS ============ -->
   <div class="panel cargas-diarias-wrap">
-    <div class="panel-title" style="display: flex; align-items: center; gap: 12px;">
-      Cargas diarias
-      <span style="color: #6b7280; font-weight: 400; font-size: 10px; text-transform: none;">
-        — Matriz unidad × día del mes seleccionado · usa los filtros de arriba
-      </span>
+    <div class="panel-title" style="display: flex; align-items: center; gap: 12px; justify-content: space-between;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span>Cargas diarias</span>
+        <span style="color: #6b7280; font-weight: 400; font-size: 10px; text-transform: none;">
+          — Matriz unidad × día del mes seleccionado · usa los filtros de arriba
+        </span>
+      </div>
+      <button class="export-btn" data-export="cargas-diarias" title="Exportar a Excel respetando los filtros aplicados">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar
+      </button>
     </div>
     <div class="matrix-scroll">
       <table class="pbi-matrix" id="tbl-cargas-diarias"></table>
@@ -803,21 +873,14 @@
     </div>
 
     <div class="prog-cfg" id="prog-cfg" style="display:none;">
-      <h5>Guardar el progreso dentro del mismo Google Sheet</h5>
-      <div class="row">
+      <div class="row" style="margin-top:0;">
         <label>URL del Web App</label>
         <input type="text" id="prog-webapp" placeholder="https://script.google.com/macros/s/…/exec">
         <button class="pbtn" id="prog-webapp-save">Guardar</button>
         <button class="pbtn ghost" id="prog-webapp-test">Probar</button>
       </div>
-      <div class="row">
-        <label>Responsable</label>
-        <input type="text" id="prog-resp" placeholder="Tu nombre (aparece en la columna «Actualizó»)" style="min-width:220px;">
-      </div>
-      <div class="hint">
-        Pega aquí la URL del <b>Web App de Apps Script</b> que registra el progreso en la pestaña <code>Progreso</code> del Sheet.
-        Si lo dejas vacío, todo se guarda solo en este navegador (<code>localStorage</code>). El código para desplegarlo viene en el archivo <code>AppsScript_Progreso.gs</code> que se entregó junto a este dashboard.
-      </div>
+      <!-- Campo oculto: el nombre viene de la sesión -->
+      <input type="hidden" id="prog-resp">
     </div>
 
     <div class="prog-toolbar">
@@ -862,6 +925,21 @@
   </div>
 </div>
 
+<!-- ============ VER EVIDENCIA EN GRANDE / ACTUALIZARLA ============ -->
+<div id="prog-view-overlay" class="prog-view-overlay">
+  <div class="prog-view-box">
+    <div class="prog-view-head">
+      <span>Evidencia — <span id="prog-view-label"></span></span>
+      <button id="prog-view-close" title="Cerrar">✕</button>
+    </div>
+    <img id="prog-view-img" class="prog-view-img" alt="Evidencia">
+    <div class="prog-view-actions">
+      <span class="prog-view-meta" id="prog-view-meta">—</span>
+      <button id="prog-view-update" title="Reemplazar esta foto por una nueva">📷 Actualizar foto</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============ INICIO DE SESIÓN (candado para sellar) ============ -->
 <div id="prog-login-overlay" class="prog-paste-overlay">
   <div class="prog-login-box" tabindex="0">
@@ -895,12 +973,63 @@
       <input type="number" id="prog-badge-value" min="0.1" max="20" step="0.1" value="3.8">
       <div class="prog-login-err" id="prog-badge-err"></div>
       <button id="prog-badge-save">Guardar insignia</button>
-      <div class="prog-login-hint">La insignia aparecerá junto al número de unidad en la tabla de Terapia intensiva. Se guarda en este navegador.</div>
+      <div class="prog-login-hint">La insignia aparecerá junto al número de unidad en Terapia intensiva. Se guarda en la pestaña «insignias» del Sheet para que todos la vean y <b>vence automáticamente a los 60 días</b>.</div>
     </div>
   </div>
 </div>
 
 <script>
+/* =========================================================
+   TIPS DE RENDIMIENTO · Camiones de personal (41 asientos)
+   Se muestran rotativos mientras el dashboard carga.
+========================================================= */
+const RENDIMIENTO_TIPS = [
+  { t:'🚗 Velocidad constante entre 80 y 90 km/h', d:'En camiones de personal de 41 asientos (Reco International, Zafiro, etc.) el consumo sube hasta un 25% al pasar de 90 a 110 km/h. La zona dulce para diésel es 80-90 km/h en carretera, en 5a o 6a marcha. Instruye a los operadores a respetar el crucero.' },
+  { t:'⏱ Minimizar el ralentí', d:'Un camión en ralentí consume 2 a 4 L/hora sin recorrer un solo kilómetro. En rutas de personal (esperas en plantas, cambios de turno) 15 minutos de ralentí al día equivalen a perder 0.3 Km/L mensuales. Apaga el motor en toda espera mayor a 2 minutos.' },
+  { t:'🛞 Presión correcta en llantas', d:'Una llanta con 10 psi menos de la presión recomendada aumenta hasta 3% el consumo. En un 41 asientos cargado al 100% con PBV cercano a 15 ton, revisa las 6 llantas (incluida la de refacción) cada semana en frío. Mete 110-120 psi en las tracción.' },
+  { t:'🔧 Diagnóstico 21 puntos cada 30 días', d:'Filtro de aire sucio, inyectores desgastados, bomba de alta presión fatigada y escape obstruido roban hasta 0.6 Km/L. En las unidades de Terapia intensiva aplica el preventivo de 21 puntos antes que la capacitación — primero asegura que la unidad esté sana.' },
+  { t:'🧑‍✈️ Operador = 30% del rendimiento', d:'Dos operadores con la misma ruta y la misma unidad pueden tener diferencias de 0.8 Km/L. Técnicas clave: anticipar frenadas (soltar acelerador antes del alto), no acelerar en bajadas, usar freno de motor en pendientes, no revolucionar en vacío.' },
+  { t:'🚦 Arranques y frenados agresivos', d:'Cada acelerón brusco en un 41 asientos quema hasta 0.3 L extra. Las aceleraciones deben ser progresivas, cambios de marcha a 1,500-1,800 rpm (no a 2,500). Pide a Trafilink que marque los eventos "harsh acceleration" por operador.' },
+  { t:'❄️ Aire acondicionado con criterio', d:'El A/C a tope en un 41 asientos puede bajar el rendimiento 0.4 Km/L. En trayectos cortos a plantas, recircular aire ya climatizado consume menos que enfriar desde cero. En las unidades S/C (sin clima) la ventaja de rendimiento se pierde si llevan ventanas abiertas en carretera por la resistencia aerodinámica.' },
+  { t:'📊 Primera carga del mes es termómetro', d:'La "1a Carga Mes" en la columna de Terapia intensiva te dice si la unidad llega descompuesta de inicio. Si viene baja desde el día 1, el problema es mecánico; si se cae en la semana 2-3, es operador o ruta.' },
+  { t:'🛣️ Ruta y tráfico', d:'Rutas con mucho semáforo o tráfico lento (como Monterrey centro en hora pico) pueden tener rendimientos 20% peores que carretera abierta. Compara unidades solo contra sus pares de la misma planta/ruta — no cruces Guadalupe con San Nicolás.' },
+  { t:'⛽ Sustracción de combustible', d:'Si una unidad baja súbitamente de 4.1 a 3.3 Km/L sin falla mecánica ni cambio de operador, el candidato #1 es sustracción. Aplica el "Proceso de sellado" (bloque Factores externos) y correlaciona cargas vs Km GPS: debe haber paridad del 90% o más.' },
+  { t:'📏 Peso y aerodinámica', d:'Un 41 asientos típicamente pesa 7.5 ton en vacío y hasta 11 ton con pasaje completo + equipaje. Portaequipajes en el techo encienden la resistencia aerodinámica y bajan 5-7% el rendimiento en carretera. Ajusta cargas y no dejes mamparas abiertas.' },
+  { t:'🧪 Combustible de calidad', d:'Diésel de bomba sin filtrar, con exceso de azufre o con agua tapa inyectores y daña la bomba de alta presión. Carga siempre en los mismos puntos autorizados, exige comprobante y guarda una muestra de cada carga sospechosa para análisis.' },
+];
+// Arranca con un tip ALEATORIO distinto cada vez que se abre el dashboard
+let TIP_IDX = Math.floor(Math.random() * RENDIMIENTO_TIPS.length);
+let TIP_TIMER = null;
+function pintarTip(){
+  const n = RENDIMIENTO_TIPS.length;
+  const idx = ((TIP_IDX % n) + n) % n;
+  const tip = RENDIMIENTO_TIPS[idx];
+  const el = document.getElementById('ls-tip-text');
+  const c  = document.getElementById('ls-tip-counter');
+  if (el) el.innerHTML = `<b style="color:#166534;display:block;margin-bottom:4px;">${tip.t}</b>${tip.d}`;
+  if (c)  c.textContent = `Tip ${idx + 1} de ${n}`;
+}
+function nextTip(){ TIP_IDX++; pintarTip(); }
+function reiniciarTimer(){
+  if (TIP_TIMER) clearInterval(TIP_TIMER);
+  TIP_TIMER = setInterval(nextTip, 7000);
+}
+function startTips(){
+  pintarTip();
+  reiniciarTimer();
+  // El botón se cablea una sola vez
+  const btn = document.getElementById('ls-tip-next');
+  if (btn && !btn._wired){
+    btn._wired = true;
+    btn.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      nextTip();           // avanza al siguiente
+      reiniciarTimer();    // reinicia el conteo para que no salte justo después
+    });
+  }
+}
+function stopTips(){ if (TIP_TIMER) { clearInterval(TIP_TIMER); TIP_TIMER = null; } }
+
 /* =========================================================
    CONFIG
 ========================================================= */
@@ -1203,7 +1332,10 @@ function showError(msg, detail) {
   }
   box.innerHTML = `<b>${esc(msg)}</b>${detail ? '<br><br>' + fmt(detail) : ''}`;
   document.getElementById('ls-spinner').style.display = 'none';
+  document.getElementById('ls-title').style.display = ''; // mostrar al haber error
   document.getElementById('ls-title').textContent = 'Error al cargar';
+  document.getElementById('ls-progress').style.display = '';
+  const tips = document.getElementById('ls-tips'); if (tips) tips.style.display = 'none';
   // Mostrar las salidas: conectar Web App (recomendado) o cargar Excel local
   const fb = document.getElementById('ls-fallback');
   if (fb) fb.style.display = 'block';
@@ -2875,8 +3007,56 @@ async function doAuth(user, password){
 }
 function loadProgresoLocal(){ try { const r=JSON.parse(localStorage.getItem(LS_PROG_KEY)||'{}'); if(r&&typeof r==='object') STATE.progreso=r; } catch(e){ STATE.progreso={}; } }
 function saveProgresoLocal(){ try { localStorage.setItem(LS_PROG_KEY, JSON.stringify(STATE.progreso)); } catch(e){} }
-function loadInsigniasLocal(){ try { const r=JSON.parse(localStorage.getItem(LS_BADGE_KEY)||'{}'); if(r&&typeof r==='object') STATE.insignias=r; } catch(e){ STATE.insignias={}; } }
+function loadInsigniasLocal(){ try { const r=JSON.parse(localStorage.getItem(LS_BADGE_KEY)||'{}'); if(r&&typeof r==='object') STATE.insignias=r; } catch(e){ STATE.insignias={}; } pruneInsigniasVencidas(); }
 function saveInsigniasLocal(){ try { localStorage.setItem(LS_BADGE_KEY, JSON.stringify(STATE.insignias)); } catch(e){} }
+// Las insignias viven 60 días. Al pasar ese tiempo se quitan silenciosamente.
+const INSIGNIA_TTL_MS = 60 * 24 * 60 * 60 * 1000;
+function pruneInsigniasVencidas(){
+  const now = Date.now();
+  let cambio = false;
+  for (const u in STATE.insignias){
+    const b = STATE.insignias[u];
+    if (!b || !b.creadaAt) continue;
+    const t = new Date(b.creadaAt).getTime();
+    if (!isFinite(t) || (now - t) > INSIGNIA_TTL_MS){ delete STATE.insignias[u]; cambio = true; }
+  }
+  if (cambio) saveInsigniasLocal();
+}
+// Leer insignias de la pestaña "insignias" del Google Sheet (vía Web App)
+async function hydrateInsigniasFromSheet(){
+  const url = getWebAppUrl(); if (!url) return;
+  try {
+    const full = url + (url.includes('?')?'&':'?') + 'action=insignias_list&_ts=' + Date.now();
+    const resp = await fetch(full, { method: 'GET' });
+    const j = await resp.json();
+    const rows = Array.isArray(j) ? j : (j && Array.isArray(j.rows) ? j.rows : null);
+    if (!rows) return;
+    const now = Date.now();
+    const remota = {};
+    rows.forEach(row => {
+      const u = String(row.unidad||row.Unidad||'').trim(); if (!u) return;
+      const v = Number(row.valor||row.Valor); if (!isFinite(v)||v<=0) return;
+      const fecha = row.fecha || row.Fecha || row.creadaAt || '';
+      const creadaAt = fecha ? new Date(fecha).toISOString() : new Date().toISOString();
+      const t = new Date(creadaAt).getTime();
+      if (!isFinite(t) || (now - t) > INSIGNIA_TTL_MS) return; // vencida: no la mostramos
+      remota[u] = { valor: v, creadaPor: row.creadaPor || row['Creada por'] || 'arturog', creadaAt };
+    });
+    STATE.insignias = remota;
+    saveInsigniasLocal();
+    render();
+  } catch(e){ /* sin conexión: usamos lo local */ }
+}
+// Guardar una insignia nueva en la pestaña "insignias" del Sheet
+async function pushInsigniaToSheet(unidad, valor, creadaPor, creadaAt){
+  const url = getWebAppUrl(); if (!url) return { ok:false, error:'sin Web App' };
+  try {
+    const resp = await fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({ action:'insignia_upsert', unidad:String(unidad), valor:Number(valor), creadaPor:String(creadaPor||'arturog'), fecha:creadaAt }) });
+    const j = await resp.json().catch(()=>({ok:resp.ok}));
+    return j && j.ok!==false ? { ok:true } : { ok:false, error:(j&&j.error)||'HTTP '+resp.status };
+  } catch(e){ return { ok:false, error:e.message }; }
+}
 
 // ---- utilidades ----
 function escAttr(s){ return String(s).replace(/"/g,'&quot;'); }
@@ -2926,11 +3106,12 @@ function blockItemsHtml(u, rec){
     const items=b.items.map(it=>{
       const ck=rec.items&&rec.items[it.key]?'checked':'';
       const url=(rec.photos && rec.photos[it.key]) ? rec.photos[it.key] : '';
+      const thumbUrl = url ? toDisplayImg(url) : '';
       return `<div class="prog-item-row">
         <label class="prog-item ${ck?'checked':''}"><input type="checkbox" data-u="${escAttr(u)}" data-k="${it.key}" ${ck}><span>${it.label}</span></label>
         <span class="prog-evi">
-          <a class="prog-photo-link" data-k="${it.key}" href="${escAttr(url)}" target="_blank" rel="noopener" title="Ver la evidencia" style="${url?'':'display:none'}">📷 ver</a>
-          <button type="button" class="prog-photo-btn" data-u="${escAttr(u)}" data-k="${it.key}" title="Subir foto de evidencia">📷</button>
+          <img class="prog-photo-thumb" data-u="${escAttr(u)}" data-k="${it.key}" data-label="${escAttr(it.label)}" src="${escAttr(thumbUrl)}" alt="" title="Clic para ver en grande o actualizar" style="${url?'':'display:none'}">
+          <button type="button" class="prog-photo-btn" data-u="${escAttr(u)}" data-k="${it.key}" title="${url?'Reemplazar la foto de evidencia':'Subir foto de evidencia'}">📷</button>
           <input type="file" accept="image/*" capture="environment" class="prog-photo-input" data-u="${escAttr(u)}" data-k="${it.key}" style="display:none">
         </span>
       </div>`;
@@ -3026,9 +3207,39 @@ function resizeImage(file, maxDim, quality){
 function photoBtnOf(u,key){ return [...document.querySelectorAll('.prog-photo-btn')].find(b=>b.getAttribute('data-u')===String(u) && b.getAttribute('data-k')===key); }
 function refreshPhotoUI(u,key,url){
   const card=cardOf(u); if(!card) return;
-  const link=[...card.querySelectorAll('.prog-photo-link')].find(a=>a.getAttribute('data-k')===key);
-  if(link){ link.href=url||''; link.style.display=url?'inline':'none'; }
+  const thumb=[...card.querySelectorAll('.prog-photo-thumb')].find(t=>t.getAttribute('data-k')===key && t.getAttribute('data-u')===String(u));
+  if(thumb){ thumb.src= url ? toDisplayImg(url) : ''; thumb.style.display=url?'inline-block':'none'; }
+  const btn=[...card.querySelectorAll('.prog-photo-btn')].find(b=>b.getAttribute('data-k')===key && b.getAttribute('data-u')===String(u));
+  if(btn) btn.title = url ? 'Reemplazar la foto de evidencia' : 'Subir foto de evidencia';
 }
+// Convierte una URL de Google Drive a formato embebible como <img> (sino la miniatura y
+// el visor muestran el ícono roto y "Evidencia" en vez de la foto).
+function toDisplayImg(url){
+  if (!url) return '';
+  const s = String(url);
+  // Patrones típicos: /file/d/FILE_ID/view  ·  ?id=FILE_ID  ·  /d/FILE_ID
+  const m = s.match(/\/d\/([a-zA-Z0-9_-]{20,})/) || s.match(/[?&]id=([a-zA-Z0-9_-]{20,})/);
+  if (m) return `https://lh3.googleusercontent.com/d/${m[1]}=w1600`;
+  return s;
+}
+// ---- Modal para ver evidencia en grande / actualizarla ----
+function openViewPhoto(u, key, label){
+  const rec = STATE.progreso[String(u)] || {};
+  const url = (rec.photos && rec.photos[key]) || '';
+  if (!url) return;
+  STATE._viewTarget = { u:String(u), key, label };
+  document.getElementById('prog-view-label').textContent = (label||key) + ' · Unidad ' + u;
+  document.getElementById('prog-view-img').src = toDisplayImg(url);
+  const meta = rec.updatedAt ? 'Última actualización: ' + fmtDateTime(rec.updatedAt) + (rec.updatedBy?' · '+rec.updatedBy:'') : '—';
+  document.getElementById('prog-view-meta').textContent = meta;
+  document.getElementById('prog-view-update').onclick = ()=>{
+    closeViewPhoto();
+    if (!isAuthed()) { openLoginModal(); return; }
+    openPasteModal(u, key);
+  };
+  document.getElementById('prog-view-overlay').classList.add('show');
+}
+function closeViewPhoto(){ document.getElementById('prog-view-overlay').classList.remove('show'); STATE._viewTarget=null; }
 async function uploadPhoto(u,key,file){
   u=String(u);
   if(!isAuthed()){ openLoginModal(); return; }   // candado: solo con sesión
@@ -3251,19 +3462,28 @@ function showInsigniaModal(){
   document.getElementById('prog-badge-overlay').classList.add('show');
 }
 function closeInsigniaModal(){ document.getElementById('prog-badge-overlay').classList.remove('show'); }
-function saveInsignia(){
+async function saveInsignia(){
   if(!canCreateInsignia()){ showToast('Inicia sesión como arturog para crear insignias','err'); closeInsigniaModal(); return; }
   const unit=document.getElementById('prog-badge-unit').value;
   const value=Number(document.getElementById('prog-badge-value').value);
   const err=document.getElementById('prog-badge-err');
+  const btn=document.getElementById('prog-badge-save');
   if(!unit){ err.textContent='Selecciona una unidad'; return; }
   if(!Number.isFinite(value)||value<=0||value>20){ err.textContent='Escribe un rendimiento entre 0.1 y 20 Km/L'; return; }
   const actor=getAuth();
-  STATE.insignias[String(unit)]={ valor:value, creadaPor:actor.nombre||'arturog', creadaAt:new Date().toISOString() };
+  const creadaAt = new Date().toISOString();
+  const nombreActor = actor.nombre||'arturog';
+  // Guardar local primero (para que se vea inmediato)
+  STATE.insignias[String(unit)]={ valor:value, creadaPor:nombreActor, creadaAt };
   saveInsigniasLocal();
+  err.textContent=''; btn.disabled=true; btn.textContent='Guardando…';
+  // Luego subir al Sheet para que todos la vean
+  const r = await pushInsigniaToSheet(unit, value, nombreActor, creadaAt);
+  btn.disabled=false; btn.textContent='Guardar insignia';
   closeInsigniaModal();
   render();
-  showToast(`Insignia guardada para la unidad ${unit} ✓`,'ok');
+  if (r.ok) showToast(`Insignia guardada en el Sheet para la unidad ${unit} ✓ (vence en 60 días)`,'ok');
+  else showToast(`Insignia guardada local — no se pudo subir al Sheet: ${r.error}`,'err');
 }
 async function submitLogin(){
   const forBadge=!!STATE._pendingInsignia;
@@ -3338,6 +3558,8 @@ function wireProgreso(){
   document.getElementById('prog-resp').addEventListener('change', e=>setResp(e.target.value));
   // ---- candado de acceso: botón de sesión + modal de login ----
   document.getElementById('prog-auth-btn').addEventListener('click', ()=>{ if(getAuth()) logout(); else openLoginModal(); });
+  document.getElementById('prog-view-close').addEventListener('click', closeViewPhoto);
+  document.getElementById('prog-view-overlay').addEventListener('mousedown', ev=>{ if(ev.target.id==='prog-view-overlay') closeViewPhoto(); });
   document.getElementById('prog-login-close').addEventListener('click', closeLoginModal);
   document.getElementById('prog-login-overlay').addEventListener('mousedown', ev=>{ if(ev.target.id==='prog-login-overlay') closeLoginModal(); });
   document.getElementById('prog-login-submit').addEventListener('click', submitLogin);
@@ -3364,6 +3586,8 @@ function wireProgreso(){
     }
   });
   listEl.addEventListener('click', ev=>{
+    const thumb=ev.target.closest('.prog-photo-thumb');
+    if(thumb){ ev.stopPropagation(); openViewPhoto(thumb.getAttribute('data-u'), thumb.getAttribute('data-k'), thumb.getAttribute('data-label')); return; }
     const pbtn=ev.target.closest('.prog-photo-btn');
     if(pbtn){ ev.stopPropagation(); if(!isAuthed()){ openLoginModal(); return; } openPasteModal(pbtn.getAttribute('data-u'), pbtn.getAttribute('data-k')); return; }
     if(ev.target.closest('.prog-evi')) return;   // clic en la zona de evidencia: no togglear
@@ -3381,6 +3605,7 @@ function wireProgreso(){
   // Escape cierra (primero el login, luego deja el modal de pegar a su propio manejador)
   window.addEventListener('keydown', ev=>{
     if(ev.key!=='Escape') return;
+    if(document.getElementById('prog-view-overlay').classList.contains('show')){ closeViewPhoto(); return; }
     if(document.getElementById('prog-badge-overlay').classList.contains('show')){ closeInsigniaModal(); return; }
     if(document.getElementById('prog-login-overlay').classList.contains('show')){ closeLoginModal(); return; }
     if(document.getElementById('prog-paste-overlay').classList.contains('show')) return;
@@ -3485,6 +3710,7 @@ async function processWorkbookBuffer(buf, sourceLabel = 'archivo') {
   document.getElementById('dashboard').classList.add('ready');
   render();
   setProgress('p-render', 'done', 'Listo ✓');
+  stopTips();
 
   STATE.lastSync = new Date();
   updateSyncLabel();
@@ -3496,6 +3722,8 @@ async function processWorkbookBuffer(buf, sourceLabel = 'archivo') {
 
   // Leer el progreso de revisión guardado en el Sheet (si hay Web App configurado)
   hydrateProgresoFromSheet();
+  // Leer las insignias de rendimiento publicadas en la pestaña "insignias"
+  hydrateInsigniasFromSheet();
 
   // Advertencia visual si el cruce GPS falló
   const dtStats = STATE.diagnostic.trafilink || {};
@@ -3622,10 +3850,84 @@ function updateSyncLabel() {
   setStatus(`Sincronizado ${fmtRelative(STATE.lastSync)} · ${STATE.cargas.length} cargas`, 'ok');
 }
 setInterval(updateSyncLabel, 15000);
+// Cada hora revisa si alguna insignia ya cumplió 60 días y la retira
+setInterval(() => { const antes = Object.keys(STATE.insignias).length; pruneInsigniasVencidas(); if (antes !== Object.keys(STATE.insignias).length) render(); }, 60*60*1000);
 
 /* =========================================================
    UI wiring
 ========================================================= */
+/* =========================================================
+   EXPORTAR TABLA A XLSX (respeta filtros aplicados)
+========================================================= */
+function tableToSheet(tableId) {
+  const tbl = document.getElementById(tableId);
+  if (!tbl) return null;
+  // Clone para quitar los carets (▸ ▾) antes de exportar
+  const clone = tbl.cloneNode(true);
+  clone.querySelectorAll('.caret').forEach(c => c.remove());
+  clone.querySelectorAll('.prog-mini, .aprobado-badge').forEach(e => e.remove());
+  return XLSX.utils.table_to_sheet(clone, { raw: false });
+}
+function downloadWb(wb, filename) {
+  XLSX.writeFile(wb, filename);
+}
+function filterSuffix() {
+  const f = STATE.f;
+  const parts = [];
+  if (f.anio) parts.push(f.anio);
+  if (f.mes) parts.push('M' + String(f.mes).padStart(2,'0'));
+  if (f.semana) parts.push('S' + f.semana);
+  if (f.dia) parts.push('D' + f.dia);
+  if (f.vehiculo) parts.push('V' + f.vehiculo);
+  return parts.length ? '_' + parts.join('-') : '';
+}
+function exportPanel(panel) {
+  if (typeof XLSX === 'undefined') { showToast('Librería XLSX no disponible', 'err'); return; }
+  const ts = new Date().toISOString().slice(0,10);
+  const suf = filterSuffix();
+  const wb = XLSX.utils.book_new();
+  let tableId = '', sheetName = '', filename = '';
+
+  const panels = {
+    'resumen':        { id: 'tbl-resumen',        name: 'Resumen',         file: 'Resumen_General' },
+    'terapia':        { id: 'tbl-terapia',        name: 'Terapia',         file: 'Terapia_Intensiva' },
+    'detalle':        { id: 'tbl-detalle',        name: 'Detalle',         file: 'Detalle_Tipo_Vehiculo' },
+    'cargas':         { id: 'tbl-cargas',         name: 'Cargas',          file: 'Cargas' },
+    'cargas-diarias': { id: 'tbl-cargas-diarias', name: 'Cargas Diarias',  file: 'Cargas_Diarias' }
+  };
+  const cfg = panels[panel];
+  if (!cfg) return;
+
+  // Para "cargas" exportamos TODAS las filas filtradas (no solo las 500 visibles)
+  if (panel === 'cargas') {
+    const filtered = applyFilters(STATE.cargas);
+    const data = [['Nómina Operador','Nombre op.','IdVehículo','Modelo','Año','Mes','Semana','Día','Km GPS','Km','Litros','Km/L']];
+    filtered.forEach(r => {
+      data.push([
+        r.nomina || '', r.nombreOp || '', r.idVehiculo, r.marcaModelo || '',
+        r.year || '', r.month || '', r.week || '', r.day || '',
+        Number(r.kmGps||0).toFixed(2), Number(r.km||0).toFixed(2),
+        Number(r.litros||0).toFixed(2), Number(r.rendimiento||0).toFixed(2)
+      ]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    XLSX.utils.book_append_sheet(wb, ws, cfg.name);
+  } else {
+    const ws = tableToSheet(cfg.id);
+    if (!ws) { showToast('No hay datos para exportar', 'err'); return; }
+    XLSX.utils.book_append_sheet(wb, ws, cfg.name);
+  }
+  filename = `${cfg.file}${suf}_${ts}.xlsx`;
+  downloadWb(wb, filename);
+  showToast(`Exportado: ${filename}`, 'ok');
+}
+document.addEventListener('click', ev => {
+  const btn = ev.target.closest('.export-btn');
+  if (!btn) return;
+  const panel = btn.getAttribute('data-export');
+  if (panel) exportPanel(panel);
+});
+
 document.getElementById('btn-refresh').onclick = () => loadFromGoogleSheets({ initial: false });
 document.getElementById('btn-debug').onclick = () => {
   renderDiagnostic();
@@ -3696,23 +3998,28 @@ loadProgresoLocal();
 loadInsigniasLocal();
 wireProgreso();
 
-// Kickoff.
+// Kickoff. Arranca los tips de inmediato y PRIORIZA el caché local para que el dashboard
+// se vea en < 1 segundo. Después refresca en segundo plano desde el Sheet.
 async function boot(){
-  // Si YA hay un Web App configurado, alimentar directo del Google Sheet (vía confiable).
-  if (getWebAppUrl()) { loadFromGoogleSheets({ initial: true }); return; }
+  startTips();   // mostrar tips mientras cualquier cosa carga
 
-  // Sin Web App: abrir con el último Excel en caché (instantáneo, sin esperar los proxies) y refrescar en 2º plano.
+  // 1) PRIMERO el caché local — abre instantáneo sin esperar red
   let cached = null;
   try { cached = await idbGetXlsx(); } catch(e){}
   if (cached && cached.buf) {
     try {
       await processWorkbookBuffer(cached.buf, 'caché local');
+      stopTips();
       const ts = cached.ts ? new Date(cached.ts) : null;
-      showToast('Abierto desde el último Excel guardado' + (ts ? ' · ' + fmtRelative(ts) : '') + ' · usa «Recargar» o «Excel local» para actualizar', 'ok');
-      loadFromGoogleSheets({ initial: false, silent: true });   // intento de refresco silencioso
+      const edad = ts ? fmtRelative(ts) : '';
+      showToast(`Abierto del caché (${edad}) · actualizando en segundo plano…`, 'ok');
+      // 2) Refresco silencioso desde el Sheet (sin pantalla de carga)
+      loadFromGoogleSheets({ initial: false, silent: true });
       return;
     } catch(e) { /* caché dañado: seguimos al flujo normal */ }
   }
+
+  // Sin caché: hay que descargar. Los tips siguen rotando mientras llega el XLSX.
   loadFromGoogleSheets({ initial: true });
 }
 boot();
