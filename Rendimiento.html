@@ -2599,11 +2599,16 @@ function renderCargasDiarias(filtered, target) {
     return String(a).localeCompare(String(b));
   });
 
+  // Si hay más de 200 unidades, limitamos para no congelar el navegador
+  const MATRIX_LIMIT = 200;
+  const vehiclesShown = vehicles.length > MATRIX_LIMIT ? vehicles.slice(0, MATRIX_LIMIT) : vehicles;
+  const truncated = vehicles.length > MATRIX_LIMIT;
+
   let html = '<thead><tr><th>IdVehículo</th>';
   for (let d = 1; d <= maxDay; d++) html += `<th>${d}</th>`;
   html += '</tr></thead><tbody>';
 
-  vehicles.forEach(v => {
+  vehiclesShown.forEach(v => {
     html += `<tr><td>${v}</td>`;
     for (let d = 1; d <= maxDay; d++) {
       const cell = matrix[v][d];
@@ -2617,6 +2622,9 @@ function renderCargasDiarias(filtered, target) {
     }
     html += '</tr>';
   });
+  if (truncated) {
+    html += `<tr><td colspan="${maxDay+1}" style="text-align:center;color:#dc2626;font-weight:600;padding:8px;background:#fef2f2;">Mostrando ${MATRIX_LIMIT} de ${vehicles.length} unidades · usa los filtros para ver menos</td></tr>`;
+  }
 
   html += '<tr class="total"><td>Total</td>';
   for (let d = 1; d <= maxDay; d++) {
@@ -2833,24 +2841,43 @@ function generateSinCargasRecords() {
 /* =========================================================
    MAIN RENDER
 ========================================================= */
+// Render diferido: separa el trabajo en bloques para que el navegador no se congele
+let _renderTimer = null;
+let _renderBusy = false;
 function render() {
+  // Debounce — si llegan varios cambios de filtro seguidos, solo renderiza una vez
+  clearTimeout(_renderTimer);
+  _renderTimer = setTimeout(_renderNow, 60);
+}
+function _renderNow(){
+  if (_renderBusy) return;
+  _renderBusy = true;
   const target = parseFloat(document.getElementById('objetivo-rend').value) || 4.08;
   const precio = parseFloat(document.getElementById('precio-diesel').value) || 0;
-
   const filtered = applyFilters(STATE.cargas);
 
+  // Bloque 1 — rápido, se ve de inmediato (gauge, kpi, resumen)
   const global = calcGlobal(filtered);
   document.getElementById('kpi-unidades').textContent = fmtNum(global.unidades);
   renderGauge(global.rendimiento, target);
-
   renderResumen(filtered, target);
-  renderTerapia(filtered, target);
-  renderDetalle(filtered, target);
-  renderCargas(filtered);
-  renderCargasDiarias(filtered, target);
-  renderCharts(filtered);
-
   document.getElementById('kpi-perdida').textContent = fmtMoney(calcPerdida(filtered, target, precio));
+
+  // Bloque 2 — terapia, detalle (en el siguiente frame)
+  requestAnimationFrame(() => {
+    renderTerapia(filtered, target);
+    renderDetalle(filtered, target);
+    // Bloque 3 — cargas y charts
+    requestAnimationFrame(() => {
+      renderCargas(filtered);
+      renderCharts(filtered);
+      // Bloque 4 — matriz grande (lo más pesado al final)
+      requestAnimationFrame(() => {
+        renderCargasDiarias(filtered, target);
+        _renderBusy = false;
+      });
+    });
+  });
 }
 
 /* =========================================================
@@ -3450,6 +3477,10 @@ function openLoginModal(){
 }
 function closeLoginModal(){ document.getElementById('prog-login-overlay').classList.remove('show'); STATE._pendingInsignia=false; }
 function openInsigniaModal(){
+  // Si ya hay sesión activa como arturog, abrir directo (sin pedir login otra vez)
+  if (canCreateInsignia()) { showInsigniaModal(); return; }
+  // Si hay otro usuario logueado, cerrar sesión y pedir que entre arturog
+  if (isAuthed()) { clearAuth(); renderAuthBar(); }
   STATE._pendingInsignia=true;
   openLoginModal();
 }
