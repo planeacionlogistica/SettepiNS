@@ -32,7 +32,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{background:var(--bg);color:var(--ink);font-family:"Inter",system-ui,sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased;}
-.layout{display:flex;align-items:flex-start;min-height:calc(100vh - 48px);}
+.layout{display:flex;align-items:flex-start;min-height:100vh;}
 h1,h2,h3{font-weight:700;}
 button{font-family:inherit;}
 
@@ -46,7 +46,7 @@ nav{background:var(--navy);padding:0 26px;display:flex;align-items:center;height
 .nav-live-dot{width:6px;height:6px;border-radius:50%;background:var(--brand-bright);box-shadow:0 0 0 3px rgba(132,204,22,.22);}
 
 /* ── Sidebar ── */
-.sidebar{width:196px;flex-shrink:0;background:var(--card);border-right:1px solid var(--line);padding:.85rem .7rem;display:flex;flex-direction:column;gap:.7rem;position:sticky;top:48px;height:calc(100vh - 48px);overflow-y:auto;}
+.sidebar{width:196px;flex-shrink:0;background:var(--card);border-right:1px solid var(--line);padding:.85rem .7rem;display:flex;flex-direction:column;gap:.7rem;position:sticky;top:0;height:100vh;overflow-y:auto;}
 .sb-title{font-size:.64rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--muted-2);display:flex;align-items:center;justify-content:space-between;padding-bottom:.1rem;}
 .sb-reset{background:none;border:none;cursor:pointer;color:var(--muted-2);font-size:.9rem;padding:0;line-height:1;transition:color .15s;}
 .sb-reset:hover{color:var(--crit);}
@@ -90,16 +90,11 @@ nav{background:var(--navy);padding:0 26px;display:flex;align-items:center;height
 /* ── Loading ── */
 .loading-overlay{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4rem;transition:opacity .4s;}
 .loading-overlay.hidden{opacity:0;pointer-events:none;}
-.loading-logo{font-weight:800;font-size:1.3rem;color:var(--navy);letter-spacing:.02em;}
-.loading-logo span{color:var(--brand-bright);}
-.loading-box{background:#fff;border-radius:16px;padding:2rem 2.8rem;box-shadow:0 8px 30px rgba(24,32,49,.1);display:flex;flex-direction:column;align-items:center;gap:1rem;min-width:290px;text-align:center;border:1px solid var(--line);}
+.loading-logo-img{height:48px;width:auto;object-fit:contain;}
+.loading-box{background:#fff;border-radius:16px;padding:2rem 2.8rem;box-shadow:0 8px 30px rgba(24,32,49,.1);display:flex;flex-direction:column;align-items:center;gap:1rem;min-width:240px;text-align:center;border:1px solid var(--line);}
 .loading-spinner{width:44px;height:44px;border-radius:50%;border:3.5px solid var(--line);border-top-color:var(--brand);animation:spin .75s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-title{font-size:.9rem;font-weight:700;color:var(--ink);}
-.loading-sub{font-size:.75rem;color:var(--muted);}
-.loading-bar-track{width:100%;height:5px;background:var(--line);border-radius:3px;overflow:hidden;}
-.loading-bar-fill{height:100%;width:0%;background:var(--brand);border-radius:3px;animation:loadbar 8s ease-out forwards;}
-@keyframes loadbar{0%{width:0%}80%{width:85%}100%{width:95%}}
 .err{background:#FCECEC;border-left:3px solid var(--crit);padding:.8rem 1rem;font-size:.8rem;color:#9B2C2C;border-radius:8px;}
 .err.hidden{display:none;}
 
@@ -269,21 +264,11 @@ nav{background:var(--navy);padding:0 26px;display:flex;align-items:center;height
 </head>
 <body>
 
-<nav>
-  <a class="nav-logo">TRAXIÓN</a>
-  <span class="nav-sep">|</span>
-  <span class="nav-page">Flota</span>
-  <span class="nav-spacer"></span>
-  <span class="nav-live"><span class="nav-live-dot"></span>En vivo · Google Sheets</span>
-</nav>
-
 <div class="loading-overlay" id="loadingOverlay">
-  <div class="loading-logo">TRAXI<span>Ó</span>N</div>
+  <img src="dash-logo.png" alt="Dash" class="loading-logo-img">
   <div class="loading-box">
     <div class="loading-spinner"></div>
-    <div class="loading-title">Cargando flota…</div>
-    <div class="loading-sub">Conectando con Google Sheets · Hoja: Flota</div>
-    <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+    <div class="loading-title">Cargando…</div>
   </div>
 </div>
 
