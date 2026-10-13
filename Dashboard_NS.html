@@ -1584,7 +1584,8 @@ async function loadSheet(){
     // ═══════════════════════════════════════════════════════════════
     // FASE 2: Consultar COUNT actual del sheet (en paralelo si hay caché)
     // ═══════════════════════════════════════════════════════════════
-    const CACHE_COUNT_KEY = 'ns_total_rows_v1';
+    // Conteo total por UDN para no mezclar el tamaño de Settepi Garcia con el de Lipu
+    const CACHE_COUNT_KEY = 'ns_total_rows_v2_'+(CURRENT_UDN||'default').replace(/\s+/g,'_');
     let cachedCount = 0;
     try{ cachedCount = parseInt(localStorage.getItem(CACHE_COUNT_KEY) || '0') || 0; }catch(e){}
 
@@ -1867,6 +1868,8 @@ function switchUdn(udn){
       store.delete('full_data_v2_'+(CURRENT_UDN||'default').replace(/\s+/g,'_'));
     }catch(e){} };
   }catch(e){}
+  // Borrar el conteo total viejo compartido entre UDNs (bug anterior)
+  try{ localStorage.removeItem('ns_total_rows_v1'); }catch(e){}
   // Mostrar overlay y recargar
   const ov = document.getElementById('loadingOverlay');
   if(ov){ ov.classList.remove('hidden'); ov.style.display = 'flex'; }
