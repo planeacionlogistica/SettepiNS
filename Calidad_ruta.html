@@ -18,52 +18,62 @@
   }
   a { color: inherit; }
 
-  /* ---------- Header ---------- */
-  header {
-    background: #0d1421;
-    color: #ffffff;
-    padding: 14px 24px;
-    display: flex; align-items: center; gap: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    position: sticky; top: 0; z-index: 1000;
+  /* ---------- Executive Toolbar ---------- */
+  .exec-toolbar {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex; align-items: center; gap: 14px;
+    box-shadow: 0 1px 3px rgba(13,20,33,0.04);
+    margin-bottom: 16px;
     flex-wrap: wrap;
   }
-  header .logo {
-    font-weight: 800; font-size: 22px;
-    color: #22c55e; letter-spacing: 1px;
+  .exec-toolbar .title-block {
+    display: flex; flex-direction: column; gap: 2px;
+    padding-right: 16px; border-right: 1px solid #e2e8f0;
   }
-  header .divider { width: 1px; height: 24px; background: #334155; }
-  header .title { font-weight: 500; font-size: 15px; color: #cbd5e1; }
-  header .spacer { flex: 1; }
-  header .status-badge {
-    font-size: 12px; color: #94a3b8; margin-right: 4px;
-    max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  .exec-toolbar .title-block .t-main {
+    font-size: 14px; font-weight: 800; color: #0d1421; letter-spacing: 0.3px;
   }
-  header .hbtn {
-    background: transparent; color: #22c55e; border: 1px solid #22c55e;
-    padding: 6px 12px; border-radius: 8px; font-weight: 600;
+  .exec-toolbar .title-block .t-sub {
+    font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 600;
+  }
+  .exec-toolbar .status-badge {
+    font-size: 12px; color: #64748b;
+    max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .exec-toolbar .status-badge::before {
+    content: ''; width: 8px; height: 8px; border-radius: 50%;
+    background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,.18);
+  }
+  .exec-toolbar .spacer { flex: 1; }
+  .exec-toolbar .semana-select-wrap {
+    display: flex; align-items: center; gap: 8px;
+    background: #f8fafc; border-radius: 8px;
+    padding: 6px 12px; border: 1px solid #e2e8f0;
+  }
+  .exec-toolbar .semana-select-wrap label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.6px;
+    text-transform: uppercase; color: #64748b;
+  }
+  .exec-toolbar select#semanaFilter {
+    background: transparent; color: #0d1421; border: none; outline: none;
+    font-size: 13px; font-weight: 700; padding: 2px 4px; cursor: pointer;
+  }
+  .exec-toolbar .hbtn {
+    background: white; color: #0d1421; border: 1px solid #cbd5e1;
+    padding: 7px 14px; border-radius: 8px; font-weight: 600;
     font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
-    transition: background .15s, color .15s;
+    transition: all .15s;
     white-space: nowrap;
   }
-  header .hbtn:hover { background: #22c55e; color: #0d1421; }
-  header .hbtn.primary { background: #22c55e; color: #0d1421; }
-  header .hbtn.primary:hover { background: #16a34a; color: white; border-color: #16a34a; }
-  header .semana-select-wrap {
-    display: flex; align-items: center; gap: 8px;
-    background: #1e293b; border-radius: 8px;
-    padding: 4px 10px; border: 1px solid #334155;
+  .exec-toolbar .hbtn:hover { background: #0d1421; color: white; border-color: #0d1421; }
+  .exec-toolbar .hbtn.primary {
+    background: #22c55e; color: #0d1421; border-color: #22c55e;
   }
-  header .semana-select-wrap label {
-    font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
-    text-transform: uppercase; color: #94a3b8;
-  }
-  header select#semanaFilter {
-    background: transparent; color: white; border: none; outline: none;
-    font-size: 13px; font-weight: 600; padding: 4px 4px;
-    cursor: pointer;
-  }
-  header select#semanaFilter option { color: #0d1421; }
+  .exec-toolbar .hbtn.primary:hover { background: #16a34a; color: white; border-color: #16a34a; }
 
   /* ---------- Layout ---------- */
   main { padding: 20px 24px; max-width: 1600px; margin: 0 auto; }
@@ -342,23 +352,38 @@
 
   /* ---------- Loading overlay ---------- */
   .loading-overlay {
-    position: fixed; inset: 0; background: rgba(13, 20, 33, 0.85);
+    position: fixed; inset: 0; background: #f4f6fa;
     display: flex; align-items: center; justify-content: center; flex-direction: column;
-    z-index: 5000; color: white; gap: 12px;
+    z-index: 5000; gap: 1.5rem;
+    transition: opacity .4s ease;
+  }
+  .loading-overlay.hidden { opacity: 0; pointer-events: none; display: flex !important; }
+  .loading-logo-img { height: 140px; width: auto; object-fit: contain; }
+  .loading-box {
+    background: #fff; border-radius: 16px; padding: 2rem 2.8rem;
+    box-shadow: 0 8px 30px rgba(13,20,33,.12);
+    display: flex; flex-direction: column; align-items: center; gap: 1rem;
+    min-width: 320px; text-align: center; border: 1px solid #e2e8f0;
   }
   .spinner {
-    width: 40px; height: 40px; border-radius: 50%;
-    border: 4px solid #334155; border-top-color: #22c55e;
-    animation: spin 1s linear infinite;
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 3.5px solid #e2e8f0; border-top-color: #22c55e;
+    animation: spin .75s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text { font-size: 14px; }
-  .loading-error {
-    color: #fca5a5; font-size: 13px; margin-top: 8px; max-width: 500px; text-align: center;
-    background: rgba(239, 68, 68, 0.15); padding: 12px 16px; border-radius: 8px;
-    border: 1px solid rgba(239, 68, 68, 0.4);
+  .loading-text { font-size: .9rem; font-weight: 700; color: #0d1421; }
+  .loading-bar-track { width: 100%; height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+  .loading-bar-fill {
+    height: 100%; width: 0%; background: #22c55e; border-radius: 3px;
+    animation: ldLoadbar 15s ease-out forwards;
   }
-  .loading-error a { color: #fca5a5; text-decoration: underline; }
+  @keyframes ldLoadbar { 0%{width:0%} 40%{width:60%} 80%{width:85%} 100%{width:95%} }
+  .loading-error {
+    color: #b91c1c; font-size: 13px; margin-top: 8px; max-width: 500px; text-align: center;
+    background: #fef2f2; padding: 12px 16px; border-radius: 8px;
+    border: 1px solid #fecaca;
+  }
+  .loading-error a { color: #b91c1c; text-decoration: underline; }
 
   /* ---------- Toast ---------- */
   .toast {
@@ -381,27 +406,29 @@
     #map { height: 400px; }
     .stops-panel { height: 400px; }
     table.plants-table thead th, table.plants-table tbody td { padding: 8px 8px; }
-    header { padding: 10px 12px; gap: 8px; }
-    header .title { display: none; }
+    .exec-toolbar { padding: 10px 12px; gap: 8px; }
+    .exec-toolbar .title-block { border-right: none; padding-right: 0; }
+    .exec-toolbar .spacer { display: none; }
   }
 </style>
 </head>
 <body>
-<header>
-  <div class="logo">TRAXIÓN</div>
-  <div class="divider"></div>
-  <div class="title">Calidad MAE — Rutas y Paradas</div>
-  <div class="spacer"></div>
-  <div class="semana-select-wrap">
-    <label for="semanaFilter">Semana</label>
-    <select id="semanaFilter"><option value="__ALL__">Todas</option></select>
-  </div>
-  <div class="status-badge" id="statusBadge">Cargando…</div>
-  <button class="hbtn primary" id="exportBtn" title="Descargar los datos que se están viendo en formato Excel">⬇ Excel</button>
-  <button class="hbtn" id="refreshBtn" title="Recargar datos del Sheet">↻ Actualizar</button>
-</header>
 
 <main>
+  <div class="exec-toolbar">
+    <div class="title-block">
+      <div class="t-main">Calidad MAE</div>
+      <div class="t-sub">Rutas y Paradas</div>
+    </div>
+    <div class="status-badge" id="statusBadge">Cargando…</div>
+    <div class="spacer"></div>
+    <div class="semana-select-wrap">
+      <label for="semanaFilter">Semana</label>
+      <select id="semanaFilter"><option value="__ALL__">Todas</option></select>
+    </div>
+    <button class="hbtn" id="refreshBtn" title="Recargar datos del Sheet">↻ Actualizar</button>
+    <button class="hbtn primary" id="exportBtn" title="Descargar los datos que se están viendo en formato Excel">⬇ Excel</button>
+  </div>
   <nav class="breadcrumb" id="breadcrumb"></nav>
   <div class="kpi-row" id="kpiRow"></div>
 
@@ -419,8 +446,12 @@
 </main>
 
 <div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="loading-text" id="loadingText">Cargando datos desde Google Sheets…</div>
+  <img src="dash-logo.png" alt="Dash" class="loading-logo-img">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">Cargando…</div>
+    <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+  </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
