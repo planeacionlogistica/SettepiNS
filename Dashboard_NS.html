@@ -373,6 +373,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
         <label>UDN</label>
         <select id="udnSelect" onchange="switchUdn(this.value)"
           style="width:100%;padding:.4rem .5rem;border:1.5px solid var(--border);border-radius:7px;background:#fff;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:600;color:var(--navy);cursor:pointer;outline:none;">
+          <option value="">— Selecciona UDN —</option>
           <option value="Settepi Garcia">Settepi Garcia</option>
           <option value="Lipu Mty">Lipu Mty</option>
           <option value="Settepi Apodaca">Settepi Apodaca (pendiente)</option>
@@ -1011,10 +1012,10 @@ const UDN_SHEETS = {
   'Settepi Apodaca': { data: '', inputs: '' }, // pendiente de conectar
 };
 const UDN_LIST = Object.keys(UDN_SHEETS);
-let CURRENT_UDN = (function(){ try{ return localStorage.getItem('ns_udn') || 'Settepi Garcia'; }catch(e){ return 'Settepi Garcia'; } })();
-if(!UDN_SHEETS[CURRENT_UDN]) CURRENT_UDN = 'Settepi Garcia';
-let SHEET_ID        = UDN_SHEETS[CURRENT_UDN].data   || UDN_SHEETS['Settepi Garcia'].data;
-let INPUTS_SHEET_ID = UDN_SHEETS[CURRENT_UDN].inputs || UDN_SHEETS['Settepi Garcia'].inputs;
+// Al abrir la página, NO hay UDN activa: el usuario debe elegir una para que cargue
+let CURRENT_UDN     = '';
+let SHEET_ID        = '';
+let INPUTS_SHEET_ID = '';
 const SHEET_NAME  = 'NS';
 const INPUTS_NAME = 'Inputs';
 const FIRST_CHUNK = 15000;
@@ -1481,17 +1482,13 @@ async function loadFlota(){
 
 // ── Main loader ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async ()=>{
-  // Pintar el select nativo con la UDN activa
+  // Al abrir: no cargar nada. Esperar a que el usuario elija una UDN.
   const _udnSel = document.getElementById('udnSelect');
-  if(_udnSel) _udnSel.value = CURRENT_UDN;
-  // Si la UDN guardada no tiene fuente de datos, avisa y no intenta cargar
-  if(!UDN_SHEETS[CURRENT_UDN]?.data){
-    try{ document.getElementById('loadingOverlay').style.display='none'; }catch(e){}
-    const bn=document.getElementById('errBanner'), em=document.getElementById('errMsg');
-    if(bn && em){ em.textContent = CURRENT_UDN + ' aún no tiene fuente de datos conectada.'; bn.classList.remove('hidden'); }
-    fillAllSelects();
-    return;
-  }
+  if(_udnSel) _udnSel.value = '';
+  try{ document.getElementById('loadingOverlay').style.display='none'; }catch(e){}
+  mostrarMensajeSeleccionaUdn();
+  return;
+  // (El código de abajo nunca se ejecuta en el arranque; se activa al elegir UDN vía switchUdn)
   await Promise.all([loadSheet(), loadInputs(), loadMAE(), loadFlota(), loadUbicaciones()]);
   // Ambas cargas terminaron → asignar coordinadores y redibujar
   buildCoordMap();
@@ -1813,8 +1810,26 @@ function scSelect(e,key){
   draw();
 }
 
+// Mensaje inicial cuando no hay UDN seleccionada
+function mostrarMensajeSeleccionaUdn(){
+  const bn=document.getElementById('errBanner'), em=document.getElementById('errMsg');
+  if(bn && em){
+    em.innerHTML = '👉 <b>Selecciona una UDN</b> en el filtro de la izquierda para cargar los datos.';
+    bn.style.background='#eff6ff'; bn.style.borderLeftColor='#2563eb'; bn.style.color='#1e3a8a';
+    bn.classList.remove('hidden');
+  }
+  // Deja el layout visible (KPIs, charts, tablas) — solo que vacíos hasta que elijas UDN
+}
+
 // ── Cambiar de UDN: swap de SHEET_ID y recarga completa ──
 function switchUdn(udn){
+  // Si eligen "— Selecciona UDN —" (valor vacío) → regresar al estado inicial
+  if(!udn){
+    CURRENT_UDN=''; SHEET_ID=''; INPUTS_SHEET_ID='';
+    try{ localStorage.removeItem('ns_udn'); }catch(e){}
+    mostrarMensajeSeleccionaUdn();
+    return;
+  }
   if(!UDN_SHEETS[udn]) return;
   const cfg = UDN_SHEETS[udn];
   CURRENT_UDN = udn;
@@ -1840,8 +1855,9 @@ function switchUdn(udn){
   COORD_RAW = []; OP_COORDS = {}; RUTA_COORDS = {};
   if(myChartIni){ myChartIni.destroy(); myChartIni=null; }
   if(myChartLle){ myChartLle.destroy(); myChartLle=null; }
-  // Limpiar banner de error si lo había
-  document.getElementById('errBanner')?.classList.add('hidden');
+  // Resetear el banner de "selecciona UDN"
+  const _bn=document.getElementById('errBanner');
+  if(_bn){ _bn.classList.add('hidden'); _bn.style.background=''; _bn.style.borderLeftColor=''; _bn.style.color=''; }
   // Limpiar caché local para no mezclar UDN
   try{
     const req = indexedDB.open('DashboardNS', 1);
