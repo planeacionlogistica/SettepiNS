@@ -35,6 +35,40 @@ body { display:flex; min-height:100vh; background:#f5f7fa; color:#1f2937; overfl
   object-fit:contain;
 }
 
+/* ========== LOADING OVERLAY ========== */
+.loading-overlay{
+  position:fixed; inset:0; z-index:99999;
+  background:#f0f2f7;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:1.5rem;
+  transition:opacity .4s ease;
+}
+.loading-overlay.hidden{ opacity:0; pointer-events:none; }
+.loading-logo-img{ height:140px; width:auto; object-fit:contain; }
+.loading-box{
+  background:#fff; border-radius:16px;
+  padding:2rem 2.8rem;
+  box-shadow:0 8px 30px rgba(24,32,49,.1);
+  display:flex; flex-direction:column; align-items:center; gap:1rem;
+  min-width:320px; text-align:center;
+  border:1px solid #e4e7ee;
+}
+.loading-spinner{
+  width:44px; height:44px; border-radius:50%;
+  border:3.5px solid #e4e7ee; border-top-color:#a3e635;
+  animation:ldSpin .75s linear infinite;
+}
+@keyframes ldSpin{ to{ transform:rotate(360deg) } }
+.loading-title{ font-size:.9rem; font-weight:700; color:#1a2236; }
+.loading-bar-track{
+  width:100%; height:5px; background:#e4e7ee; border-radius:3px; overflow:hidden;
+}
+.loading-bar-fill{
+  height:100%; width:0%; background:#a3e635; border-radius:3px;
+  animation:ldLoadbar 15s ease-out forwards;
+}
+@keyframes ldLoadbar{ 0%{width:0%} 60%{width:70%} 90%{width:90%} 100%{width:95%} }
+
 /* ========== NAV ITEMS ========== */
 .side-nav {
   display:flex; flex-direction:column;
@@ -2313,9 +2347,18 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
 
 <body>
 
+<div class="loading-overlay" id="loadingOverlay">
+  <img src="dash-logo.png" alt="Dash" class="loading-logo-img">
+  <div class="loading-box">
+    <div class="loading-spinner"></div>
+    <div class="loading-title">Cargando…</div>
+    <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+  </div>
+</div>
+
 <div class="sidebar">
   <div class="sidebar-brand">
-    <img src="dash-logo.png" alt="Dash" class="brand-logo-img">
+    <img src="dash-logo-blanco.png" alt="Dash" class="brand-logo-img">
   </div>
 
   <input type="file" id="csvInput" accept=".csv,.xlsx,.xls" style="display:none"/>
@@ -3346,8 +3389,9 @@ function procesarFilasTourInterno(filas, header) {
   renderComparativaGerencias();
   calcularDistribucion();
   renderTabla();
-  calcularSwaps();
   poblarCuadrantesDesdeCsv();
+  if (typeof ocultarLoadingOverlay === 'function') ocultarLoadingOverlay();
+  setTimeout(() => calcularSwaps(), 0);
 }
 
 function procesarCSV(text) {
@@ -3463,9 +3507,17 @@ function procesarFilas(filas) {
   calcularDistribucion();
   renderTabla();
   poblarCuadrantesDesdeCsv();
+  ocultarLoadingOverlay();
   // calcularSwaps() es lo más caro (OSRM). Lo dejamos para el siguiente tick
   // para que el usuario vea los datos sin esperar las propuestas de cambio.
   setTimeout(() => calcularSwaps(), 0);
+}
+
+function ocultarLoadingOverlay(){
+  const ov = document.getElementById('loadingOverlay');
+  if (!ov) return;
+  ov.classList.add('hidden');
+  setTimeout(() => { ov.style.display = 'none'; }, 450);
 }
 
 // =========================================================
@@ -5628,6 +5680,7 @@ async function cargarDesdeGoogleSheet() {
       respondido = true;
       if (btn) { btn.textContent = '❌ Timeout'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500); }
       setStatus('Sin respuesta del Sheet', 'error');
+      ocultarLoadingOverlay();
       alert('El Google Sheet no respondió en 30 segundos.\n\nVerifica:\n' +
             '1. Que el sheet esté compartido como "Cualquier persona con el enlace puede ver"\n' +
             '2. Que la hoja se llame exactamente "' + GOOGLE_SHEET_NAME + '"\n' +
@@ -5685,6 +5738,7 @@ async function cargarDesdeGoogleSheet() {
       } catch (e) {
         if (btn) { btn.textContent = '❌ Error'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500); }
         setStatus('Error al procesar', 'error');
+        ocultarLoadingOverlay();
         alert('Error procesando la respuesta del Sheet:\n\n' + e.message);
         console.error(e);
         reject(e);
@@ -5700,6 +5754,7 @@ async function cargarDesdeGoogleSheet() {
       clearTimeout(timeout);
       if (btn) { btn.textContent = '❌ Error'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500); }
       setStatus('No se pudo descargar', 'error');
+      ocultarLoadingOverlay();
       alert('No se pudo descargar el Google Sheet.\n\nCausas posibles:\n' +
             '1. El sheet NO está compartido como "Cualquier persona con el enlace puede ver"\n' +
             '2. No hay conexión a internet\n' +
@@ -7891,6 +7946,8 @@ window.abrirModalFacturacion = abrirModalFacturacion;
 window.addEventListener('load', () => {
   // GViz funciona desde file:// (no usa fetch), así que siempre intentamos cargar
   setTimeout(() => cargarDesdeGoogleSheet(), 500);
+  // Red de seguridad: ocultar el overlay en 25s pase lo que pase
+  setTimeout(() => { if (typeof ocultarLoadingOverlay === 'function') ocultarLoadingOverlay(); }, 25000);
 });
 
 </script>
