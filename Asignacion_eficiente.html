@@ -16,6 +16,7 @@
   .sb-header { padding: 16px 18px; background: linear-gradient(180deg, #0b1524 0%, #0f1c30 100%); color: #fff; }
   .sb-header h1 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
   .sb-header h1 .accent { color: #22c55e; }
+  .sb-header .sb-logo { display: block; max-width: 150px; width: 100%; height: auto; margin: 2px 0 10px; object-fit: contain; }
   .sb-header .status-line { font-size: 11px; opacity: 0.75; display: flex; align-items: center; gap: 6px; margin-top: 4px; }
   .sb-header .status-line .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e; }
   .sb-header .status-line .dot.err { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
@@ -157,7 +158,7 @@
 <div id="app">
   <aside id="sidebar">
     <div class="sb-header">
-      <h1><span class="accent">▎</span>ASIGNACIONES <span class="accent">EFICIENTES</span></h1>
+      <img src="dash-logo-blanco.png" alt="Dash" class="sb-logo">
       <div class="status-line" id="header-status">
         <span class="dot load"></span>
         <span id="last-updated">Conectando con Google Sheet…</span>
