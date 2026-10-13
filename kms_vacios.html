@@ -26,19 +26,13 @@ body { display:flex; min-height:100vh; background:#f5f7fa; color:#1f2937; overfl
   text-align:center;
   border-bottom:1px solid rgba(163,230,53,0.12);
 }
-.brand-title {
-  font-size:26px; font-weight:900;
-  color:#a3e635;
-  letter-spacing:2px;
-  line-height:1;
-  text-shadow:0 0 20px rgba(163,230,53,0.35);
-}
-.brand-sub {
-  font-size:9px; color:#64748b;
-  letter-spacing:2px;
-  margin-top:6px;
-  font-weight:600;
-  text-transform:uppercase;
+.brand-logo-img {
+  display:block;
+  max-width:140px;
+  width:100%;
+  height:auto;
+  margin:0 auto;
+  object-fit:contain;
 }
 
 /* ========== NAV ITEMS ========== */
@@ -2321,8 +2315,7 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
 
 <div class="sidebar">
   <div class="sidebar-brand">
-    <div class="brand-title">KM VACÍO</div>
-    <div class="brand-sub">TRAXIÓN · Flota BAU</div>
+    <img src="dash-logo.png" alt="Dash" class="brand-logo-img">
   </div>
 
   <input type="file" id="csvInput" accept=".csv,.xlsx,.xls" style="display:none"/>
@@ -3359,7 +3352,11 @@ function procesarFilasTourInterno(filas, header) {
 
 function procesarCSV(text) {
   const filas = parseCSV(text);
-  if (filas.length < 2) return;
+  procesarFilas(filas);
+}
+
+function procesarFilas(filas) {
+  if (!filas || filas.length < 2) return;
   const DIAS_LV = new Set(['Monday','Tuesday','Wednesday','Thursday','Friday']);
   const serviciosPorOp = new Map();
   const rutasUnicasMap = new Map();  // Todas las rutas del CSV independientemente del operador
@@ -3459,13 +3456,16 @@ function procesarCSV(text) {
 
   setStatus(`${operadores.length} operadores cargados`, 'ok');
 
+  // ⚡ Rápido: muestra la tabla de inmediato
   llenarFiltros();
   renderKPIs();
   renderComparativaGerencias();
   calcularDistribucion();
   renderTabla();
-  calcularSwaps();
   poblarCuadrantesDesdeCsv();
+  // calcularSwaps() es lo más caro (OSRM). Lo dejamos para el siguiente tick
+  // para que el usuario vea los datos sin esperar las propuestas de cambio.
+  setTimeout(() => calcularSwaps(), 0);
 }
 
 // =========================================================
@@ -5672,11 +5672,8 @@ async function cargarDesdeGoogleSheet() {
         if (header.includes('Task Type') && header.includes('Deadhead')) {
           procesarTourDetails(filas, header);
         } else {
-          // Convertir de vuelta a CSV para procesarCSV
-          const csvText = filas.map(f =>
-            f.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')
-          ).join('\n');
-          procesarCSV(csvText);
+          // ⚡ Rápido: pasar las filas directamente, sin round-trip a CSV
+          procesarFilas(filas);
         }
 
         if (btn) { btn.textContent = '✓ Cargado desde Sheet'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000); }
