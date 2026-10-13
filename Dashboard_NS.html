@@ -372,8 +372,8 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
       <div class="fg">
         <label>UDN</label>
         <div class="sc-wrap" id="sc-udn">
-          <input class="sc-input" type="text" placeholder="Todas" autocomplete="off"
-            id="sc-udn-input" oninput="scFilter('udn')" onfocus="scOpen('udn')" onkeydown="scKey(event,'udn')">
+          <input class="sc-input" type="text" placeholder="Selecciona UDN" autocomplete="off" readonly style="cursor:pointer;caret-color:transparent"
+            id="sc-udn-input" onclick="scOpen('udn')" onfocus="scOpen('udn')">
           <span class="sc-arrow">▼</span>
           <div class="sc-dropdown" id="sc-udn-dd"></div>
         </div>
@@ -1523,7 +1523,8 @@ async function loadSheet(){
   const errMsg =document.getElementById('errMsg');
 
   // ── IndexedDB Cache helpers (para cargas casi instantáneas en visitas posteriores)
-  const DB_NAME='DashboardNS', STORE='ns_cache', DB_KEY='full_data_v1';
+  // Cache por UDN para que no se mezclen datos entre libros
+  const DB_NAME='DashboardNS', STORE='ns_cache', DB_KEY='full_data_v2_'+(CURRENT_UDN||'default').replace(/\s+/g,'_');
   const CACHE_MAX_AGE_MS = 0; // Sin caché → siempre jala fresco del sheet
   function openDB(){
     return new Promise(resolve=>{
@@ -1765,11 +1766,10 @@ function scRenderDD(key){
   const q=(inputEl.value||'').toLowerCase();
   const filtered=SC_VALS[key].filter(v=>v.toLowerCase().includes(q));
   SC_FOCUS[key]=-1;
-  // UDN no es un filtro: no mostrar opción "Todas", marcar la UDN activa como seleccionada
+  // UDN no es un filtro: SIEMPRE mostrar las 3 UDN completas (sin filtrar por texto),
+  // marcar la activa como seleccionada
   if(key==='udn'){
-    dd.innerHTML = filtered.length
-      ? filtered.map(v=>`<div class="sc-opt${CURRENT_UDN===v?' selected':''}" data-val="${v}" data-lbl="${v}" onmousedown="scSelect(event,'udn')">${v}${UDN_SHEETS[v] && !UDN_SHEETS[v].data ? ' <span style="color:#9ca3af;font-size:.65rem">· pendiente</span>' : ''}</div>`).join('')
-      : '<div class="sc-opt sc-none">Sin resultados</div>';
+    dd.innerHTML = UDN_LIST.map(v=>`<div class="sc-opt${CURRENT_UDN===v?' selected':''}" data-val="${v}" data-lbl="${v}" onmousedown="scSelect(event,'udn')">${v}${UDN_SHEETS[v] && !UDN_SHEETS[v].data ? ' <span style="color:#9ca3af;font-size:.65rem">· pendiente</span>' : ''}</div>`).join('');
     return;
   }
   const placeholder=key==='sem'?'Todas':'Todos';
@@ -1840,7 +1840,11 @@ function switchUdn(udn){
   // Limpiar caché local para no mezclar UDN
   try{
     const req = indexedDB.open('DashboardNS', 1);
-    req.onsuccess = () => { try{ req.result.transaction('ns_cache','readwrite').objectStore('ns_cache').delete('full_data_v1'); }catch(e){} };
+    req.onsuccess = () => { try{
+      const db=req.result, tx=db.transaction('ns_cache','readwrite'), store=tx.objectStore('ns_cache');
+      store.delete('full_data_v1');
+      store.delete('full_data_v2_'+(CURRENT_UDN||'default').replace(/\s+/g,'_'));
+    }catch(e){} };
   }catch(e){}
   // Mostrar overlay y recargar
   const ov = document.getElementById('loadingOverlay');
