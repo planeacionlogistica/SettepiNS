@@ -371,12 +371,14 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 
       <div class="fg">
         <label>UDN</label>
-        <div class="sc-wrap" id="sc-udn">
-          <input class="sc-input" type="text" placeholder="Selecciona UDN" autocomplete="off" readonly style="cursor:pointer;caret-color:transparent"
-            id="sc-udn-input" onclick="scOpen('udn')" onfocus="scOpen('udn')">
-          <span class="sc-arrow">▼</span>
-          <div class="sc-dropdown" id="sc-udn-dd"></div>
-        </div>
+        <select id="udnSelect" onchange="switchUdn(this.value)"
+          style="width:100%;padding:.4rem .5rem;border:1.5px solid var(--border);border-radius:7px;background:#fff;font-family:'Inter',sans-serif;font-size:.75rem;font-weight:600;color:var(--navy);cursor:pointer;outline:none;">
+          <option value="Settepi Garcia">Settepi Garcia</option>
+          <option value="Lipu Mty">Lipu Mty</option>
+          <option value="Settepi Apodaca">Settepi Apodaca (pendiente)</option>
+        </select>
+        <!-- Input viejo mantenido oculto por compatibilidad con el código existente -->
+        <input type="hidden" id="sc-udn-input">
       </div>
 
       <div class="fg">
@@ -1479,6 +1481,9 @@ async function loadFlota(){
 
 // ── Main loader ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async ()=>{
+  // Pintar el select nativo con la UDN activa
+  const _udnSel = document.getElementById('udnSelect');
+  if(_udnSel) _udnSel.value = CURRENT_UDN;
   // Si la UDN guardada no tiene fuente de datos, avisa y no intenta cargar
   if(!UDN_SHEETS[CURRENT_UDN]?.data){
     try{ document.getElementById('loadingOverlay').style.display='none'; }catch(e){}
