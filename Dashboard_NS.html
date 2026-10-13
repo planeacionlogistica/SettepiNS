@@ -1002,8 +1002,17 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 </div>
 
 <script>
-const SHEET_ID        = '1YZG92UT4EI8VbNoKy0Vm0mWrujTr-8mSccJHphswKeg';        // Libro de DATA (hoja NS)
-const INPUTS_SHEET_ID = '10Sejx7skzzacCLf4tNHeJGMNoSW0v6lJqTuI8up84SA'; // Libro de CATÁLOGOS (Inputs, Ubicaciones, Oddo, Tlog)
+// ── UDN → libro de datos (cada UDN apunta a su propio Google Sheet) ──
+const UDN_SHEETS = {
+  'Settepi Garcia':  { data: '1YZG92UT4EI8VbNoKy0Vm0mWrujTr-8mSccJHphswKeg', inputs: '10Sejx7skzzacCLf4tNHeJGMNoSW0v6lJqTuI8up84SA' },
+  'Lipu Mty':        { data: '1_wSodlXfixKxfQC8f51NU0gLtEWbAiSPotiS6TbkfyI', inputs: '1_wSodlXfixKxfQC8f51NU0gLtEWbAiSPotiS6TbkfyI' },
+  'Settepi Apodaca': { data: '', inputs: '' }, // pendiente de conectar
+};
+const UDN_LIST = Object.keys(UDN_SHEETS);
+let CURRENT_UDN = (function(){ try{ return localStorage.getItem('ns_udn') || 'Settepi Garcia'; }catch(e){ return 'Settepi Garcia'; } })();
+if(!UDN_SHEETS[CURRENT_UDN]) CURRENT_UDN = 'Settepi Garcia';
+let SHEET_ID        = UDN_SHEETS[CURRENT_UDN].data   || UDN_SHEETS['Settepi Garcia'].data;
+let INPUTS_SHEET_ID = UDN_SHEETS[CURRENT_UDN].inputs || UDN_SHEETS['Settepi Garcia'].inputs;
 const SHEET_NAME  = 'NS';
 const INPUTS_NAME = 'Inputs';
 const FIRST_CHUNK = 15000;
@@ -1470,6 +1479,14 @@ async function loadFlota(){
 
 // ── Main loader ───────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', async ()=>{
+  // Si la UDN guardada no tiene fuente de datos, avisa y no intenta cargar
+  if(!UDN_SHEETS[CURRENT_UDN]?.data){
+    try{ document.getElementById('loadingOverlay').style.display='none'; }catch(e){}
+    const bn=document.getElementById('errBanner'), em=document.getElementById('errMsg');
+    if(bn && em){ em.textContent = CURRENT_UDN + ' aún no tiene fuente de datos conectada.'; bn.classList.remove('hidden'); }
+    fillAllSelects();
+    return;
+  }
   await Promise.all([loadSheet(), loadInputs(), loadMAE(), loadFlota(), loadUbicaciones()]);
   // Ambas cargas terminaron → asignar coordinadores y redibujar
   buildCoordMap();
@@ -1748,6 +1765,13 @@ function scRenderDD(key){
   const q=(inputEl.value||'').toLowerCase();
   const filtered=SC_VALS[key].filter(v=>v.toLowerCase().includes(q));
   SC_FOCUS[key]=-1;
+  // UDN no es un filtro: no mostrar opción "Todas", marcar la UDN activa como seleccionada
+  if(key==='udn'){
+    dd.innerHTML = filtered.length
+      ? filtered.map(v=>`<div class="sc-opt${CURRENT_UDN===v?' selected':''}" data-val="${v}" data-lbl="${v}" onmousedown="scSelect(event,'udn')">${v}${UDN_SHEETS[v] && !UDN_SHEETS[v].data ? ' <span style="color:#9ca3af;font-size:.65rem">· pendiente</span>' : ''}</div>`).join('')
+      : '<div class="sc-opt sc-none">Sin resultados</div>';
+    return;
+  }
   const placeholder=key==='sem'?'Todas':'Todos';
   const allOpt=`<div class="sc-opt${SC_SEL[key]===''?' selected':''}" data-val="" data-lbl="${placeholder}" onmousedown="scSelect(event,'${key}')">${placeholder}</div>`;
   dd.innerHTML=allOpt+(filtered.length
@@ -1757,7 +1781,8 @@ function scRenderDD(key){
 function scOpen(key){
   document.querySelectorAll('.sc-wrap.open').forEach(el=>{ if(el.id!=='sc-'+key) el.classList.remove('open'); });
   document.getElementById('sc-'+key).classList.add('open');
-  document.getElementById('sc-'+key+'-input').value='';
+  // UDN: no borrar el valor visible (es la UDN activa, no un filtro)
+  if(key!=='udn') document.getElementById('sc-'+key+'-input').value='';
   cascadeSelects();
   scRenderDD(key);
 }
@@ -1769,10 +1794,63 @@ function scFilter(key){
 function scSelect(e,key){
   e.preventDefault();
   const el=e.currentTarget;
-  scSetVal(key,el.getAttribute('data-val'),el.getAttribute('data-lbl'));
+  const val=el.getAttribute('data-val');
+  const lbl=el.getAttribute('data-lbl');
+  // ── UDN: cambiar de libro de Google Sheets (no filtra en memoria) ──
+  if(key==='udn' && val && UDN_SHEETS[val]){
+    document.getElementById('sc-'+key).classList.remove('open');
+    switchUdn(val);
+    return;
+  }
+  scSetVal(key,val,lbl);
   document.getElementById('sc-'+key).classList.remove('open');
   cascadeSelects();
   draw();
+}
+
+// ── Cambiar de UDN: swap de SHEET_ID y recarga completa ──
+function switchUdn(udn){
+  if(!UDN_SHEETS[udn]) return;
+  const cfg = UDN_SHEETS[udn];
+  CURRENT_UDN = udn;
+  try{ localStorage.setItem('ns_udn', udn); }catch(e){}
+  const inp = document.getElementById('sc-udn-input');
+  if(inp){ inp.value = udn; inp.setAttribute('data-selected-lbl', udn); }
+  if(!cfg.data){
+    // UDN sin fuente aún: dejar datos vacíos y avisar
+    DATA = []; loadedMonths = new Set();
+    if(myChartIni){ myChartIni.destroy(); myChartIni=null; }
+    if(myChartLle){ myChartLle.destroy(); myChartLle=null; }
+    const bn = document.getElementById('errBanner'), em = document.getElementById('errMsg');
+    if(bn && em){ em.textContent = udn + ' aún no tiene fuente de datos conectada.'; bn.classList.remove('hidden'); }
+    try{ document.getElementById('loadingOverlay').style.display='none'; }catch(e){}
+    fillAllSelects(); draw();
+    return;
+  }
+  // Fuente válida: swap y recargar todo
+  SHEET_ID = cfg.data;
+  INPUTS_SHEET_ID = cfg.inputs || cfg.data;
+  DATA = []; loadedMonths = new Set();
+  INPUTS_MAP = {}; CARROS_MAP = {}; FLOTA_MAP = {};
+  COORD_RAW = []; OP_COORDS = {}; RUTA_COORDS = {};
+  if(myChartIni){ myChartIni.destroy(); myChartIni=null; }
+  if(myChartLle){ myChartLle.destroy(); myChartLle=null; }
+  // Limpiar banner de error si lo había
+  document.getElementById('errBanner')?.classList.add('hidden');
+  // Limpiar caché local para no mezclar UDN
+  try{
+    const req = indexedDB.open('DashboardNS', 1);
+    req.onsuccess = () => { try{ req.result.transaction('ns_cache','readwrite').objectStore('ns_cache').delete('full_data_v1'); }catch(e){} };
+  }catch(e){}
+  // Mostrar overlay y recargar
+  const ov = document.getElementById('loadingOverlay');
+  if(ov){ ov.classList.remove('hidden'); ov.style.display = 'flex'; }
+  (async()=>{
+    await Promise.all([loadSheet(), loadInputs(), loadMAE(), loadFlota(), loadUbicaciones()]);
+    buildCoordMap();
+    fillAllSelects();
+    draw();
+  })();
 }
 function scSetVal(key,val,lbl){
   SC_SEL[key]=val;
@@ -1812,7 +1890,11 @@ document.addEventListener('click',function(e){
 });
 
 function fillAllSelects(){
-  SC_VALS.udn   =uniq(DATA.map(r=>r[C.udn]||''));
+  // UDN ahora selecciona el libro de datos (no filtra en el DOM)
+  SC_VALS.udn   = UDN_LIST.slice();
+  // Pintar la UDN activa en el input del sidebar
+  const _udnInp = document.getElementById('sc-udn-input');
+  if(_udnInp){ _udnInp.value = CURRENT_UDN; _udnInp.setAttribute('data-selected-lbl', CURRENT_UDN); }
   SC_VALS.mes   =[...loadedMonths].sort((a,b)=>b.localeCompare(a));
   SC_VALS.sem   =uniq(DATA.map(r=>r[C.semana]||''));
   SC_VALS.turno =uniq(DATA.map(r=>(r[C.turno]||'').trim()));
@@ -1844,6 +1926,9 @@ function cascadeSelects(){
   SC_VALS.car  =uniq(base.map(r=>(r[C.car]||'').trim()));
   const baseSem=DATA.filter(r=>{ if(f.udn&&r[C.udn]!==f.udn) return false; if(f.mes&&normMonth(getFecha(r))!==f.mes) return false; return true; });
   SC_VALS.sem=uniq(baseSem.map(r=>r[C.semana]||''));
+  // UDN siempre son los 3 libros disponibles; nunca filtra rows (eso cambia el SHEET_ID)
+  SC_VALS.udn = UDN_LIST.slice();
+  SC_SEL.udn  = '';
 }
 
 function onFilterChange(){ draw(); }
