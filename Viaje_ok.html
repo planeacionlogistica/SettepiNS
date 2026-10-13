@@ -163,15 +163,30 @@
 
   .footer-note{font-size:11px;color:var(--muted);text-align:center;margin-top:18px;}
   @media (max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr);} .modal .msum{grid-template-columns:repeat(2,1fr);}}
+
+  /* ===== LOADING OVERLAY ===== */
+  .loading-overlay{position:fixed;inset:0;z-index:99999;background:#f0f2f7;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;transition:opacity .4s ease;}
+  .loading-overlay.hidden{opacity:0;pointer-events:none;}
+  .loading-logo-img{height:140px;width:auto;object-fit:contain;}
+  .loading-box{background:#fff;border-radius:16px;padding:2rem 2.8rem;box-shadow:0 8px 30px rgba(14,36,55,.12);display:flex;flex-direction:column;align-items:center;gap:1rem;min-width:320px;text-align:center;border:1px solid #dde3f0;}
+  .loading-spinner{width:44px;height:44px;border-radius:50%;border:3.5px solid #dde3f0;border-top-color:#22c55e;animation:ldSpin .75s linear infinite;}
+  @keyframes ldSpin{to{transform:rotate(360deg)}}
+  .loading-title{font-size:.9rem;font-weight:700;color:#0e2437;}
+  .loading-bar-track{width:100%;height:5px;background:#dde3f0;border-radius:3px;overflow:hidden;}
+  .loading-bar-fill{height:100%;width:0%;background:#22c55e;border-radius:3px;animation:ldLoadbar 1.6s ease-out forwards;}
+  @keyframes ldLoadbar{0%{width:0%}60%{width:70%}100%{width:95%}}
 </style>
 </head>
 <body>
-<header class="topbar">
-  <div class="logo">VIAJE OK</div>
-  <div class="divider"></div>
-  <div class="subtitle">Nivel de Cumplimiento por Planta</div>
-  <div class="badge" id="badgeSource">Julio 2026</div>
-</header>
+<div class="loading-overlay" id="loadingOverlay">
+  <img src="dash-logo.png" alt="Dash" class="loading-logo-img">
+  <div class="loading-box">
+    <div class="loading-spinner"></div>
+    <div class="loading-title">Cargando…</div>
+    <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+  </div>
+</div>
+<span id="badgeSource" style="display:none">Julio 2026</span>
 
 <main>
   <div class="filter-bar" style="gap:16px;">
@@ -860,6 +875,18 @@ document.getElementById('clearPeriodBtn').addEventListener('click', ()=>{
 
 renderTipoChips();
 renderAll();
+
+/* ===== Ocultar overlay de carga ===== */
+(function(){
+  function hide(){
+    const ov = document.getElementById('loadingOverlay');
+    if(!ov) return;
+    ov.classList.add('hidden');
+    setTimeout(()=>{ ov.style.display='none'; }, 450);
+  }
+  if(document.readyState === 'complete') setTimeout(hide, 500);
+  else window.addEventListener('load', ()=>setTimeout(hide, 500));
+})();
 </script>
 </body>
 </html>
