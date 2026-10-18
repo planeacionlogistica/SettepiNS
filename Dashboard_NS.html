@@ -106,6 +106,15 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 .loading-bar-track{width:100%;height:5px;background:#dde3f0;border-radius:3px;overflow:hidden;}
 .loading-bar-fill{height:100%;width:0%;background:#7ed321;border-radius:3px;animation:loadbar 20s ease-out forwards;}
 @keyframes loadbar{0%{width:0%}40%{width:60%}80%{width:85%}100%{width:95%}}
+/* Modal de cambio de UDN (encima de la interfaz, sin borrarla) */
+.udn-modal{display:none;position:fixed;inset:0;z-index:1200;background:rgba(240,242,247,.72);backdrop-filter:blur(4px);align-items:center;justify-content:center;opacity:0;transition:opacity .25s ease;}
+.udn-modal.open{display:flex;opacity:1;}
+.udn-modal-box{background:#fff;border-radius:18px;padding:2rem 2.6rem 1.8rem;box-shadow:0 12px 40px rgba(26,34,54,.18);display:flex;flex-direction:column;align-items:center;gap:.95rem;min-width:300px;text-align:center;transform:translateY(8px);transition:transform .25s ease;}
+.udn-modal.open .udn-modal-box{transform:translateY(0);}
+.udn-modal-logo{height:84px;width:auto;object-fit:contain;}
+.udn-modal-spinner{width:40px;height:40px;border-radius:50%;border:4px solid #dde3f0;border-top-color:#7ed321;animation:spin .75s linear infinite;}
+.udn-modal-title{font-size:1rem;font-weight:800;color:#1a2236;letter-spacing:.01em;}
+.udn-modal-sub{font-size:.78rem;font-weight:500;color:#6b7280;margin-top:-.3rem;}
 .mini-modal{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.35);backdrop-filter:blur(2px);align-items:center;justify-content:center;}
 .mini-modal.open{display:flex;}
 .mini-modal-box{background:#fff;border-radius:12px;padding:1.5rem 2rem;box-shadow:0 8px 32px rgba(0,0,0,.2);text-align:center;min-width:200px;}
@@ -342,6 +351,16 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
   </div>
 </div>
 <span id="loadingMsg" style="display:none"></span>
+
+<!-- Modal de cambio de UDN: aparece ENCIMA de la interfaz, sin borrarla -->
+<div id="udnModal" class="udn-modal">
+  <div class="udn-modal-box">
+    <img src="dash-logo.png" alt="Dash" class="udn-modal-logo">
+    <div class="udn-modal-spinner"></div>
+    <div class="udn-modal-title" id="udnModalTitle">Cargando UDN…</div>
+    <div class="udn-modal-sub" id="udnModalSub">Preparando el mes actual</div>
+  </div>
+</div>
 
 <div id="refreshIndicator" style="display:none;position:fixed;top:12px;right:14px;background:#1f2937;color:#e5e7eb;padding:8px 14px;border-radius:12px;font-size:11.5px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.22);z-index:9999;min-width:188px;">
   <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;">
@@ -1037,6 +1056,22 @@ function firstChunkSize(){
 const BG_CHUNK    = 25000;   // bloques para traer el histórico en segundo plano
 const CHUNK       = 50000;   // (compat) usado por rutas antiguas
 
+// ── Modal de cambio de UDN (encima de la interfaz, sin borrarla) ──
+function openUdnModal(udn){
+  const m=document.getElementById('udnModal');
+  const t=document.getElementById('udnModalTitle');
+  const s=document.getElementById('udnModalSub');
+  if(t) t.textContent = udn ? ('Cargando '+udn+'…') : 'Cargando UDN…';
+  if(s) s.textContent = 'Preparando el mes actual';
+  if(m){ m.style.display='flex'; requestAnimationFrame(()=>m.classList.add('open')); }
+}
+function closeUdnModal(){
+  const m=document.getElementById('udnModal');
+  if(!m) return;
+  m.classList.remove('open');
+  setTimeout(()=>{ m.style.display='none'; }, 260);
+}
+
 // ── Barra de progreso de carga en segundo plano ──────────────────
 function bgProgress(pct, label){
   const ind=document.getElementById('refreshIndicator');
@@ -1649,6 +1684,7 @@ async function loadSheet(){
     // Mostrar el dashboard YA, con el mes actual seleccionado
     if(banner) banner.classList.add('hidden');
     if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',350); }
+    closeUdnModal();   // cerrar el modal de cambio de UDN si estaba abierto
     fillAllSelects();
     let mesAutoSelected=false;
     if(loadedMonths.has(mesActual)){
@@ -1748,6 +1784,7 @@ async function loadSheet(){
   }catch(e){
     console.error(e);
     if(overlay) overlay.style.display='none';
+    closeUdnModal();
     bgProgress(null);
     if(banner&&errMsg){ errMsg.textContent=e.message; banner.classList.remove('hidden'); }
   }
@@ -1834,6 +1871,8 @@ function switchUdn(udn){
     return;
   }
   if(!UDN_SHEETS[udn]) return;
+  // ¿Ya hay una UDN cargada en pantalla? → cambio de UDN (usar modal, no borrar la interfaz)
+  const hadData = (typeof DATA!=='undefined' && DATA && DATA.length>0);
   const cfg = UDN_SHEETS[udn];
   CURRENT_UDN = udn;
   try{ localStorage.setItem('ns_udn', udn); }catch(e){}
@@ -1847,6 +1886,7 @@ function switchUdn(udn){
     const bn = document.getElementById('errBanner'), em = document.getElementById('errMsg');
     if(bn && em){ em.textContent = udn + ' aún no tiene fuente de datos conectada.'; bn.classList.remove('hidden'); }
     try{ document.getElementById('loadingOverlay').style.display='none'; }catch(e){}
+    closeUdnModal();
     fillAllSelects(); draw();
     return;
   }
@@ -1872,9 +1912,15 @@ function switchUdn(udn){
   }catch(e){}
   // Borrar el conteo total viejo compartido entre UDNs (bug anterior)
   try{ localStorage.removeItem('ns_total_rows_v1'); }catch(e){}
-  // Mostrar overlay y recargar
-  const ov = document.getElementById('loadingOverlay');
-  if(ov){ ov.classList.remove('hidden'); ov.style.display = 'flex'; }
+  // Mostrar indicador de carga:
+  //  - Cambio de UDN (ya había datos) → MODAL con logo, encima de la interfaz.
+  //  - Primera carga (no había nada) → overlay de pantalla completa.
+  if(hadData){
+    openUdnModal(udn);
+  } else {
+    const ov = document.getElementById('loadingOverlay');
+    if(ov){ ov.classList.remove('hidden'); ov.style.display = 'flex'; }
+  }
   (async()=>{
     // Todo en PARALELO: nada bloquea el pintado del mes actual.
     // - Inputs/Ubicaciones (coordinadores y km): al terminar, recalculan y redibujan.
