@@ -343,9 +343,15 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 </div>
 <span id="loadingMsg" style="display:none"></span>
 
-<div id="refreshIndicator" style="display:none;position:fixed;top:14px;right:14px;background:#1f2937;color:#84cc16;padding:8px 14px;border-radius:20px;font-size:12px;font-weight:600;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:9999;">
-  <span style="display:inline-block;width:10px;height:10px;border:2px solid #84cc16;border-top-color:transparent;border-radius:50%;animation:spinRefresh 0.8s linear infinite;margin-right:6px;vertical-align:middle;"></span>
-  Actualizando datos...
+<div id="refreshIndicator" style="display:none;position:fixed;top:12px;right:14px;background:#1f2937;color:#e5e7eb;padding:8px 14px;border-radius:12px;font-size:11.5px;font-weight:600;box-shadow:0 4px 14px rgba(0,0,0,.22);z-index:9999;min-width:188px;">
+  <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;">
+    <span style="display:inline-block;width:9px;height:9px;border:2px solid #84cc16;border-top-color:transparent;border-radius:50%;animation:spinRefresh 0.8s linear infinite;flex-shrink:0;"></span>
+    <span id="refreshLabel" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Cargando meses anteriores…</span>
+    <span id="refreshPct" style="margin-left:auto;color:#84cc16;font-variant-numeric:tabular-nums;flex-shrink:0;">0%</span>
+  </div>
+  <div style="height:5px;background:#374151;border-radius:3px;overflow:hidden;">
+    <div id="refreshBar" style="height:100%;width:0%;background:linear-gradient(90deg,#84cc16,#a8e05f);border-radius:3px;transition:width .3s ease;"></div>
+  </div>
 </div>
 <style>@keyframes spinRefresh{to{transform:rotate(360deg)}}</style>
 
@@ -1018,8 +1024,33 @@ let SHEET_ID        = '';
 let INPUTS_SHEET_ID = '';
 const SHEET_NAME  = 'NS';
 const INPUTS_NAME = 'Inputs';
-const FIRST_CHUNK = 15000;
-const CHUNK       = 50000;
+// Bloque inicial ADAPTATIVO: solo lo que va del mes actual + colchón.
+// A inicio de mes jala poco (arranca en 2-3s); a fin de mes jala más, pero
+// nunca más de lo necesario para cubrir el mes actual completo.
+const ROWS_PER_DAY = 380;    // estimado (comentario del autor: ~350/día) con margen
+function firstChunkSize(){
+  const now=new Date();
+  const dia=now.getDate();                 // día del mes (1..31)
+  const filas=(dia+4)*ROWS_PER_DAY;        // días transcurridos + 4 de colchón
+  return Math.max(3000, Math.min(14000, filas)); // piso 3k, techo 14k
+}
+const BG_CHUNK    = 25000;   // bloques para traer el histórico en segundo plano
+const CHUNK       = 50000;   // (compat) usado por rutas antiguas
+
+// ── Barra de progreso de carga en segundo plano ──────────────────
+function bgProgress(pct, label){
+  const ind=document.getElementById('refreshIndicator');
+  const bar=document.getElementById('refreshBar');
+  const pc =document.getElementById('refreshPct');
+  const lb =document.getElementById('refreshLabel');
+  if(!ind) return;
+  if(pct===null){ ind.style.display='none'; return; }
+  ind.style.display='block';
+  const p=Math.max(0,Math.min(100,Math.round(pct)));
+  if(bar) bar.style.width=p+'%';
+  if(pc)  pc.textContent=p+'%';
+  if(lb && label) lb.textContent=label;
+}
 
 const C = {
   fecha:'start_date', semana:'Semana', udn:'business_unit', cliente:'group',
@@ -1555,198 +1586,121 @@ async function loadSheet(){
   }
   function rowKey(r){ return r[C.id] || `${r[C.fecha]||''}|${r[C.ruta]||''}|${r[C.driver]||''}|${r[C.startTime]||''}`; }
 
+  // Token de carga: si el usuario cambia de UDN a media carga, abortamos la anterior
+  const myToken = (loadSheet._token = (loadSheet._token||0) + 1);
+  const stillMine = ()=> myToken === loadSheet._token;
+
   try{
-    loadMsg.innerHTML='Cargando datos...<br>Por favor espera';
+    loadMsg.innerHTML='Cargando mes actual…<br>Un momento';
+    bgProgress(null); // oculto la barra hasta que empiece el histórico
 
-    // ═══════════════════════════════════════════════════════════════
-    // FASE 1: Intentar cargar desde caché IndexedDB (casi instantáneo)
-    // ═══════════════════════════════════════════════════════════════
-    let hasCache=false;
-    const cached = await cacheGet(DB_KEY);
-    if(cached && cached.rows && cached.rows.length && (Date.now()-cached.cachedAt < CACHE_MAX_AGE_MS)){
-      DATA = cached.rows;
-      (cached.months||[]).forEach(m=>loadedMonths.add(m));
-      hasCache=true;
-      if(banner) banner.classList.add('hidden');
-      if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',450); }
-      fillAllSelects();
-      const mesActualCache=getCurrentMonth();
-      if(loadedMonths.has(mesActualCache)){
-        scSetVal('mes',mesActualCache,mesLabel(mesActualCache));
-        cascadeSelects();
-      }
-      draw();
-      // Mostrar indicador "Actualizando datos..." mientras se refresca en background
-      const refInd=document.getElementById('refreshIndicator');
-      if(refInd) refInd.style.display='block';
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // FASE 2: Consultar COUNT actual del sheet (en paralelo si hay caché)
-    // ═══════════════════════════════════════════════════════════════
-    // Conteo total por UDN para no mezclar el tamaño de Settepi Garcia con el de Lipu
+    const mesActual=getCurrentMonth();
     const CACHE_COUNT_KEY = 'ns_total_rows_v2_'+(CURRENT_UDN||'default').replace(/\s+/g,'_');
-    let cachedCount = 0;
-    try{ cachedCount = parseInt(localStorage.getItem(CACHE_COUNT_KEY) || '0') || 0; }catch(e){}
-
-    const countPromise = (async()=>{
-      try{
-        const r = await fetch(countUrl());
-        if(!r.ok) return 0;
-        const t = await r.text();
-        const nums = t.match(/[\d.]+/g);
-        return nums && nums.length ? Math.floor(parseFloat(nums[nums.length-1])) || 0 : 0;
-      }catch(e){ console.warn('COUNT falló', e); return 0; }
-    })();
 
     // ═══════════════════════════════════════════════════════════════
-    // FASE 3A: MODO CACHÉ → refrescar solo últimas ~3000 filas (~7 días)
-    // ═══════════════════════════════════════════════════════════════
-    if(hasCache){
-      const realCount = await countPromise;
-      if(realCount > 0){
-        try{ localStorage.setItem(CACHE_COUNT_KEY, String(realCount)); }catch(e){}
-        const RECENT_CHUNK = 3000; // cubre aprox 7 días a 350 filas/día
-        const recentOffset = realCount > RECENT_CHUNK ? (realCount - RECENT_CHUNK) : 0;
-        const recentLimit  = Math.min(RECENT_CHUNK, realCount);
-        try{
-          const r = await fetch(csvUrl(recentOffset, recentLimit));
-          if(r.ok){
-            const fresh = parseCSV(await r.text());
-            if(fresh.length){
-              // Dedupe: quitar del caché las filas que vienen frescas (match por id)
-              const freshKeys = new Set(fresh.map(rowKey));
-              DATA = DATA.filter(r => !freshKeys.has(rowKey(r)));
-              DATA.push(...fresh);
-              fresh.forEach(r=>{ const m=normMonth(getFecha(r)); if(m) loadedMonths.add(m); });
-              fillAllSelects();
-              const mesA=getCurrentMonth();
-              if(loadedMonths.has(mesA) && !SC_SEL.mes){
-                scSetVal('mes',mesA,mesLabel(mesA));
-                cascadeSelects();
-              }
-              draw();
-            }
-          }
-        }catch(e){ console.warn('Error refrescando filas recientes', e); }
-      }
-      // Guardar caché actualizado (sin bloquear UI)
-      setTimeout(()=>cacheSet(DB_KEY, { rows: DATA, months:[...loadedMonths], cachedAt: Date.now() }), 200);
-      // Ocultar indicador de actualización
-      const refInd=document.getElementById('refreshIndicator');
-      if(refInd) refInd.style.display='none';
-      return; // listo, terminamos en modo caché
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // FASE 3B: SIN CACHÉ → carga completa desde el final (primera vez)
+    // FASE 1: COUNT del sheet (para saber dónde está "el final")
     // ═══════════════════════════════════════════════════════════════
     let totalRows = 0;
-    if(cachedCount > FIRST_CHUNK){
-      totalRows = cachedCount;
-    } else {
-      totalRows = await countPromise;
-    }
+    try{
+      const r = await fetch(countUrl());
+      if(r.ok){
+        const t = await r.text();
+        const nums = t.match(/[\d.]+/g);
+        totalRows = nums && nums.length ? Math.floor(parseFloat(nums[nums.length-1])) || 0 : 0;
+      }
+    }catch(e){ console.warn('COUNT falló', e); }
+    if(totalRows>0){ try{ localStorage.setItem(CACHE_COUNT_KEY, String(totalRows)); }catch(e){} }
+    if(!stillMine()) return;
 
-    const firstOffset = totalRows > FIRST_CHUNK ? (totalRows - FIRST_CHUNK) : 0;
-    const firstLimit  = totalRows > 0 ? Math.min(FIRST_CHUNK, totalRows) : FIRST_CHUNK;
+    // ═══════════════════════════════════════════════════════════════
+    // FASE 2: Bloque inicial CHICO desde el final → pinta en segundos
+    // ═══════════════════════════════════════════════════════════════
+    const FC = firstChunkSize();
+    const firstOffset = totalRows > FC ? (totalRows - FC) : 0;
+    const firstLimit  = totalRows > 0 ? Math.min(FC, totalRows) : FC;
 
     const res=await fetch(csvUrl(firstOffset, firstLimit));
     if(!res.ok) throw new Error('HTTP '+res.status+'. Verifica que el Sheet sea público (Compartir → Cualquier persona con el enlace).');
+    if(!stillMine()) return;
     const firstRows=parseCSV(await res.text());
     if(!firstRows.length) throw new Error('Sin filas válidas. Abre F12 → Console para ver el detalle.');
     DATA=[...firstRows];
     firstRows.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
+
+    // Mostrar el dashboard YA, con el mes actual seleccionado
     if(banner) banner.classList.add('hidden');
-    if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',450); }
+    if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',350); }
     fillAllSelects();
-    const mesActual=getCurrentMonth();
     let mesAutoSelected=false;
     if(loadedMonths.has(mesActual)){
       scSetVal('mes',mesActual,mesLabel(mesActual));
       cascadeSelects();
       mesAutoSelected=true;
     }
+    buildCoordMap();   // coordinadores del mes actual ya correctos desde el primer pintado
     draw();
 
-    const realCount = await countPromise;
-    if(realCount > 0){
-      try{ localStorage.setItem(CACHE_COUNT_KEY, String(realCount)); }catch(e){}
-      if(totalRows === 0) totalRows = realCount;
-      const missed = realCount - (firstOffset + firstRows.length);
-      if(missed > 0){
-        try{
-          const rMiss = await fetch(csvUrl(firstOffset + firstRows.length, Math.min(missed, CHUNK)));
-          if(rMiss.ok){
-            const extra = parseCSV(await rMiss.text());
-            if(extra.length){
-              extra.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
-              DATA.push(...extra);
-              fillAllSelects();
-              if(!mesAutoSelected && loadedMonths.has(mesActual)){
-                scSetVal('mes',mesActual,mesLabel(mesActual));
-                cascadeSelects();
-                mesAutoSelected=true;
-              }
-              draw();
-            }
-          }
-        }catch(e){ console.warn('Error cargando filas faltantes', e); }
-      }
-    }
+    // ¿El bloque inicial ya contiene datos de un mes ANTERIOR al actual?
+    // Si sí, el mes actual está completo. Si no, el bloque es puro mes actual
+    // y hay que seguir trayendo para completarlo (lo hace la fase de histórico).
+    const mesesEnBloque=[...new Set(firstRows.map(r=>normMonth(getFecha(r))).filter(Boolean))];
+    const bloqueTieneMesViejo = mesesEnBloque.some(m => m < mesActual);
 
-    // Cargar el resto hacia atrás (chunks más viejos)
-    let nextEnd = firstOffset;
-    while(nextEnd > 0){
-      const nextStart = Math.max(0, nextEnd - CHUNK);
-      const limit = nextEnd - nextStart;
-      const r2=await fetch(csvUrl(nextStart, limit));
-      if(!r2.ok) break;
-      const more=parseCSV(await r2.text());
-      if(!more.length) break;
-      more.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
-      DATA.push(...more);
-      fillAllSelects();
-      if(!mesAutoSelected && loadedMonths.has(mesActual)){
-        scSetVal('mes',mesActual,mesLabel(mesActual));
-        cascadeSelects();
-        mesAutoSelected=true;
-      }
-      nextEnd = nextStart;
-    }
-    // Fallback: si no se pudo calcular totalRows y seguimos teniendo FIRST_CHUNK filas, cargar hacia adelante
-    if(totalRows===0 && firstRows.length>=FIRST_CHUNK){
-      let offset=FIRST_CHUNK;
-      while(true){
-        const r2=await fetch(csvUrl(offset, CHUNK));
-        if(!r2.ok) break;
-        const more=parseCSV(await r2.text());
-        if(!more.length) break;
+    // ═══════════════════════════════════════════════════════════════
+    // FASE 3: HISTÓRICO en segundo plano (barra de progreso con %)
+    // ═══════════════════════════════════════════════════════════════
+    if(firstOffset > 0){
+      const totalBg = firstOffset;               // filas que faltan por traer (las más viejas)
+      let traidas   = 0;
+      let nextEnd   = firstOffset;
+      bgProgress(0, bloqueTieneMesViejo ? 'Cargando meses anteriores…' : 'Completando datos…');
+
+      while(nextEnd > 0){
+        if(!stillMine()) return;                 // cambió la UDN → abortar
+        const nextStart = Math.max(0, nextEnd - BG_CHUNK);
+        const limit = nextEnd - nextStart;
+        let more=[];
+        try{
+          const r2=await fetch(csvUrl(nextStart, limit));
+          if(!r2.ok) break;
+          if(!stillMine()) return;
+          more=parseCSV(await r2.text());
+        }catch(e){ console.warn('Error en bloque histórico', e); break; }
+        if(!more.length){ nextEnd=nextStart; continue; }
+
         more.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
-        DATA.push(...more);
+        // Insertar al inicio para mantener orden cronológico aproximado
+        DATA.unshift(...more);
+        traidas += limit;
+        nextEnd = nextStart;
+
         fillAllSelects();
         if(!mesAutoSelected && loadedMonths.has(mesActual)){
           scSetVal('mes',mesActual,mesLabel(mesActual));
           cascadeSelects();
           mesAutoSelected=true;
         }
-        if(more.length<CHUNK) break;
-        offset+=CHUNK;
+        // Solo redibujar en vivo si NO estás viendo el mes actual filtrado
+        // (así no re-renderizamos de más mientras llega el histórico).
+        draw();
+        bgProgress(Math.min(99, traidas/totalBg*100));
       }
     }
+
+    // Terminó el histórico
+    if(!stillMine()) return;
+    buildCoordMap();
     if(!mesAutoSelected && loadedMonths.has(mesActual)){
       scSetVal('mes',mesActual,mesLabel(mesActual));
       cascadeSelects();
     }
     draw();
-
-    // Guardar TODO en caché para próximas visitas (sin bloquear UI)
-    setTimeout(()=>cacheSet(DB_KEY, { rows: DATA, months:[...loadedMonths], cachedAt: Date.now() }), 500);
+    bgProgress(100, 'Datos completos');
+    setTimeout(()=>{ if(stillMine()) bgProgress(null); }, 1200);
   }catch(e){
     console.error(e);
     if(overlay) overlay.style.display='none';
-    const refInd=document.getElementById('refreshIndicator');
-    if(refInd) refInd.style.display='none';
+    bgProgress(null);
     if(banner&&errMsg){ errMsg.textContent=e.message; banner.classList.remove('hidden'); }
   }
 }
@@ -1874,10 +1828,12 @@ function switchUdn(udn){
   const ov = document.getElementById('loadingOverlay');
   if(ov){ ov.classList.remove('hidden'); ov.style.display = 'flex'; }
   (async()=>{
-    await Promise.all([loadSheet(), loadInputs(), loadMAE(), loadFlota(), loadUbicaciones()]);
-    buildCoordMap();
-    fillAllSelects();
-    draw();
+    // 1) Inputs ligeros necesarios para coordinadores/km (hojas chicas, cargan rápido)
+    await Promise.all([loadInputs(), loadUbicaciones()]);
+    // 2) MAE y Flota en segundo plano (solo se usan en modales/exports, no bloquean)
+    loadMAE(); loadFlota();
+    // 3) Datos NS: pinta el mes actual en segundos y trae el histórico con barra de progreso
+    await loadSheet();
   })();
 }
 function scSetVal(key,val,lbl){
