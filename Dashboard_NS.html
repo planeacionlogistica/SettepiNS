@@ -342,14 +342,8 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 </head>
 <body>
 
-<div class="loading-overlay" id="loadingOverlay">
-  <img src="dash-logo.png" alt="Dash" class="loading-logo-img">
-  <div class="loading-box">
-    <div class="loading-spinner"></div>
-    <div class="loading-title">Cargando…</div>
-    <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
-  </div>
-</div>
+<!-- Overlay antiguo de pantalla completa: ya no se usa (ahora se usa el modal). -->
+<div class="loading-overlay" id="loadingOverlay" style="display:none"></div>
 <span id="loadingMsg" style="display:none"></span>
 
 <!-- Modal de cambio de UDN: aparece ENCIMA de la interfaz, sin borrarla -->
@@ -357,8 +351,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
   <div class="udn-modal-box">
     <img src="dash-logo.png" alt="Dash" class="udn-modal-logo">
     <div class="udn-modal-spinner"></div>
-    <div class="udn-modal-title" id="udnModalTitle">Cargando UDN…</div>
-    <div class="udn-modal-sub" id="udnModalSub">Preparando el mes actual</div>
+    <div class="udn-modal-title" id="udnModalTitle">Cargando…</div>
   </div>
 </div>
 
@@ -1060,9 +1053,7 @@ const CHUNK       = 50000;   // (compat) usado por rutas antiguas
 function openUdnModal(udn){
   const m=document.getElementById('udnModal');
   const t=document.getElementById('udnModalTitle');
-  const s=document.getElementById('udnModalSub');
-  if(t) t.textContent = udn ? ('Cargando '+udn+'…') : 'Cargando UDN…';
-  if(s) s.textContent = 'Preparando el mes actual';
+  if(t) t.textContent = 'Cargando…';
   if(m){ m.style.display='flex'; requestAnimationFrame(()=>m.classList.add('open')); }
 }
 function closeUdnModal(){
@@ -1871,8 +1862,6 @@ function switchUdn(udn){
     return;
   }
   if(!UDN_SHEETS[udn]) return;
-  // ¿Ya hay una UDN cargada en pantalla? → cambio de UDN (usar modal, no borrar la interfaz)
-  const hadData = (typeof DATA!=='undefined' && DATA && DATA.length>0);
   const cfg = UDN_SHEETS[udn];
   CURRENT_UDN = udn;
   try{ localStorage.setItem('ns_udn', udn); }catch(e){}
@@ -1912,15 +1901,8 @@ function switchUdn(udn){
   }catch(e){}
   // Borrar el conteo total viejo compartido entre UDNs (bug anterior)
   try{ localStorage.removeItem('ns_total_rows_v1'); }catch(e){}
-  // Mostrar indicador de carga:
-  //  - Cambio de UDN (ya había datos) → MODAL con logo, encima de la interfaz.
-  //  - Primera carga (no había nada) → overlay de pantalla completa.
-  if(hadData){
-    openUdnModal(udn);
-  } else {
-    const ov = document.getElementById('loadingOverlay');
-    if(ov){ ov.classList.remove('hidden'); ov.style.display = 'flex'; }
-  }
+  // Siempre el MODAL con logo (primera carga y cambio de UDN), nunca el overlay.
+  openUdnModal(udn);
   (async()=>{
     // Todo en PARALELO: nada bloquea el pintado del mes actual.
     // - Inputs/Ubicaciones (coordinadores y km): al terminar, recalculan y redibujan.
