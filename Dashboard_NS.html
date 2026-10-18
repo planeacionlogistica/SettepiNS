@@ -1024,15 +1024,15 @@ let SHEET_ID        = '';
 let INPUTS_SHEET_ID = '';
 const SHEET_NAME  = 'NS';
 const INPUTS_NAME = 'Inputs';
-// Bloque inicial ADAPTATIVO: solo lo que va del mes actual + colchón.
-// A inicio de mes jala poco (arranca en 2-3s); a fin de mes jala más, pero
-// nunca más de lo necesario para cubrir el mes actual completo.
-const ROWS_PER_DAY = 380;    // estimado (comentario del autor: ~350/día) con margen
+// Bloque inicial ADAPTATIVO: dimensionado para cubrir el MES ACTUAL completo.
+// A inicio de mes jala poco (arranca rápido); conforme avanza el mes jala más,
+// pero nunca más de lo necesario para el mes en curso. El resto es histórico.
+const ROWS_PER_DAY = 900;    // densidad real observada (~840 viajes/día) + margen
 function firstChunkSize(){
   const now=new Date();
   const dia=now.getDate();                 // día del mes (1..31)
-  const filas=(dia+4)*ROWS_PER_DAY;        // días transcurridos + 4 de colchón
-  return Math.max(3000, Math.min(14000, filas)); // piso 3k, techo 14k
+  const filas=(dia+3)*ROWS_PER_DAY;        // días transcurridos + 3 de colchón
+  return Math.max(6000, Math.min(30000, filas)); // piso 6k, techo 30k
 }
 const BG_CHUNK    = 25000;   // bloques para traer el histórico en segundo plano
 const CHUNK       = 50000;   // (compat) usado por rutas antiguas
@@ -1596,33 +1596,52 @@ async function loadSheet(){
 
     const mesActual=getCurrentMonth();
     const CACHE_COUNT_KEY = 'ns_total_rows_v2_'+(CURRENT_UDN||'default').replace(/\s+/g,'_');
+    const FC = firstChunkSize();
 
     // ═══════════════════════════════════════════════════════════════
-    // FASE 1: COUNT del sheet (para saber dónde está "el final")
+    // FASE 1: COUNT en PARALELO (no bloquea). Usamos el conteo guardado
+    //          para saber ya el "final" y disparar la bajada de inmediato.
     // ═══════════════════════════════════════════════════════════════
-    let totalRows = 0;
-    try{
-      const r = await fetch(countUrl());
-      if(r.ok){
+    const countPromise = (async()=>{
+      try{
+        const r = await fetch(countUrl());
+        if(!r.ok) return 0;
         const t = await r.text();
         const nums = t.match(/[\d.]+/g);
-        totalRows = nums && nums.length ? Math.floor(parseFloat(nums[nums.length-1])) || 0 : 0;
-      }
-    }catch(e){ console.warn('COUNT falló', e); }
-    if(totalRows>0){ try{ localStorage.setItem(CACHE_COUNT_KEY, String(totalRows)); }catch(e){} }
-    if(!stillMine()) return;
+        return nums && nums.length ? Math.floor(parseFloat(nums[nums.length-1])) || 0 : 0;
+      }catch(e){ console.warn('COUNT falló', e); return 0; }
+    })();
+
+    let cachedCount = 0;
+    try{ cachedCount = parseInt(localStorage.getItem(CACHE_COUNT_KEY) || '0') || 0; }catch(e){}
 
     // ═══════════════════════════════════════════════════════════════
     // FASE 2: Bloque inicial CHICO desde el final → pinta en segundos
     // ═══════════════════════════════════════════════════════════════
-    const FC = firstChunkSize();
-    const firstOffset = totalRows > FC ? (totalRows - FC) : 0;
-    const firstLimit  = totalRows > 0 ? Math.min(FC, totalRows) : FC;
+    // Si hay conteo guardado, lo usamos para el offset y NO esperamos al COUNT.
+    // Si no (primera vez absoluta), ahí sí esperamos el COUNT.
+    let baseCount = cachedCount;
+    if(baseCount <= 0){ baseCount = await countPromise; if(!stillMine()) return; }
 
-    const res=await fetch(csvUrl(firstOffset, firstLimit));
+    let firstOffset = baseCount > FC ? (baseCount - FC) : 0;
+    let firstLimit  = baseCount > 0 ? Math.min(FC, baseCount) : FC;
+
+    let res=await fetch(csvUrl(firstOffset, firstLimit));
     if(!res.ok) throw new Error('HTTP '+res.status+'. Verifica que el Sheet sea público (Compartir → Cualquier persona con el enlace).');
     if(!stillMine()) return;
-    const firstRows=parseCSV(await res.text());
+    let firstRows=parseCSV(await res.text());
+
+    // Si el conteo guardado estaba desfasado y vino vacío, reintentar con COUNT real
+    if(!firstRows.length){
+      const realNow = await countPromise; if(!stillMine()) return;
+      if(realNow>0){
+        baseCount = realNow;
+        firstOffset = baseCount > FC ? (baseCount - FC) : 0;
+        firstLimit  = Math.min(FC, baseCount);
+        res=await fetch(csvUrl(firstOffset, firstLimit));
+        if(res.ok){ firstRows=parseCSV(await res.text()); }
+      }
+    }
     if(!firstRows.length) throw new Error('Sin filas válidas. Abre F12 → Console para ver el detalle.');
     DATA=[...firstRows];
     firstRows.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
@@ -1639,6 +1658,28 @@ async function loadSheet(){
     }
     buildCoordMap();   // coordinadores del mes actual ya correctos desde el primer pintado
     draw();
+
+    // Reconciliar con el conteo REAL: si se agregaron filas desde la última
+    // visita, el offset basado en el conteo guardado no las trajo → las jalamos.
+    const realCount = await countPromise;
+    if(!stillMine()) return;
+    if(realCount>0){
+      try{ localStorage.setItem(CACHE_COUNT_KEY, String(realCount)); }catch(e){}
+      const topMissing = realCount - baseCount;
+      if(topMissing > 0){
+        try{
+          const rNew=await fetch(csvUrl(baseCount, topMissing));
+          if(rNew.ok && stillMine()){
+            const nuevos=parseCSV(await rNew.text());
+            if(nuevos.length){
+              nuevos.forEach(r=>{ const m=normMonth(getFecha(r)); if(m) loadedMonths.add(m); });
+              DATA.push(...nuevos);   // son las más recientes → al final
+              buildCoordMap(); draw();
+            }
+          }
+        }catch(e){ console.warn('Error trayendo filas nuevas', e); }
+      }
+    }
 
     // ¿El bloque inicial ya contiene datos de un mes ANTERIOR al actual?
     // Si sí, el mes actual está completo. Si no, el bloque es puro mes actual
@@ -1674,16 +1715,23 @@ async function loadSheet(){
         traidas += limit;
         nextEnd = nextStart;
 
+        // Actualizar el dropdown de meses (aparecen los meses que van llegando)
         fillAllSelects();
         if(!mesAutoSelected && loadedMonths.has(mesActual)){
           scSetVal('mes',mesActual,mesLabel(mesActual));
           cascadeSelects();
           mesAutoSelected=true;
         }
-        // Solo redibujar en vivo si NO estás viendo el mes actual filtrado
-        // (así no re-renderizamos de más mientras llega el histórico).
-        draw();
+        // Redibujar en vivo SOLO si este bloque trae filas del mes que el
+        // usuario está viendo (p.ej. completa el mes actual si quedó corto).
+        // Si solo llegan meses que no está viendo, nos saltamos el draw()
+        // (mucho más ligero y fluido mientras baja el histórico).
+        const mesVisto = SC_SEL.mes || mesActual;
+        const bloqueTocaVista = more.some(r => normMonth(getFecha(r))===mesVisto);
+        if(bloqueTocaVista) draw();
         bgProgress(Math.min(99, traidas/totalBg*100));
+        // Ceder el hilo para que la UI no se congele entre bloques
+        await new Promise(r=>setTimeout(r,0));
       }
     }
 
@@ -1828,12 +1876,14 @@ function switchUdn(udn){
   const ov = document.getElementById('loadingOverlay');
   if(ov){ ov.classList.remove('hidden'); ov.style.display = 'flex'; }
   (async()=>{
-    // 1) Inputs ligeros necesarios para coordinadores/km (hojas chicas, cargan rápido)
-    await Promise.all([loadInputs(), loadUbicaciones()]);
-    // 2) MAE y Flota en segundo plano (solo se usan en modales/exports, no bloquean)
+    // Todo en PARALELO: nada bloquea el pintado del mes actual.
+    // - Inputs/Ubicaciones (coordinadores y km): al terminar, recalculan y redibujan.
+    // - MAE/Flota: solo modales/exports, en segundo plano.
+    // - loadSheet: pinta el mes actual lo antes posible y trae el histórico con barra.
+    const inputsReady = Promise.all([loadInputs(), loadUbicaciones()]);
     loadMAE(); loadFlota();
-    // 3) Datos NS: pinta el mes actual en segundos y trae el histórico con barra de progreso
-    await loadSheet();
+    inputsReady.then(()=>{ try{ buildCoordMap(); draw(); }catch(e){} });
+    loadSheet();
   })();
 }
 function scSetVal(key,val,lbl){
