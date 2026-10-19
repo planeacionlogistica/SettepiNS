@@ -130,7 +130,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 #drillDetailModal{z-index:820;}
 #drillDetailModal .modal-box{max-width:1150px;}
 #drillDetailModal .modal-body{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-#drillDetailModal .modal-table{table-layout:fixed;min-width:930px;width:100%;border-collapse:collapse;}
+#drillDetailModal .modal-table{table-layout:fixed;min-width:1140px;width:100%;border-collapse:collapse;}
 #operadorModal{z-index:830;}
 .modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
 /* ── Drill modal nivel 1 ── */
@@ -338,6 +338,30 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 .cx-leg i.trend{width:18px;height:0;border-top:2.5px dashed var(--ink);border-radius:0}
 .cx-leg i.dot{width:9px;height:9px;border-radius:50%}
 @media(max-width:768px){.cx-right{align-items:flex-start}.cx-trend{align-items:flex-start;text-align:left}}
+
+/* ── Comentario (NS → col BC) ── */
+.com-cell{display:flex;align-items:center;gap:.35rem;}
+.com-txt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.72rem;color:#374151;}
+.com-txt.empty{color:#b6bdcb;font-style:italic;}
+.com-edit-btn{flex-shrink:0;background:transparent;border:none;cursor:pointer;color:#6b7a99;opacity:.55;padding:2px 3px;border-radius:5px;line-height:1;transition:all .15s;}
+.com-edit-btn:hover{opacity:1;color:#16a34a;background:rgba(22,163,74,.1);}
+.ns-edit-overlay{display:none;position:fixed;inset:0;z-index:900;background:rgba(16,22,34,.45);backdrop-filter:blur(2px);align-items:center;justify-content:center;padding:1rem;}
+.ns-edit-overlay.open{display:flex;}
+.ns-edit-box{background:#fff;border-radius:13px;box-shadow:0 22px 60px rgba(0,0,0,.32);padding:1.15rem 1.25rem;min-width:320px;max-width:460px;width:100%;}
+.ns-edit-title{font-size:.82rem;font-weight:700;color:#1a2236;margin-bottom:.25rem;}
+.ns-edit-sub{font-size:.72rem;color:#6b7a99;margin-bottom:.85rem;line-height:1.4;}
+.ns-edit-sub b{color:#1a2236;}
+.ns-edit-textarea{width:100%;padding:.6rem .7rem;border:1.5px solid #dde3f0;border-radius:8px;font-size:.85rem;font-family:'Inter',sans-serif;outline:none;min-height:92px;resize:vertical;color:#1a2236;transition:border-color .15s,box-shadow .15s;}
+.ns-edit-textarea:focus{border-color:#7ed321;box-shadow:0 0 0 3px rgba(126,211,33,.15);}
+.ns-edit-actions{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.9rem;}
+.ns-edit-btn{padding:.5rem 1rem;border-radius:8px;font-size:.76rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;border:none;transition:all .15s;}
+.ns-edit-btn.cancel{background:#f1f3f6;color:#1a2236;}
+.ns-edit-btn.cancel:hover{background:#e5e8ee;}
+.ns-edit-btn.save{background:#7ed321;color:#17320a;}
+.ns-edit-btn.save:hover{background:#71bd1e;}
+.ns-edit-btn:disabled{opacity:.55;cursor:not-allowed;}
+.ns-edit-err{font-size:.72rem;color:#9b2c2c;background:#fbeaea;padding:.5rem .65rem;border-radius:7px;margin-top:.6rem;display:none;}
+.ns-edit-err.show{display:block;}
 </style>
 </head>
 <body>
@@ -888,6 +912,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
           <col style="width:80px"><col style="width:95px">
           <col style="width:80px"><col style="width:95px">
           <col style="width:70px"><col style="width:70px">
+          <col style="width:210px">
         </colgroup>
         <thead id="detailThead"><tr>
           <th style="width:36px"></th>
@@ -901,6 +926,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
           <th class="r sortable" data-col="endEta" onclick="sortDetail('endEta')"><div class="th-inner r">Lle Real GPS<span class="sort-ind">↕</span></div></th>
           <th class="r sortable" data-col="minIni" onclick="sortDetail('minIni')"><div class="th-inner r">Min Ini<span class="sort-ind">↕</span></div></th>
           <th class="r sortable" data-col="minLle" onclick="sortDetail('minLle')"><div class="th-inner r">Min Lle<span class="sort-ind">↕</span></div></th>
+          <th><div class="th-inner">Comentario</div></th>
         </tr></thead>
         <tbody id="drillDetailBody"></tbody>
       </table>
@@ -1022,6 +1048,20 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
   </div>
 </div>
 
+<!-- ══ POPUP: comentario del viaje (NS → col BC) ══ -->
+<div class="ns-edit-overlay" id="comOverlay" onclick="if(event.target===this)closeComentario()">
+  <div class="ns-edit-box">
+    <div class="ns-edit-title">Comentario del viaje</div>
+    <div class="ns-edit-sub" id="comSub"></div>
+    <textarea class="ns-edit-textarea" id="comInput" placeholder="¿Por qué llegó / salió tarde? (ej. tráfico, falla de unidad, carga lenta…)" maxlength="500"></textarea>
+    <div class="ns-edit-err" id="comErr"></div>
+    <div class="ns-edit-actions">
+      <button class="ns-edit-btn cancel" onclick="closeComentario()">Cancelar</button>
+      <button class="ns-edit-btn save" id="comSaveBtn" onclick="saveComentario()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── UDN → libro de datos (cada UDN apunta a su propio Google Sheet) ──
 const UDN_SHEETS = {
@@ -1084,8 +1124,11 @@ const C = {
   retardo:'Inicios_Tarde', viajes:'Cantidad de viajes', llegada:'Llegadas_Tarde',
   minIni:'Minutos de Retraso', minLle:'Minutos llegadas', driver:'operador', car:'car', ruta:'des',
   startTime:'start_time', startEta:'start_eta', endTime:'end_time', endEta:'end_eta',
-  id:'id', workerId:'worker_id',
+  id:'id', workerId:'worker_id', comentario:'Comentarios',
 };
+
+// Web App de Apps Script (mismo script que Flota) para guardar el comentario en NS col BC
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxejpkGCDu5oqwKx7rFdGf0j4gcDes2xZQJ4rIsYFr9yPa0-qWd20qqlDezCc8PCAE/exec';
 
 let DATA         = [];
 let loadedMonths = new Set();
@@ -3126,8 +3169,9 @@ function rerenderDetailModal(){
       <td class="r" style="font-size:.72rem;white-space:nowrap;color:#374151;font-weight:600">${eEta}</td>
       <td class="r">${minCell(minIni,0)}</td>
       <td class="r">${minCell(minLle,0)}</td>
+      ${comCell(r)}
     </tr>`;
-  }).join('')||'<tr><td colspan="11" class="table-empty">Sin viajes registrados</td></tr>';
+  }).join('')||'<tr><td colspan="12" class="table-empty">Sin viajes registrados</td></tr>';
 }
 
 // ── Export con ExcelJS + logo ──
@@ -3307,6 +3351,8 @@ function closeDrill(e){ if(e.target===document.getElementById('drillModal')) doc
 
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
+    const com=document.getElementById('comOverlay');
+    if(com&&com.classList.contains('open')){ closeComentario(); return; }
     if(document.getElementById('auditModal').classList.contains('open')){ closeAuditModal(); return; }
     const op=document.getElementById('operadorModal');
     if(op.classList.contains('open')){ op.classList.remove('open'); return; }
@@ -3583,6 +3629,105 @@ function openOperadorModal(driver){
   document.getElementById('operadorModal').classList.add('open');
 }
 
+// ── Comentario del viaje (NS → col BC) ────────────────────────────
+const PENCIL_SVG='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+let _comTripId='';
+
+function escHtmlNS(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Celda de comentario para el modal de detalle de viajes
+function comCell(r){
+  const tripId=(r[C.id]||'').toString().trim();
+  const val=(r[C.comentario]||'').toString().trim();
+  const idEsc=tripId.replace(/'/g,"\\'");
+  const txt=val
+    ? `<span class="com-txt" title="${escHtmlNS(val)}">${escHtmlNS(val)}</span>`
+    : `<span class="com-txt empty">—</span>`;
+  const btn=tripId
+    ? `<button class="com-edit-btn" onclick="openComentario('${idEsc}')" title="Agregar / editar comentario">${PENCIL_SVG}</button>`
+    : '';
+  return `<td><div class="com-cell">${txt}${btn}</div></td>`;
+}
+
+function openComentario(tripId){
+  const id=(tripId||'').toString().trim();
+  if(!id) return;
+  _comTripId=id;
+  const r=DATA.find(x=>(x[C.id]||'').toString().trim()===id);
+  const sub=document.getElementById('comSub');
+  if(r){
+    const ruta=(r[C.ruta]||'').trim();
+    const uni =(r[C.car]||'').trim();
+    const op  =(r[C.driver]||'').trim();
+    sub.innerHTML=`Viaje <b>${escHtmlNS(id)}</b>`+(ruta?' · '+escHtmlNS(ruta):'')+(uni?' · '+escHtmlNS(uni):'')+(op?' · '+escHtmlNS(op):'');
+  } else {
+    sub.innerHTML=`Viaje <b>${escHtmlNS(id)}</b>`;
+  }
+  const inp=document.getElementById('comInput');
+  inp.value=r?(r[C.comentario]||'').toString():'';
+  document.getElementById('comErr').classList.remove('show');
+  const btn=document.getElementById('comSaveBtn');
+  btn.disabled=false; btn.textContent='Guardar';
+  document.getElementById('comOverlay').classList.add('open');
+  setTimeout(()=>{ inp.focus(); },50);
+}
+
+function closeComentario(){
+  document.getElementById('comOverlay').classList.remove('open');
+  _comTripId='';
+}
+
+async function saveComentario(){
+  const id=_comTripId;
+  if(!id) return;
+  const inp=document.getElementById('comInput');
+  const errBox=document.getElementById('comErr');
+  const btn=document.getElementById('comSaveBtn');
+  const nuevo=inp.value.trim();
+  const r=DATA.find(x=>(x[C.id]||'').toString().trim()===id);
+  const actual=r?(r[C.comentario]||'').toString().trim():'';
+  if(nuevo===actual){ closeComentario(); return; }
+  btn.disabled=true; btn.textContent='Guardando…'; errBox.classList.remove('show');
+  try{
+    const res=await fetch(WEBAPP_URL,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({target:'ns', id:id, comentario:nuevo}),
+      redirect:'follow'
+    });
+    const text=await res.text();
+    let json;
+    try{ json=JSON.parse(text); }catch(e){ throw new Error('Respuesta no válida del servidor: '+text.slice(0,120)); }
+    if(!json.ok) throw new Error(json.error||'Error desconocido');
+    // Actualiza en memoria todas las filas con ese id (normalmente una)
+    DATA.forEach(x=>{ if((x[C.id]||'').toString().trim()===id) x[C.comentario]=nuevo; });
+    closeComentario();
+    rerenderDetailModal();
+    nsToast('✓ Comentario guardado en el viaje '+id,'ok');
+  }catch(err){
+    console.error(err);
+    errBox.textContent='✗ '+(err.message||'No se pudo guardar');
+    errBox.classList.add('show');
+    btn.disabled=false; btn.textContent='Guardar';
+  }
+}
+
+let _nsToastTimer=null;
+function nsToast(msg,type){
+  let t=document.getElementById('nsToast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='nsToast';
+    t.style.cssText='position:fixed;bottom:24px;right:24px;background:#1a2236;color:#fff;padding:.75rem 1.15rem;border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.28);z-index:9999;font-size:.8rem;font-weight:600;opacity:0;transition:opacity .25s;border-left:4px solid #7ed321;max-width:320px';
+    document.body.appendChild(t);
+  }
+  t.style.borderLeftColor=(type==='err')?'#e53e3e':'#7ed321';
+  t.textContent=msg;
+  t.style.opacity='1';
+  clearTimeout(_nsToastTimer);
+  _nsToastTimer=setTimeout(()=>{ t.style.opacity='0'; }, 3200);
+}
+
 // ── Drill modal nivel 2 ───────────────────────────────────────────
 function openDrillDetail(rutaK,clienteK,tbl){
   const isLlegadas=tbl==='lcli';
@@ -3640,8 +3785,9 @@ function openDrillDetail(rutaK,clienteK,tbl){
       <td class="r" style="font-size:.72rem;white-space:nowrap;color:#374151;font-weight:600">${eEta}</td>
       <td class="r">${minCell(minIni,0)}</td>
       <td class="r">${minCell(minLle,0)}</td>
+      ${comCell(r)}
     </tr>`;
-  }).join('')||'<tr><td colspan="11" class="table-empty">Sin viajes registrados</td></tr>';
+  }).join('')||'<tr><td colspan="12" class="table-empty">Sin viajes registrados</td></tr>';
 
   document.getElementById('drillDetailFoot').textContent=`Servicios: ${totT} viajes · · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
   lastDetailData=[...sorted];
