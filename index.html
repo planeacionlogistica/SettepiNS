@@ -649,9 +649,10 @@ body.trx-has-maximized .trx-hover-strip{display:block}
      menu:Logistica           -> toda una categoria completa
      NS, Flota, Ralenti ...   -> slugs individuales
    ================================================================ */
+const USERS_SHEET_ID   = '1A62ku_xhDK-_h1GaPfm7dhfwuK99W7GjXBgYhdLdzzI'; // Hoja dedicada SOLO a usuarios
 const USERS_SHEET_NAME = 'Usuarios';
 const USERS_RANGE      = 'B2:F200';   // Nombre, User, Password, Tipo, Tableros
-const PERMS_RANGE      = 'I2:J50';    // Tipo, Tableros
+const PERMS_RANGE      = 'H2:I50';    // Tipo (col H), Tableros (col I)
 
 let trxUserSession = null;   // {nombre, user, tipo, tableros}
 let trxPermisos    = null;   // Map tipo(lowercase) -> Set(slugs) o '*'
@@ -706,7 +707,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 async function trxAuthenticate(user, pass){
   if(!user || !pass) return null;
   try{
-    const url = `https://docs.google.com/spreadsheets/d/${KPI_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(USERS_SHEET_NAME)}&range=${USERS_RANGE}`;
+    const url = `https://docs.google.com/spreadsheets/d/${USERS_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(USERS_SHEET_NAME)}&range=${USERS_RANGE}`;
     const res = await fetch(url, {cache:'no-store'});
     const txt = await res.text();
     const rows = parseCsv(txt);
