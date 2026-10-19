@@ -818,7 +818,7 @@ async function showMenu(instant){
   trxRenderWelcome();
   logVisit();
 }
-/* ============ Contador de visitas -> Inputs!P3 ============
+/* ============ Contador de visitas + registro de acceso por usuario ============
    La URL sale del Apps Script (Extensiones -> Apps Script del sheet).
    Si el contador deja de subir, entra a "Administrar implementaciones"
    y crea una version nueva; si te da una URL distinta, pegala aqui abajo.
@@ -830,7 +830,15 @@ function logVisit(){
     if(sessionStorage.getItem('trx_visit_logged')) return;
     if(!VISITS_WEBAPP_URL || VISITS_WEBAPP_URL.startsWith('PEGA_AQUI')) return;
     sessionStorage.setItem('trx_visit_logged','1');
-    const url = VISITS_WEBAPP_URL + '?t=' + Date.now();
+    // Agregamos el usuario que inicio sesion para registrar quien y cuando entro
+    let qs = '?t=' + Date.now();
+    if(trxUserSession && trxUserSession.user){
+      qs += '&user=' + encodeURIComponent(trxUserSession.user);
+      if(trxUserSession.tipo){
+        qs += '&tipo=' + encodeURIComponent(trxUserSession.tipo);
+      }
+    }
+    const url = VISITS_WEBAPP_URL + qs;
     // 1) fetch no-cors: rapido y no bloquea la UI
     try{
       fetch(url, {method:'GET', mode:'no-cors', keepalive:true, cache:'no-store'})
