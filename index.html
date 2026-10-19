@@ -731,7 +731,7 @@ async function trxAuthenticate(user, pass){
 async function trxLoadPermisos(){
   const map = new Map();
   try{
-    const url = `https://docs.google.com/spreadsheets/d/${KPI_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(USERS_SHEET_NAME)}&range=${PERMS_RANGE}`;
+    const url = `https://docs.google.com/spreadsheets/d/${USERS_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(USERS_SHEET_NAME)}&range=${PERMS_RANGE}`;
     const res = await fetch(url, {cache:'no-store'});
     const txt = await res.text();
     const rows = parseCsv(txt);
@@ -825,7 +825,7 @@ async function showMenu(instant){
    y crea una version nueva; si te da una URL distinta, pegala aqui abajo.
    Codigo del Apps Script: ver archivo contador-visitas.gs
 =========================================================== */
-const VISITS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxi2ynynh2lRJIHS-JJxUiNXQwiixBseFukG230v7YtXjtKB93vym99ESsFiicUAk-veA/exec';
+const VISITS_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbydRQv6w-UHBetbAc2dgeaaiBquP5ByQ201b1rxAqzsIwrVtgOUQ7PyI-s8W2qFctNr/exec';
 function logVisit(){
   try{
     if(sessionStorage.getItem('trx_visit_logged')) return;
