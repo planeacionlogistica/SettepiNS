@@ -5,9 +5,33 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard KM Vacío</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-* { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', Tahoma, sans-serif; }
-body { display:flex; min-height:100vh; background:#f5f7fa; color:#1f2937; overflow-x:hidden; }
+* {
+  margin:0; padding:0; box-sizing:border-box;
+  font-family:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+body {
+  display:flex; min-height:100vh; background:#f5f7fa; color:#0f172a;
+  overflow-x:hidden;
+  font-feature-settings:'cv02','cv03','cv04','cv11';
+  letter-spacing:-0.005em;
+}
+/* Números tabulares en todos los datos (para alineación perfecta) */
+h1, h2, h3, .num, .card h2, .ger-stat .num, .rango-card .num, .ideal-kpi .num,
+.km-cell, .alt-card-km, td, .fact-kpi-num {
+  font-variant-numeric:tabular-nums;
+}
+/* Tipografía monoespaciada para nóminas / IDs */
+.nom-chip, .nom, .td-nomina, code, pre {
+  font-family:'JetBrains Mono', 'SF Mono', Monaco, Consolas, monospace;
+  font-feature-settings:'zero','ss01';
+}
 
 .sidebar {
   width:260px; background:#0f172a; color:#fff;
@@ -26,48 +50,20 @@ body { display:flex; min-height:100vh; background:#f5f7fa; color:#1f2937; overfl
   text-align:center;
   border-bottom:1px solid rgba(163,230,53,0.12);
 }
-.brand-logo-img {
-  display:block;
-  max-width:140px;
-  width:100%;
-  height:auto;
-  margin:0 auto;
-  object-fit:contain;
+.brand-title {
+  font-size:26px; font-weight:900;
+  color:#a3e635;
+  letter-spacing:2px;
+  line-height:1;
+  text-shadow:0 0 20px rgba(163,230,53,0.35);
 }
-
-/* ========== LOADING OVERLAY ========== */
-.loading-overlay{
-  position:fixed; inset:0; z-index:99999;
-  background:#f0f2f7;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:1.5rem;
-  transition:opacity .4s ease;
+.brand-sub {
+  font-size:9px; color:#64748b;
+  letter-spacing:2px;
+  margin-top:6px;
+  font-weight:600;
+  text-transform:uppercase;
 }
-.loading-overlay.hidden{ opacity:0; pointer-events:none; }
-.loading-logo-img{ height:140px; width:auto; object-fit:contain; }
-.loading-box{
-  background:#fff; border-radius:16px;
-  padding:2rem 2.8rem;
-  box-shadow:0 8px 30px rgba(24,32,49,.1);
-  display:flex; flex-direction:column; align-items:center; gap:1rem;
-  min-width:320px; text-align:center;
-  border:1px solid #e4e7ee;
-}
-.loading-spinner{
-  width:44px; height:44px; border-radius:50%;
-  border:3.5px solid #e4e7ee; border-top-color:#a3e635;
-  animation:ldSpin .75s linear infinite;
-}
-@keyframes ldSpin{ to{ transform:rotate(360deg) } }
-.loading-title{ font-size:.9rem; font-weight:700; color:#1a2236; }
-.loading-bar-track{
-  width:100%; height:5px; background:#e4e7ee; border-radius:3px; overflow:hidden;
-}
-.loading-bar-fill{
-  height:100%; width:0%; background:#a3e635; border-radius:3px;
-  animation:ldLoadbar 15s ease-out forwards;
-}
-@keyframes ldLoadbar{ 0%{width:0%} 60%{width:70%} 90%{width:90%} 100%{width:95%} }
 
 /* ========== NAV ITEMS ========== */
 .side-nav {
@@ -372,8 +368,21 @@ body { display:flex; min-height:100vh; background:#f5f7fa; color:#1f2937; overfl
   position:relative;
 }
 .card:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(15,23,42,0.09); }
-.card h2 { color:#0f172a; font-size:24px; margin-bottom:2px; font-weight:800; line-height:1.1; letter-spacing:-0.5px; }
-.card p { color:#64748b; font-size:10px; text-transform:uppercase; letter-spacing:0.6px; font-weight:700; }
+.card h2 {
+  color:#0f172a;
+  font-size:26px;
+  margin-bottom:4px;
+  font-weight:800;
+  line-height:1;
+  letter-spacing:-0.8px;
+}
+.card p {
+  color:#94a3b8;
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:0.7px;
+  font-weight:700;
+}
 .card .kpi-sub {
   display:block; margin-top:3px; font-size:10px;
   color:#94a3b8; font-weight:600;
@@ -401,15 +410,26 @@ body { display:flex; min-height:100vh; background:#f5f7fa; color:#1f2937; overfl
 }
 
 .filters {
-  display:grid; grid-template-columns:repeat(6, minmax(0, 1fr));
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
   gap:8px; margin-bottom:10px;
 }
 .filters input, .filters select {
-  padding:9px 11px; border:1px solid #d1d5db; border-radius:8px;
+  padding:10px 13px; border:1px solid #e2e8f0; border-radius:8px;
   background:#fff; font-size:12px; outline:none; min-width:0;
   width:100%;
+  font-family:inherit;
+  color:#0f172a; font-weight:500;
+  transition:border-color 0.15s, box-shadow 0.15s;
 }
-.filters input:focus, .filters select:focus { border-color:#2563eb; }
+.filters input::placeholder, .filters select::placeholder {
+  color:#94a3b8; font-weight:500;
+}
+.filters input:hover, .filters select:hover { border-color:#cbd5e1; }
+.filters input:focus, .filters select:focus {
+  border-color:#0f172a;
+  box-shadow:0 0 0 3px rgba(15,23,42,0.08);
+}
 .filters .op-selector-wrap { min-width:0; }
 
 /* ==== MAPA DE RECORRIDOS (debajo de la tabla) ==== */
@@ -737,6 +757,106 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
   margin-left:6px;
   vertical-align:middle;
   letter-spacing:0.3px;
+}
+
+/* Botón "Alternativas" mini dentro de cada tarjeta de swap */
+.badge-alts-mini {
+  display:inline-flex; align-items:center; gap:3px;
+  padding:2px 8px;
+  margin-left:6px;
+  background:linear-gradient(135deg, #0f172a, #1e293b);
+  color:#a3e635;
+  border:1px solid rgba(163,230,53,0.4);
+  border-radius:6px;
+  font-size:9px; font-weight:800;
+  cursor:pointer;
+  transition:all 0.15s;
+  letter-spacing:0.4px;
+  text-transform:uppercase;
+  vertical-align:middle;
+  line-height:1.3;
+  font-family:inherit;
+}
+.badge-alts-mini:hover {
+  background:linear-gradient(135deg, #1e293b, #334155);
+  border-color:#a3e635;
+  transform:translateY(-1px);
+  box-shadow:0 3px 8px rgba(15,23,42,0.25);
+}
+
+/* Popup flotante con las alternativas del operador */
+.alts-popup-overlay {
+  position:fixed; inset:0; z-index:10001;
+  background:rgba(15,23,42,0.65);
+  backdrop-filter:blur(3px);
+  display:none;
+  align-items:center; justify-content:center;
+  padding:20px;
+  animation:altsPopupFade 0.15s ease-out;
+}
+.alts-popup-overlay.open { display:flex; }
+@keyframes altsPopupFade {
+  from { opacity:0; }
+  to { opacity:1; }
+}
+.alts-popup {
+  background:#fff;
+  border-radius:14px;
+  width:100%; max-width:820px;
+  max-height:90vh;
+  overflow:hidden;
+  display:flex; flex-direction:column;
+  box-shadow:0 25px 60px rgba(0,0,0,0.4);
+  animation:altsPopupSlide 0.2s ease-out;
+}
+@keyframes altsPopupSlide {
+  from { transform:translateY(15px); opacity:0; }
+  to { transform:translateY(0); opacity:1; }
+}
+.alts-popup-header {
+  padding:16px 22px;
+  background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color:#fff;
+  display:flex; justify-content:space-between; align-items:center;
+  gap:14px;
+  border-bottom:3px solid #a3e635;
+}
+.alts-popup-title {
+  font-size:11px; font-weight:800; color:#a3e635;
+  letter-spacing:1.5px; text-transform:uppercase;
+  margin-bottom:3px;
+}
+.alts-popup-name {
+  font-size:18px; font-weight:800; color:#fff;
+  line-height:1.2;
+}
+.alts-popup-sub {
+  font-size:11px; color:#94a3b8;
+  margin-top:3px;
+}
+.alts-popup-close {
+  padding:8px 14px;
+  background:rgba(255,255,255,0.1);
+  color:#fff;
+  border:1px solid rgba(255,255,255,0.2);
+  border-radius:8px;
+  font-size:12px; font-weight:600;
+  cursor:pointer;
+  transition:all 0.15s;
+}
+.alts-popup-close:hover { background:rgba(255,255,255,0.2); }
+
+.alts-popup-body {
+  flex:1;
+  overflow-y:auto;
+  padding:16px 22px;
+  background:#f8fafc;
+}
+.alts-popup-empty {
+  padding:40px 20px;
+  text-align:center;
+  color:#94a3b8;
+  font-size:13px;
 }
 
 /* ============ MODAL DE FACTURACIÓN ============ */
@@ -1218,6 +1338,376 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
   box-shadow:0 1px 2px rgba(37,99,235,0.3);
 }
 #swapPlantaSelector { display:none; }
+
+/* ============ TOGGLE VISTA NORMAL / ALTERNATIVAS ============ */
+.vista-toggle {
+  display:flex; align-items:center; justify-content:space-between;
+  background:linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  padding:12px 18px;
+  margin-bottom:14px;
+  box-shadow:0 1px 3px rgba(15,23,42,0.04);
+  gap:16px; flex-wrap:wrap;
+}
+.vista-toggle-title {
+  font-size:12px; font-weight:800; color:#0f172a;
+  text-transform:uppercase; letter-spacing:0.6px;
+}
+.vista-toggle-sub {
+  font-size:11px; color:#64748b;
+  margin-top:2px;
+}
+.vista-toggle-controls {
+  display:flex; align-items:center; gap:6px;
+  background:#f1f5f9; padding:3px; border-radius:8px;
+}
+.vista-btn {
+  background:transparent; color:#475569; border:none;
+  padding:7px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;
+  transition:all 0.15s;
+}
+.vista-btn:hover { color:#0f172a; }
+.vista-btn.active {
+  background:#0f172a; color:#a3e635; font-weight:700;
+  box-shadow:0 2px 6px rgba(15,23,42,0.25);
+}
+.vista-btn-reset {
+  background:#fef3c7; color:#78350f; border:1px solid #fbbf24;
+  padding:6px 12px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;
+  transition:all 0.15s; margin-left:8px;
+}
+.vista-btn-reset:hover { background:#fde68a; }
+
+/* ============ TARJETAS DE ALTERNATIVAS POR OPERADOR ============ */
+.alt-card {
+  background:#fff;
+  border-radius:12px;
+  margin-bottom:16px;
+  overflow:hidden;
+  box-shadow:0 2px 8px rgba(15,23,42,0.06);
+  border:1px solid #e2e8f0;
+}
+.alt-card-header {
+  padding:14px 20px;
+  background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color:#fff;
+  display:flex; align-items:center; justify-content:space-between;
+  gap:14px; flex-wrap:wrap;
+  border-bottom:3px solid;
+}
+.alt-card-header.zona-critica { border-bottom-color:#dc2626; }
+.alt-card-header.zona-media   { border-bottom-color:#ea580c; }
+.alt-card-op {
+  display:flex; align-items:center; gap:14px;
+  flex:1; min-width:0;
+}
+.alt-card-badge {
+  padding:5px 11px;
+  border-radius:20px;
+  font-size:10px; font-weight:800;
+  letter-spacing:0.6px;
+  flex-shrink:0;
+}
+.alt-card-badge.critica {
+  background:#dc2626; color:#fff;
+  box-shadow:0 2px 6px rgba(220,38,38,0.4);
+}
+.alt-card-badge.media {
+  background:#ea580c; color:#fff;
+  box-shadow:0 2px 6px rgba(234,88,12,0.4);
+}
+.alt-card-info {
+  flex:1; min-width:0;
+}
+.alt-card-nombre {
+  font-size:16px; font-weight:800; color:#fff;
+  line-height:1.2;
+}
+.alt-card-detalles {
+  font-size:11px; color:#94a3b8;
+  margin-top:3px;
+  display:flex; gap:12px; flex-wrap:wrap;
+}
+.alt-card-detalles b { color:#e2e8f0; }
+.alt-card-km {
+  font-size:32px; font-weight:900; color:#fff;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.alt-card-km .um {
+  font-size:12px; font-weight:600; color:#94a3b8;
+  margin-left:3px;
+}
+.alt-card-km.critico { color:#fca5a5; }
+.alt-card-km.medio   { color:#fdba74; }
+.alt-card-alts-count {
+  padding:4px 10px;
+  background:rgba(163,230,53,0.15);
+  color:#a3e635;
+  border:1px solid rgba(163,230,53,0.4);
+  border-radius:12px;
+  font-size:10px; font-weight:700;
+  letter-spacing:0.4px;
+  white-space:nowrap;
+}
+.alt-card-body {
+  padding:8px;
+  background:#f8fafc;
+}
+.alt-item {
+  display:grid;
+  grid-template-columns: 40px 1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:12px 16px;
+  background:#fff;
+  border-radius:8px;
+  margin-bottom:6px;
+  border:1px solid #e2e8f0;
+  transition:all 0.15s;
+  position:relative;
+}
+.alt-item:last-child { margin-bottom:0; }
+.alt-item:hover {
+  border-color:#a3e635;
+  background:#f0fdf4;
+}
+.alt-item.mejor {
+  border-color:#16a34a;
+  border-left:4px solid #16a34a;
+  background:#f0fdf4;
+}
+.alt-item.mejor::before {
+  content:'⭐ MEJOR';
+  position:absolute; top:-8px; right:14px;
+  background:#16a34a; color:#fff;
+  padding:2px 8px; border-radius:8px;
+  font-size:9px; font-weight:800; letter-spacing:0.5px;
+}
+.alt-rank {
+  display:flex; align-items:center; justify-content:center;
+  width:32px; height:32px;
+  background:#f1f5f9;
+  color:#0f172a;
+  border-radius:50%;
+  font-size:13px; font-weight:800;
+}
+.alt-item.mejor .alt-rank { background:#16a34a; color:#fff; }
+.alt-info {
+  display:flex; flex-direction:column; gap:2px;
+  min-width:0;
+}
+.alt-info-nombre {
+  font-size:13px; font-weight:700; color:#0f172a;
+}
+.alt-info-detalles {
+  font-size:11px; color:#64748b;
+  display:flex; gap:10px; flex-wrap:wrap;
+}
+.alt-info-detalles b { color:#0f172a; font-weight:600; }
+.alt-info-ruta {
+  font-size:11px; color:#475569;
+  margin-top:2px;
+}
+.alt-info-ruta .strike { text-decoration:line-through; color:#94a3b8; }
+.alt-info-ruta .arrow { color:#7c3aed; font-weight:700; margin:0 4px; }
+.alt-info-ruta b { color:#0f172a; }
+.alt-numeros {
+  display:flex; flex-direction:column; align-items:flex-end;
+  gap:2px;
+}
+.alt-numero-km {
+  display:flex; align-items:baseline; gap:6px;
+  font-variant-numeric:tabular-nums;
+}
+.alt-numero-km .antes {
+  font-size:11px; color:#94a3b8; text-decoration:line-through;
+}
+.alt-numero-km .despues {
+  font-size:18px; font-weight:800; color:#16a34a;
+}
+.alt-numero-km .despues.medio { color:#ea580c; }
+.alt-numero-km .despues.alto  { color:#dc2626; }
+.alt-ahorro {
+  font-size:10px; font-weight:700; color:#16a34a;
+  text-transform:uppercase; letter-spacing:0.4px;
+}
+.alt-actions {
+  display:flex; flex-direction:column; gap:4px;
+}
+.alt-btn-descartar {
+  padding:6px 12px;
+  background:#fff; color:#dc2626;
+  border:1px solid #fecaca;
+  border-radius:6px;
+  font-size:11px; font-weight:700; cursor:pointer;
+  transition:all 0.15s;
+  white-space:nowrap;
+}
+.alt-btn-descartar:hover {
+  background:#fef2f2; border-color:#dc2626;
+}
+.alt-btn-ver-mapa {
+  padding:6px 12px;
+  background:#fff; color:#2563eb;
+  border:1px solid #bfdbfe;
+  border-radius:6px;
+  font-size:11px; font-weight:700; cursor:pointer;
+  transition:all 0.15s;
+  white-space:nowrap;
+}
+.alt-btn-ver-mapa:hover {
+  background:#eff6ff; border-color:#2563eb;
+}
+.alt-empty {
+  padding:20px; text-align:center;
+  color:#94a3b8; font-size:12px; font-style:italic;
+}
+.alt-motivo {
+  font-size:10px; color:#dc2626;
+  margin-top:2px;
+  font-style:italic;
+}
+
+/* ============ ÍNDICE / LISTADO DE OPERADORES CRÍTICOS ============ */
+.alt-indice {
+  background:#fff;
+  border-radius:12px;
+  margin-bottom:20px;
+  overflow:hidden;
+  box-shadow:0 2px 10px rgba(15,23,42,0.08);
+  border:1px solid #e2e8f0;
+}
+.alt-indice-header {
+  padding:14px 18px;
+  background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color:#fff;
+  display:flex; justify-content:space-between; align-items:center;
+  gap:14px; flex-wrap:wrap;
+  border-bottom:3px solid #a3e635;
+}
+.alt-indice-title {
+  font-size:14px; font-weight:800; color:#a3e635;
+  letter-spacing:0.6px; text-transform:uppercase;
+}
+.alt-indice-sub {
+  font-size:11px; color:#94a3b8; margin-top:3px;
+}
+.alt-indice-search {
+  padding:8px 14px;
+  min-width:280px;
+  background:#0f172a;
+  color:#fff;
+  border:1px solid #334155;
+  border-radius:8px;
+  font-size:12px;
+  outline:none;
+  transition:border-color 0.15s;
+}
+.alt-indice-search:focus { border-color:#a3e635; }
+.alt-indice-search::placeholder { color:#64748b; }
+
+.alt-indice-body {
+  max-height:340px;
+  overflow-y:auto;
+  padding:6px;
+  background:#f8fafc;
+}
+.alt-indice-body::-webkit-scrollbar { width:8px; }
+.alt-indice-body::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:4px; }
+
+.idx-row {
+  display:grid;
+  grid-template-columns:60px 1fr auto;
+  align-items:center;
+  gap:14px;
+  padding:9px 14px;
+  background:#fff;
+  border-radius:8px;
+  margin-bottom:4px;
+  border:1px solid #e2e8f0;
+  border-left:3px solid;
+  transition:all 0.15s;
+  cursor:pointer;
+  text-decoration:none;
+  color:#0f172a;
+}
+.idx-row:last-child { margin-bottom:0; }
+.idx-row.crit  { border-left-color:#dc2626; }
+.idx-row.medio { border-left-color:#ea580c; }
+.idx-row:hover {
+  background:#f0fdf4;
+  border-color:#a3e635;
+  transform:translateX(2px);
+  box-shadow:0 2px 6px rgba(15,23,42,0.08);
+}
+
+.idx-km {
+  text-align:center;
+  font-size:16px; font-weight:800;
+  font-variant-numeric:tabular-nums;
+  line-height:1;
+  padding:6px 4px;
+  border-radius:6px;
+}
+.idx-km.crit  { color:#991b1b; background:#fef2f2; }
+.idx-km.medio { color:#9a3412; background:#fff7ed; }
+
+.idx-info {
+  min-width:0;
+  overflow:hidden;
+}
+.idx-nombre {
+  font-size:13px; font-weight:700; color:#0f172a;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.idx-detalles {
+  font-size:10px; color:#64748b;
+  margin-top:2px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+
+.idx-status {
+  padding:4px 10px;
+  border-radius:12px;
+  font-size:10px; font-weight:800;
+  letter-spacing:0.4px;
+  white-space:nowrap;
+  text-transform:uppercase;
+}
+.idx-status.buena { background:#dcfce7; color:#166534; border:1px solid #86efac; }
+.idx-status.baja  { background:#fef3c7; color:#78350f; border:1px solid #fde68a; }
+.idx-status.sin   { background:#fef2f2; color:#991b1b; border:1px solid #fecaca; }
+
+/* Leyenda debajo del índice */
+.alt-indice-legend {
+  padding:8px 18px;
+  background:#f1f5f9;
+  border-top:1px solid #e2e8f0;
+  display:flex; flex-wrap:wrap; gap:14px;
+  align-items:center;
+  font-size:10px; color:#475569;
+}
+.idx-leg {
+  display:inline-flex; align-items:center; gap:5px;
+  font-weight:700; letter-spacing:0.3px;
+}
+.idx-leg.crit  { color:#991b1b; }
+.idx-leg.medio { color:#9a3412; }
+.idx-leg.buena { color:#166534; }
+.idx-leg.baja  { color:#78350f; }
+.idx-leg.sin   { color:#991b1b; }
+
+/* Highlight temporal cuando saltas desde el índice */
+.alt-card-highlight {
+  animation:altHighlight 1.5s ease-out;
+}
+@keyframes altHighlight {
+  0%   { box-shadow:0 0 0 0 rgba(163,230,53,0); }
+  25%  { box-shadow:0 0 0 6px rgba(163,230,53,0.5); }
+  100% { box-shadow:0 0 0 0 rgba(163,230,53,0); }
+}
 
 /* Picker multi-plantas para modo "Por planta" */
 .swap-plantas-picker {
@@ -1844,22 +2334,32 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
 
 .cuad-toolbar {
   display:flex; align-items:center; gap:12px; flex-wrap:wrap;
-  background:#fff; padding:14px 16px; border-radius:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.06); margin-bottom:16px;
+  background:#fff; padding:14px 18px; border-radius:12px;
+  box-shadow:0 2px 10px rgba(15,23,42,0.06); margin-bottom:16px;
+  border:1px solid #e2e8f0;
 }
 .cuad-source-info {
-  display:flex; align-items:center; gap:10px;
-  background:#f0fdf4; border:1px solid #bbf7d0;
-  padding:8px 14px; border-radius:8px;
+  display:flex; align-items:center; gap:12px;
+  background:linear-gradient(135deg, #f0fdf4 0%, #fff 100%);
+  border:1px solid #bbf7d0;
+  padding:10px 16px; border-radius:10px;
   margin-right:auto;
 }
-.cuad-source-icon { font-size:20px; }
+.cuad-source-icon {
+  font-size:22px;
+  background:#fff;
+  width:38px; height:38px;
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 4px rgba(22,163,74,0.15);
+}
 .cuad-source-title {
-  font-size:12px; font-weight:700; color:#166534;
-  letter-spacing:0.2px;
+  font-size:12px; font-weight:800; color:#0f172a;
+  letter-spacing:0.3px;
 }
 .cuad-source-sub {
-  font-size:11px; color:#15803d; margin-top:1px;
+  font-size:11px; color:#64748b; margin-top:2px;
+  font-weight:500;
 }
 .cuad-source-info.no-data {
   background:#fef3c7; border-color:#fde68a;
@@ -2009,11 +2509,131 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
   padding:12px; text-align:center; color:#9ca3af; font-size:12px;
 }
 .cuad-map-wrap {
-  background:#fff; border-radius:10px; padding:10px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.06); position:relative;
+  background:#fff; border-radius:14px; padding:12px;
+  box-shadow:0 4px 20px rgba(15,23,42,0.08), 0 1px 3px rgba(15,23,42,0.04);
+  position:relative;
   min-width:0;
+  border:1px solid #e2e8f0;
 }
-#cuadrantesMap { height:680px; border-radius:8px; }
+
+/* KPIs del tab Cuadrantes: Total / Activos / Inactivos / Sin dato */
+.cuad-kpis {
+  display:grid; grid-template-columns:repeat(4, 1fr);
+  gap:10px; margin-bottom:14px;
+}
+.cuad-kpi {
+  background:#fff; padding:12px 16px; border-radius:12px;
+  box-shadow:0 1px 3px rgba(15,23,42,0.06);
+  border-left:4px solid #0f172a;
+  cursor:pointer;
+  transition:all 0.15s;
+  position:relative;
+}
+.cuad-kpi:hover {
+  transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(15,23,42,0.09);
+}
+.cuad-kpi.active {
+  box-shadow:0 0 0 2px #0f172a, 0 4px 12px rgba(15,23,42,0.15);
+}
+.cuad-kpi .num {
+  font-size:28px; font-weight:800;
+  line-height:1; letter-spacing:-0.8px;
+  color:#0f172a;
+}
+.cuad-kpi .lbl {
+  font-size:10px; color:#94a3b8;
+  text-transform:uppercase; letter-spacing:0.7px;
+  font-weight:700; margin-top:4px;
+}
+.cuad-kpi .sub {
+  font-size:10px; color:#64748b;
+  margin-top:3px; font-weight:500;
+}
+.cuad-kpi.total   { border-left-color:#0f172a; }
+.cuad-kpi.activos { border-left-color:#16a34a; background:#f0fdf4; }
+.cuad-kpi.activos .num { color:#166534; }
+.cuad-kpi.inactivos { border-left-color:#dc2626; background:#fef2f2; }
+.cuad-kpi.inactivos .num { color:#991b1b; }
+.cuad-kpi.sinDato { border-left-color:#94a3b8; background:#f8fafc; }
+.cuad-kpi.sinDato .num { color:#475569; }
+#cuadrantesMap {
+  height:700px; border-radius:10px;
+  box-shadow:inset 0 0 0 1px rgba(15,23,42,0.06);
+}
+
+/* Control personalizado de capas base estilo Google Maps */
+.cuad-basemap-switcher {
+  display:flex; gap:2px;
+  background:#fff;
+  padding:4px;
+  border-radius:10px;
+  box-shadow:0 2px 10px rgba(15,23,42,0.15), 0 0 0 1px rgba(15,23,42,0.08);
+  font-family:'Inter',sans-serif;
+}
+.cuad-basemap-switcher button {
+  background:transparent;
+  border:none;
+  padding:7px 14px;
+  border-radius:7px;
+  font-size:11px; font-weight:700;
+  color:#475569;
+  cursor:pointer;
+  transition:all 0.15s;
+  letter-spacing:0.3px;
+  display:inline-flex; align-items:center; gap:4px;
+  white-space:nowrap;
+}
+.cuad-basemap-switcher button:hover {
+  background:#f1f5f9;
+  color:#0f172a;
+}
+.cuad-basemap-switcher button.active {
+  background:#0f172a;
+  color:#a3e635;
+  box-shadow:0 1px 3px rgba(15,23,42,0.3);
+}
+
+/* Mejoras visuales de los popups de Leaflet */
+.leaflet-popup-content-wrapper {
+  border-radius:10px;
+  box-shadow:0 4px 20px rgba(15,23,42,0.15);
+  border:1px solid rgba(15,23,42,0.08);
+}
+.leaflet-popup-content {
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  color:#0f172a;
+  margin:12px 14px;
+  line-height:1.4;
+}
+.leaflet-popup-content b { color:#0f172a; font-weight:700; }
+.leaflet-popup-tip {
+  box-shadow:0 2px 6px rgba(15,23,42,0.1);
+}
+.leaflet-control-zoom a {
+  border-radius:6px !important;
+  background:#fff !important;
+  color:#0f172a !important;
+  font-weight:800 !important;
+  border:1px solid rgba(15,23,42,0.08) !important;
+  box-shadow:0 1px 3px rgba(15,23,42,0.1) !important;
+}
+.leaflet-control-zoom a:hover {
+  background:#f8fafc !important;
+  color:#a3e635 !important;
+}
+.leaflet-control-scale-line {
+  background:rgba(255,255,255,0.9) !important;
+  border:1px solid rgba(15,23,42,0.1) !important;
+  border-top:none !important;
+  color:#0f172a !important;
+  font-weight:700 !important;
+  font-family:'Inter',sans-serif !important;
+  padding:2px 8px !important;
+}
+.leaflet-container { font-family:'Inter',sans-serif !important; }
+.leaflet-container a { color:#0f172a; }
 
 .cuad-panel {
   background:#fff; border-radius:10px; padding:14px;
@@ -2216,9 +2836,18 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
 .rango-card:hover { transform:translateY(-1px); box-shadow:0 3px 10px rgba(0,0,0,0.08); }
 .rango-card.active { transform:translateY(-1px); box-shadow:0 3px 12px rgba(0,0,0,0.12); border-left-width:6px; }
 .rango-card .top { display:flex; align-items:baseline; justify-content:space-between; }
-.rango-card .num { font-size:20px; font-weight:800; color:#0f172a; line-height:1.1; }
-.rango-card .pct { font-size:11px; color:#6b7280; font-weight:600; }
-.rango-card .label { font-size:10px; color:#64748b; margin-top:2px; text-transform:uppercase; letter-spacing:0.4px; font-weight:600; }
+.rango-card .num {
+  font-size:22px; font-weight:800; color:#0f172a; line-height:1;
+  letter-spacing:-0.6px;
+}
+.rango-card .pct {
+  font-size:11px; color:#6b7280; font-weight:700;
+  letter-spacing:-0.1px;
+}
+.rango-card .label {
+  font-size:10px; color:#94a3b8; margin-top:4px;
+  text-transform:uppercase; letter-spacing:0.6px; font-weight:700;
+}
 .rango-card .bar { height:3px; background:#f1f5f9; border-radius:2px; margin-top:6px; overflow:hidden; }
 .rango-card .bar > div { height:100%; transition:width 0.3s; }
 .rango-card.ok { border-color:#16a34a; background:#f0fdf4; }
@@ -2320,45 +2949,45 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
 }
 .ger-head {
   display:flex; justify-content:space-between; align-items:baseline;
-  margin-bottom:8px;
-  padding-bottom:6px;
+  margin-bottom:10px;
+  padding-bottom:8px;
   border-bottom:1px solid #f1f5f9;
 }
 .ger-name {
-  font-weight:800; font-size:13px; color:#0f172a;
-  letter-spacing:-0.2px;
+  font-weight:700; font-size:13px; color:#0f172a;
+  letter-spacing:-0.3px;
 }
-.ger-ops { font-size:10px; color:#94a3b8; font-weight:600; }
+.ger-ops {
+  font-size:10px; color:#94a3b8; font-weight:600;
+  letter-spacing:-0.1px;
+}
 .ger-stats {
-  display:grid; grid-template-columns:repeat(3,1fr); gap:6px;
+  display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
 }
 .ger-stat { text-align:center; }
-.ger-stat .num { font-size:17px; font-weight:800; line-height:1.1; }
-.ger-stat .lbl {
-  font-size:9px; color:#64748b; margin-top:1px;
-  text-transform:uppercase; letter-spacing:0.3px; font-weight:700;
+.ger-stat .num {
+  font-size:20px; font-weight:800; line-height:1;
+  color:#0f172a;                    /* mismo color para todos los números */
+  letter-spacing:-0.5px;
 }
-/* Los NÚMEROS internos sí conservan los colores semánticos (verde/rojo/azul) */
-.ger-stat.ok .num  { color:#16a34a; }
-.ger-stat.bad .num { color:#dc2626; }
-.ger-stat.avg .num { color:#2563eb; }
+.ger-stat .lbl {
+  font-size:9px; color:#94a3b8; margin-top:4px;
+  text-transform:uppercase; letter-spacing:0.6px; font-weight:700;
+}
+/* Pequeño indicador de color arriba del número (delgado, sutil, discreto) */
+.ger-stat.ok  .num::before { content:''; }
+.ger-stat.bad .num::before { content:''; }
+.ger-stat.avg .num::before { content:''; }
+/* Alternativamente: mantener acento sutil con un solo tono (opcional, actualmente OFF) */
 </style>
 </head>
 
 <body>
 
-<div class="loading-overlay" id="loadingOverlay">
-  <img src="dash-logo.png" alt="Dash" class="loading-logo-img">
-  <div class="loading-box">
-    <div class="loading-spinner"></div>
-    <div class="loading-title">Cargando…</div>
-    <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
-  </div>
-</div>
-
 <div class="sidebar">
   <div class="sidebar-brand">
-    <img src="dash-logo-blanco.png" alt="Dash" class="brand-logo-img">
+    <div class="brand-title">KM VACÍO</div>
+    <div class="brand-sub">TRAXIÓN · Flota BAU</div>
   </div>
 
   <input type="file" id="csvInput" accept=".csv,.xlsx,.xls" style="display:none"/>
@@ -2436,7 +3065,8 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
   <!-- TAB: KILOMETRAJE VACÍO -->
   <section id="tab-km" class="tab active">
 
-    <div class="kpis">
+    <!-- KPIs superiores ocultos (los datos clave están en las tarjetas de gerentes y rangos) -->
+    <div class="kpis" style="display:none">
       <div class="card kpi-total"><h2 id="totalKM">0</h2><p>KM Vacío Total</p><small class="kpi-sub" id="totalKMSub"></small></div>
       <div class="card kpi-prom"><h2 id="promedioKM">0</h2><p>Promedio KM</p><small class="kpi-sub" id="promedioKMSub"></small></div>
       <div class="card kpi-ops"><h2 id="operadores">0</h2><p>Operadores</p><small class="kpi-sub" id="operadoresSub"></small></div>
@@ -2477,6 +3107,11 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
         <input type="text" id="filterRuta" placeholder="Ruta..." autocomplete="off">
         <span class="op-selector-badge" id="filterRutaBadge" style="display:none">0</span>
         <div class="op-selector-drop" id="rutSelectorDrop"></div>
+      </div>
+      <div class="op-selector-wrap" id="filterZonaWrap" style="display:none">
+        <input type="text" id="filterZona" placeholder="Zona (Garcia 1, 2, Cienega...)" autocomplete="off">
+        <span class="op-selector-badge" id="filterZonaBadge" style="display:none">0</span>
+        <div class="op-selector-drop" id="zonSelectorDrop"></div>
       </div>
     </div>
 
@@ -2554,6 +3189,19 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
         <span class="picker-count" id="swapPlantasCount">(ninguna seleccionada)</span>
       </div>
       <div class="picker-chips" id="swapPlantasChips"></div>
+    </div>
+
+    <!-- Toggle para vista de alternativas -->
+    <div class="vista-toggle">
+      <div class="vista-toggle-info">
+        <div class="vista-toggle-title">📋 Modo de visualización</div>
+        <div class="vista-toggle-sub" id="vistaToggleSub">Vista normal: 1 propuesta por operador</div>
+      </div>
+      <div class="vista-toggle-controls">
+        <button class="vista-btn active" data-vista="normal">Vista normal</button>
+        <button class="vista-btn" data-vista="alternativas">🎯 Alternativas por operador</button>
+        <button class="vista-btn-reset" id="btnRestaurarAlts" style="display:none" title="Restaurar todas las alternativas descartadas">↺ Restaurar descartadas</button>
+      </div>
     </div>
 
     <div id="swapSummary"></div>
@@ -2691,20 +3339,11 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
           <div class="cuad-source-sub" id="cuadStatus">Carga un CSV en la tab principal para empezar</div>
         </div>
       </div>
-      <div class="cuad-upload-section">
-        <div class="cuad-upload-hint">
-          <strong>💡 Opcional:</strong> Sube tu Excel maestro de operadores para incluir los operadores extra que no aparecen en el CSV. Las rutas de inicio siempre se toman del CSV.
-        </div>
-        <div class="cuad-upload-buttons">
-          <label class="cuad-upload cuad-upload-primary" title="Sobreescribir con tu listado maestro (incluye operadores extra)">
-            📁 Operadores.xlsx
-            <input type="file" id="cuadOpInput" accept=".xlsx,.xls">
-          </label>
-          <button id="cuadResetSource" class="cuad-reset-btn" style="display:none" title="Volver a usar los datos del CSV">
-            ↺ Usar CSV
-          </button>
-        </div>
-      </div>
+      <!-- El upload manual del Excel de operadores fue reemplazado por lectura automática
+           de la hoja "Plantilla" del Google Sheet. Se mantiene el input oculto para no romper
+           el código existente que lo referencia. -->
+      <input type="file" id="cuadOpInput" accept=".xlsx,.xls" style="display:none">
+      <button id="cuadResetSource" style="display:none"></button>
       <span class="lbl">Filtro:</span>
       <select id="cuadGerencia">
         <option value="">Todas las gerencias</option>
@@ -2715,7 +3354,13 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
       <select id="cuadPlanta">
         <option value="">Todas las plantas</option>
       </select>
+      <button id="btnDescargarCuadrantes" class="btn-descargar-excel" title="Descargar lista de operadores (del cuadrante seleccionado o de todos)">
+        📥 Descargar operadores
+      </button>
     </div>
+
+    <!-- KPIs: Total / Activos / Inactivos / Sin dato -->
+    <div class="cuad-kpis" id="cuadKpis"></div>
 
     <!-- Buscadores con autocompletado -->
     <div class="cuad-searches">
@@ -2809,6 +3454,23 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
         <span class="leg"><span style="display:inline-block; width:10px; height:10px; background:#eab308; border:2px solid #fff; border-radius:50%; box-shadow:0 0 0 1px #eab308"></span> Ops. cercanos al inicio</span>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- =====================================================
+     POPUP DE ALTERNATIVAS RÁPIDAS (para un operador específico)
+     ===================================================== -->
+<div class="alts-popup-overlay" id="altsPopup">
+  <div class="alts-popup">
+    <div class="alts-popup-header">
+      <div style="flex:1;min-width:0">
+        <div class="alts-popup-title">🔄 ALTERNATIVAS DE CAMBIO</div>
+        <div class="alts-popup-name" id="altsPopupName">—</div>
+        <div class="alts-popup-sub" id="altsPopupSub">—</div>
+      </div>
+      <button class="alts-popup-close" id="altsPopupClose">✕ Cerrar</button>
+    </div>
+    <div class="alts-popup-body" id="altsPopupBody"></div>
   </div>
 </div>
 
@@ -2961,6 +3623,12 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
 const GOOGLE_SHEET_ID = '1hu1PV9ZSI0AjOYHdazrVU0V7fyznfqhCL-bO32Uiax8';
 const GOOGLE_SHEET_NAME = 'bau';  // Nombre de la hoja/pestaña dentro del Sheet
 const GOOGLE_SHEET_NAME_FACT = 'facturacion';  // Hoja con viajes reales
+const GOOGLE_SHEET_NAME_RUTAS = 'Rutas';  // Hoja con mapeo Planta+Ruta → Zona (y 1° parada)
+const GOOGLE_SHEET_NAME_OPS   = 'Plantilla';  // Hoja con plantilla de operadores (Worker Id, Driver Name, Lat, Long)
+// Mapa global: "PLANTA|RUTA" → "Zona"
+let zonaPorRuta = new Map();
+// Operadores extra desde la hoja "Plantilla" (plantilla completa de la flota)
+let operadoresPlantilla = [];
 
 // =========================================================
 // CONSTANTES Y MAPEOS
@@ -3073,8 +3741,12 @@ let filtroGerentes = new Set();
 let filtroJefes = new Set();
 let filtroPlantas = new Set();
 let filtroRutas = new Set();
+let filtroZonas = new Set();
 let rangosActivos = new Set();  // 'ok' | 'mid' | 'warn' | 'bad' (múltiples)
 let swapsRecomendados = [];
+let paresTodos = [];  // Todos los pares válidos (para vista de alternativas por operador)
+let vistaAlternativas = false;  // Toggle: false=vista greedy normal, true=alternativas por operador crítico
+let altsDescartadas = new Set();  // IDs de alternativas descartadas por el usuario (formato: "nomOp|nomAlt")
 let swapsUsanDistanciaReal = false;
 let modoSwap = 'jefe';
 let plantasSwapSeleccionadas = new Set();   // Solo se usa cuando modoSwap === 'planta'
@@ -3320,7 +3992,7 @@ function procesarFilasTourInterno(filas, header) {
     if (!sm.has(key)) {
       const jefe = jefeDe(planta);
       sm.set(key, {
-        id, nombre, ruta, planta, jefe, gerente: gerenteDe(jefe), coordinador: coordinadorDe(planta, ruta),
+        id, nombre, ruta, planta, jefe, gerente: gerenteDe(jefe), coordinador: coordinadorDe(planta, ruta), zona: zonaPorRuta.get(`${planta}|${ruta}`) || 'SIN ZONA',
         unidad: String(c[cUnit] || '').trim(),
         kmVacio: km, horario,
         homeLat, homeLng, startLat, startLng,
@@ -3340,7 +4012,8 @@ function procesarFilasTourInterno(filas, header) {
       if (!s.ruta || rutasUnicasMap.has(s.ruta)) return;
       rutasUnicasMap.set(s.ruta, {
         ruta: s.ruta, planta: s.planta, jefe: s.jefe, gerente: s.gerente,
-        lat: s.startLat, lng: s.startLng, inicio: s.horario
+        lat: s.startLat, lng: s.startLng, inicio: s.horario,
+        zona: zonaPorRuta.get(`${s.planta}|${s.ruta}`) || 'SIN ZONA'
       });
     });
   });
@@ -3389,18 +4062,19 @@ function procesarFilasTourInterno(filas, header) {
   renderComparativaGerencias();
   calcularDistribucion();
   renderTabla();
-  poblarCuadrantesDesdeCsv();
-  if (typeof ocultarLoadingOverlay === 'function') ocultarLoadingOverlay();
-  setTimeout(() => calcularSwaps(), 0);
+  calcularSwaps();
+  // Si tenemos plantilla operadores → poblar con ella (incluye sin servicio)
+  // Si no → fallback al CSV solo
+  if (operadoresPlantilla.length > 0) {
+    poblarCuadrantesDesdeSheet();
+  } else {
+    poblarCuadrantesDesdeCsv();
+  }
 }
 
 function procesarCSV(text) {
   const filas = parseCSV(text);
-  procesarFilas(filas);
-}
-
-function procesarFilas(filas) {
-  if (!filas || filas.length < 2) return;
+  if (filas.length < 2) return;
   const DIAS_LV = new Set(['Monday','Tuesday','Wednesday','Thursday','Friday']);
   const serviciosPorOp = new Map();
   const rutasUnicasMap = new Map();  // Todas las rutas del CSV independientemente del operador
@@ -3424,7 +4098,7 @@ function procesarFilas(filas) {
       if (!isNaN(startLat) && !isNaN(startLng) && !rutasUnicasMap.has(ruta)) {
         const jefe = jefeDe(planta);
         rutasUnicasMap.set(ruta, {
-          ruta, planta, jefe, gerente: gerenteDe(jefe), coordinador: coordinadorDe(planta, ruta),
+          ruta, planta, jefe, gerente: gerenteDe(jefe), coordinador: coordinadorDe(planta, ruta), zona: zonaPorRuta.get(`${planta}|${ruta}`) || 'SIN ZONA',
           lat: startLat, lng: startLng,
           inicio: horario
         });
@@ -3445,7 +4119,7 @@ function procesarFilas(filas) {
       if (isNaN(homeLat) || isNaN(startLat)) continue;
       const jefe = jefeDe(planta);
       sm.set(key, {
-        id, nombre, ruta, planta, jefe, gerente: gerenteDe(jefe), coordinador: coordinadorDe(planta, ruta),
+        id, nombre, ruta, planta, jefe, gerente: gerenteDe(jefe), coordinador: coordinadorDe(planta, ruta), zona: zonaPorRuta.get(`${planta}|${ruta}`) || 'SIN ZONA',
         unidad: (c[COL.unidad] || '').trim(),
         kmVacio: km, horario,
         homeLat, homeLng, startLat, startLng,
@@ -3500,24 +4174,19 @@ function procesarFilas(filas) {
 
   setStatus(`${operadores.length} operadores cargados`, 'ok');
 
-  // ⚡ Rápido: muestra la tabla de inmediato
   llenarFiltros();
   renderKPIs();
   renderComparativaGerencias();
   calcularDistribucion();
   renderTabla();
-  poblarCuadrantesDesdeCsv();
-  ocultarLoadingOverlay();
-  // calcularSwaps() es lo más caro (OSRM). Lo dejamos para el siguiente tick
-  // para que el usuario vea los datos sin esperar las propuestas de cambio.
-  setTimeout(() => calcularSwaps(), 0);
-}
-
-function ocultarLoadingOverlay(){
-  const ov = document.getElementById('loadingOverlay');
-  if (!ov) return;
-  ov.classList.add('hidden');
-  setTimeout(() => { ov.style.display = 'none'; }, 450);
+  calcularSwaps();
+  // Si tenemos plantilla operadores → poblar con ella (incluye sin servicio)
+  // Si no → fallback al CSV solo
+  if (operadoresPlantilla.length > 0) {
+    poblarCuadrantesDesdeSheet();
+  } else {
+    poblarCuadrantesDesdeCsv();
+  }
 }
 
 // =========================================================
@@ -3640,6 +4309,7 @@ function llenarFiltros() {
   actualizarBadgeFiltro('filterJefe', filtroJefes);
   actualizarBadgeFiltro('filterPlanta', filtroPlantas);
   actualizarBadgeFiltro('filterRuta', filtroRutas);
+  actualizarBadgeFiltro('filterZona', filtroZonas);
 }
 
 function actualizarBadgeFiltro(inputId, set) {
@@ -3669,6 +4339,7 @@ function operadoresFiltrados() {
     if (filtroJefes.size > 0 && !filtroJefes.has(o.jefe)) return false;
     if (filtroPlantas.size > 0 && !filtroPlantas.has(o.planta)) return false;
     if (filtroRutas.size > 0 && !filtroRutas.has(o.ruta)) return false;
+    if (filtroZonas.size > 0 && !filtroZonas.has(o.zona || 'SIN ZONA')) return false;
     if (rangosActivos.size > 0) {
       let enAlgunRango = false;
       if (rangosActivos.has('ok')   && o.kmVacio < 5) enAlgunRango = true;
@@ -4232,6 +4903,13 @@ async function calcularSwaps() {
         const A = grupo[i], B = grupo[j];
         if (A.ruta === B.ruta) continue;
 
+        // ENFOQUE EN RESCATES: al menos UN operador del par debe estar por encima
+        // de 10 km. Los swaps entre dos operadores que ya están bien (<=10 km)
+        // no aportan valor operativo relevante.
+        const alguienAlto = A.kmVacio > 15 || B.kmVacio > 15;
+        const alguienMedio = (A.kmVacio > 10 && A.kmVacio <= 15) || (B.kmVacio > 10 && B.kmVacio <= 15);
+        if (!alguienAlto && !alguienMedio) continue;
+
         // FALSO POSITIVO: si los operadores viven a menos de 500m entre sí
         // Y los inicios de las rutas también están a menos de 500m,
         // intercambiar sus rutas no genera beneficio real. El CSV puede tener
@@ -4358,6 +5036,13 @@ async function calcularSwaps() {
     // (donde el usuario explícitamente pide ver TODAS las opciones)
     if (modoSwap !== 'planta' && mediosDespues > mediosAntes && rescate <= 0) return;
 
+    // REGLA CLAVE: los dos operadores propuestos deben quedar en ≤10 km después del swap.
+    // Esto asegura que cualquier cambio propuesto resuelve el problema completamente.
+    // EXCEPCIÓN: si el swap rescata a un operador de >15 km, se permite que el resultado
+    // llegue hasta 12 km (un pequeño margen extra para no perder rescates críticos).
+    const limiteMax = rescate > 0 ? 12 : 10;
+    if (nuevoA > limiteMax || nuevoB > limiteMax) return;
+
     const ahorro = (p.A.kmVacio + p.B.kmVacio) - (nuevoA + nuevoB);
     // Filtrar ahorros triviales (excepto si hay rescate o si es modo relajado con ahorro mínimo)
     if (modoRelajado) {
@@ -4397,26 +5082,33 @@ async function calcularSwaps() {
   });
 
   // Ordenar según el modo:
-  // - Modo relajado (planta): puro ahorro descendente
-  // - Modo estricto: categoría → rescate → ahorro
-  if (modoRelajado) {
-    pares.sort((a, b) => b.ahorro - a.ahorro);
-  } else {
-    const ordenCat = {
-      excelente: 6,         // >15 rescatado + ambos <5
-      rescate: 5,           // >15 rescatado
-      excelente_medio: 4,   // 10-15 rescatado + ambos <5
-      rescate_medio: 3,     // 10-15 rescatado
-      doble_bajo: 2,        // ambos terminan <5
-      ahorro: 1             // solo ahorro puro
-    };
-    pares.sort((a, b) => {
-      if (ordenCat[a.categoria] !== ordenCat[b.categoria]) return ordenCat[b.categoria] - ordenCat[a.categoria];
-      if (a.rescate !== b.rescate) return b.rescate - a.rescate;
-      if (a.rescateMedio !== b.rescateMedio) return b.rescateMedio - a.rescateMedio;
-      return b.ahorro - a.ahorro;
-    });
-  }
+  // NUEVA PRIORIDAD: SIEMPRE priorizar rescates de >15 primero, luego 10-15,
+  // sin importar el modo. Después de agotar los rescates, seguir con doble mejora y ahorro.
+  // Esto asegura que los pocos slots (cada operador aparece 1 vez) se usan para lo importante.
+  const ordenCat = {
+    excelente: 7,         // >15 rescatado + ambos <5
+    rescate: 6,           // >15 rescatado (prioridad máxima)
+    excelente_medio: 5,   // 10-15 rescatado + ambos <5
+    rescate_medio: 4,     // 10-15 rescatado
+    doble_bajo: 2,        // ambos terminan <5
+    ahorro: 1             // solo ahorro puro
+  };
+  pares.sort((a, b) => {
+    // 1. Categoría primero (rescates arriba)
+    if (ordenCat[a.categoria] !== ordenCat[b.categoria]) return ordenCat[b.categoria] - ordenCat[a.categoria];
+    // 2. Dentro de la misma categoría, quien rescate MÁS operadores de >15 primero
+    if (a.rescate !== b.rescate) return b.rescate - a.rescate;
+    // 3. Luego, quien rescate MÁS operadores de 10-15
+    if ((a.rescateMedio || 0) !== (b.rescateMedio || 0)) return (b.rescateMedio || 0) - (a.rescateMedio || 0);
+    // 4. Luego, priorizar por el PICO ANTES más alto (rescatar al peor primero)
+    if (a.picoAntes !== b.picoAntes) return b.picoAntes - a.picoAntes;
+    // 5. Finalmente, por ahorro
+    return b.ahorro - a.ahorro;
+  });
+
+  // Guardar TODOS los pares válidos para el modo "Alternativas por operador"
+  // Así podemos mostrar múltiples opciones cuando un jefe descarte una
+  paresTodos = pares.slice();  // referencia global para vista alternativas
 
   // Greedy: cada operador aparece MÁXIMO UNA VEZ
   // Esto garantiza que todas las propuestas visibles son ejecutables sin conflicto
@@ -4829,6 +5521,12 @@ function swapId(s) {
 function renderSwaps() {
   const cont = document.getElementById('tablaSwaps');
 
+  // Si estamos en modo "alternativas", renderizar la vista agrupada por operador crítico
+  if (vistaAlternativas) {
+    renderSwapsAlternativas();
+    return;
+  }
+
   const activos = swapsRecomendados.filter(s => !DISMISSED.has(swapId(s)));
   const ocultos = swapsRecomendados.filter(s => DISMISSED.has(swapId(s)));
   const nActivos = activos.length;
@@ -5102,7 +5800,7 @@ function renderSwaps() {
           <div class="swap-chip">${catBadge} ${chip}${tripleteBadge}${s.rescate > 0 ? `<span class="swap-badge rescate">↓ rescata ${s.rescate} de &gt;15km</span>` : ''}${(s.rescateMedio || 0) > 0 && s.rescate === 0 ? `<span class="swap-badge rescate-medio">↓ rescata ${s.rescateMedio} de 10-15km</span>` : ''}${s.dobleBajo ? `<span class="swap-badge doble">↓↓ ${s.esCuarteta ? 'los 4' : (s.esTripleta ? 'los 3' : 'ambos')} &lt;5 km</span>` : ''}</div>
           <div class="swap-operadores ${s.esCuarteta ? 'is-quad' : (s.esTripleta ? 'is-triple' : '')}">
             <div class="swap-op A">
-              <div class="name">${s.A.nombre}${viajesFacturacion.has(String(s.A.id)) ? `<span class="badge-fact badge-fact-mini" data-nomina="${s.A.id}" data-nombre="${s.A.nombre.replace(/"/g, '&quot;')}" title="Ver viajes reales">Fact</span>` : ''}</div>
+              <div class="name">${s.A.nombre}${viajesFacturacion.has(String(s.A.id)) ? `<span class="badge-fact badge-fact-mini" data-nomina="${s.A.id}" data-nombre="${s.A.nombre.replace(/"/g, '&quot;')}" title="Ver viajes reales">Fact</span>` : ''}<button class="badge-alts-mini" onclick="abrirAlternativasOp(event, '${s.A.id}', '${s.A.nombre.replace(/'/g, '')}')" title="Ver otras alternativas de cambio para este operador">🔄 Alternativas</button></div>
               <div class="row">Nóm <b>${s.A.id}</b> · Un <b>${s.A.unidad || '—'}</b></div>
               <div class="row">Ruta: <span class="strike">${s.A.ruta}</span> → <b>${rutaDestA}</b></div>
               <div class="row">KM: <span class="strike">${s.A.kmVacio.toFixed(2)}</span> → <b class="${colorKm(s.nuevoA)}">${s.nuevoA.toFixed(2)} km</b></div>
@@ -5110,7 +5808,7 @@ function renderSwaps() {
             </div>
             <div class="swap-arrow">${(s.esTripleta || s.esCuarteta) ? '↻' : '⇄'}</div>
             <div class="swap-op B">
-              <div class="name">${s.B.nombre}${viajesFacturacion.has(String(s.B.id)) ? `<span class="badge-fact badge-fact-mini" data-nomina="${s.B.id}" data-nombre="${s.B.nombre.replace(/"/g, '&quot;')}" title="Ver viajes reales">Fact</span>` : ''}</div>
+              <div class="name">${s.B.nombre}${viajesFacturacion.has(String(s.B.id)) ? `<span class="badge-fact badge-fact-mini" data-nomina="${s.B.id}" data-nombre="${s.B.nombre.replace(/"/g, '&quot;')}" title="Ver viajes reales">Fact</span>` : ''}<button class="badge-alts-mini" onclick="abrirAlternativasOp(event, '${s.B.id}', '${s.B.nombre.replace(/'/g, '')}')" title="Ver otras alternativas de cambio para este operador">🔄 Alternativas</button></div>
               <div class="row">Nóm <b>${s.B.id}</b> · Un <b>${s.B.unidad || '—'}</b></div>
               <div class="row">Ruta: <span class="strike">${s.B.ruta}</span> → <b>${rutaDestB}</b></div>
               <div class="row">KM: <span class="strike">${s.B.kmVacio.toFixed(2)}</span> → <b class="${colorKm(s.nuevoB)}">${s.nuevoB.toFixed(2)} km</b></div>
@@ -5229,6 +5927,574 @@ function limpiarSwapMap() {
   swapMapLayers.forEach(l => swapMap && swapMap.removeLayer(l));
   swapMapLayers = [];
 }
+
+// =========================================================
+// VISTA "ALTERNATIVAS POR OPERADOR" — muestra hasta 5 opciones
+// de swap para cada operador crítico (>15 y 10-15). Cuando un
+// jefe descarta una, aparece la siguiente automáticamente.
+// =========================================================
+function renderSwapsAlternativas() {
+  const cont = document.getElementById('tablaSwaps');
+  if (!paresTodos.length) {
+    cont.innerHTML = '<div class="empty">Sin propuestas. Elige un modo y espera al cálculo.</div>';
+    return;
+  }
+
+  // 1. Identificar operadores CRÍTICOS (>15 km) y MEDIOS (10-15 km)
+  //    Aplicar los mismos filtros de modo (jefe/coord/planta) que ya definió el usuario
+  let opsCriticos = operadores.filter(o => o.diasEntreSemana.size > 3 && o.kmVacio > 15);
+  let opsMedios   = operadores.filter(o => o.diasEntreSemana.size > 3 && o.kmVacio > 10 && o.kmVacio <= 15);
+
+  if (modoSwap === 'jefe') {
+    opsCriticos = opsCriticos.filter(o => o.jefe !== 'SIN ASIGNAR');
+    opsMedios   = opsMedios.filter(o => o.jefe !== 'SIN ASIGNAR');
+  } else if (modoSwap === 'gerencia') {
+    opsCriticos = opsCriticos.filter(o => o.gerente !== 'SIN ASIGNAR');
+    opsMedios   = opsMedios.filter(o => o.gerente !== 'SIN ASIGNAR');
+  } else if (modoSwap === 'coordinador') {
+    opsCriticos = opsCriticos.filter(o => o.coordinador !== 'SIN ASIGNAR');
+    opsMedios   = opsMedios.filter(o => o.coordinador !== 'SIN ASIGNAR');
+  } else if (modoSwap === 'planta') {
+    if (!plantasSwapSeleccionadas.size) {
+      cont.innerHTML = '<div class="empty">Elige al menos una planta para ver las alternativas.</div>';
+      return;
+    }
+    opsCriticos = opsCriticos.filter(o => plantasSwapSeleccionadas.has(o.planta));
+    opsMedios   = opsMedios.filter(o => plantasSwapSeleccionadas.has(o.planta));
+  }
+
+  // Ordenar críticos: peor primero
+  opsCriticos.sort((a, b) => b.kmVacio - a.kmVacio);
+  opsMedios.sort((a, b) => b.kmVacio - a.kmVacio);
+
+  const todosOps = [...opsCriticos, ...opsMedios];
+  if (!todosOps.length) {
+    cont.innerHTML = '<div class="empty">🎉 No hay operadores en zona crítica (>10 km) con este filtro.</div>';
+    return;
+  }
+
+  // 2. Para cada operador crítico, encontrar todas las alternativas en paresTodos
+  //    donde ese operador aparece Y ambos quedan <=12 km después del swap
+  const MAX_ALTS = 5;
+  const bloques = todosOps.map(op => {
+    const alts = paresTodos.filter(p => (p.A.id === op.id || p.B.id === op.id))
+      .map(p => {
+        // Asegurar que "A" siempre sea el operador principal
+        const esA = p.A.id === op.id;
+        return {
+          principal: esA ? p.A : p.B,
+          alt: esA ? p.B : p.A,
+          kmPrincipalNuevo: esA ? p.nuevoA : p.nuevoB,
+          kmAltNuevo: esA ? p.nuevoB : p.nuevoA,
+          ahorro: p.ahorro,
+          rescate: p.rescate,
+          rescateMedio: p.rescateMedio || 0,
+          swapOriginal: p,
+          swapIdxEnRecomendados: swapsRecomendados.findIndex(s => swapId(s) === swapId(p))
+        };
+      })
+      .filter(a => {
+        // REGLA 1: el ALT (el otro operador del swap) también debe estar >10 km actualmente.
+        // Solo emparejamos operadores que YA están en zona crítica/media entre sí,
+        // para que el cambio beneficie a AMBOS y no arrastre a uno que ya estaba bien.
+        if (a.alt.kmVacio <= 10) return false;
+
+        // REGLA 2: los DOS operadores deben quedar <=10 km después del swap.
+        // Esto asegura que el cambio saca a AMBOS de la zona problemática.
+        if (a.kmPrincipalNuevo > 10) return false;
+        if (a.kmAltNuevo > 10) return false;
+
+        // Filtrar descartadas
+        const key = `${op.id}|${a.alt.id}`;
+        if (altsDescartadas.has(key)) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        // Ordenar: primero las que dejen al principal MÁS bajo, luego mayor ahorro
+        if (Math.abs(a.kmPrincipalNuevo - b.kmPrincipalNuevo) > 0.5) {
+          return a.kmPrincipalNuevo - b.kmPrincipalNuevo;
+        }
+        return b.ahorro - a.ahorro;
+      })
+      .slice(0, MAX_ALTS);
+
+    return { op, alts };
+  }).filter(b => b.alts.length > 0);  // Solo mostrar operadores con alternativas
+
+  const opsSinAlts = todosOps.length - bloques.length;
+  const totalAltsMostradas = bloques.reduce((s, b) => s + b.alts.length, 0);
+  const totalDescartadas = altsDescartadas.size;
+
+  // Toggle "restaurar" visible solo si hay descartadas
+  const btnRestaurar = document.getElementById('btnRestaurarAlts');
+  if (btnRestaurar) btnRestaurar.style.display = totalDescartadas > 0 ? 'inline-block' : 'none';
+
+  // Header con resumen
+  const headerHtml = `
+    <div style="background:#fff;border-radius:10px;padding:14px 18px;margin-bottom:14px;
+                box-shadow:0 1px 3px rgba(15,23,42,0.06);display:flex;justify-content:space-between;
+                align-items:center;gap:14px;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#0f172a">
+          🎯 ${bloques.length} operadores con alternativas
+        </div>
+        <div style="font-size:11px;color:#64748b;margin-top:3px">
+          ${opsCriticos.length} críticos (&gt;15 km) · ${opsMedios.length} medios (10-15 km) ·
+          ${totalAltsMostradas} propuestas totales
+          ${opsSinAlts > 0 ? ` · ⚠️ ${opsSinAlts} sin alternativas viables` : ''}
+          ${totalDescartadas > 0 ? ` · 🗑️ ${totalDescartadas} descartadas` : ''}
+        </div>
+      </div>
+      <div style="font-size:11px;color:#64748b;text-align:right;line-height:1.6">
+        💡 <b style="color:#0f172a">Reglas activas:</b><br>
+        Ambos operadores &gt; 10 km · Ambos quedan ≤ 10 km después del swap<br>
+        Cada operador tiene hasta ${MAX_ALTS} opciones ordenadas de mejor a peor.
+      </div>
+    </div>
+  `;
+
+  // Índice/listado de operadores (para navegar rápido y saber quién tiene qué)
+  const opsSinAltsSetIdx = new Set();
+  todosOps.forEach(op => { if (!bloques.find(b => b.op.id === op.id)) opsSinAltsSetIdx.add(op.id); });
+
+  const indiceItems = todosOps.map(op => {
+    const bloque = bloques.find(b => b.op.id === op.id);
+    const nAlts = bloque ? bloque.alts.length : 0;
+    const esCrit = op.kmVacio > 15;
+    const anchor = `alt-op-${op.id}`;
+    const statusCls = nAlts === 0 ? 'sin' : (nAlts >= 3 ? 'buena' : 'baja');
+    const statusTxt = nAlts === 0 ? 'SIN OPCIONES' : `${nAlts} opción${nAlts === 1 ? '' : 'es'}`;
+
+    return `
+      <a href="#${anchor}" class="idx-row ${esCrit ? 'crit' : 'medio'}" data-anchor="${anchor}">
+        <div class="idx-km ${esCrit ? 'crit' : 'medio'}">${op.kmVacio.toFixed(1)}</div>
+        <div class="idx-info">
+          <div class="idx-nombre">${op.nombre}</div>
+          <div class="idx-detalles">
+            <span>Nóm ${op.id}</span> ·
+            <span>${op.planta}</span> ·
+            <span>${op.jefe}</span>
+          </div>
+        </div>
+        <div class="idx-status ${statusCls}">
+          ${nAlts === 0 ? '⚠️' : (nAlts >= 3 ? '✓' : '·')} ${statusTxt}
+        </div>
+      </a>
+    `;
+  }).join('');
+
+  const indiceHtml = `
+    <div class="alt-indice">
+      <div class="alt-indice-header">
+        <div>
+          <div class="alt-indice-title">📇 Listado de operadores críticos</div>
+          <div class="alt-indice-sub">Click en cualquier operador para saltar a sus alternativas</div>
+        </div>
+        <input type="text" id="altIndiceBuscar" placeholder="🔎 Buscar por nombre, nómina, planta..." class="alt-indice-search"/>
+      </div>
+      <div class="alt-indice-body" id="altIndiceBody">
+        ${indiceItems}
+      </div>
+      <div class="alt-indice-legend">
+        <span class="idx-leg crit">🔴 Crítico &gt;15 km</span>
+        <span class="idx-leg medio">🟠 Medio 10-15 km</span>
+        <span class="idx-leg buena">✓ 3+ opciones</span>
+        <span class="idx-leg baja">· 1-2 opciones</span>
+        <span class="idx-leg sin">⚠️ Sin opciones</span>
+      </div>
+    </div>
+  `;
+
+  // Render de cada bloque
+  const bloquesHtml = bloques.map(({ op, alts }) => {
+    const esCritico = op.kmVacio > 15;
+    const zonaCls = esCritico ? 'zona-critica' : 'zona-media';
+    const badgeCls = esCritico ? 'critica' : 'media';
+    const badgeTxt = esCritico ? '🔴 CRÍTICO >15 KM' : '🟠 MEDIO 10-15 KM';
+    const kmCls = esCritico ? 'critico' : 'medio';
+
+    const altsHtml = alts.map((a, i) => {
+      const key = `${op.id}|${a.alt.id}`;
+      const cls = colorKmDespues(a.kmPrincipalNuevo);
+      const clsAlt = colorKmDespues(a.kmAltNuevo);
+      const esMejor = i === 0;
+      return `
+        <div class="alt-item ${esMejor ? 'mejor' : ''}">
+          <div class="alt-rank">${i + 1}</div>
+          <div class="alt-info">
+            <div class="alt-info-nombre">${a.alt.nombre}</div>
+            <div class="alt-info-detalles">
+              <span>Nóm <b>${a.alt.id}</b></span>
+              <span>${a.alt.planta}</span>
+              <span>Actual: <b style="color:${a.alt.kmVacio > 15 ? '#dc2626' : (a.alt.kmVacio > 10 ? '#ea580c' : (a.alt.kmVacio > 5 ? '#ca8a04' : '#16a34a'))}">${a.alt.kmVacio.toFixed(1)} km</b></span>
+              <span>Hora: <b>${a.alt.horario}</b></span>
+            </div>
+            <div class="alt-info-ruta">
+              Ruta: <span class="strike">${op.ruta}</span> <span class="arrow">→</span> <b>${a.alt.ruta}</b>
+            </div>
+          </div>
+          <div class="alt-numeros">
+            <div class="alt-numero-km">
+              <span class="antes">${op.kmVacio.toFixed(1)}</span>
+              →
+              <span class="despues ${cls}">${a.kmPrincipalNuevo.toFixed(2)} km</span>
+            </div>
+            <div class="alt-ahorro">Ahorro: ${a.ahorro.toFixed(1)} km/día</div>
+            <div style="font-size:10px;color:#64748b;margin-top:2px">
+              (${a.alt.nombre.split(' ')[0]} queda: <b style="color:${a.kmAltNuevo > 10 ? '#dc2626' : (a.kmAltNuevo > 5 ? '#ca8a04' : '#16a34a')}">${a.kmAltNuevo.toFixed(1)} km</b>)
+            </div>
+          </div>
+          <div class="alt-actions">
+            <button class="alt-btn-ver-mapa" onclick="abrirMapaAlternativa('${op.id}','${a.alt.id}')">📍 Ver mapa</button>
+            <button class="alt-btn-descartar" onclick="descartarAlt('${op.id}','${a.alt.id}','${a.alt.nombre.replace(/'/g, '')}')">✕ No puede</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="alt-card" id="alt-op-${op.id}">
+        <div class="alt-card-header ${zonaCls}">
+          <div class="alt-card-op">
+            <div class="alt-card-badge ${badgeCls}">${badgeTxt}</div>
+            <div class="alt-card-info">
+              <div class="alt-card-nombre">${op.nombre}</div>
+              <div class="alt-card-detalles">
+                <span>Nóm <b>${op.id}</b></span>
+                <span>Planta <b>${op.planta}</b></span>
+                <span>Ruta <b>${op.ruta}</b></span>
+                <span>Jefe <b>${op.jefe}</b></span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px">
+            <div class="alt-card-km ${kmCls}">
+              ${op.kmVacio.toFixed(1)}<span class="um">km actual</span>
+            </div>
+            <div class="alt-card-alts-count">${alts.length} opcion${alts.length === 1 ? '' : 'es'}</div>
+          </div>
+        </div>
+        <div class="alt-card-body">
+          ${altsHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Operadores sin alternativas (para transparencia)
+  const opsSinAltsList = todosOps.filter(op => !bloques.find(b => b.op.id === op.id));
+  let sinAltsHtml = '';
+  if (opsSinAltsList.length > 0) {
+    sinAltsHtml = `
+      <div class="alt-card" style="margin-top:20px">
+        <div class="alt-card-header" style="border-bottom-color:#94a3b8;background:#475569">
+          <div class="alt-card-op">
+            <div class="alt-card-badge" style="background:#64748b;color:#fff">⚠️ SIN ALTERNATIVAS VIABLES</div>
+            <div class="alt-card-info">
+              <div class="alt-card-nombre">${opsSinAltsList.length} operador${opsSinAltsList.length === 1 ? '' : 'es'} sin propuesta</div>
+              <div class="alt-card-detalles">Estos operadores no tienen swaps que rescaten sin empeorar a otros. Considera ampliar filtros (más plantas, gerencia, etc.)</div>
+            </div>
+          </div>
+        </div>
+        <div class="alt-card-body">
+          ${opsSinAltsList.map(op => `
+            <div class="alt-item" style="opacity:0.65">
+              <div class="alt-rank" style="background:#e2e8f0;color:#475569">—</div>
+              <div class="alt-info">
+                <div class="alt-info-nombre">${op.nombre}</div>
+                <div class="alt-info-detalles">
+                  <span>Nóm <b>${op.id}</b></span>
+                  <span>${op.planta}</span>
+                  <span>${op.ruta}</span>
+                  <span>Jefe: <b>${op.jefe}</b></span>
+                </div>
+              </div>
+              <div class="alt-numeros">
+                <div class="alt-numero-km">
+                  <span class="despues alto">${op.kmVacio.toFixed(1)} km</span>
+                </div>
+                <div class="alt-motivo">Sin alternativa disponible</div>
+              </div>
+              <div></div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  cont.innerHTML = headerHtml + indiceHtml + bloquesHtml + sinAltsHtml;
+
+  // Wiring: buscador del índice
+  const buscar = document.getElementById('altIndiceBuscar');
+  if (buscar) {
+    buscar.addEventListener('input', () => {
+      const q = buscar.value.trim().toLowerCase();
+      document.querySelectorAll('#altIndiceBody .idx-row').forEach(row => {
+        const txt = row.textContent.toLowerCase();
+        row.style.display = (!q || txt.includes(q)) ? '' : 'none';
+      });
+    });
+  }
+
+  // Wiring: click en el índice hace scroll suave a la tarjeta y la resalta un momento
+  document.querySelectorAll('#altIndiceBody .idx-row').forEach(row => {
+    row.addEventListener('click', (e) => {
+      e.preventDefault();
+      const anchor = row.dataset.anchor;
+      const target = document.getElementById(anchor);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        target.classList.add('alt-card-highlight');
+        setTimeout(() => target.classList.remove('alt-card-highlight'), 1500);
+      }
+    });
+  });
+}
+
+// Helper para clase de color según KM
+function colorKmDespues(km) {
+  if (km > 15) return 'alto';
+  if (km > 10) return 'medio';
+  if (km > 5) return 'medio';  // amarillo también entra en 'medio' visual
+  return '';  // verde (default)
+}
+
+// Descartar una alternativa específica
+function descartarAlt(opId, altId, altNombre) {
+  const key = `${opId}|${altId}`;
+  altsDescartadas.add(key);
+  // Guardar en localStorage para persistir entre sesiones
+  try {
+    const arr = [...altsDescartadas];
+    localStorage.setItem('altsDescartadas', JSON.stringify(arr));
+  } catch (e) {}
+  renderSwaps();
+}
+
+// Restaurar todas las alternativas descartadas
+function restaurarAlts() {
+  altsDescartadas.clear();
+  try { localStorage.removeItem('altsDescartadas'); } catch (e) {}
+  renderSwaps();
+}
+
+// Cargar descartadas del localStorage al inicio
+try {
+  const saved = localStorage.getItem('altsDescartadas');
+  if (saved) {
+    const arr = JSON.parse(saved);
+    if (Array.isArray(arr)) altsDescartadas = new Set(arr);
+  }
+} catch (e) {}
+
+// Abre el modal del mapa para una alternativa específica.
+// SIEMPRE reordena el swap para que el operador principal (opId) sea "A" y la
+// alternativa sea "B". Así el modal muestra al operador que estás rescatando
+// como A (rojo) y a su alternativa como B (azul), sin importar el orden original.
+async function abrirMapaAlternativa(opId, altId) {
+  const par = paresTodos.find(p =>
+    (p.A.id === opId && p.B.id === altId) ||
+    (p.A.id === altId && p.B.id === opId)
+  );
+  if (!par) { alert('No se encontró el swap'); return; }
+
+  // Construir un swap virtual con el orden correcto (principal como A)
+  let swap;
+  if (par.A.id === opId) {
+    swap = par;  // ya está en orden correcto
+  } else {
+    // Invertir: A pasa a ser el principal, B pasa a ser la alternativa
+    swap = {
+      ...par,
+      A: par.B, B: par.A,
+      nuevoA: par.nuevoB, nuevoB: par.nuevoA,
+      havA: par.havB, havB: par.havA,
+    };
+  }
+
+  // Buscar si ya existe (por swapId) o insertar
+  let idx = swapsRecomendados.findIndex(s => swapId(s) === swapId(swap));
+  if (idx < 0) {
+    swapsRecomendados.push(swap);
+    swapsVisibles.push(swap);
+    idx = swapsRecomendados.length - 1;
+  } else {
+    // Reemplazar el que existe con nuestro orden correcto (para que el modal
+    // muestre siempre al principal como A)
+    swapsRecomendados[idx] = swap;
+  }
+  mostrarSwapEnMapa(idx);
+}
+
+// Alias por compatibilidad
+async function mostrarSwapAltEnMapa(opId, altId) {
+  return abrirMapaAlternativa(opId, altId);
+}
+
+// =========================================================
+// POPUP RÁPIDO DE ALTERNATIVAS PARA UN OPERADOR ESPECÍFICO
+// Se abre desde el botón "🔄 Alternativas" al lado del nombre
+// del operador dentro de cualquier tarjeta de swap.
+// =========================================================
+function abrirAlternativasOp(event, opId, opNombre) {
+  event.stopPropagation();
+  event.preventDefault();
+
+  const op = operadores.find(o => String(o.id) === String(opId));
+  if (!op) {
+    alert('No se encontró información del operador');
+    return;
+  }
+
+  // Buscar TODAS las alternativas para ese operador en paresTodos
+  // Filtro: el OTRO operador también debe estar >10 km (misma regla que la vista Alternativas)
+  //         Y ambos deben quedar ≤10 km después del swap
+  const alts = paresTodos.filter(p => (p.A.id === op.id || p.B.id === op.id))
+    .map(p => {
+      const esA = p.A.id === op.id;
+      return {
+        principal: esA ? p.A : p.B,
+        alt: esA ? p.B : p.A,
+        kmPrincipalNuevo: esA ? p.nuevoA : p.nuevoB,
+        kmAltNuevo: esA ? p.nuevoB : p.nuevoA,
+        ahorro: p.ahorro,
+        rescate: p.rescate,
+        rescateMedio: p.rescateMedio || 0,
+        swapOriginal: p
+      };
+    })
+    .filter(a => {
+      // El principal debe ser crítico (>10)
+      if (op.kmVacio <= 10) return true;  // si no es crítico, no filtramos por regla de rescate mutuo
+      // Ambos deben estar >10 y quedar ≤10
+      if (a.alt.kmVacio <= 10) return false;
+      if (a.kmPrincipalNuevo > 10) return false;
+      if (a.kmAltNuevo > 10) return false;
+      // No mostrar descartadas
+      const key = `${op.id}|${a.alt.id}`;
+      if (altsDescartadas.has(key)) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      // Primero las que dejen al principal MÁS bajo, luego mayor ahorro
+      if (Math.abs(a.kmPrincipalNuevo - b.kmPrincipalNuevo) > 0.5) {
+        return a.kmPrincipalNuevo - b.kmPrincipalNuevo;
+      }
+      return b.ahorro - a.ahorro;
+    })
+    .slice(0, 10);  // hasta 10 alternativas en el popup
+
+  // Configurar header del popup
+  document.getElementById('altsPopupName').textContent = op.nombre;
+  const zonaBadge = op.kmVacio > 15
+    ? '<span style="background:#dc2626;color:#fff;padding:2px 8px;border-radius:8px;font-size:9px;font-weight:800;letter-spacing:0.4px;margin-left:8px">🔴 CRÍTICO &gt;15</span>'
+    : op.kmVacio > 10
+      ? '<span style="background:#ea580c;color:#fff;padding:2px 8px;border-radius:8px;font-size:9px;font-weight:800;letter-spacing:0.4px;margin-left:8px">🟠 MEDIO 10-15</span>'
+      : '<span style="background:#16a34a;color:#fff;padding:2px 8px;border-radius:8px;font-size:9px;font-weight:800;letter-spacing:0.4px;margin-left:8px">🟢 OK</span>';
+
+  document.getElementById('altsPopupSub').innerHTML =
+    `Nóm <b style="color:#e2e8f0">${op.id}</b> · Planta <b style="color:#e2e8f0">${op.planta}</b> ` +
+    `· Ruta <b style="color:#e2e8f0">${op.ruta}</b> · <b style="color:#fca5a5">${op.kmVacio.toFixed(2)} km actual</b>${zonaBadge}`;
+
+  // Render de las alternativas
+  const body = document.getElementById('altsPopupBody');
+  if (!alts.length) {
+    body.innerHTML = `
+      <div class="alts-popup-empty">
+        <div style="font-size:32px;margin-bottom:8px">🤷</div>
+        <div style="font-size:14px;color:#475569;font-weight:600;margin-bottom:6px">
+          No hay alternativas viables para este operador
+        </div>
+        <div style="font-size:12px;color:#64748b;max-width:500px;margin:0 auto;line-height:1.5">
+          ${op.kmVacio > 10
+            ? 'Ningún otro operador &gt;10 km puede intercambiar rutas con este de forma que ambos queden ≤10 km. Prueba con un filtro más amplio (modo Gerencia o Por planta con más plantas).'
+            : 'Este operador ya está bien (&lt;10 km). El sistema solo genera alternativas para operadores en zona crítica.'}
+        </div>
+      </div>
+    `;
+  } else {
+    const resumen = `
+      <div style="background:#fff;padding:10px 14px;border-radius:8px;margin-bottom:12px;
+                  border-left:3px solid #a3e635;font-size:12px;color:#334155;
+                  box-shadow:0 1px 3px rgba(15,23,42,0.06)">
+        <b style="color:#0f172a">${alts.length} alternativa${alts.length === 1 ? '' : 's'} encontrada${alts.length === 1 ? '' : 's'}.</b>
+        Cada una emparejaría a este operador con otro &gt;10 km, dejando a ambos ≤10 km.
+      </div>
+    `;
+
+    body.innerHTML = resumen + alts.map((a, i) => {
+      const esMejor = i === 0;
+      const clsPrinc = a.kmPrincipalNuevo > 10 ? 'alto' : (a.kmPrincipalNuevo > 5 ? 'medio' : '');
+      return `
+        <div class="alt-item ${esMejor ? 'mejor' : ''}">
+          <div class="alt-rank">${i + 1}</div>
+          <div class="alt-info">
+            <div class="alt-info-nombre">${a.alt.nombre}</div>
+            <div class="alt-info-detalles">
+              <span>Nóm <b>${a.alt.id}</b></span>
+              <span>${a.alt.planta}</span>
+              <span>Actual: <b style="color:${a.alt.kmVacio > 15 ? '#dc2626' : (a.alt.kmVacio > 10 ? '#ea580c' : (a.alt.kmVacio > 5 ? '#ca8a04' : '#16a34a'))}">${a.alt.kmVacio.toFixed(1)} km</b></span>
+              <span>Hora: <b>${a.alt.horario}</b></span>
+            </div>
+            <div class="alt-info-ruta">
+              Ruta: <span class="strike">${op.ruta}</span> <span class="arrow">→</span> <b>${a.alt.ruta}</b>
+            </div>
+          </div>
+          <div class="alt-numeros">
+            <div class="alt-numero-km">
+              <span class="antes">${op.kmVacio.toFixed(1)}</span>
+              →
+              <span class="despues ${clsPrinc}">${a.kmPrincipalNuevo.toFixed(2)} km</span>
+            </div>
+            <div class="alt-ahorro">Ahorro: ${a.ahorro.toFixed(1)} km/día</div>
+            <div style="font-size:10px;color:#64748b;margin-top:2px">
+              (${a.alt.nombre.split(' ')[0]} queda: <b style="color:${a.kmAltNuevo > 10 ? '#dc2626' : (a.kmAltNuevo > 5 ? '#ca8a04' : '#16a34a')}">${a.kmAltNuevo.toFixed(1)} km</b>)
+            </div>
+          </div>
+          <div class="alt-actions">
+            <button class="alt-btn-ver-mapa" onclick="abrirMapaAlternativa('${op.id}','${a.alt.id}')">📍 Ver mapa</button>
+            <button class="alt-btn-descartar" onclick="descartarAltEnPopup('${op.id}','${a.alt.id}','${opNombre.replace(/'/g, '')}')">✕ No puede</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  document.getElementById('altsPopup').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function cerrarAlternativasOp() {
+  document.getElementById('altsPopup').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Cuando descartas en el popup, refrescamos el popup mismo
+function descartarAltEnPopup(opId, altId, opNombre) {
+  const key = `${opId}|${altId}`;
+  altsDescartadas.add(key);
+  try { localStorage.setItem('altsDescartadas', JSON.stringify([...altsDescartadas])); } catch (e) {}
+  // Re-abrir el popup con lista actualizada
+  abrirAlternativasOp({ stopPropagation:()=>{}, preventDefault:()=>{} }, opId, opNombre);
+}
+
+// Listeners del popup
+document.addEventListener('DOMContentLoaded', () => {
+  const btnClose = document.getElementById('altsPopupClose');
+  const overlay = document.getElementById('altsPopup');
+  if (btnClose) btnClose.addEventListener('click', cerrarAlternativasOp);
+  if (overlay) overlay.addEventListener('click', (e) => {
+    if (e.target.id === 'altsPopup') cerrarAlternativasOp();
+  });
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('altsPopup')?.classList.contains('open')) {
+    cerrarAlternativasOp();
+  }
+});
+window.abrirAlternativasOp = abrirAlternativasOp;
+window.descartarAltEnPopup = descartarAltEnPopup;
 
 function makeMapMarker(coord, color, letra, label, tipo) {
   const icon = tipo === 'home' ? iconHome(color, 32, letra) : iconFlag(color, 30, letra);
@@ -5618,7 +6884,7 @@ function descargarExcelTabla() {
   }
 
   // Encabezados y filas — mismas columnas que muestra la tabla
-  const filas = [['Nómina', 'Operador', 'Hora', 'Planta', 'Ruta', 'KM Vacío']];
+  const filas = [['Nómina', 'Operador', 'Hora', 'Planta', 'Ruta', 'Zona', 'Jefe', 'Coordinador', 'KM Vacío']];
   lista.forEach(o => {
     filas.push([
       o.id,
@@ -5626,6 +6892,9 @@ function descargarExcelTabla() {
       o.horario,
       o.planta,
       o.ruta,
+      o.zona || 'SIN ZONA',
+      o.jefe,
+      o.coordinador,
       Number(o.kmVacio.toFixed(2))
     ]);
   });
@@ -5641,6 +6910,9 @@ function descargarExcelTabla() {
     { wch: 8 },   // Hora
     { wch: 16 },  // Planta
     { wch: 32 },  // Ruta
+    { wch: 14 },  // Zona
+    { wch: 18 },  // Jefe
+    { wch: 20 },  // Coordinador
     { wch: 10 }   // KM
   ];
 
@@ -5655,6 +6927,8 @@ function descargarExcelTabla() {
 }
 
 document.getElementById('btnDescargarExcel').addEventListener('click', descargarExcelTabla);
+// Botón descargar operadores del tab Cuadrantes
+document.getElementById('btnDescargarCuadrantes')?.addEventListener('click', descargarOperadoresCuad);
 
 // =========================================================
 // CARGAR DESDE GOOGLE SHEET usando GViz (funciona desde file://)
@@ -5680,7 +6954,6 @@ async function cargarDesdeGoogleSheet() {
       respondido = true;
       if (btn) { btn.textContent = '❌ Timeout'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500); }
       setStatus('Sin respuesta del Sheet', 'error');
-      ocultarLoadingOverlay();
       alert('El Google Sheet no respondió en 30 segundos.\n\nVerifica:\n' +
             '1. Que el sheet esté compartido como "Cualquier persona con el enlace puede ver"\n' +
             '2. Que la hoja se llame exactamente "' + GOOGLE_SHEET_NAME + '"\n' +
@@ -5725,20 +6998,24 @@ async function cargarDesdeGoogleSheet() {
         if (header.includes('Task Type') && header.includes('Deadhead')) {
           procesarTourDetails(filas, header);
         } else {
-          // ⚡ Rápido: pasar las filas directamente, sin round-trip a CSV
-          procesarFilas(filas);
+          // Convertir de vuelta a CSV para procesarCSV
+          const csvText = filas.map(f =>
+            f.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')
+          ).join('\n');
+          procesarCSV(csvText);
         }
 
         if (btn) { btn.textContent = '✓ Cargado desde Sheet'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000); }
 
         // Cargar facturación (segunda hoja) en background - no bloquea la UI
         cargarFacturacion().catch(e => console.warn('Facturación no disponible:', e));
+        cargarZonas().catch(e => console.warn('Zonas no disponibles:', e));
+        cargarPlantillaOperadores().catch(e => console.warn('Plantilla operadores no disponible:', e));
 
         resolve();
       } catch (e) {
         if (btn) { btn.textContent = '❌ Error'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500); }
         setStatus('Error al procesar', 'error');
-        ocultarLoadingOverlay();
         alert('Error procesando la respuesta del Sheet:\n\n' + e.message);
         console.error(e);
         reject(e);
@@ -5754,7 +7031,6 @@ async function cargarDesdeGoogleSheet() {
       clearTimeout(timeout);
       if (btn) { btn.textContent = '❌ Error'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500); }
       setStatus('No se pudo descargar', 'error');
-      ocultarLoadingOverlay();
       alert('No se pudo descargar el Google Sheet.\n\nCausas posibles:\n' +
             '1. El sheet NO está compartido como "Cualquier persona con el enlace puede ver"\n' +
             '2. No hay conexión a internet\n' +
@@ -5774,6 +7050,403 @@ if (btnCargarSheetEl) btnCargarSheetEl.addEventListener('click', cargarDesdeGoog
 // =========================================================
 // CARGAR SEGUNDA HOJA: "facturacion" (viajes reales)
 // =========================================================
+// =========================================================
+// CARGAR HOJA "Rutas" — mapa Planta+Ruta → Zona
+// =========================================================
+async function cargarZonas() {
+  return new Promise((resolve) => {
+    window.google = window.google || {};
+    window.google.visualization = window.google.visualization || {};
+    window.google.visualization.Query = window.google.visualization.Query || {};
+
+    let respondido = false;
+    const timeout = setTimeout(() => {
+      if (respondido) return;
+      respondido = true;
+      console.warn('Timeout al cargar hoja de Rutas/Zonas (opcional)');
+      resolve();
+    }, 20000);
+
+    window.google.visualization.Query.setResponse = function(data) {
+      if (respondido) return;
+      respondido = true;
+      clearTimeout(timeout);
+
+      try {
+        if (!data || !data.table || data.status === 'error') {
+          console.warn('Hoja de Rutas no disponible o vacía');
+          resolve();
+          return;
+        }
+
+        const cols = data.table.cols;
+        const rows = data.table.rows;
+        const header = cols.map(c => (c.label || c.id || '').trim());
+        const idx = {};
+        header.forEach((h, i) => { idx[h.toLowerCase()] = i; });
+
+        // Localizar índices (son flexibles por si varía mayúscula/minúscula)
+        const iPlanta = idx['planta'];
+        const iRuta = idx['ruta'];
+        const iZona = idx['zona'];
+
+        if (iPlanta === undefined || iRuta === undefined || iZona === undefined) {
+          console.warn('Hoja Rutas: faltan columnas Planta, Ruta o Zona');
+          resolve();
+          return;
+        }
+
+        zonaPorRuta = new Map();
+        rows.forEach(r => {
+          const c = r.c;
+          const planta = String(c[iPlanta]?.v || '').trim();
+          const ruta = String(c[iRuta]?.v || '').trim();
+          const zona = String(c[iZona]?.v || '').trim();
+          if (planta && ruta && zona) {
+            // Guardamos con llave exacta Y también con llave simplificada (sin tildes/espacios extras)
+            zonaPorRuta.set(`${planta}|${ruta}`, zona);
+          }
+        });
+
+        console.log(`✓ Zonas cargadas: ${zonaPorRuta.size} mapeos planta+ruta → zona`);
+
+        // Mostrar el filtro de Zona en la UI solo si realmente hay zonas definidas
+        const wrapZona = document.getElementById('filterZonaWrap');
+        if (wrapZona && zonaPorRuta.size > 0) wrapZona.style.display = '';
+
+        // Si ya hay operadores cargados, re-asignar sus zonas y refrescar la UI
+        if (operadores.length) {
+          operadores.forEach(o => { o.zona = zonaDeOperador(o); });
+          if (rutasCsv.length) rutasCsv.forEach(r => { r.zona = zonaPorRuta.get(`${r.planta}|${r.ruta}`) || 'SIN ZONA'; });
+          if (typeof llenarFiltros === 'function') llenarFiltros();
+          if (typeof renderTabla === 'function') renderTabla();
+        }
+      } catch (e) {
+        console.error('Error procesando Rutas:', e);
+      }
+      resolve();
+    };
+
+    const script = document.createElement('script');
+    script.src = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(GOOGLE_SHEET_NAME_RUTAS)}&t=${Date.now()}`;
+    script.onerror = () => {
+      if (respondido) return;
+      respondido = true;
+      clearTimeout(timeout);
+      console.warn('No se pudo cargar hoja de Rutas (opcional)');
+      resolve();
+    };
+    document.head.appendChild(script);
+    setTimeout(() => script.remove(), 60000);
+  });
+}
+
+// Helper: devuelve la zona de un operador según su planta+ruta
+function zonaDeOperador(op) {
+  if (!op || !op.planta || !op.ruta) return 'SIN ZONA';
+  return zonaPorRuta.get(`${op.planta}|${op.ruta}`) || 'SIN ZONA';
+}
+
+// Parsea una fecha de "último día trabajado" desde Google Sheets.
+// Acepta MUCHOS formatos: Date object, "YYYY-MM-DD", "DD/MM/YYYY", "DD/MM/YYYY HH:MM:SS",
+// "Date(YYYY,MM,DD,hh,mm,ss)", Excel serial number, timestamps.
+function parsearFechaUltimoDia(rawVal, rawFmt) {
+  if (rawVal === null || rawVal === undefined || rawVal === '') {
+    if (!rawFmt) return null;
+  }
+
+  // Caso 1: Date object directo
+  if (rawVal instanceof Date && !isNaN(rawVal.getTime())) return rawVal;
+
+  // Caso 2: formato GViz "Date(YYYY,MM,DD,hh,mm,ss)" — meses 0-indexed
+  if (typeof rawVal === 'string' && rawVal.startsWith('Date(')) {
+    const m = rawVal.match(/Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+),(\d+))?/);
+    if (m) {
+      return new Date(
+        parseInt(m[1]),
+        parseInt(m[2]),        // ya es 0-indexed
+        parseInt(m[3]),
+        m[4] ? parseInt(m[4]) : 0,
+        m[5] ? parseInt(m[5]) : 0,
+        m[6] ? parseInt(m[6]) : 0
+      );
+    }
+  }
+
+  // Caso 3: número (Excel serial o timestamp)
+  if (typeof rawVal === 'number' && !isNaN(rawVal)) {
+    // Excel: 1 = 1900-01-01, con offset
+    if (rawVal > 25569 && rawVal < 100000) {
+      // Serial de Excel (días desde 1900-01-01)
+      const ms = (rawVal - 25569) * 86400 * 1000;
+      return new Date(ms);
+    }
+    // Timestamp Unix (milisegundos)
+    if (rawVal > 1e12) return new Date(rawVal);
+    // Timestamp Unix (segundos)
+    if (rawVal > 1e9) return new Date(rawVal * 1000);
+  }
+
+  // Caso 4: strings varios. Probar formato legible primero (rawFmt), luego raw.
+  const candidates = [rawFmt, rawVal].filter(v => v !== null && v !== undefined);
+  for (const s of candidates) {
+    const str = String(s).trim();
+    if (!str) continue;
+
+    // Formato DD/MM/YYYY [HH:MM[:SS]]  (ej: "16/10/2026 14:30:00")
+    let m = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:[\sT]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+    if (m) {
+      let y = parseInt(m[3]); if (y < 100) y += 2000;
+      return new Date(
+        y,
+        parseInt(m[2]) - 1,
+        parseInt(m[1]),
+        m[4] ? parseInt(m[4]) : 0,
+        m[5] ? parseInt(m[5]) : 0,
+        m[6] ? parseInt(m[6]) : 0
+      );
+    }
+
+    // Formato YYYY-MM-DD [HH:MM[:SS]]  (ISO)
+    m = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[\sT]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+    if (m) {
+      return new Date(
+        parseInt(m[1]),
+        parseInt(m[2]) - 1,
+        parseInt(m[3]),
+        m[4] ? parseInt(m[4]) : 0,
+        m[5] ? parseInt(m[5]) : 0,
+        m[6] ? parseInt(m[6]) : 0
+      );
+    }
+
+    // Formato "15-oct" o "15 oct 2026" en español — convertir meses
+    const mesesEs = {
+      ene:0, feb:1, mar:2, abr:3, may:4, jun:5,
+      jul:6, ago:7, sep:8, oct:9, nov:10, dic:11
+    };
+    m = str.toLowerCase().match(/^(\d{1,2})[\s\-](ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)[a-z]*(?:[\s\-](\d{2,4}))?/);
+    if (m) {
+      const dia = parseInt(m[1]);
+      const mesIdx = mesesEs[m[2]];
+      let y = m[3] ? parseInt(m[3]) : new Date().getFullYear();
+      if (y < 100) y += 2000;
+      return new Date(y, mesIdx, dia);
+    }
+
+    // Último recurso: Date.parse nativo
+    const d = new Date(str);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  return null;
+}
+
+// Devuelve el estatus del operador según su último día trabajado.
+// Regla pedida por el usuario:
+//  - Si trabajó ayer o hoy → ACTIVO
+//  - Si tiene 2 días o más vencidos sin trabajar → INACTIVO
+//  - Si nunca trabajó o sin fecha → SIN DATO
+function calcularEstatusOperador(ultimoDia) {
+  if (!ultimoDia || !(ultimoDia instanceof Date) || isNaN(ultimoDia.getTime())) {
+    return { estatus: 'sin_dato', diasVencidos: null, label: 'Sin dato', color: '#94a3b8' };
+  }
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const ult = new Date(ultimoDia);
+  ult.setHours(0, 0, 0, 0);
+  const diffMs = hoy - ult;
+  const diasVencidos = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  // Hoy = 0 días, ayer = 1 día → aún ACTIVO
+  // 2 o más días → INACTIVO
+  if (diasVencidos <= 1) {
+    return { estatus: 'activo', diasVencidos, label: 'Activo', color: '#16a34a' };
+  }
+  return { estatus: 'inactivo', diasVencidos, label: `Inactivo (${diasVencidos} días)`, color: '#dc2626' };
+}
+
+// Formatea una fecha a "DD/MM/YYYY" para mostrar en popups
+function formatFechaCorta(d) {
+  if (!d || !(d instanceof Date)) return '—';
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yy = d.getFullYear();
+  return `${dd}/${mm}/${yy}`;
+}
+
+// =========================================================
+// CARGAR HOJA "Plantilla" — plantilla de operadores con sus domicilios
+// Reemplaza el upload manual del Excel de operadores en Cuadrantes
+// Formato esperado: Worker Id | Driver Name | Lat | Long
+// =========================================================
+async function cargarPlantillaOperadores() {
+  return new Promise((resolve) => {
+    window.google = window.google || {};
+    window.google.visualization = window.google.visualization || {};
+    window.google.visualization.Query = window.google.visualization.Query || {};
+
+    let respondido = false;
+    const timeout = setTimeout(() => {
+      if (respondido) return;
+      respondido = true;
+      console.warn('Timeout al cargar hoja Plantilla (opcional)');
+      resolve();
+    }, 20000);
+
+    window.google.visualization.Query.setResponse = function(data) {
+      if (respondido) return;
+      respondido = true;
+      clearTimeout(timeout);
+
+      try {
+        if (!data || !data.table || data.status === 'error') {
+          console.warn('Hoja Plantilla no disponible');
+          resolve();
+          return;
+        }
+
+        const cols = data.table.cols;
+        const rows = data.table.rows;
+        const header = cols.map(c => (c.label || c.id || '').trim().toLowerCase());
+        const idx = {};
+        header.forEach((h, i) => { idx[h] = i; });
+
+        const iId   = idx['worker id'] ?? idx['nómina'] ?? idx['nomina'] ?? idx['id'];
+        const iName = idx['driver name'] ?? idx['nombre'] ?? idx['operador'];
+        const iLat  = idx['lat'] ?? idx['latitud'];
+        const iLng  = idx['long'] ?? idx['lng'] ?? idx['longitud'];
+        // Columna "Último día trabajado" / "last event time" / variantes
+        const iUlt  = idx['último día trabajado'] ?? idx['ultimo dia trabajado']
+                    ?? idx['last event time'] ?? idx['lastevent time'] ?? idx['last_event_time']
+                    ?? idx['last event'] ?? idx['event time'] ?? idx['last activity']
+                    ?? idx['ultima fecha'] ?? idx['ultimo dia'] ?? idx['último día']
+                    ?? idx['last day'] ?? idx['fecha ultima'] ?? idx['last worked']
+                    ?? idx['ultimo trabajado'] ?? idx['fecha'] ?? idx['ultima actividad']
+                    ?? idx['último evento'] ?? idx['ultimo evento'];
+
+        if (iId === undefined || iLat === undefined || iLng === undefined) {
+          console.warn('Hoja Plantilla: faltan columnas Worker Id, Lat o Long');
+          resolve();
+          return;
+        }
+
+        // DEBUG: imprimir los encabezados detectados y el índice de la columna de fecha
+        console.log('📋 Plantilla - Encabezados detectados:', header);
+        console.log('📅 Columna "último día" detectada en índice:', iUlt,
+                    iUlt !== undefined ? `(header: "${header[iUlt]}")` : '(NO ENCONTRADA)');
+
+        operadoresPlantilla = [];
+        let fechasOk = 0;
+        let fechasNull = 0;
+        let primerEjemplo = null;
+
+        rows.forEach(r => {
+          const c = r.c;
+          const id = String(c[iId]?.v ?? c[iId]?.f ?? '').replace('.0', '').trim();
+          const nombre = String(c[iName]?.v || '').trim();
+          const lat = parseFloat(c[iLat]?.v);
+          const lng = parseFloat(c[iLng]?.v);
+
+          // Parsear último día trabajado (acepta Date, string "YYYY-MM-DD", "DD/MM/YYYY", etc.)
+          let ultimoDia = null;
+          if (iUlt !== undefined && c[iUlt]) {
+            const rawVal = c[iUlt].v;
+            const rawFmt = c[iUlt].f;
+            ultimoDia = parsearFechaUltimoDia(rawVal, rawFmt);
+            if (!primerEjemplo) {
+              primerEjemplo = { rawVal, rawFmt, parsed: ultimoDia };
+            }
+            if (ultimoDia) fechasOk++;
+            else fechasNull++;
+          }
+
+          if (id && !isNaN(lat) && !isNaN(lng)) {
+            operadoresPlantilla.push({ id, nombre, homeLat:lat, homeLng:lng, ultimoDia });
+          }
+        });
+
+        console.log(`✓ Plantilla cargada: ${operadoresPlantilla.length} operadores`);
+        console.log(`📅 Fechas parseadas OK: ${fechasOk}, Fechas no parseables: ${fechasNull}`);
+        if (primerEjemplo) {
+          console.log('🔎 Primer ejemplo de fecha:', primerEjemplo);
+        }
+
+        // Si ya tenemos operadores cargados, re-poblar Cuadrantes para incluir ultimoDia
+        if (typeof poblarCuadrantesDesdeSheet === 'function' && operadores.length) {
+          poblarCuadrantesDesdeSheet();
+          // Forzar re-render del mapa SI el tab está activo
+          if (document.getElementById('tab-cuadrantes')?.classList.contains('active')
+              && typeof renderCuadrantes === 'function') {
+            renderCuadrantes();
+          }
+        }
+      } catch (e) {
+        console.error('Error procesando Plantilla:', e);
+      }
+      resolve();
+    };
+
+    const script = document.createElement('script');
+    script.src = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(GOOGLE_SHEET_NAME_OPS)}&t=${Date.now()}`;
+    script.onerror = () => {
+      if (respondido) return;
+      respondido = true;
+      clearTimeout(timeout);
+      console.warn('No se pudo cargar hoja Plantilla');
+      resolve();
+    };
+    document.head.appendChild(script);
+    setTimeout(() => script.remove(), 60000);
+  });
+}
+
+// Función que reemplaza el upload del Excel de operadores en Cuadrantes
+// Usa operadoresPlantilla (de la hoja) + operadores del CSV
+// IMPORTANTE: operadoresCuad usa el formato {nombre, id, lat, lng}
+// Debemos pasar el override en ese MISMO formato, no con homeLat/homeLng.
+function poblarCuadrantesDesdeSheet() {
+  if (!operadores.length && !operadoresPlantilla.length) return;
+
+  // Formato esperado por el tab Cuadrantes: {nombre, id, lat, lng}
+  // 1. Primero convertir los operadores del CSV (con servicio)
+  const idsCsv = new Set(operadores.map(o => String(o.id)));
+  // Mapa rápido para buscar ultimoDia de la plantilla por id
+  const plantillaById = new Map(operadoresPlantilla.map(p => [String(p.id), p]));
+  const opsCsvCuad = operadores.map(o => {
+    const p = plantillaById.get(String(o.id));
+    return {
+      nombre: o.nombre,
+      id: o.id,
+      lat: o.homeLat,
+      lng: o.homeLng,
+      ultimoDia: p?.ultimoDia || null
+    };
+  });
+
+  // 2. Agregar los operadores de la plantilla que NO están en el CSV
+  //    (los que no manejan ruta ese día — "sin servicio")
+  const extrasCuad = operadoresPlantilla
+    .filter(o => !idsCsv.has(String(o.id)))
+    .map(o => ({
+      nombre: o.nombre,
+      id: o.id,
+      lat: o.homeLat,
+      lng: o.homeLng,
+      sinServicio: true,
+      ultimoDia: o.ultimoDia || null
+    }));
+
+  console.log(`✓ Cuadrantes poblado: ${opsCsvCuad.length} con servicio + ${extrasCuad.length} sin servicio = ${opsCsvCuad.length + extrasCuad.length} total`);
+
+  // Setear como override
+  operadoresCuadOverride = opsCsvCuad.concat(extrasCuad);
+
+  if (typeof poblarCuadrantesDesdeCsv === 'function') {
+    poblarCuadrantesDesdeCsv();
+  }
+}
+
 async function cargarFacturacion() {
   return new Promise((resolve) => {
     window.google = window.google || {};
@@ -6062,6 +7735,11 @@ crearMultiSelectValor({
   filtroSet: filtroRutas, campoLabel: 'rutas',
   obtenerValores: () => unicos(operadores.map(o => o.ruta))
 });
+crearMultiSelectValor({
+  inputId: 'filterZona', dropId: 'zonSelectorDrop',
+  filtroSet: filtroZonas, campoLabel: 'zonas',
+  obtenerValores: () => unicos(operadores.map(o => o.zona || 'SIN ZONA'))
+});
 
 // =========================================================
 // MULTI-SELECT DE OPERADORES estilo Excel (Nómina y Operador)
@@ -6285,6 +7963,23 @@ document.querySelectorAll('.swap-mode-pills button').forEach(b => {
   });
 });
 
+// Listener del toggle "Vista normal / Alternativas por operador"
+document.querySelectorAll('.vista-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.vista-btn').forEach(x => x.classList.toggle('active', x === b));
+    vistaAlternativas = b.dataset.vista === 'alternativas';
+    const sub = document.getElementById('vistaToggleSub');
+    if (sub) {
+      sub.textContent = vistaAlternativas
+        ? 'Vista alternativas: solo cruces entre operadores >10 km — ambos quedan ≤10 km. Descarta las que el jefe rechace.'
+        : 'Vista normal: 1 propuesta por operador (asignación greedy sin conflictos)';
+    }
+    renderSwaps();
+  });
+});
+// Botón restaurar alternativas descartadas
+document.getElementById('btnRestaurarAlts').addEventListener('click', restaurarAlts);
+
 // Rellena los chips de plantas con conteo de operadores por planta
 function poblarChipsPlantas() {
   const cont = document.getElementById('swapPlantasChips');
@@ -6365,6 +8060,7 @@ const CUADRANTES = [
 ];
 
 let operadoresCuad = [];
+let filtroEstatusCuad = null;  // null | 'activo' | 'inactivo' | 'sin_dato' — filtro extra por estatus de operador
 let inicioCuad = [];
 let operadoresCuadOverride = null;  // Si el usuario subió Excel, aquí queda
 let inicioCuadOverride = null;
@@ -6419,10 +8115,59 @@ function parseXlsxInicios(buffer) {
 
 function initCuadrantesMap() {
   if (cuadrantesMap) return;
-  cuadrantesMap = L.map('cuadrantesMap').setView([25.75, -100.30], 10);
-  L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
-    maxZoom: 20, subdomains: ['mt0','mt1','mt2','mt3'], attribution: '© Google'
-  }).addTo(cuadrantesMap);
+  cuadrantesMap = L.map('cuadrantesMap', {
+    zoomControl:true,
+    attributionControl:true,
+    preferCanvas:true,       // mejor rendimiento con muchos marcadores
+    worldCopyJump:true
+  }).setView([25.75, -100.30], 10);
+
+  // Capas base estilo Google Maps
+  const roadmap = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+    maxZoom:20, subdomains:['mt0','mt1','mt2','mt3'], attribution:'© Google Maps'
+  });
+  const satellite = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+    maxZoom:20, subdomains:['mt0','mt1','mt2','mt3'], attribution:'© Google Maps'
+  });
+  const hybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+    maxZoom:20, subdomains:['mt0','mt1','mt2','mt3'], attribution:'© Google Maps'
+  });
+  const terrain = L.tileLayer('https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
+    maxZoom:20, subdomains:['mt0','mt1','mt2','mt3'], attribution:'© Google Maps'
+  });
+
+  // Por defecto: Mapa (roadmap) — más limpio y profesional
+  roadmap.addTo(cuadrantesMap);
+
+  // Control de capas estilo Google (botones encima del mapa, no el default feo de Leaflet)
+  const basemapOverlay = L.control({ position: 'topright' });
+  basemapOverlay.onAdd = function() {
+    const div = L.DomUtil.create('div', 'cuad-basemap-switcher');
+    div.innerHTML = `
+      <button data-layer="map" class="active" title="Mapa">🗺️ Mapa</button>
+      <button data-layer="satellite" title="Satélite">🛰️ Satélite</button>
+      <button data-layer="hybrid" title="Híbrido">🌍 Híbrido</button>
+      <button data-layer="terrain" title="Terreno">⛰️ Terreno</button>
+    `;
+    L.DomEvent.disableClickPropagation(div);
+    L.DomEvent.disableScrollPropagation(div);
+    const layers = { map:roadmap, satellite, hybrid, terrain };
+    div.querySelectorAll('button').forEach(b => {
+      b.addEventListener('click', () => {
+        div.querySelectorAll('button').forEach(x => x.classList.toggle('active', x===b));
+        Object.values(layers).forEach(l => cuadrantesMap.removeLayer(l));
+        layers[b.dataset.layer].addTo(cuadrantesMap);
+      });
+    });
+    return div;
+  };
+  basemapOverlay.addTo(cuadrantesMap);
+
+  // Escala del mapa (abajo a la izquierda, útil para medir distancias)
+  L.control.scale({ position:'bottomleft', metric:true, imperial:false, maxWidth:200 }).addTo(cuadrantesMap);
+
+  // Guardar las layers por si queremos cambiar programáticamente
+  cuadrantesMap._basemapLayers = { roadmap, satellite, hybrid, terrain };
 }
 
 function infoCSV(workerId) {
@@ -6475,7 +8220,15 @@ function renderCuadrantes() {
   if (preservarBusqueda) cuadrantesMap.removeLayer(preservarBusqueda);
   if (preservarOpBusqueda) cuadrantesMap.removeLayer(preservarOpBusqueda);
 
-  const { ops, ins } = filtrarPorGerencia();
+  let { ops, ins } = filtrarPorGerencia();
+
+  // Aplicar filtro adicional por estatus (si el usuario clickeó un KPI)
+  if (filtroEstatusCuad) {
+    ops = ops.filter(o => calcularEstatusOperador(o.ultimoDia).estatus === filtroEstatusCuad);
+  }
+
+  // Renderizar KPIs del tab Cuadrantes (siempre sobre la lista filtrada por gerencia/planta)
+  renderCuadKpis(ops);
 
   const stats = {};
   CUADRANTES.forEach(c => stats[c.id] = { ops: 0, sinSrv: 0, ins: 0, opsList: [], insList: [] });
@@ -6519,18 +8272,48 @@ function renderCuadrantes() {
   ops.forEach(o => {
     const cs = infoCSV(o.id);
     const conServicio = !!cs;
-    const color = conServicio ? '#16a34a' : '#dc2626';  // Verde con servicio, rojo sin
+    // Calcular estatus de actividad según último día trabajado
+    const estat = calcularEstatusOperador(o.ultimoDia);
+    // El color de la casita ahora combina servicio + actividad:
+    // - Con servicio = verde (siempre)
+    // - Sin servicio pero activo (trabajó recientemente) = ámbar
+    // - Sin servicio e inactivo = rojo
+    let color;
+    if (conServicio) color = '#16a34a';
+    else if (estat.estatus === 'inactivo') color = '#dc2626';
+    else if (estat.estatus === 'activo') color = '#f59e0b';
+    else color = '#94a3b8';  // sin dato
+
     const cm = L.marker([o.lat, o.lng], {
       icon: iconCasitaSmall(color, 18)
     });
+
+    // Badge de estatus (activo/inactivo/sin dato)
+    const estatBadge = `
+      <span style="display:inline-block; padding:2px 8px; border-radius:10px;
+             font-size:9px; font-weight:800; letter-spacing:0.4px; text-transform:uppercase;
+             background:${estat.color}20; color:${estat.color}; border:1px solid ${estat.color}60; margin-left:4px">
+        ● ${estat.label}
+      </span>
+    `;
+
     cm.bindPopup(`
-      <div style="min-width:200px">
+      <div style="min-width:240px">
         <div style="background:${conServicio ? '#dcfce7' : '#fee2e2'}; color:${conServicio ? '#16a34a' : '#991b1b'}; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:600; display:inline-block">
-          ${conServicio ? '🏠 OPERADOR CON SERVICIO' : '🏠 OPERADOR SIN SERVICIO'}
+          ${conServicio ? '🏠 CON SERVICIO HOY' : '🏠 SIN SERVICIO HOY'}
         </div>
-        <div style="font-weight:700; margin-top:6px">${o.nombre}</div>
+        ${estatBadge}
+        <div style="font-weight:700; margin-top:6px; font-size:14px">${o.nombre}</div>
         <div style="font-size:11px; color:#6b7280">Nóm <b>${o.id}</b></div>
         <div style="font-size:11px; color:#6b7280">Cuadrante: ${nombreCuadrante(asignarCuadrante(o.lat, o.lng))}</div>
+        ${o.ultimoDia ? `
+          <div style="font-size:11px; color:#475569; margin-top:4px; padding:4px 8px; background:#f8fafc; border-radius:4px; border-left:3px solid ${estat.color}">
+            📅 <b>Último día trabajado:</b> ${formatFechaCorta(o.ultimoDia)}
+            ${estat.diasVencidos != null ? `<br><span style="font-size:10px; color:${estat.color}; font-weight:700">
+              ${estat.diasVencidos === 0 ? 'Hoy' : estat.diasVencidos === 1 ? 'Ayer' : `Hace ${estat.diasVencidos} días`}
+            </span>` : ''}
+          </div>
+        ` : ''}
         ${cs ? `
           <hr style="margin:6px 0; border:none; border-top:1px solid #e5e7eb">
           <div style="font-size:12px; line-height:1.6">
@@ -6587,6 +8370,112 @@ function renderCuadrantes() {
 function nombreCuadrante(id) {
   const c = CUADRANTES.find(x => x.id === id);
   return c ? c.nombre : '— Sin cuadrante —';
+}
+
+// Renderiza los KPIs del tab Cuadrantes (Total / Activos / Inactivos / Sin dato)
+function renderCuadKpis(ops) {
+  const cont = document.getElementById('cuadKpis');
+  if (!cont) return;
+
+  let activos = 0, inactivos = 0, sinDato = 0;
+  ops.forEach(o => {
+    const e = calcularEstatusOperador(o.ultimoDia).estatus;
+    if (e === 'activo') activos++;
+    else if (e === 'inactivo') inactivos++;
+    else sinDato++;
+  });
+
+  const mkKpi = (cls, num, lbl, sub, estatus) => `
+    <div class="cuad-kpi ${cls} ${filtroEstatusCuad === estatus ? 'active' : ''}" data-estatus="${estatus || ''}">
+      <div class="num">${num}</div>
+      <div class="lbl">${lbl}</div>
+      <div class="sub">${sub}</div>
+    </div>
+  `;
+
+  cont.innerHTML = [
+    mkKpi('total', ops.length, 'Total operadores', 'En este filtro', ''),
+    mkKpi('activos', activos, 'Activos', 'Trabajaron hoy o ayer', 'activo'),
+    mkKpi('inactivos', inactivos, 'Inactivos', '2+ días sin trabajar', 'inactivo'),
+    mkKpi('sinDato', sinDato, 'Sin dato', 'Sin fecha registrada', 'sin_dato')
+  ].join('');
+
+  // Listeners: click para alternar filtro
+  cont.querySelectorAll('.cuad-kpi').forEach(k => {
+    k.addEventListener('click', () => {
+      const nuevo = k.dataset.estatus || null;
+      filtroEstatusCuad = (filtroEstatusCuad === nuevo) ? null : nuevo;
+      renderCuadrantes();
+    });
+  });
+}
+
+// Descargar lista de operadores a Excel.
+// Si hay un cuadrante seleccionado, solo exporta los de ese cuadrante.
+// Si no, exporta todos los que estén en el filtro actual (gerencia/planta/estatus).
+function descargarOperadoresCuad() {
+  if (!operadoresCuad.length) {
+    alert('No hay operadores para exportar');
+    return;
+  }
+  let { ops } = filtrarPorGerencia();
+  if (filtroEstatusCuad) {
+    ops = ops.filter(o => calcularEstatusOperador(o.ultimoDia).estatus === filtroEstatusCuad);
+  }
+
+  // Si hay cuadrante seleccionado, limitarse a él
+  let sufijo = '';
+  if (cuadranteSeleccionadoId) {
+    ops = ops.filter(o => asignarCuadrante(o.lat, o.lng) === cuadranteSeleccionadoId);
+    sufijo = `_${nombreCuadrante(cuadranteSeleccionadoId).replace(/[^a-zA-Z0-9]/g, '_')}`;
+  }
+
+  if (!ops.length) {
+    alert('No hay operadores en este filtro para exportar');
+    return;
+  }
+
+  // Construir filas
+  const filas = [[
+    'Nómina', 'Operador', 'Lat Casa', 'Long Casa', 'Cuadrante',
+    'Planta actual', 'Ruta actual', 'KM Vacío', 'Jefe', 'Gerencia', 'Horario',
+    'Con Servicio', 'Último día trabajado', 'Días sin trabajar', 'Estatus'
+  ]];
+
+  ops.forEach(o => {
+    const cs = infoCSV(o.id);
+    const estat = calcularEstatusOperador(o.ultimoDia);
+    filas.push([
+      o.id,
+      o.nombre,
+      Number(o.lat.toFixed(6)),
+      Number(o.lng.toFixed(6)),
+      nombreCuadrante(asignarCuadrante(o.lat, o.lng)),
+      cs ? cs.planta : '',
+      cs ? cs.ruta : '',
+      cs ? Number(cs.kmVacio.toFixed(2)) : '',
+      cs ? cs.jefe : '',
+      cs ? cs.gerente : '',
+      cs ? cs.horario : '',
+      cs ? 'Sí' : 'No',
+      o.ultimoDia ? formatFechaCorta(o.ultimoDia) : '',
+      estat.diasVencidos != null ? estat.diasVencidos : '',
+      estat.label
+    ]);
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(filas);
+  ws['!cols'] = [
+    {wch:12},{wch:35},{wch:12},{wch:12},{wch:22},
+    {wch:20},{wch:28},{wch:10},{wch:20},{wch:20},{wch:10},
+    {wch:12},{wch:16},{wch:14},{wch:22}
+  ];
+  XLSX.utils.book_append_sheet(wb, ws, 'Operadores');
+
+  const fecha = new Date().toISOString().slice(0, 10);
+  const nombreArchivo = `operadores_cuadrantes_${fecha}${sufijo}.xlsx`;
+  XLSX.writeFile(wb, nombreArchivo);
 }
 
 function renderPanelCuadrantes(stats) {
@@ -6867,12 +8756,13 @@ function actualizarEstadoCuadrantes() {
 
   if (hayOverride) {
     info.classList.add('override');
-    // Distinguir tres casos: solo operadores, solo rutas, ambos
+    // Contar sin servicio (los que vienen de la plantilla sin estar en CSV)
+    const sinServicio = operadoresCuad.filter(o => o.sinServicio).length;
+    const conServicio = operadoresCuad.length - sinServicio;
+
     if (operadoresCuadOverride && !inicioCuadOverride) {
-      title.textContent = 'Operadores de Excel + Rutas del CSV (recomendado)';
-      const extra = operadoresCuad.length - operadores.length;
-      const detalleExtra = extra > 0 ? ` (${extra > 0 ? '+' + extra : extra} vs CSV)` : '';
-      txt.textContent = `${operadoresCuad.length} operadores del Excel${detalleExtra} · ${inicioCuad.length} rutas del CSV`;
+      title.textContent = 'Datos combinados: Plantilla + CSV';
+      txt.innerHTML = `<b style="color:#16a34a">${conServicio}</b> con servicio · <b style="color:#dc2626">${sinServicio}</b> sin servicio · <b>${operadoresCuad.length}</b> operadores totales · ${inicioCuad.length} rutas`;
     } else if (!operadoresCuadOverride && inicioCuadOverride) {
       title.textContent = 'Operadores del CSV + Rutas de Excel';
       txt.textContent = `${operadoresCuad.length} operadores del CSV · ${inicioCuad.length} rutas del Excel`;
@@ -7316,13 +9206,19 @@ document.getElementById('cuadResetSource').addEventListener('click', () => {
 });
 
 document.querySelector('.side-item[data-tab="cuadrantes"]').addEventListener('click', () => {
-  // Si tenemos operadores en el CSV pero no en cuadrantes, poblar automáticamente
-  if (operadores.length && (!operadoresCuad.length || !inicioCuad.length)) {
-    poblarCuadrantesDesdeCsv();
+  // Al entrar al tab, SIEMPRE re-poblar para asegurar que incluimos los operadores
+  // de la plantilla (sin servicio) si ya están cargados.
+  if (operadores.length || operadoresPlantilla.length) {
+    if (operadoresPlantilla.length > 0) {
+      poblarCuadrantesDesdeSheet();
+    } else {
+      poblarCuadrantesDesdeCsv();
+    }
   }
   setTimeout(() => {
     if (cuadrantesMap) {
       cuadrantesMap.invalidateSize();
+      renderCuadrantes();  // Forzar re-render con datos actualizados
     } else if (operadoresCuad.length && inicioCuad.length) {
       renderCuadrantes();
     }
@@ -7946,8 +9842,6 @@ window.abrirModalFacturacion = abrirModalFacturacion;
 window.addEventListener('load', () => {
   // GViz funciona desde file:// (no usa fetch), así que siempre intentamos cargar
   setTimeout(() => cargarDesdeGoogleSheet(), 500);
-  // Red de seguridad: ocultar el overlay en 25s pase lo que pase
-  setTimeout(() => { if (typeof ocultarLoadingOverlay === 'function') ocultarLoadingOverlay(); }, 25000);
 });
 
 </script>
