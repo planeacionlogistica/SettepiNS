@@ -512,7 +512,7 @@ const ODDO_SHEET = 'Oddo';
 
 // URL del Web App de Apps Script (para editar Motivo / Fecha de ingreso).
 // OJO: si moviste de spreadsheet, este Web App debe re-publicarse apuntando a la hoja nueva.
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxejpkGCDu5oqwKx7rFdGf0j4gcDes2xZQJ4rIsYFr9yPa0-qWd20qqlDezCc8PCAE/exec';
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxo0fROZTWXXQ96IJ5zUhUMZ2Dt5vrSCv9Sq2WkQS4DVhqL2alq4bo6-VhYK_6Lw_Zmhg/exec';
 
 /* Nombres de columna (se auto-detectan; estos son los valores por defecto) */
 const C = {
@@ -521,6 +521,7 @@ const C = {
   clima:'Marca del clima', funcClima:'Funciona clima', jefe:'Jefe', gerente:'Gerente',
   mesActual:'Mes Actual', unidadesInef:'Unidades ineficientes',
   sinMovAyer:'sin moverse al dia de ayer',
+  fechaCorralon:'',
   fechaVal:'', fechaActualizadoCol:'',
 };
 
@@ -593,6 +594,10 @@ function autoDetectCols(sample){
   C.mesActual   = find('Mes Actual','Mes actual') || C.mesActual;
   C.unidadesInef= find('Unidades ineficientes','Unidades inef') || C.unidadesInef;
   C.sinMovAyer  = find('sin moverse al dia de ayer','sin movimiento ayer','sin moverse ayer','sin mov ayer') || C.sinMovAyer;
+
+  // Fecha en que la unidad entró a corralón.
+  // En esta hoja la fecha de corralón se captura en la misma columna "Fecha de entrada".
+  C.fechaCorralon = find('Fecha corralon','Fecha corralón','Fecha detenido','Fecha en corralon','Fecha de paro') || C.fechaIngreso;
 
   // Fecha de actualización (valor guardado como encabezado de la columna siguiente)
   const idxAct=hdrs.findIndex(x=>low(x).includes('actualizado'));
@@ -1110,6 +1115,18 @@ function calcDiasEnTaller(u){
   if(diff<0&&sinAnio){fecha.setFullYear(fecha.getFullYear()-1);diff=Math.floor((hoy-fecha)/864e5);}
   return diff>=0?diff:'';
 }
+function calcDiasEnCorralon(u){
+  if(!C.fechaCorralon)return '';
+  const raw=(u[C.fechaCorralon]||'').toString().trim();if(!raw)return '';
+  const iso=parseFechaToISO(raw);if(!iso)return '';
+  const m=iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return '';
+  const fecha=new Date(+m[1],+m[2]-1,+m[3]),hoy=new Date();
+  hoy.setHours(0,0,0,0);fecha.setHours(0,0,0,0);
+  let diff=Math.floor((hoy-fecha)/864e5);
+  const sinAnio=/^\d{1,2}[\-\s][a-z]{3,}\.?\s*$/i.test(raw);
+  if(diff<0&&sinAnio){fecha.setFullYear(fecha.getFullYear()-1);diff=Math.floor((hoy-fecha)/864e5);}
+  return diff>=0?diff:'';
+}
 function openKpiModal(key){
   const d=KPI_DATA[key];if(!d)return;
   const units=d.units||[];
@@ -1124,11 +1141,24 @@ function openKpiModal(key){
     const COL_MOT={key:'motivo',label:'Motivo de falla',getRaw:u=>C.motivoFalla?u[C.motivoFalla]:'',render:u=>{const v=C.motivoFalla?(u[C.motivoFalla]||'').trim():'';const id=(u[C.id]||'').toString().trim();const valHtml=v?v:'<span style="color:var(--muted-2)">–</span>';return `<td><div class="edit-cell"><span class="edit-val">${valHtml}</span><button class="edit-icon" title="Editar motivo de falla" onclick="openEditPopup('motivoFalla','${id.replace(/'/g,"\\'")}')">${EDIT_SVG}</button></div></td>`;}};
     const COL_ORD={key:'orden',label:'Orden Oddo',getRaw:u=>getOddoOrden(u[C.id]).label,render:u=>{const o=getOddoOrden(u[C.id]);const tip=o.tip?` title="${o.tip.replace(/"/g,'&quot;')}"`:'';return `<td><span class="pill ${o.cls}"${tip}>${o.label}</span></td>`;}};
     cols=[COL_ID,COL_CLI,COL_MM,COL_ANIO,COL_JEFE,COL_DIAS,COL_FING,COL_MOT,COL_EST,COL_ORD];
+  }else if(key==='corralon'){
+    const COL_EST_C={key:'estatus',label:'Estatus / días detenido',getRaw:u=>{const x=calcDiasEnCorralon(u);return x===''?-1:x;},render:u=>{
+      const cfg=getStatusCfg(u[C.estatus]);
+      const x=calcDiasEnCorralon(u);
+      const fecha=C.fechaCorralon?(u[C.fechaCorralon]||'').toString().trim():'';
+      let sub='';
+      if(x!==''&&x!==null){const color=x>=30?'#9B2C2C':x>=15?'#8A4B0A':'#256B2B';sub=`<div style="font-size:.64rem;font-weight:700;color:${color};margin-top:3px">${x} día${x!==1?'s':''} detenido${fecha?` · desde ${fecha}`:''}</div>`;}
+      else if(fecha){sub=`<div style="font-size:.64rem;color:var(--muted-2);margin-top:3px">desde ${fecha}</div>`;}
+      return `<td><span class="estatus-pill" style="background:rgba(${hexToRgb(cfg.col)},.12);color:${cfg.col}">${u[C.estatus]||'–'}</span>${sub}</td>`;
+    }};
+    cols=[COL_ID,COL_CLI,COL_TIPO,COL_MM,COL_ANIO,COL_JEFE,COL_EST_C];
   }else{
     cols=[COL_ID,COL_CLI,COL_TIPO,COL_MM,COL_ANIO,COL_JEFE,COL_EST];
   }
-  openModalGeneric(d.title+' — '+units.length+' unidad'+(units.length!==1?'es':''),subStr||`${units.length} unidades`,units,cols,d.title,
-    arr=>arr.slice().sort((a,b)=>{const ia=orden.indexOf(low(a[C.estatus])),ib=orden.indexOf(low(b[C.estatus]));if(ia!==ib)return(ia<0?99:ia)-(ib<0?99:ib);return(a[C.cliente]||'').localeCompare(b[C.cliente]||'','es');}));
+  const defSort = key==='corralon'
+    ? arr=>arr.slice().sort((a,b)=>{const da=calcDiasEnCorralon(a),db=calcDiasEnCorralon(b);const na=(da===''?-1:da),nb=(db===''?-1:db);return nb-na;})
+    : arr=>arr.slice().sort((a,b)=>{const ia=orden.indexOf(low(a[C.estatus])),ib=orden.indexOf(low(b[C.estatus]));if(ia!==ib)return(ia<0?99:ia)-(ib<0?99:ib);return(a[C.cliente]||'').localeCompare(b[C.cliente]||'','es');});
+  openModalGeneric(d.title+' — '+units.length+' unidad'+(units.length!==1?'es':''),subStr||`${units.length} unidades`,units,cols,d.title,defSort);
 }
 
 /* ── Export ── */
