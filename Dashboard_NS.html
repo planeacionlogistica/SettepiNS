@@ -130,7 +130,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 #drillDetailModal{z-index:820;}
 #drillDetailModal .modal-box{max-width:1150px;}
 #drillDetailModal .modal-body{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-#drillDetailModal .modal-table{table-layout:fixed;min-width:1140px;width:100%;border-collapse:collapse;}
+#drillDetailModal .modal-table{table-layout:fixed;min-width:930px;width:100%;border-collapse:collapse;}
 #operadorModal{z-index:830;}
 .modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
 /* ── Drill modal nivel 1 ── */
@@ -338,30 +338,6 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 .cx-leg i.trend{width:18px;height:0;border-top:2.5px dashed var(--ink);border-radius:0}
 .cx-leg i.dot{width:9px;height:9px;border-radius:50%}
 @media(max-width:768px){.cx-right{align-items:flex-start}.cx-trend{align-items:flex-start;text-align:left}}
-
-/* ── Comentario (NS → col BC) ── */
-.com-cell{display:flex;align-items:center;gap:.35rem;}
-.com-txt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.72rem;color:#374151;}
-.com-txt.empty{color:#b6bdcb;font-style:italic;}
-.com-edit-btn{flex-shrink:0;background:transparent;border:none;cursor:pointer;color:#6b7a99;opacity:.55;padding:2px 3px;border-radius:5px;line-height:1;transition:all .15s;}
-.com-edit-btn:hover{opacity:1;color:#16a34a;background:rgba(22,163,74,.1);}
-.ns-edit-overlay{display:none;position:fixed;inset:0;z-index:900;background:rgba(16,22,34,.45);backdrop-filter:blur(2px);align-items:center;justify-content:center;padding:1rem;}
-.ns-edit-overlay.open{display:flex;}
-.ns-edit-box{background:#fff;border-radius:13px;box-shadow:0 22px 60px rgba(0,0,0,.32);padding:1.15rem 1.25rem;min-width:320px;max-width:460px;width:100%;}
-.ns-edit-title{font-size:.82rem;font-weight:700;color:#1a2236;margin-bottom:.25rem;}
-.ns-edit-sub{font-size:.72rem;color:#6b7a99;margin-bottom:.85rem;line-height:1.4;}
-.ns-edit-sub b{color:#1a2236;}
-.ns-edit-textarea{width:100%;padding:.6rem .7rem;border:1.5px solid #dde3f0;border-radius:8px;font-size:.85rem;font-family:'Inter',sans-serif;outline:none;min-height:92px;resize:vertical;color:#1a2236;transition:border-color .15s,box-shadow .15s;}
-.ns-edit-textarea:focus{border-color:#7ed321;box-shadow:0 0 0 3px rgba(126,211,33,.15);}
-.ns-edit-actions{display:flex;gap:.5rem;justify-content:flex-end;margin-top:.9rem;}
-.ns-edit-btn{padding:.5rem 1rem;border-radius:8px;font-size:.76rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;border:none;transition:all .15s;}
-.ns-edit-btn.cancel{background:#f1f3f6;color:#1a2236;}
-.ns-edit-btn.cancel:hover{background:#e5e8ee;}
-.ns-edit-btn.save{background:#7ed321;color:#17320a;}
-.ns-edit-btn.save:hover{background:#71bd1e;}
-.ns-edit-btn:disabled{opacity:.55;cursor:not-allowed;}
-.ns-edit-err{font-size:.72rem;color:#9b2c2c;background:#fbeaea;padding:.5rem .65rem;border-radius:7px;margin-top:.6rem;display:none;}
-.ns-edit-err.show{display:block;}
 </style>
 </head>
 <body>
@@ -912,7 +888,6 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
           <col style="width:80px"><col style="width:95px">
           <col style="width:80px"><col style="width:95px">
           <col style="width:70px"><col style="width:70px">
-          <col style="width:210px">
         </colgroup>
         <thead id="detailThead"><tr>
           <th style="width:36px"></th>
@@ -926,7 +901,6 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
           <th class="r sortable" data-col="endEta" onclick="sortDetail('endEta')"><div class="th-inner r">Lle Real GPS<span class="sort-ind">↕</span></div></th>
           <th class="r sortable" data-col="minIni" onclick="sortDetail('minIni')"><div class="th-inner r">Min Ini<span class="sort-ind">↕</span></div></th>
           <th class="r sortable" data-col="minLle" onclick="sortDetail('minLle')"><div class="th-inner r">Min Lle<span class="sort-ind">↕</span></div></th>
-          <th><div class="th-inner">Comentario</div></th>
         </tr></thead>
         <tbody id="drillDetailBody"></tbody>
       </table>
@@ -1048,20 +1022,6 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
   </div>
 </div>
 
-<!-- ══ POPUP: comentario del viaje (NS → col BC) ══ -->
-<div class="ns-edit-overlay" id="comOverlay" onclick="if(event.target===this)closeComentario()">
-  <div class="ns-edit-box">
-    <div class="ns-edit-title">Comentario del viaje</div>
-    <div class="ns-edit-sub" id="comSub"></div>
-    <textarea class="ns-edit-textarea" id="comInput" placeholder="¿Por qué llegó / salió tarde? (ej. tráfico, falla de unidad, carga lenta…)" maxlength="500"></textarea>
-    <div class="ns-edit-err" id="comErr"></div>
-    <div class="ns-edit-actions">
-      <button class="ns-edit-btn cancel" onclick="closeComentario()">Cancelar</button>
-      <button class="ns-edit-btn save" id="comSaveBtn" onclick="saveComentario()">Guardar</button>
-    </div>
-  </div>
-</div>
-
 <script>
 // ── UDN → libro de datos (cada UDN apunta a su propio Google Sheet) ──
 const UDN_SHEETS = {
@@ -1086,7 +1046,7 @@ function firstChunkSize(){
   const filas=(dia+3)*ROWS_PER_DAY;        // días transcurridos + 3 de colchón
   return Math.max(6000, Math.min(30000, filas)); // piso 6k, techo 30k
 }
-const BG_CHUNK    = 25000;   // bloques para traer el histórico en segundo plano
+const BG_CHUNK    = 40000;   // bloques para traer el histórico en segundo plano (menos llamadas)
 const CHUNK       = 50000;   // (compat) usado por rutas antiguas
 
 // ── Modal de cambio de UDN (encima de la interfaz, sin borrarla) ──
@@ -1124,11 +1084,8 @@ const C = {
   retardo:'Inicios_Tarde', viajes:'Cantidad de viajes', llegada:'Llegadas_Tarde',
   minIni:'Minutos de Retraso', minLle:'Minutos llegadas', driver:'operador', car:'car', ruta:'des',
   startTime:'start_time', startEta:'start_eta', endTime:'end_time', endEta:'end_eta',
-  id:'id', workerId:'worker_id', comentario:'Comentarios',
+  id:'id', workerId:'worker_id',
 };
-
-// Web App de Apps Script (mismo script que Flota) para guardar el comentario en NS col BC
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxejpkGCDu5oqwKx7rFdGf0j4gcDes2xZQJ4rIsYFr9yPa0-qWd20qqlDezCc8PCAE/exec';
 
 let DATA         = [];
 let loadedMonths = new Set();
@@ -1358,8 +1315,32 @@ function parseCSV(text){
   }
   return rows;
 }
+// ── Proyección de columnas: traer SOLO las que usa el dashboard (≈ mitad del peso) ──
+let NS_PROJECTION='';   // letras de columna (p.ej. "A,D,H"); '' = todas
+const NS_NEEDED=['id','worker_id','business_unit','des','car','group',
+  'start_date','start_time','start_eta','end_time','end_eta','operador',
+  'Minutos de Retraso','Año','Mes','Dia','Semana','Inicios_Tarde',
+  'Cantidad de viajes','Gerente','Jefe','Minutos llegadas','Llegadas_Tarde',
+  'Turno','Coordinador'];
+function nsNormName(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim().replace(/\s+/g,' '); }
+function idxToLetter(i){ let s='',n=i+1; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); } return s; }
+async function ensureNsProjection(){
+  if(NS_PROJECTION) return;
+  try{
+    const tq=encodeURIComponent('SELECT * LIMIT 1');
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
+    const r=await fetch(url); if(!r.ok) return;
+    const line=(await r.text()).trim().split(/\r?\n/)[0];
+    const hdrs=parseCSVLine(line);
+    const want=new Set(NS_NEEDED.map(nsNormName));
+    const letters=[];
+    hdrs.forEach((h,i)=>{ if(want.has(nsNormName(h))) letters.push(idxToLetter(i)); });
+    if(letters.length>=5) NS_PROJECTION=letters.join(',');   // si matchea poco, mejor traer todas
+  }catch(e){ NS_PROJECTION=''; }
+}
 function csvUrl(offset, limit){
-  const tq=encodeURIComponent(`SELECT * LIMIT ${limit} OFFSET ${offset}`);
+  const sel = NS_PROJECTION || '*';
+  const tq=encodeURIComponent(`SELECT ${sel} LIMIT ${limit} OFFSET ${offset}`);
   return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
 }
 function countUrl(){
@@ -1581,41 +1562,19 @@ async function loadFlota(){
 }
 
 // ── Main loader ───────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', async ()=>{
-  // Al abrir: no cargar nada. Esperar a que el usuario elija una UDN.
-  const _udnSel = document.getElementById('udnSelect');
-  if(_udnSel) _udnSel.value = '';
+// Al abrir: si hay una UDN recordada, cargarla (pinta desde caché al instante).
+window.addEventListener('DOMContentLoaded', ()=>{
   try{ document.getElementById('loadingOverlay').style.display='none'; }catch(e){}
-  mostrarMensajeSeleccionaUdn();
-  return;
-  // (El código de abajo nunca se ejecuta en el arranque; se activa al elegir UDN vía switchUdn)
-  await Promise.all([loadSheet(), loadInputs(), loadMAE(), loadFlota(), loadUbicaciones()]);
-  // Ambas cargas terminaron → asignar coordinadores y redibujar
-  buildCoordMap();
-  // ── Audit KM en vacío: cuántos viajes matchean operador+ruta ──
-  if(DATA.length && Object.keys(OP_COORDS).length){
-    let ok=0, sinOp=0, sinRuta=0;
-    for(let i=0;i<Math.min(DATA.length,5000);i++){
-      const r=DATA[i];
-      const wid=normNomina(r[C.workerId]);
-      const ruta=normRuta(r['des']);
-      if(!wid||!OP_COORDS[wid]) sinOp++;
-      else if(!RUTA_COORDS[ruta]) sinRuta++;
-      else ok++;
-    }
-    const total=ok+sinOp+sinRuta;
-    console.log(`[KM] ${ok}/${total} match · ops:${Object.keys(OP_COORDS).length} · rutas:${Object.keys(RUTA_COORDS).length} · sinOp:${sinOp} sinRuta:${sinRuta}`);
+  let saved='';
+  try{ saved=localStorage.getItem('ns_udn')||''; }catch(e){}
+  const sel=document.getElementById('udnSelect');
+  if(saved && UDN_SHEETS[saved] && UDN_SHEETS[saved].data){
+    if(sel) sel.value=saved;
+    switchUdn(saved);
+  }else{
+    if(sel) sel.value='';
+    mostrarMensajeSeleccionaUdn();
   }
-  fillAllSelects();
-  // Seleccionar el mes actual por defecto
-  const _now = new Date();
-  const _mesActual = `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}`;
-  if(loadedMonths.has(_mesActual)){
-    SC_SEL.mes = _mesActual;
-    const btn = document.getElementById('sc-btn-mes');
-    if(btn) btn.querySelector('.sc-val').textContent = mesLabel(_mesActual);
-  }
-  draw();
 });
 
 async function loadSheet(){
@@ -1624,10 +1583,12 @@ async function loadSheet(){
   const banner =document.getElementById('errBanner');
   const errMsg =document.getElementById('errMsg');
 
-  // ── IndexedDB Cache helpers (para cargas casi instantáneas en visitas posteriores)
-  // Cache por UDN para que no se mezclen datos entre libros
-  const DB_NAME='DashboardNS', STORE='ns_cache', DB_KEY='full_data_v2_'+(CURRENT_UDN||'default').replace(/\s+/g,'_');
-  const CACHE_MAX_AGE_MS = 0; // Sin caché → siempre jala fresco del sheet
+  // ── Caché IndexedDB: SOLO mes actual + mes anterior (ligera → entrada instantánea) ──
+  const DB_NAME='DashboardNS', STORE='ns_cache';
+  const udnKey   = (CURRENT_UDN||'default').replace(/\s+/g,'_');
+  const CACHE_KEY='ns_recent_v3_'+udnKey;   // { ts, rows:[mes actual + mes anterior] }
+  const COUNT_KEY='ns_count_v3_'+udnKey;
+
   function openDB(){
     return new Promise(resolve=>{
       if(!self.indexedDB){ resolve(null); return; }
@@ -1639,182 +1600,120 @@ async function loadSheet(){
   }
   async function cacheGet(key){
     try{ const db=await openDB(); if(!db) return null;
-      return await new Promise(res=>{
-        const tx=db.transaction(STORE,'readonly'); const r=tx.objectStore(STORE).get(key);
-        r.onsuccess=()=>res(r.result); r.onerror=()=>res(null);
-      });
+      return await new Promise(res=>{ const tx=db.transaction(STORE,'readonly'); const r=tx.objectStore(STORE).get(key); r.onsuccess=()=>res(r.result); r.onerror=()=>res(null); });
     }catch(e){ return null; }
   }
   async function cacheSet(key,value){
     try{ const db=await openDB(); if(!db) return;
-      return await new Promise(res=>{
-        const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(value,key);
-        tx.oncomplete=()=>res(); tx.onerror=()=>res();
-      });
+      return await new Promise(res=>{ const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(value,key); tx.oncomplete=()=>res(); tx.onerror=()=>res(); });
     }catch(e){}
   }
-  function rowKey(r){ return r[C.id] || `${r[C.fecha]||''}|${r[C.ruta]||''}|${r[C.driver]||''}|${r[C.startTime]||''}`; }
 
-  // Token de carga: si el usuario cambia de UDN a media carga, abortamos la anterior
-  const myToken = (loadSheet._token = (loadSheet._token||0) + 1);
-  const stillMine = ()=> myToken === loadSheet._token;
+  // Token: si cambian de UDN a media carga, abortamos la anterior
+  const myToken=(loadSheet._token=(loadSheet._token||0)+1);
+  const stillMine=()=>myToken===loadSheet._token;
+
+  NS_PROJECTION='';   // recalcular columnas para esta UDN
+
+  const mesActual=getCurrentMonth();
+  const _n=new Date();
+  const _dp=new Date(_n.getFullYear(), _n.getMonth()-1, 1);
+  const mesPrev=`${_dp.getFullYear()}-${String(_dp.getMonth()+1).padStart(2,'0')}`;
+  const RECENT=new Set([mesActual, mesPrev]);   // lo que SÍ se guarda en caché
+
+  function recalcMonths(){ loadedMonths=new Set(); DATA.forEach(r=>{ const m=normMonth(getFecha(r)); if(m) loadedMonths.add(m); }); }
+  function revealUI(){ if(banner) banner.classList.add('hidden'); if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',350); } closeUdnModal(); }
+  function pintar(){ fillAllSelects(); if(loadedMonths.has(mesActual)){ scSetVal('mes',mesActual,mesLabel(mesActual)); } cascadeSelects(); buildCoordMap(); draw(); }
+  // Reemplaza SOLO el mes actual con las filas frescas; conserva lo demás
+  function refreshCurrent(tail){
+    if(!tail||!tail.length) return;
+    DATA=DATA.filter(r=>normMonth(getFecha(r))!==mesActual);
+    const cur=tail.filter(r=>normMonth(getFecha(r))===mesActual);
+    DATA=DATA.concat(cur);
+  }
+  async function saveRecent(ts){
+    try{ const rows=DATA.filter(r=>RECENT.has(normMonth(getFecha(r)))); await cacheSet(CACHE_KEY,{ts:ts||Date.now(), rows}); }catch(e){}
+  }
+  async function fetchCount(){
+    try{ const r=await fetch(countUrl()); if(!r.ok) return 0; const t=await r.text(); const nums=t.match(/[\d.]+/g); return nums&&nums.length?Math.floor(parseFloat(nums[nums.length-1]))||0:0; }catch(e){ return 0; }
+  }
+  async function fetchRows(off,lim){
+    const r=await fetch(csvUrl(off,lim));
+    if(!r.ok) throw new Error('HTTP '+r.status+'. Verifica que el Sheet sea público (Compartir → Cualquier persona con el enlace).');
+    return parseCSV(await r.text());
+  }
 
   try{
-    loadMsg.innerHTML='Cargando mes actual…<br>Un momento';
-    bgProgress(null); // oculto la barra hasta que empiece el histórico
+    loadMsg.innerHTML='Cargando…<br>Un momento';
+    bgProgress(null);
+    await ensureNsProjection();         // columnas reducidas (si falla → todas)
+    const FC=firstChunkSize();
 
-    const mesActual=getCurrentMonth();
-    const CACHE_COUNT_KEY = 'ns_total_rows_v2_'+(CURRENT_UDN||'default').replace(/\s+/g,'_');
-    const FC = firstChunkSize();
+    // ── 1) CACHÉ (mes actual + anterior): pintar al INSTANTE ──
+    let cached=null, fromCache=false;
+    try{ cached=await cacheGet(CACHE_KEY); }catch(e){}
+    if(cached && cached.rows && cached.rows.length && stillMine()){
+      DATA=cached.rows; recalcMonths(); revealUI(); pintar(); fromCache=true;
+    }
 
-    // ═══════════════════════════════════════════════════════════════
-    // FASE 1: COUNT en PARALELO (no bloquea). Usamos el conteo guardado
-    //          para saber ya el "final" y disparar la bajada de inmediato.
-    // ═══════════════════════════════════════════════════════════════
-    const countPromise = (async()=>{
-      try{
-        const r = await fetch(countUrl());
-        if(!r.ok) return 0;
-        const t = await r.text();
-        const nums = t.match(/[\d.]+/g);
-        return nums && nums.length ? Math.floor(parseFloat(nums[nums.length-1])) || 0 : 0;
-      }catch(e){ console.warn('COUNT falló', e); return 0; }
-    })();
+    // ── 2) Conteo real (para ubicar el final = mes actual) ──
+    const realCount=await fetchCount(); if(!stillMine()) return;
+    let baseCount=realCount>0?realCount:0;
+    if(baseCount<=0){ try{ baseCount=parseInt(localStorage.getItem(COUNT_KEY)||'0')||0; }catch(e){} }
 
-    let cachedCount = 0;
-    try{ cachedCount = parseInt(localStorage.getItem(CACHE_COUNT_KEY) || '0') || 0; }catch(e){}
+    if(baseCount>0){
+      const off=baseCount>FC?(baseCount-FC):0;
+      const lim=Math.min(FC,baseCount);
 
-    // ═══════════════════════════════════════════════════════════════
-    // FASE 2: Bloque inicial CHICO desde el final → pinta en segundos
-    // ═══════════════════════════════════════════════════════════════
-    // Si hay conteo guardado, lo usamos para el offset y NO esperamos al COUNT.
-    // Si no (primera vez absoluta), ahí sí esperamos el COUNT.
-    let baseCount = cachedCount;
-    if(baseCount <= 0){ baseCount = await countPromise; if(!stillMine()) return; }
-
-    let firstOffset = baseCount > FC ? (baseCount - FC) : 0;
-    let firstLimit  = baseCount > 0 ? Math.min(FC, baseCount) : FC;
-
-    let res=await fetch(csvUrl(firstOffset, firstLimit));
-    if(!res.ok) throw new Error('HTTP '+res.status+'. Verifica que el Sheet sea público (Compartir → Cualquier persona con el enlace).');
-    if(!stillMine()) return;
-    let firstRows=parseCSV(await res.text());
-
-    // Si el conteo guardado estaba desfasado y vino vacío, reintentar con COUNT real
-    if(!firstRows.length){
-      const realNow = await countPromise; if(!stillMine()) return;
-      if(realNow>0){
-        baseCount = realNow;
-        firstOffset = baseCount > FC ? (baseCount - FC) : 0;
-        firstLimit  = Math.min(FC, baseCount);
-        res=await fetch(csvUrl(firstOffset, firstLimit));
-        if(res.ok){ firstRows=parseCSV(await res.text()); }
+      // ── 3) Refrescar SIEMPRE el mes actual (bloque final, columnas reducidas) ──
+      let tail=[];
+      try{ tail=await fetchRows(off,lim); }catch(e){ if(!fromCache) throw e; }
+      if(!stillMine()) return;
+      if(tail.length){
+        if(fromCache){ refreshCurrent(tail); recalcMonths(); }
+        else { DATA=tail.slice(); recalcMonths(); revealUI(); }
+        if(realCount>0){ try{ localStorage.setItem(COUNT_KEY,String(realCount)); }catch(e){} }
+        pintar();
+        saveRecent();   // caché queda con el mes actual fresco (+ anterior si cae en el bloque)
+      } else if(!fromCache){
+        throw new Error('Sin filas válidas. Abre F12 → Console para ver el detalle.');
       }
-    }
-    if(!firstRows.length) throw new Error('Sin filas válidas. Abre F12 → Console para ver el detalle.');
-    DATA=[...firstRows];
-    firstRows.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
 
-    // Mostrar el dashboard YA, con el mes actual seleccionado
-    if(banner) banner.classList.add('hidden');
-    if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',350); }
-    closeUdnModal();   // cerrar el modal de cambio de UDN si estaba abierto
-    fillAllSelects();
-    let mesAutoSelected=false;
-    if(loadedMonths.has(mesActual)){
-      scSetVal('mes',mesActual,mesLabel(mesActual));
-      cascadeSelects();
-      mesAutoSelected=true;
-    }
-    buildCoordMap();   // coordinadores del mes actual ya correctos desde el primer pintado
-    draw();
-
-    // Reconciliar con el conteo REAL: si se agregaron filas desde la última
-    // visita, el offset basado en el conteo guardado no las trajo → las jalamos.
-    const realCount = await countPromise;
-    if(!stillMine()) return;
-    if(realCount>0){
-      try{ localStorage.setItem(CACHE_COUNT_KEY, String(realCount)); }catch(e){}
-      const topMissing = realCount - baseCount;
-      if(topMissing > 0){
-        try{
-          const rNew=await fetch(csvUrl(baseCount, topMissing));
-          if(rNew.ok && stillMine()){
-            const nuevos=parseCSV(await rNew.text());
-            if(nuevos.length){
-              nuevos.forEach(r=>{ const m=normMonth(getFecha(r)); if(m) loadedMonths.add(m); });
-              DATA.push(...nuevos);   // son las más recientes → al final
-              buildCoordMap(); draw();
-            }
-          }
-        }catch(e){ console.warn('Error trayendo filas nuevas', e); }
-      }
-    }
-
-    // ¿El bloque inicial ya contiene datos de un mes ANTERIOR al actual?
-    // Si sí, el mes actual está completo. Si no, el bloque es puro mes actual
-    // y hay que seguir trayendo para completarlo (lo hace la fase de histórico).
-    const mesesEnBloque=[...new Set(firstRows.map(r=>normMonth(getFecha(r))).filter(Boolean))];
-    const bloqueTieneMesViejo = mesesEnBloque.some(m => m < mesActual);
-
-    // ═══════════════════════════════════════════════════════════════
-    // FASE 3: HISTÓRICO en segundo plano (barra de progreso con %)
-    // ═══════════════════════════════════════════════════════════════
-    if(firstOffset > 0){
-      const totalBg = firstOffset;               // filas que faltan por traer (las más viejas)
-      let traidas   = 0;
-      let nextEnd   = firstOffset;
-      bgProgress(0, bloqueTieneMesViejo ? 'Cargando meses anteriores…' : 'Completando datos…');
-
-      while(nextEnd > 0){
-        if(!stillMine()) return;                 // cambió la UDN → abortar
-        const nextStart = Math.max(0, nextEnd - BG_CHUNK);
-        const limit = nextEnd - nextStart;
+      // ── 4) Histórico más viejo en segundo plano (solo en memoria; NO se cachea) ──
+      let build=DATA.slice();
+      let nextEnd=off;
+      const total=off||1;
+      if(nextEnd>0) bgProgress(0,'Cargando meses anteriores…');
+      while(nextEnd>0){
+        if(!stillMine()) return;
+        const start=Math.max(0,nextEnd-BG_CHUNK);
+        const limit=nextEnd-start;
         let more=[];
-        try{
-          const r2=await fetch(csvUrl(nextStart, limit));
-          if(!r2.ok) break;
-          if(!stillMine()) return;
-          more=parseCSV(await r2.text());
-        }catch(e){ console.warn('Error en bloque histórico', e); break; }
-        if(!more.length){ nextEnd=nextStart; continue; }
-
-        more.forEach(r=>{ const mes=normMonth(getFecha(r)); if(mes) loadedMonths.add(mes); });
-        // Insertar al inicio para mantener orden cronológico aproximado
-        DATA.unshift(...more);
-        traidas += limit;
-        nextEnd = nextStart;
-
-        // Actualizar el dropdown de meses (aparecen los meses que van llegando)
-        fillAllSelects();
-        if(!mesAutoSelected && loadedMonths.has(mesActual)){
-          scSetVal('mes',mesActual,mesLabel(mesActual));
-          cascadeSelects();
-          mesAutoSelected=true;
+        try{ more=await fetchRows(start,limit); }catch(e){ console.warn('Error histórico',e); break; }
+        if(!stillMine()) return;
+        if(more.length){
+          const have=new Set(build.map(r=>(r[C.id]||'').toString().trim()));
+          const add=more.filter(r=>!have.has((r[C.id]||'').toString().trim()));
+          if(add.length){
+            build=build.concat(add);
+            DATA=build; recalcMonths();
+            const mesVisto=SC_SEL.mes||mesActual;
+            fillAllSelects();
+            if(add.some(r=>normMonth(getFecha(r))===mesVisto)){ buildCoordMap(); draw(); }
+          }
         }
-        // Redibujar en vivo SOLO si este bloque trae filas del mes que el
-        // usuario está viendo (p.ej. completa el mes actual si quedó corto).
-        // Si solo llegan meses que no está viendo, nos saltamos el draw()
-        // (mucho más ligero y fluido mientras baja el histórico).
-        const mesVisto = SC_SEL.mes || mesActual;
-        const bloqueTocaVista = more.some(r => normMonth(getFecha(r))===mesVisto);
-        if(bloqueTocaVista) draw();
-        bgProgress(Math.min(99, traidas/totalBg*100));
-        // Ceder el hilo para que la UI no se congele entre bloques
+        nextEnd=start;
+        bgProgress(Math.min(99,(total-nextEnd)/total*100));
         await new Promise(r=>setTimeout(r,0));
       }
+      if(!stillMine()) return;
+      DATA=build; recalcMonths(); pintar();
+      bgProgress(100,'Datos completos');
+      setTimeout(()=>{ if(stillMine()) bgProgress(null); },1200);
+      saveRecent();   // la caché SIEMPRE queda ligera: solo mes actual + anterior
+    } else if(!fromCache){
+      throw new Error('No se pudo obtener el conteo de filas. Verifica el acceso al Sheet.');
     }
-
-    // Terminó el histórico
-    if(!stillMine()) return;
-    buildCoordMap();
-    if(!mesAutoSelected && loadedMonths.has(mesActual)){
-      scSetVal('mes',mesActual,mesLabel(mesActual));
-      cascadeSelects();
-    }
-    draw();
-    bgProgress(100, 'Datos completos');
-    setTimeout(()=>{ if(stillMine()) bgProgress(null); }, 1200);
   }catch(e){
     console.error(e);
     if(overlay) overlay.style.display='none';
@@ -3169,9 +3068,8 @@ function rerenderDetailModal(){
       <td class="r" style="font-size:.72rem;white-space:nowrap;color:#374151;font-weight:600">${eEta}</td>
       <td class="r">${minCell(minIni,0)}</td>
       <td class="r">${minCell(minLle,0)}</td>
-      ${comCell(r)}
     </tr>`;
-  }).join('')||'<tr><td colspan="12" class="table-empty">Sin viajes registrados</td></tr>';
+  }).join('')||'<tr><td colspan="11" class="table-empty">Sin viajes registrados</td></tr>';
 }
 
 // ── Export con ExcelJS + logo ──
@@ -3351,8 +3249,6 @@ function closeDrill(e){ if(e.target===document.getElementById('drillModal')) doc
 
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
-    const com=document.getElementById('comOverlay');
-    if(com&&com.classList.contains('open')){ closeComentario(); return; }
     if(document.getElementById('auditModal').classList.contains('open')){ closeAuditModal(); return; }
     const op=document.getElementById('operadorModal');
     if(op.classList.contains('open')){ op.classList.remove('open'); return; }
@@ -3629,105 +3525,6 @@ function openOperadorModal(driver){
   document.getElementById('operadorModal').classList.add('open');
 }
 
-// ── Comentario del viaje (NS → col BC) ────────────────────────────
-const PENCIL_SVG='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-let _comTripId='';
-
-function escHtmlNS(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-// Celda de comentario para el modal de detalle de viajes
-function comCell(r){
-  const tripId=(r[C.id]||'').toString().trim();
-  const val=(r[C.comentario]||'').toString().trim();
-  const idEsc=tripId.replace(/'/g,"\\'");
-  const txt=val
-    ? `<span class="com-txt" title="${escHtmlNS(val)}">${escHtmlNS(val)}</span>`
-    : `<span class="com-txt empty">—</span>`;
-  const btn=tripId
-    ? `<button class="com-edit-btn" onclick="openComentario('${idEsc}')" title="Agregar / editar comentario">${PENCIL_SVG}</button>`
-    : '';
-  return `<td><div class="com-cell">${txt}${btn}</div></td>`;
-}
-
-function openComentario(tripId){
-  const id=(tripId||'').toString().trim();
-  if(!id) return;
-  _comTripId=id;
-  const r=DATA.find(x=>(x[C.id]||'').toString().trim()===id);
-  const sub=document.getElementById('comSub');
-  if(r){
-    const ruta=(r[C.ruta]||'').trim();
-    const uni =(r[C.car]||'').trim();
-    const op  =(r[C.driver]||'').trim();
-    sub.innerHTML=`Viaje <b>${escHtmlNS(id)}</b>`+(ruta?' · '+escHtmlNS(ruta):'')+(uni?' · '+escHtmlNS(uni):'')+(op?' · '+escHtmlNS(op):'');
-  } else {
-    sub.innerHTML=`Viaje <b>${escHtmlNS(id)}</b>`;
-  }
-  const inp=document.getElementById('comInput');
-  inp.value=r?(r[C.comentario]||'').toString():'';
-  document.getElementById('comErr').classList.remove('show');
-  const btn=document.getElementById('comSaveBtn');
-  btn.disabled=false; btn.textContent='Guardar';
-  document.getElementById('comOverlay').classList.add('open');
-  setTimeout(()=>{ inp.focus(); },50);
-}
-
-function closeComentario(){
-  document.getElementById('comOverlay').classList.remove('open');
-  _comTripId='';
-}
-
-async function saveComentario(){
-  const id=_comTripId;
-  if(!id) return;
-  const inp=document.getElementById('comInput');
-  const errBox=document.getElementById('comErr');
-  const btn=document.getElementById('comSaveBtn');
-  const nuevo=inp.value.trim();
-  const r=DATA.find(x=>(x[C.id]||'').toString().trim()===id);
-  const actual=r?(r[C.comentario]||'').toString().trim():'';
-  if(nuevo===actual){ closeComentario(); return; }
-  btn.disabled=true; btn.textContent='Guardando…'; errBox.classList.remove('show');
-  try{
-    const res=await fetch(WEBAPP_URL,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({target:'ns', udn:CURRENT_UDN, id:id, comentario:nuevo}),
-      redirect:'follow'
-    });
-    const text=await res.text();
-    let json;
-    try{ json=JSON.parse(text); }catch(e){ throw new Error('Respuesta no válida del servidor: '+text.slice(0,120)); }
-    if(!json.ok) throw new Error(json.error||'Error desconocido');
-    // Actualiza en memoria todas las filas con ese id (normalmente una)
-    DATA.forEach(x=>{ if((x[C.id]||'').toString().trim()===id) x[C.comentario]=nuevo; });
-    closeComentario();
-    rerenderDetailModal();
-    nsToast('✓ Comentario guardado en el viaje '+id,'ok');
-  }catch(err){
-    console.error(err);
-    errBox.textContent='✗ '+(err.message||'No se pudo guardar');
-    errBox.classList.add('show');
-    btn.disabled=false; btn.textContent='Guardar';
-  }
-}
-
-let _nsToastTimer=null;
-function nsToast(msg,type){
-  let t=document.getElementById('nsToast');
-  if(!t){
-    t=document.createElement('div');
-    t.id='nsToast';
-    t.style.cssText='position:fixed;bottom:24px;right:24px;background:#1a2236;color:#fff;padding:.75rem 1.15rem;border-radius:9px;box-shadow:0 8px 24px rgba(0,0,0,.28);z-index:9999;font-size:.8rem;font-weight:600;opacity:0;transition:opacity .25s;border-left:4px solid #7ed321;max-width:320px';
-    document.body.appendChild(t);
-  }
-  t.style.borderLeftColor=(type==='err')?'#e53e3e':'#7ed321';
-  t.textContent=msg;
-  t.style.opacity='1';
-  clearTimeout(_nsToastTimer);
-  _nsToastTimer=setTimeout(()=>{ t.style.opacity='0'; }, 3200);
-}
-
 // ── Drill modal nivel 2 ───────────────────────────────────────────
 function openDrillDetail(rutaK,clienteK,tbl){
   const isLlegadas=tbl==='lcli';
@@ -3785,9 +3582,8 @@ function openDrillDetail(rutaK,clienteK,tbl){
       <td class="r" style="font-size:.72rem;white-space:nowrap;color:#374151;font-weight:600">${eEta}</td>
       <td class="r">${minCell(minIni,0)}</td>
       <td class="r">${minCell(minLle,0)}</td>
-      ${comCell(r)}
     </tr>`;
-  }).join('')||'<tr><td colspan="12" class="table-empty">Sin viajes registrados</td></tr>';
+  }).join('')||'<tr><td colspan="11" class="table-empty">Sin viajes registrados</td></tr>';
 
   document.getElementById('drillDetailFoot').textContent=`Servicios: ${totT} viajes · · ${totL} ${lateLbl.toLowerCase()} · ${pctG}% cumplimiento`;
   lastDetailData=[...sorted];
