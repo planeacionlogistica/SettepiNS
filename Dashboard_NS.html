@@ -418,7 +418,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
           <option value="">— Selecciona UDN —</option>
           <option value="Settepi Garcia">Settepi Garcia</option>
           <option value="Lipu Mty">Lipu Mty</option>
-          <option value="Settepi Apodaca">Settepi Apodaca (pendiente)</option>
+          <option value="Settepi Apodaca">Settepi Apodaca</option>
         </select>
         <!-- Input viejo mantenido oculto por compatibilidad con el código existente -->
         <input type="hidden" id="sc-udn-input">
@@ -1067,7 +1067,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 const UDN_SHEETS = {
   'Settepi Garcia':  { data: '1YZG92UT4EI8VbNoKy0Vm0mWrujTr-8mSccJHphswKeg', inputs: '10Sejx7skzzacCLf4tNHeJGMNoSW0v6lJqTuI8up84SA' },
   'Lipu Mty':        { data: '1_wSodlXfixKxfQC8f51NU0gLtEWbAiSPotiS6TbkfyI', inputs: '1_wSodlXfixKxfQC8f51NU0gLtEWbAiSPotiS6TbkfyI' },
-  'Settepi Apodaca': { data: '', inputs: '' }, // pendiente de conectar
+  'Settepi Apodaca': { data: '1QGxZNJBC9lJKeM7GosKR4EyTn41pH_tPRqfO7eC1RIw', inputs: '1QGxZNJBC9lJKeM7GosKR4EyTn41pH_tPRqfO7eC1RIw' },
 };
 const UDN_LIST = Object.keys(UDN_SHEETS);
 // Al abrir la página, NO hay UDN activa: el usuario debe elegir una para que cargue
@@ -3692,7 +3692,7 @@ async function saveComentario(){
     const res=await fetch(WEBAPP_URL,{
       method:'POST',
       headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({target:'ns', id:id, comentario:nuevo}),
+      body:JSON.stringify({target:'ns', udn:CURRENT_UDN, id:id, comentario:nuevo}),
       redirect:'follow'
     });
     const text=await res.text();
