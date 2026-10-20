@@ -623,7 +623,7 @@ function cascadeSelects(){
 }
 
 // ── CSV ─────────────────────────────────────────────────────────
-function csvUrl(offset){return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${encodeURIComponent('SELECT * LIMIT '+CHUNK+' OFFSET '+offset)}`;}
+function csvUrl(offset){return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${encodeURIComponent('SELECT * LIMIT '+CHUNK+' OFFSET '+offset)}&_cb=${Date.now()}`;}
 function parseCSVLine(line){
   const cols=[];let cur='',inQ=false;
   for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){if(inQ&&line[i+1]==='"'){cur+='"';i++;}else inQ=!inQ;}else if(ch===','&&!inQ){cols.push(cur.trim());cur='';}else cur+=ch;}
@@ -717,8 +717,8 @@ window.addEventListener('DOMContentLoaded',loadSheet);
 
 async function loadInputs(){
   try{
-    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(INPUTS_SHEET)}`;
-    const res=await fetch(url);
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(INPUTS_SHEET)}&_cb=${Date.now()}`;
+    const res=await fetch(url,{cache:'no-store'});
     if(!res.ok) return;
     const rows=parseCSV(await res.text());
     if(!rows.length) return;
@@ -760,7 +760,7 @@ async function loadSheet(){
   const ov=document.getElementById('loadingOverlay'),bn=document.getElementById('errBanner'),em=document.getElementById('errMsg');
   try{
     await loadInputs();
-    const res=await fetch(csvUrl(0));
+    const res=await fetch(csvUrl(0),{cache:'no-store'});
     if(!res.ok)throw new Error('HTTP '+res.status+' — verifica que el Sheet sea público.');
     const rows=parseCSV(await res.text());
     if(!rows.length)throw new Error('Sin datos en hoja "Ralenti".');
@@ -778,7 +778,7 @@ async function loadSheet(){
     if(rows.length>=CHUNK){
       let off=CHUNK;
       while(true){
-        const r2=await fetch(csvUrl(off));if(!r2.ok)break;
+        const r2=await fetch(csvUrl(off),{cache:'no-store'});if(!r2.ok)break;
         const more=parseCSV(await r2.text());if(!more.length)break;
         enrichWithInputs(more);
         DATA.push(...more);
