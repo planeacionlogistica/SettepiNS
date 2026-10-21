@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DASH | Traxion</title>
-<link rel="icon" type="image/png" href="dash-logo.png">
-<link rel="shortcut icon" type="image/png" href="dash-logo.png">
-<link rel="apple-touch-icon" href="dash-logo.png">
+<link rel="icon" type="image/png" href="dash-logo-blanco.png">
+<link rel="shortcut icon" type="image/png" href="dash-logo-blanco.png">
+<link rel="apple-touch-icon" href="dash-logo-blanco.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
@@ -299,8 +299,22 @@ body.trx-has-maximized .trx-hover-strip{display:block}
 .trx-modal-loader.hidden{display:none}
 .trx-modal-loader .trx-spinner{width:36px;height:36px;border:3px solid #e5e7eb;border-top-color:#84cc16;border-radius:50%;animation:trxSpin .8s linear infinite}
 @keyframes trxSpin{to{transform:rotate(360deg)}}
-.trx-modal-resize{position:absolute;width:16px;height:16px;right:2px;bottom:2px;cursor:nwse-resize;z-index:5;background:linear-gradient(135deg,transparent 0 45%,#84cc16 46% 55%,transparent 56% 100%),linear-gradient(135deg,transparent 0 65%,#84cc16 66% 75%,transparent 76% 100%);opacity:.6}
+.trx-modal-resize{position:absolute;width:16px;height:16px;right:2px;bottom:2px;cursor:nwse-resize;z-index:6;background:linear-gradient(135deg,transparent 0 45%,#84cc16 46% 55%,transparent 56% 100%),linear-gradient(135deg,transparent 0 65%,#84cc16 66% 75%,transparent 76% 100%);opacity:.6}
 .trx-modal.maximized .trx-modal-resize{display:none}
+/* Handles de borde: 4 lados + 4 esquinas, como en Windows */
+.trx-rz{position:absolute;z-index:5;background:transparent}
+.trx-rz-n{top:-4px;left:8px;right:8px;height:8px;cursor:ns-resize}
+.trx-rz-s{bottom:-4px;left:8px;right:8px;height:8px;cursor:ns-resize}
+.trx-rz-e{top:8px;bottom:8px;right:-4px;width:8px;cursor:ew-resize}
+.trx-rz-w{top:8px;bottom:8px;left:-4px;width:8px;cursor:ew-resize}
+.trx-rz-ne{top:-4px;right:-4px;width:14px;height:14px;cursor:nesw-resize}
+.trx-rz-nw{top:-4px;left:-4px;width:14px;height:14px;cursor:nwse-resize}
+.trx-rz-sw{bottom:-4px;left:-4px;width:14px;height:14px;cursor:nesw-resize}
+.trx-rz-se{bottom:-4px;right:-4px;width:14px;height:14px;cursor:nwse-resize}
+.trx-modal.maximized .trx-rz{display:none}
+/* Indicador visual de snap (como Windows) */
+.trx-snap-preview{position:fixed;background:rgba(132,204,22,.18);border:2px solid #84cc16;border-radius:10px;pointer-events:none;z-index:8999;box-shadow:0 0 0 1px rgba(0,0,0,.1),0 20px 50px rgba(0,0,0,.3);transition:left .18s ease,top .18s ease,width .18s ease,height .18s ease,opacity .18s ease;opacity:0;backdrop-filter:blur(2px)}
+.trx-snap-preview.show{opacity:1}
 
 /* =================== DOCK HORIZONTAL (esquina inferior derecha, oscuro) =================== */
 .trx-dock{position:fixed;right:20px;bottom:20px;z-index:9500;display:none;flex-direction:row;align-items:center;gap:8px;max-width:calc(100vw - 40px)}
@@ -321,24 +335,8 @@ body.trx-has-maximized .trx-hover-strip{display:block}
 .trx-dock-panel::-webkit-scrollbar-thumb:hover{background:#4b5563}
 .trx-dock-list{display:flex;align-items:center;gap:6px}
 
-/* Boton de tamaño de pestañas */
-.trx-dock-size{display:flex;align-items:center;gap:2px;padding:3px;background:#111827;border:1px solid #374151;border-radius:8px;flex-shrink:0;margin-right:4px}
-.trx-dock-size-btn{width:22px;height:22px;border:0;background:transparent;color:#9ca3af;cursor:pointer;border-radius:5px;display:flex;align-items:center;justify-content:center;padding:0;font-weight:900;font-size:14px;transition:all .15s;font-family:inherit;line-height:1}
-.trx-dock-size-btn:hover{background:#374151;color:#84cc16}
-.trx-dock-size-btn:disabled{opacity:.35;cursor:not-allowed}
-.trx-dock-size-btn:disabled:hover{background:transparent;color:#9ca3af}
-.trx-dock-size-btn svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-/* Cada item horizontal (tipo tab de Windows) - tamaño variable por data-size */
-.trx-dock-item{display:flex;align-items:center;gap:8px;padding:7px 6px 7px 12px;border-radius:8px;background:#111827;border:1px solid #374151;color:#e5e7eb;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s,opacity .2s,max-width .3s cubic-bezier(.16,1,.3,1),min-width .3s cubic-bezier(.16,1,.3,1),padding .3s ease,font-size .25s ease;font-size:12px;font-weight:600;flex-shrink:0;max-width:180px;min-width:130px}
-.trx-dock[data-size="xs"] .trx-dock-item{max-width:60px;min-width:44px;padding:6px 4px;font-size:0;gap:0}
-.trx-dock[data-size="xs"] .trx-dock-item .trx-dock-item-txt{display:none}
-.trx-dock[data-size="xs"] .trx-dock-item .trx-dock-item-close{width:18px;height:18px;margin-left:2px}
-.trx-dock[data-size="sm"] .trx-dock-item{max-width:130px;min-width:95px;padding:6px 5px 6px 9px;font-size:11px}
-.trx-dock[data-size="md"] .trx-dock-item{max-width:180px;min-width:130px;padding:7px 6px 7px 12px;font-size:12px}
-.trx-dock[data-size="lg"] .trx-dock-item{max-width:240px;min-width:180px;padding:9px 8px 9px 14px;font-size:13px}
-.trx-dock[data-size="xl"] .trx-dock-item{max-width:300px;min-width:230px;padding:11px 10px 11px 16px;font-size:14px}
-.trx-dock[data-size="xl"] .trx-dock-item .trx-dock-dot,
-.trx-dock[data-size="lg"] .trx-dock-item .trx-dock-dot{width:24px;height:24px}
+/* Cada item horizontal (tipo tab de Windows) */
+.trx-dock-item{display:flex;align-items:center;gap:8px;padding:7px 6px 7px 12px;border-radius:8px;background:#111827;border:1px solid #374151;color:#e5e7eb;cursor:pointer;transition:all .15s;font-size:12px;font-weight:600;flex-shrink:0;max-width:180px;min-width:130px}
 .trx-dock-item:hover{background:#374151;border-color:#4b5563}
 .trx-dock-item.active{background:#374151;border-color:#84cc16;box-shadow:0 0 0 1px #84cc16,0 4px 12px rgba(132,204,22,.2)}
 .trx-dock-item .trx-dock-dot{width:20px;height:20px;flex-shrink:0;background:url('dash-logo-blanco.png') center/contain no-repeat;filter:drop-shadow(0 0 3px rgba(132,204,22,.5))}
@@ -677,16 +675,8 @@ body.trx-has-maximized .trx-hover-strip{display:block}
 <!-- Zona invisible en la parte inferior que hace aparecer el dock cuando hay un tablero maximizado -->
 <div class="trx-hover-strip" id="trxHoverStrip" aria-hidden="true"></div>
 <!-- ============ DOCK HORIZONTAL (esquina inferior derecha) ============ -->
-<div class="trx-dock" id="trxDock" data-size="md">
+<div class="trx-dock" id="trxDock">
   <div class="trx-dock-panel" id="trxDockPanel">
-    <div class="trx-dock-size" id="trxDockSize" title="Tamano de las pestanas">
-      <button type="button" class="trx-dock-size-btn" id="trxDockSizeMinus" title="Hacer pestanas mas pequenas" aria-label="Reducir tamano">
-        <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      </button>
-      <button type="button" class="trx-dock-size-btn" id="trxDockSizePlus" title="Hacer pestanas mas grandes" aria-label="Aumentar tamano">
-        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      </button>
-    </div>
     <div class="trx-dock-list" id="trxDockList"></div>
   </div>
   <button type="button" class="trx-dock-btn" id="trxDockBtn" title="Contraer / expandir tableros" aria-label="Contraer o expandir tableros">
@@ -1148,7 +1138,15 @@ async function loadKpis(){
         </div>
         <iframe class="trx-modal-iframe" src="about:blank" title="${escapeHtml(title)}" allow="clipboard-read; clipboard-write; fullscreen"></iframe>
         <div class="trx-modal-resize" data-role="resize" title="Redimensionar"></div>
-      </div>`;
+      </div>
+      <div class="trx-rz trx-rz-n"  data-rz="n"></div>
+      <div class="trx-rz trx-rz-s"  data-rz="s"></div>
+      <div class="trx-rz trx-rz-e"  data-rz="e"></div>
+      <div class="trx-rz trx-rz-w"  data-rz="w"></div>
+      <div class="trx-rz trx-rz-ne" data-rz="ne"></div>
+      <div class="trx-rz trx-rz-nw" data-rz="nw"></div>
+      <div class="trx-rz trx-rz-sw" data-rz="sw"></div>
+      <div class="trx-rz trx-rz-se" data-rz="se"></div>`;
 
     // Cascada de posicion
     const pos = cascadePosition();
@@ -1201,7 +1199,15 @@ async function loadKpis(){
     // ==== resize ====
     resizeHandle.addEventListener('mousedown', function(e){
       if(rec.state !== 'normal') return;
-      startResize(id, e);
+      startResize(id, e, 'se');
+    });
+    // Handles de borde (N, S, E, W, NE, NW, SE, SW) tipo Windows
+    modal.querySelectorAll('[data-rz]').forEach(function(h){
+      h.addEventListener('mousedown', function(e){
+        if(rec.state !== 'normal') return;
+        startResize(id, e, h.getAttribute('data-rz'));
+        e.stopPropagation();
+      });
     });
 
     // Foco al hacer clic en cualquier parte del modal
@@ -1355,6 +1361,65 @@ async function loadKpis(){
     }, 60);
   }
 
+  // ==== Snap preview (como Windows) ====
+  let snapPreview = null;
+  function ensureSnapPreview(){
+    if(snapPreview) return snapPreview;
+    snapPreview = document.createElement('div');
+    snapPreview.className = 'trx-snap-preview';
+    document.body.appendChild(snapPreview);
+    return snapPreview;
+  }
+  function snapZoneFor(x, y){
+    const EDGE = 20; // margen de activacion en pixeles
+    if(y <= EDGE) return 'max';
+    if(x <= EDGE) return 'left';
+    if(x >= window.innerWidth - EDGE) return 'right';
+    return null;
+  }
+  function snapRect(zone){
+    const w = window.innerWidth, h = window.innerHeight;
+    if(zone === 'left')  return {left:0, top:0, width:Math.round(w/2), height:h};
+    if(zone === 'right') return {left:Math.round(w/2), top:0, width:Math.round(w/2), height:h};
+    if(zone === 'max')   return {left:0, top:0, width:w, height:h};
+    return null;
+  }
+  function showSnapPreview(zone){
+    const p = ensureSnapPreview();
+    const rect = snapRect(zone);
+    if(!rect){ p.classList.remove('show'); return; }
+    p.style.left   = rect.left   + 'px';
+    p.style.top    = rect.top    + 'px';
+    p.style.width  = rect.width  + 'px';
+    p.style.height = rect.height + 'px';
+    p.classList.add('show');
+  }
+  function hideSnapPreview(){
+    if(snapPreview) snapPreview.classList.remove('show');
+  }
+  function applySnap(id, zone){
+    const r = modals.get(id); if(!r) return;
+    const rect = snapRect(zone);
+    if(!rect) return;
+    if(zone === 'max'){
+      // Usar el modo maximizado existente
+      if(r.state !== 'maximized') toggleMaximize(id);
+      return;
+    }
+    // Snap a mitad de pantalla (no es "maximized", es tamano normal pero fijo)
+    r.modal.classList.add('animating');
+    r.modal.classList.remove('maximized');
+    r.state = 'normal';
+    r.maxIcon.innerHTML = ICON_MAX;
+    r.modal.style.transform = 'none';
+    r.modal.style.left   = rect.left   + 'px';
+    r.modal.style.top    = rect.top    + 'px';
+    r.modal.style.width  = rect.width  + 'px';
+    r.modal.style.height = rect.height + 'px';
+    updateBodyMaximizedFlag();
+    setTimeout(function(){ r.modal.classList.remove('animating'); }, 300);
+  }
+
   // ==== drag global ====
   let drag = null;
   function startDrag(id, e){
@@ -1363,7 +1428,14 @@ async function loadKpis(){
     r.modal.style.left = rect.left + 'px';
     r.modal.style.top  = rect.top  + 'px';
     r.modal.style.transform = 'none';
-    drag = {id, offX: e.clientX - rect.left, offY: e.clientY - rect.top};
+    // Guardamos un "tamano restaurable" por si venia de snap y lo arrastran lejos del borde
+    drag = {
+      id, offX: e.clientX - rect.left, offY: e.clientY - rect.top,
+      pendingSnap: null,
+      restoreW: Math.min(1300, Math.round(window.innerWidth * 0.72)),
+      restoreH: Math.min(860,  Math.round(window.innerHeight * 0.82)),
+      wasSnapped: (rect.width >= window.innerWidth * 0.49 && rect.width <= window.innerWidth * 0.51 && Math.abs(rect.height - window.innerHeight) < 2)
+    };
     document.body.style.userSelect='none';
     modals.forEach(x=>x.iframe.style.pointerEvents='none');
     bringToFront(id);
@@ -1372,18 +1444,38 @@ async function loadKpis(){
   document.addEventListener('mousemove', function(e){
     if(!drag) return;
     const r = modals.get(drag.id); if(!r) return;
+    // Si venia snapeado y empieza a arrastrar, le devolvemos un tamano "normal" y lo centramos bajo el cursor
+    if(drag.wasSnapped){
+      const cur = r.modal.getBoundingClientRect();
+      if(cur.width > window.innerWidth * 0.6){
+        const newW = drag.restoreW, newH = drag.restoreH;
+        r.modal.style.width  = newW + 'px';
+        r.modal.style.height = newH + 'px';
+        drag.offX = Math.min(drag.offX, newW - 40);
+        drag.offY = Math.min(drag.offY, 60);
+      }
+      drag.wasSnapped = false;
+    }
     let nx = e.clientX - drag.offX;
     let ny = e.clientY - drag.offY;
-    nx = Math.max(0, Math.min(window.innerWidth  - 60, nx));
-    ny = Math.max(0, Math.min(window.innerHeight - 60, ny));
+    nx = Math.max(-200, Math.min(window.innerWidth  - 60, nx));
+    ny = Math.max(0,    Math.min(window.innerHeight - 60, ny));
     r.modal.style.left = nx + 'px';
     r.modal.style.top  = ny + 'px';
+    // Deteccion de snap
+    const zone = snapZoneFor(e.clientX, e.clientY);
+    drag.pendingSnap = zone;
+    if(zone) showSnapPreview(zone); else hideSnapPreview();
   });
   document.addEventListener('mouseup', function(){
     if(drag){
+      const z = drag.pendingSnap;
+      const did = drag.id;
       drag = null;
       document.body.style.userSelect='';
       modals.forEach(x=>x.iframe.style.pointerEvents='');
+      hideSnapPreview();
+      if(z) applySnap(did, z);
     }
     if(resz){
       resz = null;
@@ -1392,9 +1484,9 @@ async function loadKpis(){
     }
   });
 
-  // ==== resize global ====
+  // ==== resize global (8 lados, estilo Windows) ====
   let resz = null;
-  function startResize(id, e){
+  function startResize(id, e, dir){
     const r = modals.get(id); if(!r) return;
     const rect = r.modal.getBoundingClientRect();
     r.modal.style.left = rect.left + 'px';
@@ -1402,7 +1494,12 @@ async function loadKpis(){
     r.modal.style.transform = 'none';
     r.modal.style.width  = rect.width + 'px';
     r.modal.style.height = rect.height + 'px';
-    resz = {id, startX: e.clientX, startY: e.clientY, startW: rect.width, startH: rect.height};
+    resz = {
+      id, dir: dir || 'se',
+      startX: e.clientX, startY: e.clientY,
+      startW: rect.width, startH: rect.height,
+      startL: rect.left,  startT: rect.top
+    };
     document.body.style.userSelect='none';
     modals.forEach(x=>x.iframe.style.pointerEvents='none');
     bringToFront(id);
@@ -1411,10 +1508,28 @@ async function loadKpis(){
   document.addEventListener('mousemove', function(e){
     if(!resz) return;
     const r = modals.get(resz.id); if(!r) return;
-    const w = Math.max(320, resz.startW + (e.clientX - resz.startX));
-    const h = Math.max(220, resz.startH + (e.clientY - resz.startY));
+    const dx = e.clientX - resz.startX;
+    const dy = e.clientY - resz.startY;
+    const MIN_W = 320, MIN_H = 220;
+    let w = resz.startW, h = resz.startH, l = resz.startL, t = resz.startT;
+    if(resz.dir.indexOf('e') >= 0){
+      w = Math.max(MIN_W, resz.startW + dx);
+    }
+    if(resz.dir.indexOf('s') >= 0){
+      h = Math.max(MIN_H, resz.startH + dy);
+    }
+    if(resz.dir.indexOf('w') >= 0){
+      w = Math.max(MIN_W, resz.startW - dx);
+      l = resz.startL + (resz.startW - w);
+    }
+    if(resz.dir.indexOf('n') >= 0){
+      h = Math.max(MIN_H, resz.startH - dy);
+      t = resz.startT + (resz.startH - h);
+    }
     r.modal.style.width  = w + 'px';
     r.modal.style.height = h + 'px';
+    r.modal.style.left   = l + 'px';
+    r.modal.style.top    = t + 'px';
   });
 
   // ==== ESC cierra el modal activo ====
@@ -1485,33 +1600,6 @@ async function loadKpis(){
     });
   }
 
-  // ==== Control de tamano de las pestanas del dock ====
-  const DOCK_SIZES = ['xs','sm','md','lg','xl'];
-  const dockEl = document.getElementById('trxDock');
-  const btnMinus = document.getElementById('trxDockSizeMinus');
-  const btnPlus  = document.getElementById('trxDockSizePlus');
-  function getDockSize(){
-    try{ return localStorage.getItem('trx_dock_size') || 'md'; }catch(e){ return 'md'; }
-  }
-  function setDockSize(sz){
-    if(DOCK_SIZES.indexOf(sz) < 0) sz = 'md';
-    dockEl.setAttribute('data-size', sz);
-    try{ localStorage.setItem('trx_dock_size', sz); }catch(e){}
-    const i = DOCK_SIZES.indexOf(sz);
-    if(btnMinus) btnMinus.disabled = (i <= 0);
-    if(btnPlus)  btnPlus.disabled  = (i >= DOCK_SIZES.length - 1);
-  }
-  setDockSize(getDockSize());
-  if(btnMinus) btnMinus.addEventListener('click', function(e){
-    e.stopPropagation();
-    const i = DOCK_SIZES.indexOf(dockEl.getAttribute('data-size')||'md');
-    if(i > 0) setDockSize(DOCK_SIZES[i-1]);
-  });
-  if(btnPlus) btnPlus.addEventListener('click', function(e){
-    e.stopPropagation();
-    const i = DOCK_SIZES.indexOf(dockEl.getAttribute('data-size')||'md');
-    if(i < DOCK_SIZES.length - 1) setDockSize(DOCK_SIZES[i+1]);
-  });
 })();
 
 /* ============ COLAPSO DEL SIDEBAR (solo desktop) ============ */
@@ -1555,7 +1643,6 @@ async function loadKpis(){
   const INACTIVITY_MS  = INACTIVITY_MIN * 60 * 1000;
   const KEY_LAST = 'trx_last_activity';
   let timer = null;
-  let warned = false;
 
   function now(){ return Date.now(); }
   function isLogged(){ return !!sessionStorage.getItem('trx_user'); }
@@ -1563,7 +1650,6 @@ async function loadKpis(){
   function markActivity(){
     if(!isLogged()) return;
     try{ sessionStorage.setItem(KEY_LAST, String(now())); }catch(e){}
-    warned = false;
     resetTimer();
   }
 
@@ -1573,9 +1659,6 @@ async function loadKpis(){
       sessionStorage.removeItem('trx_auth');
       sessionStorage.removeItem('trx_visit_logged');
       sessionStorage.removeItem(KEY_LAST);
-    }catch(e){}
-    try{
-      alert('Tu sesion se cerro por ' + (INACTIVITY_MIN) + ' minutos de inactividad.\nPor favor vuelve a iniciar sesion.');
     }catch(e){}
     location.reload();
   }
@@ -1588,13 +1671,6 @@ async function loadKpis(){
     const elapsed = now() - last;
     if(elapsed >= INACTIVITY_MS){
       doLogout('inactivity');
-    }else if(!warned && elapsed >= (INACTIVITY_MS - 60*1000)){
-      // Aviso 1 min antes
-      warned = true;
-      try{
-        const resp = confirm('Tu sesion se cerrara en 1 minuto por inactividad.\n¿Quieres continuar la sesion?');
-        if(resp){ markActivity(); }
-      }catch(e){}
     }
   }
 
