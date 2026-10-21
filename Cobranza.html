@@ -177,7 +177,7 @@ td.dim{color:var(--muted)}
       <a href="#resumen" data-v="resumen">Resumen ejecutivo</a>
       <a href="#estado" data-v="estado">Estado de cuenta</a>
       <a href="#antiguedad" data-v="antiguedad">Antigüedad de saldos</a>
-      <a href="#cargar" data-v="cargar">Cargar datos</a>
+      <a href="#cargar" data-v="cargar">Datos</a>
     </nav>
   </div>
 </header>
@@ -251,31 +251,13 @@ td.dim{color:var(--muted)}
           <li>Edita la hoja <b>DETALLE</b> en el Google Sheet (nuevas facturas, pagos y estatus).</li>
           <li>El tablero se actualiza solo: se relee cada 10 minutos y al volver a esta pestaña.</li>
           <li>Para verlo al instante, usa el botón <b>Actualizar</b> (arriba) o recarga la página.</li>
-          <li>Opcional: también puedes cargar un .xlsx manualmente aquí abajo como respaldo.</li>
         </ol>
-        <label class="drop" id="drop" for="file">
-          <strong>Arrastra aquí el Excel</strong>
-          <span class="note">o da clic para elegirlo · .xlsx con hojas DETALLE y OBJETIVO · el archivo no sale de tu computadora</span>
-          <input type="file" id="file" accept=".xlsx,.xlsm,.xls" hidden>
-        </label>
-        <div id="up-msg"></div>
-        <div id="up-prev" hidden style="display:flex;flex-direction:column;gap:12px">
-          <div class="preview" id="up-grid"></div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-            <button class="btn primary" type="button" id="up-pub">Ver estos datos</button>
-            <button class="btn" type="button" id="up-cancel">Cancelar</button>
-          </div>
-        </div>
-        <p class="note" id="up-perm"></p>
+        <p class="note">Esta página solo <b>lee</b> la hoja DETALLE de tu Google Sheet y reconstruye todo el tablero. No se edita ni se carga nada desde aquí.</p>
       </div>
       <div class="card pad" style="display:flex;flex-direction:column;gap:10px;min-width:0">
         <div class="sec-h"><h2>Datos en pantalla</h2></div>
         <div class="preview" id="cur-info"></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn primary" type="button" id="dl">Descargar HTML con estos datos</button>
-          <button class="btn" type="button" id="reset" hidden>Volver a los datos incluidos en el archivo</button>
-        </div>
-        <p class="note" id="dl-msg">El HTML descargado incluye los datos que ves ahora; quien lo abra verá exactamente este tablero, sin necesidad de subir nada.</p>
+        <p class="note">Fuente: tu Google Sheet. Para actualizar, edita la hoja DETALLE; aquí no se guarda nada localmente.</p>
       </div>
     </div>
   </section>
@@ -811,78 +793,15 @@ function renderAntig() {
 }
 
 /* ---------- CARGAR ---------- */
-const drop = $('#drop'), fileIn = $('#file');
-['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
-['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
-drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) readFile(f); });
-fileIn.addEventListener('change', () => { if (fileIn.files[0]) readFile(fileIn.files[0]); fileIn.value = ''; });
-function msg(kind, text) { $('#up-msg').innerHTML = text ? '<div class="msg ' + kind + '">' + esc(text) + '</div>' : ''; }
-function readFile(f) {
-  if (typeof XLSX === 'undefined') { msg('err', 'No se pudo cargar el lector de Excel. Recarga la página e inténtalo de nuevo.'); return; }
-  msg('info', 'Leyendo ' + f.name + '…');
-  const rd = new FileReader();
-  rd.onload = () => {
-    try {
-      const wb = XLSX.read(new Uint8Array(rd.result), { type: 'array' });
-      const p = Core.parseWorkbook(wb, XLSX);
-      if (!p.rows.length) throw new Error('La hoja DETALLE no tiene facturas.');
-      if (!p.objetivo && S.raw && S.raw.objetivo) { p.objetivo = S.raw.objetivo; p.objetivoHeredado = true; }
-      S.pending = { file: f.name, p };
-      const er = Core.enrich(p.rows, S.hoy), t = Core.total(er);
-      const cob = er.reduce((s, r) => s + (r.pagada ? r.pend : 0), 0);
-      const prevN = S.raw ? S.raw.rows.length : null;
-      $('#up-grid').innerHTML = [['Facturas', nf0.format(p.rows.length) + (prevN != null ? ' (antes ' + nf0.format(prevN) + ')' : '')], ['Clientes', new Set(p.rows.map(r => r[1])).size], ['Saldo por cobrar', money(t.saldo)], ['Vencido', money(t.venc)], ['Cobrado (pagadas)', money(cob)],
-        ['Objetivo', p.objetivo ? (p.objetivoHeredado ? 'Se conserva el anterior' : money(p.objetivo.clientes.reduce((s, c) => s + c.meta, 0))) : 'No incluido']]
-        .map(([k, v]) => '<div><span>' + esc(k) + '</span><b>' + esc(v) + '</b></div>').join('');
-      $('#up-prev').hidden = false;
-      msg(p.skipped ? 'info' : 'ok', 'Archivo leído: ' + f.name + (p.skipped ? '. Se omitieron ' + p.skipped + ' renglones sin fecha de vencimiento válida.' : '. Revisa las cifras y publica.'));
-      $('#up-pub').disabled = false;
-    } catch (e) { S.pending = null; $('#up-prev').hidden = true; msg('err', 'No pude leer el archivo: ' + (e.message || e)); }
-  };
-  rd.onerror = () => msg('err', 'No pude abrir el archivo. Inténtalo de nuevo.');
-  rd.readAsArrayBuffer(f);
-}
-$('#up-cancel').addEventListener('click', () => { S.pending = null; $('#up-prev').hidden = true; msg('', ''); });
-$('#up-pub').addEventListener('click', publish);
-function publish() {
-  if (!S.pending) return;
-  const { p, file } = S.pending;
-  const carga = { at: new Date().toISOString(), archivo: file, objetivo: p.objetivo || null };
-  S.local = true;
-  try { localStorage.setItem('datosLocal', JSON.stringify({ carga, rows: p.rows })); } catch (e) {}
-  S.pending = null; $('#up-prev').hidden = true;
-  setData(carga, p.rows);
-  msg('ok', 'Listo: el tablero ya muestra ' + file + '. Para compartirlo, descarga el HTML con estos datos.');
-}
 function renderInfo() {
   if (!S.raw) { $('#cur-info').innerHTML = ''; return; }
   const t = Core.total(S.rows);
   const at = new Date(S.carga.at);
-  $('#cur-info').innerHTML = [['Origen', S.local ? 'Cargado en este navegador' : 'Incluido en el archivo'], ['Fecha de los datos', at.toLocaleDateString('es-MX', {day: '2-digit', month: 'short', year: 'numeric'})],
+  $('#cur-info').innerHTML = [['Origen', S.local ? 'Cargado manualmente' : 'Google Sheets (DETALLE)'],
+    ['Última actualización', at.toLocaleDateString('es-MX', {day: '2-digit', month: 'short', year: 'numeric'}) + ' ' + at.toLocaleTimeString('es-MX', {hour: '2-digit', minute: '2-digit'})],
     ['Facturas', nf0.format(S.raw.rows.length)], ['Saldo por cobrar', money(t.saldo)]]
     .map(([k, v]) => '<div><span>' + esc(k) + '</span><b>' + esc(v) + '</b></div>').join('');
-  $('#reset').hidden = !S.local;
 }
-function download() {
-  if (!S.raw) return;
-  const json = JSON.stringify({ carga: S.carga, rows: S.raw.rows }).replace(/</g, '\\u003c');
-  const open = '<scr' + 'ipt id="datos" type="application/json">';
-  const i = TEMPLATE.indexOf(open), j = TEMPLATE.indexOf('</scr' + 'ipt>', i);
-  if (i < 0 || j < 0) { $('#dl-msg').textContent = 'No se pudo preparar el archivo.'; return; }
-  const html = TEMPLATE.slice(0, i + open.length) + json + TEMPLATE.slice(j);
-  const d = new Date(S.carga.at);
-  const name = 'Cobranza_S_MTY_Garcia_' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0') + '.html';
-  const url = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
-  const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
-  $('#dl-msg').textContent = 'Se descargó ' + name + '. Compártelo por correo, Teams o SharePoint.';
-}
-$('#dl').addEventListener('click', download);
-$('#reset').addEventListener('click', () => {
-  try { localStorage.removeItem('datosLocal'); } catch (e) {}
-  S.local = false; const E = embedded(); if (E) setData(E.carga, E.rows);
-  msg('info', 'Se volvió a los datos incluidos en el archivo.');
-});
 function embedded() {
   try { const t = document.getElementById('datos').textContent.trim(); return t ? JSON.parse(t) : null; } catch (e) { return null; }
 }
@@ -970,7 +889,6 @@ show(location.hash.slice(1) || 'resumen');
   if (cache) { S.local = false; setData(cache.carga, cache.rows); }
   else if (E) { setData(E.carga, E.rows); }
   else { $('#stamp').textContent = 'Cargando datos del Google Sheet…'; show(S.view); }
-  $('#up-perm').textContent = '';
   loadFromSheet(!!(cache || E));
 })();
 })();
