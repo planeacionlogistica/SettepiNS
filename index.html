@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DASH | Traxion</title>
-<link rel="icon" type="image/svg+xml" href="favicon-traxion.svg">
+<link rel="icon" type="image/png" href="dash-logo.png">
+<link rel="shortcut icon" type="image/png" href="dash-logo.png">
+<link rel="apple-touch-icon" href="dash-logo.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
@@ -68,7 +70,34 @@ body{font-family:'Segoe UI',Tahoma,Verdana,sans-serif;background:#f3f4f6}
 @keyframes trxShake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-10px)}40%,60%{transform:translateX(10px)}}
 #menu{display:none}
 #menu.show{display:flex;height:100vh}
-.sidebar{width:260px;background:#1f2937;color:#fff;padding:12px 20px 16px;overflow-y:auto;display:flex;flex-direction:column;}
+.sidebar{width:260px;background:#1f2937;color:#fff;padding:12px 20px 16px;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;transition:width .32s cubic-bezier(.16,1,.3,1),padding .32s cubic-bezier(.16,1,.3,1);position:relative;}
+/* ---- Boton colapsar/expandir sidebar (solo desktop) ---- */
+.sidebar-collapse-btn{position:absolute;top:14px;right:8px;width:26px;height:26px;border-radius:7px;background:#374151;border:1px solid #4b5563;color:#84cc16;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:3;transition:background .2s,transform .2s;}
+.sidebar-collapse-btn:hover{background:#4b5563;transform:scale(1.08)}
+.sidebar-collapse-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .35s cubic-bezier(.16,1,.3,1)}
+.sidebar.collapsed .sidebar-collapse-btn svg{transform:rotate(180deg)}
+@media (max-width:900px){.sidebar-collapse-btn{display:none}}
+/* ---- Estado colapsado: solo iconos ---- */
+.sidebar.collapsed{width:72px;padding:12px 8px 12px;align-items:center}
+.sidebar.collapsed .sidebar-logo{max-width:46px;margin-bottom:4px}
+.sidebar.collapsed .sidebar-logo::after{display:none}
+.sidebar.collapsed .menu-categories{width:100%}
+.sidebar.collapsed .menu-category{margin-bottom:4px}
+.sidebar.collapsed .menu-category-header{justify-content:center;padding:11px 6px;border-radius:10px}
+.sidebar.collapsed .menu-category-header .cat-left span,
+.sidebar.collapsed .menu-category-header .chevron{display:none}
+.sidebar.collapsed .menu-category-header::before{display:none}
+.sidebar.collapsed .menu-category-header:hover{padding-left:6px;background:#374151}
+.sidebar.collapsed .menu-category-header .cat-icon{width:20px;height:20px}
+.sidebar.collapsed .menu-category-body{display:none}
+.sidebar.collapsed .logout-btn{padding:9px;width:44px;height:44px;align-self:center}
+.sidebar.collapsed .logout-btn{font-size:0}
+.sidebar.collapsed .logout-btn svg{width:18px;height:18px}
+.sidebar.collapsed .sidebar-footer{display:none}
+/* Tooltip al pasar el mouse sobre un icono en modo colapsado */
+.sidebar.collapsed .menu-category-header{position:relative}
+.sidebar.collapsed .menu-category-header::after{content:attr(data-tooltip);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%) translateX(-4px);background:#111827;color:#e5e7eb;padding:6px 10px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 6px 16px rgba(0,0,0,.4);border:1px solid #374151;z-index:50}
+.sidebar.collapsed .menu-category-header:hover::after{opacity:1;transform:translateY(-50%) translateX(0)}
 .sidebar h1{color:#84cc16;font-size:22px;margin-bottom:30px;text-align:center;position:relative}
 .sidebar h1::after{content:'';position:absolute;left:50%;bottom:-10px;width:0;height:2px;background:linear-gradient(90deg,transparent,#84cc16,transparent);transform:translateX(-50%);transition:width .5s ease}
 #menu.show .sidebar h1::after{width:70%}
@@ -292,8 +321,24 @@ body.trx-has-maximized .trx-hover-strip{display:block}
 .trx-dock-panel::-webkit-scrollbar-thumb:hover{background:#4b5563}
 .trx-dock-list{display:flex;align-items:center;gap:6px}
 
-/* Cada item horizontal (tipo tab de Windows) */
-.trx-dock-item{display:flex;align-items:center;gap:8px;padding:7px 6px 7px 12px;border-radius:8px;background:#111827;border:1px solid #374151;color:#e5e7eb;cursor:pointer;transition:all .15s;font-size:12px;font-weight:600;flex-shrink:0;max-width:180px;min-width:130px}
+/* Boton de tamaño de pestañas */
+.trx-dock-size{display:flex;align-items:center;gap:2px;padding:3px;background:#111827;border:1px solid #374151;border-radius:8px;flex-shrink:0;margin-right:4px}
+.trx-dock-size-btn{width:22px;height:22px;border:0;background:transparent;color:#9ca3af;cursor:pointer;border-radius:5px;display:flex;align-items:center;justify-content:center;padding:0;font-weight:900;font-size:14px;transition:all .15s;font-family:inherit;line-height:1}
+.trx-dock-size-btn:hover{background:#374151;color:#84cc16}
+.trx-dock-size-btn:disabled{opacity:.35;cursor:not-allowed}
+.trx-dock-size-btn:disabled:hover{background:transparent;color:#9ca3af}
+.trx-dock-size-btn svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+/* Cada item horizontal (tipo tab de Windows) - tamaño variable por data-size */
+.trx-dock-item{display:flex;align-items:center;gap:8px;padding:7px 6px 7px 12px;border-radius:8px;background:#111827;border:1px solid #374151;color:#e5e7eb;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s,opacity .2s,max-width .3s cubic-bezier(.16,1,.3,1),min-width .3s cubic-bezier(.16,1,.3,1),padding .3s ease,font-size .25s ease;font-size:12px;font-weight:600;flex-shrink:0;max-width:180px;min-width:130px}
+.trx-dock[data-size="xs"] .trx-dock-item{max-width:60px;min-width:44px;padding:6px 4px;font-size:0;gap:0}
+.trx-dock[data-size="xs"] .trx-dock-item .trx-dock-item-txt{display:none}
+.trx-dock[data-size="xs"] .trx-dock-item .trx-dock-item-close{width:18px;height:18px;margin-left:2px}
+.trx-dock[data-size="sm"] .trx-dock-item{max-width:130px;min-width:95px;padding:6px 5px 6px 9px;font-size:11px}
+.trx-dock[data-size="md"] .trx-dock-item{max-width:180px;min-width:130px;padding:7px 6px 7px 12px;font-size:12px}
+.trx-dock[data-size="lg"] .trx-dock-item{max-width:240px;min-width:180px;padding:9px 8px 9px 14px;font-size:13px}
+.trx-dock[data-size="xl"] .trx-dock-item{max-width:300px;min-width:230px;padding:11px 10px 11px 16px;font-size:14px}
+.trx-dock[data-size="xl"] .trx-dock-item .trx-dock-dot,
+.trx-dock[data-size="lg"] .trx-dock-item .trx-dock-dot{width:24px;height:24px}
 .trx-dock-item:hover{background:#374151;border-color:#4b5563}
 .trx-dock-item.active{background:#374151;border-color:#84cc16;box-shadow:0 0 0 1px #84cc16,0 4px 12px rgba(132,204,22,.2)}
 .trx-dock-item .trx-dock-dot{width:20px;height:20px;flex-shrink:0;background:url('dash-logo-blanco.png') center/contain no-repeat;filter:drop-shadow(0 0 3px rgba(132,204,22,.5))}
@@ -337,6 +382,9 @@ body.trx-has-maximized .trx-hover-strip{display:block}
   </button>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
   <aside class="sidebar">
+    <button type="button" class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Contraer / expandir menu" aria-label="Contraer o expandir menu">
+      <svg viewBox="0 0 24 24"><polyline points="15 6 9 12 15 18"/></svg>
+    </button>
     <div class="sidebar-logo" aria-label="DASH by TRAXION">
       <img src="dash-logo-blanco.png" alt="DASH by TRAXION">
     </div>
@@ -344,7 +392,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
 
       <!-- ============ LOGISTICA ============ -->
       <div class="menu-category" data-cat="logistica" data-trx-menu="Logistica">
-        <button type="button" class="menu-category-header">
+        <button type="button" class="menu-category-header" data-tooltip="Logistica">
           <span class="cat-left">
             <svg class="cat-icon" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 12l9 4 9-4"/><path d="M3 17l9 4 9-4"/></svg>
             <span>Logistica</span>
@@ -419,7 +467,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
 
       <!-- ============ SEGURIDAD VIAL ============ -->
       <div class="menu-category" data-cat="seguridad" data-trx-menu="Seguridad Vial">
-        <button type="button" class="menu-category-header">
+        <button type="button" class="menu-category-header" data-tooltip="Seguridad Vial">
           <span class="cat-left">
             <svg class="cat-icon" viewBox="0 0 24 24"><path d="M12 2L3 6v6c0 5 3.5 9.5 9 11 5.5-1.5 9-6 9-11V6l-9-4z"/></svg>
             <span>Seguridad Vial</span>
@@ -451,7 +499,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
       </div>
  <!-- ============ MANTENIMIENTO ============ -->
       <div class="menu-category" data-cat="combustible" data-trx-menu="Mantenimiento">
-        <button type="button" class="menu-category-header">
+        <button type="button" class="menu-category-header" data-tooltip="Mantenimiento">
           <span class="cat-left">
             <svg class="cat-icon" viewBox="0 0 24 24"><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M4 21h12"/><path d="M15 8l3 2v8a2 2 0 0 1-2 2"/><path d="M15 12h2"/><line x1="8" y1="7" x2="12" y2="7"/><line x1="8" y1="10" x2="12" y2="10"/></svg>
             <span>Mantenimiento</span>
@@ -473,7 +521,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
       </div>
       <!-- ============ COMBUSTIBLE ============ -->
       <div class="menu-category" data-cat="combustible" data-trx-menu="Combustible">
-        <button type="button" class="menu-category-header">
+        <button type="button" class="menu-category-header" data-tooltip="Combustible">
           <span class="cat-left">
             <svg class="cat-icon" viewBox="0 0 24 24"><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M4 21h12"/><path d="M15 8l3 2v8a2 2 0 0 1-2 2"/><path d="M15 12h2"/><line x1="8" y1="7" x2="12" y2="7"/><line x1="8" y1="10" x2="12" y2="10"/></svg>
             <span>Combustible</span>
@@ -501,7 +549,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
 
       <!-- ============ REPORTES ============ -->
       <div class="menu-category" data-cat="reportes" data-trx-menu="Reportes">
-        <button type="button" class="menu-category-header">
+        <button type="button" class="menu-category-header" data-tooltip="Reportes">
           <span class="cat-left">
             <svg class="cat-icon" viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6z"/><polyline points="14 3 14 9 20 9"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
             <span>Reportes</span>
@@ -547,7 +595,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
 
       <!-- ============ RENTABILIDAD ============ -->
       <div class="menu-category" data-cat="rentabilidad" data-trx-menu="Rentabilidad">
-        <button type="button" class="menu-category-header">
+        <button type="button" class="menu-category-header" data-tooltip="Rentabilidad">
           <span class="cat-left">
             <svg class="cat-icon" viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             <span>Rentabilidad</span>
@@ -565,7 +613,7 @@ body.trx-has-maximized .trx-hover-strip{display:block}
 
       <!-- ============ FACTURACION ============ -->
       <div class="menu-category" data-cat="facturacion" data-trx-menu="Facturacion">
-        <button type="button" class="menu-category-header">
+        <button type="button" class="menu-category-header" data-tooltip="Facturacion">
           <span class="cat-left">
             <svg class="cat-icon" viewBox="0 0 24 24"><path d="M6 2h9l4 4v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><polyline points="15 2 15 6 19 6"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="14" y2="15"/><line x1="8" y1="18" x2="12" y2="18"/></svg>
             <span>Facturacion</span>
@@ -629,8 +677,16 @@ body.trx-has-maximized .trx-hover-strip{display:block}
 <!-- Zona invisible en la parte inferior que hace aparecer el dock cuando hay un tablero maximizado -->
 <div class="trx-hover-strip" id="trxHoverStrip" aria-hidden="true"></div>
 <!-- ============ DOCK HORIZONTAL (esquina inferior derecha) ============ -->
-<div class="trx-dock" id="trxDock">
+<div class="trx-dock" id="trxDock" data-size="md">
   <div class="trx-dock-panel" id="trxDockPanel">
+    <div class="trx-dock-size" id="trxDockSize" title="Tamano de las pestanas">
+      <button type="button" class="trx-dock-size-btn" id="trxDockSizeMinus" title="Hacer pestanas mas pequenas" aria-label="Reducir tamano">
+        <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <button type="button" class="trx-dock-size-btn" id="trxDockSizePlus" title="Hacer pestanas mas grandes" aria-label="Aumentar tamano">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
     <div class="trx-dock-list" id="trxDockList"></div>
   </div>
   <button type="button" class="trx-dock-btn" id="trxDockBtn" title="Contraer / expandir tableros" aria-label="Contraer o expandir tableros">
@@ -1428,6 +1484,149 @@ async function loadKpis(){
       return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
     });
   }
+
+  // ==== Control de tamano de las pestanas del dock ====
+  const DOCK_SIZES = ['xs','sm','md','lg','xl'];
+  const dockEl = document.getElementById('trxDock');
+  const btnMinus = document.getElementById('trxDockSizeMinus');
+  const btnPlus  = document.getElementById('trxDockSizePlus');
+  function getDockSize(){
+    try{ return localStorage.getItem('trx_dock_size') || 'md'; }catch(e){ return 'md'; }
+  }
+  function setDockSize(sz){
+    if(DOCK_SIZES.indexOf(sz) < 0) sz = 'md';
+    dockEl.setAttribute('data-size', sz);
+    try{ localStorage.setItem('trx_dock_size', sz); }catch(e){}
+    const i = DOCK_SIZES.indexOf(sz);
+    if(btnMinus) btnMinus.disabled = (i <= 0);
+    if(btnPlus)  btnPlus.disabled  = (i >= DOCK_SIZES.length - 1);
+  }
+  setDockSize(getDockSize());
+  if(btnMinus) btnMinus.addEventListener('click', function(e){
+    e.stopPropagation();
+    const i = DOCK_SIZES.indexOf(dockEl.getAttribute('data-size')||'md');
+    if(i > 0) setDockSize(DOCK_SIZES[i-1]);
+  });
+  if(btnPlus) btnPlus.addEventListener('click', function(e){
+    e.stopPropagation();
+    const i = DOCK_SIZES.indexOf(dockEl.getAttribute('data-size')||'md');
+    if(i < DOCK_SIZES.length - 1) setDockSize(DOCK_SIZES[i+1]);
+  });
+})();
+
+/* ============ COLAPSO DEL SIDEBAR (solo desktop) ============ */
+(function(){
+  const btn = document.getElementById('sidebarCollapseBtn');
+  const sidebar = document.querySelector('.sidebar');
+  if(!btn || !sidebar) return;
+  function apply(){
+    try{
+      const col = localStorage.getItem('trx_sidebar_collapsed') === '1';
+      if(col) sidebar.classList.add('collapsed');
+      else sidebar.classList.remove('collapsed');
+    }catch(e){}
+  }
+  apply();
+  btn.addEventListener('click', function(){
+    sidebar.classList.toggle('collapsed');
+    try{ localStorage.setItem('trx_sidebar_collapsed', sidebar.classList.contains('collapsed') ? '1' : '0'); }catch(e){}
+  });
+  // En modo colapsado, al dar click en el icono de categoria expandimos el sidebar y abrimos esa categoria
+  document.querySelectorAll('.menu-category-header').forEach(function(h){
+    h.addEventListener('click', function(ev){
+      if(sidebar.classList.contains('collapsed') && window.matchMedia('(min-width:901px)').matches){
+        sidebar.classList.remove('collapsed');
+        try{ localStorage.setItem('trx_sidebar_collapsed', '0'); }catch(e){}
+        // Dejar abierta solo esta categoria
+        setTimeout(function(){
+          document.querySelectorAll('.menu-category.open').forEach(function(c){
+            if(c !== h.parentElement) c.classList.remove('open');
+          });
+          if(!h.parentElement.classList.contains('open')) h.parentElement.classList.add('open');
+        }, 50);
+      }
+    });
+  });
+})();
+
+/* ============ INACTIVIDAD: cerrar sesion despues de 30 min sin actividad ============ */
+(function(){
+  const INACTIVITY_MIN = 30;
+  const INACTIVITY_MS  = INACTIVITY_MIN * 60 * 1000;
+  const KEY_LAST = 'trx_last_activity';
+  let timer = null;
+  let warned = false;
+
+  function now(){ return Date.now(); }
+  function isLogged(){ return !!sessionStorage.getItem('trx_user'); }
+
+  function markActivity(){
+    if(!isLogged()) return;
+    try{ sessionStorage.setItem(KEY_LAST, String(now())); }catch(e){}
+    warned = false;
+    resetTimer();
+  }
+
+  function doLogout(reason){
+    try{
+      sessionStorage.removeItem('trx_user');
+      sessionStorage.removeItem('trx_auth');
+      sessionStorage.removeItem('trx_visit_logged');
+      sessionStorage.removeItem(KEY_LAST);
+    }catch(e){}
+    try{
+      alert('Tu sesion se cerro por ' + (INACTIVITY_MIN) + ' minutos de inactividad.\nPor favor vuelve a iniciar sesion.');
+    }catch(e){}
+    location.reload();
+  }
+
+  function check(){
+    if(!isLogged()) return;
+    let last = 0;
+    try{ last = parseInt(sessionStorage.getItem(KEY_LAST)||'0', 10) || 0; }catch(e){ last = 0; }
+    if(!last){ markActivity(); return; }
+    const elapsed = now() - last;
+    if(elapsed >= INACTIVITY_MS){
+      doLogout('inactivity');
+    }else if(!warned && elapsed >= (INACTIVITY_MS - 60*1000)){
+      // Aviso 1 min antes
+      warned = true;
+      try{
+        const resp = confirm('Tu sesion se cerrara en 1 minuto por inactividad.\n¿Quieres continuar la sesion?');
+        if(resp){ markActivity(); }
+      }catch(e){}
+    }
+  }
+
+  function resetTimer(){
+    if(timer) clearInterval(timer);
+    timer = setInterval(check, 15 * 1000); // revisa cada 15s
+  }
+
+  // Eventos que cuentan como "actividad"
+  const EVENTS = ['mousemove','mousedown','keydown','touchstart','scroll','click','wheel'];
+  let throttle = 0;
+  EVENTS.forEach(function(ev){
+    document.addEventListener(ev, function(){
+      const t = now();
+      if(t - throttle < 2000) return; // throttle de 2s
+      throttle = t;
+      markActivity();
+    }, {passive:true, capture:true});
+  });
+
+  // Si el usuario ya esta logueado al cargar la pagina, arrancamos el reloj
+  document.addEventListener('DOMContentLoaded', function(){
+    if(isLogged()){ markActivity(); }
+  });
+  // Y tambien lo marcamos cuando acaba de iniciar sesion
+  const _origSetItem = sessionStorage.setItem.bind(sessionStorage);
+  sessionStorage.setItem = function(k, v){
+    _origSetItem(k, v);
+    if(k === 'trx_user'){ markActivity(); }
+  };
+  // Inicializar por si ya hay sesion antes del DOMContentLoaded
+  if(isLogged()) markActivity();
 })();
 </script>
 </body>
