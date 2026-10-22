@@ -130,7 +130,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 #drillDetailModal{z-index:820;}
 #drillDetailModal .modal-box{max-width:1150px;}
 #drillDetailModal .modal-body{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-#drillDetailModal .modal-table{table-layout:fixed;min-width:930px;width:100%;border-collapse:collapse;}
+#drillDetailModal .modal-table{table-layout:fixed;min-width:962px;width:100%;border-collapse:collapse;}
 #operadorModal{z-index:830;}
 .modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
 /* ── Drill modal nivel 1 ── */
@@ -882,7 +882,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
     <div class="modal-body">
       <table class="modal-table">
         <colgroup>
-          <col style="width:36px">
+          <col style="width:68px">
           <col style="width:70px">
           <col style="width:90px"><col style="width:75px"><col style="width:170px">
           <col style="width:80px"><col style="width:95px">
@@ -890,7 +890,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
           <col style="width:70px"><col style="width:70px">
         </colgroup>
         <thead id="detailThead"><tr>
-          <th style="width:36px"></th>
+          <th style="width:68px"></th>
           <th class="r sortable" data-col="kmOp" onclick="sortDetail('kmOp')"><div class="th-inner r">Km<span class="sort-ind">↕</span></div></th>
           <th class="sortable" data-col="fecha" onclick="sortDetail('fecha')"><div class="th-inner">Fecha<span class="sort-ind">↕</span></div></th>
           <th class="sortable" data-col="car" onclick="sortDetail('car')"><div class="th-inner">Unidad<span class="sort-ind">↕</span></div></th>
@@ -990,6 +990,47 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 </div>
 
 <!-- ══ MODAL OPERADOR: resumen del mes actual ══ -->
+<!-- ══ MODAL COMENTARIO: por qué llegó / salió tarde (se guarda en NS!BC vía Apps Script) ══ -->
+<div class="modal-overlay" id="comentarioModal" style="z-index:860" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-head">
+      <div><h3>💬 Comentario del viaje</h3><span id="comentarioModalSub"></span></div>
+      <button class="modal-close" onclick="document.getElementById('comentarioModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:1.2rem 1.4rem;overflow-y:auto">
+      <input type="hidden" id="comentarioTripId">
+      <div style="margin-bottom:.9rem">
+        <label style="display:block;font-size:.66rem;font-weight:700;color:#6b7a99;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">Motivo</label>
+        <select id="comentarioMotivo" onchange="onComentarioMotivoChange()"
+          style="width:100%;padding:.5rem .6rem;border:1.5px solid #dde3f0;border-radius:8px;background:#fff;font-family:'Inter',sans-serif;font-size:.82rem;color:#1a2236;cursor:pointer;outline:none">
+          <option value="">— Selecciona un motivo —</option>
+          <option value="Operador dormido">Operador dormido</option>
+          <option value="Tráfico">Tráfico</option>
+          <option value="Falla mecánica">Falla mecánica</option>
+          <option value="Retraso del cliente">Retraso del cliente</option>
+          <option value="Clima">Clima</option>
+          <option value="Accidente / incidente">Accidente / incidente</option>
+          <option value="Operador no se presentó">Operador no se presentó</option>
+          <option value="Falta de unidad">Falta de unidad</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div style="margin-bottom:1rem">
+        <label style="display:block;font-size:.66rem;font-weight:700;color:#6b7a99;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">Detalle (opcional)</label>
+        <textarea id="comentarioTexto" rows="3" placeholder="Escribe el detalle del comentario…"
+          style="width:100%;padding:.55rem .65rem;border:1.5px solid #dde3f0;border-radius:8px;background:#fff;font-family:'Inter',sans-serif;font-size:.82rem;color:#1a2236;outline:none;resize:vertical;box-sizing:border-box"></textarea>
+      </div>
+      <div id="comentarioMsg" style="font-size:.74rem;margin-bottom:.7rem;min-height:1rem"></div>
+      <div style="display:flex;gap:.6rem;justify-content:flex-end">
+        <button onclick="document.getElementById('comentarioModal').classList.remove('open')"
+          style="background:transparent;border:1.5px solid #dde3f0;color:#6b7a99;border-radius:8px;padding:.5rem 1.1rem;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Cancelar</button>
+        <button id="comentarioSaveBtn" onclick="guardarComentario()"
+          style="background:#7ed321;border:none;color:#1a2236;border-radius:8px;padding:.5rem 1.3rem;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="operadorModal" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="modal-box" style="max-width:520px">
     <div class="modal-head">
@@ -1084,8 +1125,12 @@ const C = {
   retardo:'Inicios_Tarde', viajes:'Cantidad de viajes', llegada:'Llegadas_Tarde',
   minIni:'Minutos de Retraso', minLle:'Minutos llegadas', driver:'operador', car:'car', ruta:'des',
   startTime:'start_time', startEta:'start_eta', endTime:'end_time', endEta:'end_eta',
-  id:'id', workerId:'worker_id',
+  id:'id', workerId:'worker_id', comentario:'Comentarios',
 };
+
+// ── Endpoint del Web App (Apps Script) para guardar comentarios en NS ──
+// Reemplaza esta URL con la que te da Google al publicar el Web App (.../exec)
+const COMENTARIOS_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxejpkGCDu5oqwKx7rFdGf0j4gcDes2xZQJ4rIsYFr9yPa0-qWd20qqlDezCc8PCAE/exec';
 
 let DATA         = [];
 let loadedMonths = new Set();
@@ -1321,7 +1366,7 @@ const NS_NEEDED=['id','worker_id','business_unit','des','car','group',
   'start_date','start_time','start_eta','end_time','end_eta','operador',
   'Minutos de Retraso','Año','Mes','Dia','Semana','Inicios_Tarde',
   'Cantidad de viajes','Gerente','Jefe','Minutos llegadas','Llegadas_Tarde',
-  'Turno','Coordinador'];
+  'Turno','Coordinador','Comentarios'];
 function nsNormName(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim().replace(/\s+/g,' '); }
 function idxToLetter(i){ let s='',n=i+1; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); } return s; }
 async function ensureNsProjection(){
@@ -3033,8 +3078,8 @@ function rerenderDetailModal(){
     else if(col==='startEta') { av=String(a[C.startEta]||'');  bv=String(b[C.startEta]||''); }
     else if(col==='endTime')  { av=String(a[C.endTime]||'');   bv=String(b[C.endTime]||''); }
     else if(col==='endEta')   { av=String(a[C.endEta]||'');    bv=String(b[C.endEta]||''); }
-    else if(col==='car')      { av=String(a['car']||'');        bv=String(b['car']||''); }
-    else if(col==='driver')   { av=String(a['driver']||'');     bv=String(b['driver']||''); }
+    else if(col==='car')      { av=String(a[C.car]||'');        bv=String(b[C.car]||''); }
+    else if(col==='driver')   { av=String(a[C.driver]||'');     bv=String(b[C.driver]||''); }
     else { av=getFecha(a); bv=getFecha(b); }
     return av.localeCompare(bv)*dir;
   });
@@ -3043,8 +3088,8 @@ function rerenderDetailModal(){
     const fecha=getFecha(r);
     const dt=new Date(fecha+'T12:00:00');
     const fechaFmt=isNaN(dt)?fecha:dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
-    const unidad=(r['car']||'–').trim();
-    const driver=(r['driver']||'–').trim();
+    const unidad=(r[C.car]||'–').trim();
+    const driver=(r[C.driver]||'–').trim();
     const bg=i%2===0?'#ffffff':'#f7f9ff';
     const minIni=parseMin(r[C.minIni]);
     const minLle=parseMin(r[C.minLle]);
@@ -3055,9 +3100,10 @@ function rerenderDetailModal(){
     const tripId=(r[C.id]||'').trim();
     const driverEsc=driver.replace(/'/g,"\\'");
     const auditBtn=tripId?`<button onclick="openAuditModal('${tripId}')" style="background:#1a2236;color:#7ed321;border:1px solid #7ed321;border-radius:5px;padding:.15rem .35rem;font-size:.62rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:"Inter, system-ui, sans-serif",sans-serif;line-height:1.4" title="Auditoría del viaje">📍</button>`:'';
+    const comentBtn=comentarioBtnHTML(r, tripId);
     const kmOp=kmOperadorRuta(r[C.workerId], rutaActual);
     return`<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
-      <td style="text-align:center;padding:.3rem .4rem">${auditBtn}</td>
+      <td style="text-align:center;padding:.3rem .3rem;white-space:nowrap">${auditBtn} ${comentBtn}</td>
       <td class="r">${kmBadge(kmOp)}</td>
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${fechaFmt}</td>
       <td style="text-align:left;font-weight:600">${unidad}</td>
@@ -3215,8 +3261,8 @@ async function exportDetailModal(){
     const tarde=countLate(r[lateField])===1;
     const row=ws.addRow([
       getFecha(r),
-      (r['car']||'–').trim(),
-      (r['driver']||'–').trim(),
+      (r[C.car]||'–').trim(),
+      (r[C.driver]||'–').trim(),
       (C.startTime&&r[C.startTime]?r[C.startTime]:'–'),
       (C.startEta&&r[C.startEta]?r[C.startEta]:'–'),
       (C.endTime&&r[C.endTime]?r[C.endTime]:'–'),
@@ -3312,6 +3358,116 @@ function closeAuditModal(){
   clearTimeout(_auditTimer);
   document.getElementById('auditIframe').src='about:blank';
   document.getElementById('auditModal').classList.remove('open');
+}
+
+// ── Modal comentario del viaje (guarda en NS!BC vía Apps Script) ──────
+const MOTIVOS_COMENTARIO=['Operador dormido','Tráfico','Falla mecánica','Retraso del cliente','Clima','Accidente / incidente','Operador no se presentó','Falta de unidad','Otro'];
+
+// Botón 💬 para un renglón del detalle. Verde lleno si ya tiene comentario.
+function comentarioBtnHTML(r, tripId){
+  if(!tripId) return '';
+  const com=String((r&&r[C.comentario])||'').trim();
+  const tiene=com.length>0;
+  const comEsc=com.replace(/"/g,'&quot;').replace(/'/g,"\\'");
+  const title=tiene?('Comentario: '+com.replace(/"/g,'&quot;')):'Agregar comentario';
+  const style=tiene
+    ? 'background:#7ed321;color:#1a2236;border:1px solid #5cb800;'
+    : 'background:#fff;color:#6b7a99;border:1px solid #dde3f0;';
+  return `<button onclick="openComentarioModal('${tripId}','${comEsc}')"
+     style="${style}border-radius:5px;padding:.15rem .35rem;font-size:.62rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;line-height:1.4"
+     title="${title}">💬</button>`;
+}
+
+function openComentarioModal(tripId, comentarioActual){
+  if(!tripId) return;
+  document.getElementById('comentarioTripId').value=tripId;
+  document.getElementById('comentarioModalSub').textContent='ID '+tripId;
+  const sel=document.getElementById('comentarioMotivo');
+  const txt=document.getElementById('comentarioTexto');
+  const msg=document.getElementById('comentarioMsg');
+  msg.textContent=''; msg.style.color='';
+  // Precargar comentario existente: "Motivo — detalle" o solo detalle
+  const actual=(comentarioActual||'').trim();
+  sel.value=''; txt.value='';
+  if(actual){
+    const partes=actual.split(/\s[—-]\s(.+)/s); // separa "Motivo — detalle"
+    const posibleMotivo=(partes[0]||'').trim();
+    if(MOTIVOS_COMENTARIO.includes(posibleMotivo)){
+      sel.value=posibleMotivo;
+      txt.value=(partes[1]||'').trim();
+    } else {
+      // No matchea motivo conocido → todo va al detalle, motivo "Otro"
+      sel.value='Otro';
+      txt.value=actual;
+    }
+  }
+  document.getElementById('comentarioModal').classList.add('open');
+  setTimeout(()=>txt.focus(),120);
+}
+function onComentarioMotivoChange(){
+  // Si eligen un motivo y el detalle está vacío, no forzamos nada; solo UX.
+}
+function construirComentario(){
+  const motivo=(document.getElementById('comentarioMotivo').value||'').trim();
+  const detalle=(document.getElementById('comentarioTexto').value||'').trim();
+  if(!motivo && !detalle) return '';
+  if(motivo && detalle) return motivo+' — '+detalle;
+  return motivo || detalle;
+}
+async function guardarComentario(){
+  const tripId=(document.getElementById('comentarioTripId').value||'').trim();
+  const comentario=construirComentario();
+  const msg=document.getElementById('comentarioMsg');
+  const btn=document.getElementById('comentarioSaveBtn');
+  if(!tripId){ msg.style.color='#e53e3e'; msg.textContent='No hay ID de viaje.'; return; }
+  if(!comentario){ msg.style.color='#e53e3e'; msg.textContent='Selecciona un motivo o escribe un detalle.'; return; }
+  if(!COMENTARIOS_ENDPOINT || COMENTARIOS_ENDPOINT.indexOf('PON_AQUI')>=0){
+    msg.style.color='#e53e3e'; msg.textContent='Falta configurar la URL del Web App (COMENTARIOS_ENDPOINT).'; return;
+  }
+  btn.disabled=true; const prev=btn.textContent; btn.textContent='Guardando…';
+  msg.style.color='#6b7a99'; msg.textContent='Enviando comentario…';
+  try{
+    // text/plain evita el preflight CORS de Apps Script
+    const res=await fetch(COMENTARIOS_ENDPOINT,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({target:'ns', id:tripId, comentario})
+    });
+    let data={}; try{ data=await res.json(); }catch(e){}
+    if(data && data.ok){
+      // Reflejar en memoria (DATA) para que se vea sin recargar
+      actualizarComentarioEnMemoria(tripId, comentario);
+      msg.style.color='#16a34a'; msg.textContent='✓ Comentario guardado.';
+      setTimeout(()=>{
+        document.getElementById('comentarioModal').classList.remove('open');
+        // refrescar el renglón en el modal de detalle si sigue abierto
+        if(typeof rerenderDetailModal==='function' && lastDetailData && lastDetailData.length) rerenderDetailModal();
+      },700);
+    } else {
+      msg.style.color='#e53e3e'; msg.textContent='Error: '+((data&&data.error)||'no se pudo guardar.');
+    }
+  }catch(err){
+    msg.style.color='#e53e3e'; msg.textContent='Error de red: '+err.message;
+  }finally{
+    btn.disabled=false; btn.textContent=prev;
+  }
+}
+// Actualiza el comentario en DATA (todas las filas con ese trip id)
+function actualizarComentarioEnMemoria(tripId, comentario){
+  const want=normNomina(tripId); // reutiliza el normalizador de ids numéricos
+  DATA.forEach(r=>{
+    if(normNomina(r[C.id])===want || String(r[C.id]||'').trim()===String(tripId).trim()){
+      r[C.comentario]=comentario;
+    }
+  });
+  // también en lastDetailData (referencias suelen ser las mismas, pero por si acaso)
+  if(lastDetailData && lastDetailData.length){
+    lastDetailData.forEach(r=>{
+      if(normNomina(r[C.id])===want || String(r[C.id]||'').trim()===String(tripId).trim()){
+        r[C.comentario]=comentario;
+      }
+    });
+  }
 }
 
 // ── Modal resumen operador (mes actual) ───────────────────────────
@@ -3549,8 +3705,8 @@ function openDrillDetail(rutaK,clienteK,tbl){
     const fecha=getFecha(r);
     const dt=new Date(fecha+'T12:00:00');
     const fechaFmt=isNaN(dt)?fecha:dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'});
-    const unidad=(r['car']||'–').trim();
-    const driver=(r['driver']||'–').trim();
+    const unidad=(r[C.car]||'–').trim();
+    const driver=(r[C.driver]||'–').trim();
     const bg=i%2===0?'#ffffff':'#f7f9ff';
     const minIni=parseMin(r[C.minIni]);
     const minLle=parseMin(r[C.minLle]);
@@ -3569,9 +3725,10 @@ function openDrillDetail(rutaK,clienteK,tbl){
                   white-space:nowrap;font-family:"Inter, system-ui, sans-serif",sans-serif;line-height:1.4"
            title="Auditoría del viaje">📍</button>`
       : '';
+    const comentBtn=comentarioBtnHTML(r, tripId);
     const kmOp=kmOperadorRuta(r[C.workerId], rutaK);
     return `<tr style="background:${bg}${tarde?';border-left:3px solid #e53e3e':''}">
-      <td style="text-align:center;padding:.3rem .4rem">${auditBtn}</td>
+      <td style="text-align:center;padding:.3rem .3rem;white-space:nowrap">${auditBtn} ${comentBtn}</td>
       <td class="r">${kmBadge(kmOp)}</td>
       <td style="font-variant-numeric:tabular-nums;white-space:nowrap">${fechaFmt}</td>
       <td style="text-align:left;font-weight:600">${unidad}</td>
