@@ -917,6 +917,21 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .btn-ppt-ruta:hover {
     background: #fef2f2; border-color: #fca5a5; color: #dc2626;
   }
+  /* Botón mostrar/ocultar aforo de la ruta */
+  .btn-aforo-ruta {
+    background: #ffffff; color: #6b7280;
+    border: 1px solid #e5e7eb; border-radius: 4px;
+    width: 22px; height: 22px; padding: 0; margin-left: 4px;
+    cursor: pointer; font-size: 12px; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.15s;
+  }
+  .btn-aforo-ruta:hover {
+    background: #eff6ff; border-color: #93c5fd; color: #2563eb;
+  }
+  .btn-aforo-ruta.active {
+    background: #84cc16; border-color: #84cc16; color: #0f172a;
+  }
   /* Botón para elegir color de la ruta */
   .btn-color-ruta {
     position: relative;
@@ -3231,6 +3246,24 @@ function hidratarColoresEnRutas() {
   });
 }
 
+// --- Mostrar/ocultar aforo POR RUTA (botón 👥/👁 de cada fila) ---
+const AFORO_OCULTO_KEY_LS = 'jd_aforo_oculto_ruta_v1';
+function cargarAforoOcultoLS() {
+  try { return JSON.parse(localStorage.getItem(AFORO_OCULTO_KEY_LS)) || {}; }
+  catch (e) { return {}; }
+}
+function guardarAforoOcultoLS(id, oculto) {
+  const store = cargarAforoOcultoLS();
+  if (oculto) store[id] = true; else delete store[id];
+  try { localStorage.setItem(AFORO_OCULTO_KEY_LS, JSON.stringify(store)); } catch (e) {}
+}
+function hidratarAforoOcultoEnRutas() {
+  const store = cargarAforoOcultoLS();
+  Object.keys(rutas).forEach(id => {
+    rutas[id].aforoOculto = store[id] === true;
+  });
+}
+
 // =========================================================
 // ESTADO
 // =========================================================
@@ -3737,6 +3770,8 @@ function procesarCSV(csvText) {
   ids.forEach((id, idx) => { rutas[id].color = colores[idx]; });
   // Respetar colores que el usuario haya elegido antes para estas rutas
   hidratarColoresEnRutas();
+  // Respetar qué rutas tenían el aforo oculto
+  hidratarAforoOcultoEnRutas();
 
   dibujarTodas();
   renderLista();
@@ -4558,9 +4593,12 @@ async function dibujarRuta(id) {
     const anchor = isStart ? 13 : 11;
 
     // Globito de aforo arriba del número (como la imagen 2)
+    // Solo se muestra si ESTA ruta tiene el aforo activado (botón 👥/👁 de la fila)
     const benefVal = Number(p.beneficiados || 0);
     const badgeCls = benefVal === 0 ? 'a-cero' : 'a-ok';
-    const aforoBadge = `<span class="aforo-badge ${badgeCls}">👥 ${benefVal}</span>`;
+    const aforoBadge = r.aforoOculto
+      ? ''
+      : `<span class="aforo-badge ${badgeCls}">👥 ${benefVal}</span>`;
 
     const icon = L.divIcon({
       className: '',
@@ -5193,6 +5231,10 @@ function renderLista(filtroTxt = '') {
                 <input type="color" value="${colorAHex(r.color)}"/>
               </label>
               <button type="button"
+                      class="btn-aforo-ruta${r.aforoOculto ? '' : ' active'}"
+                      data-ruta-id="${id}"
+                      title="${r.aforoOculto ? 'Mostrar aforos de esta ruta' : 'Ocultar aforos de esta ruta'}">${r.aforoOculto ? '👁' : '👥'}</button>
+              <button type="button"
                       class="btn-zero-benef${r.highlightEmpty ? ' active' : ''}"
                       data-ruta-id="${id}"
                       title="${btnTitle}">🎯</button>
@@ -5250,6 +5292,21 @@ function renderLista(filtroTxt = '') {
         generarCroquisPPT(id);
       });
     }
+    // Botón mostrar/ocultar aforo de ESTA ruta
+    const btnAf = div.querySelector('.btn-aforo-ruta');
+    if (btnAf) {
+      btnAf.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const rr = rutas[id];
+        if (!rr) return;
+        rr.aforoOculto = !rr.aforoOculto;
+        guardarAforoOcultoLS(id, rr.aforoOculto);
+        btnAf.classList.toggle('active', !rr.aforoOculto);
+        btnAf.textContent = rr.aforoOculto ? '👁' : '👥';
+        btnAf.title = rr.aforoOculto ? 'Mostrar aforos de esta ruta' : 'Ocultar aforos de esta ruta';
+        await dibujarRuta(id);   // repinta los globitos de aforo de esa ruta
+      });
+    }
     // Selector de color de la ruta
     const colorLbl = div.querySelector('.btn-color-ruta');
     if (colorLbl) {
@@ -5278,6 +5335,7 @@ function renderLista(filtroTxt = '') {
       if (e.target.closest && e.target.closest('.btn-qr-ruta')) return;
       if (e.target.closest && e.target.closest('.btn-ppt-ruta')) return;
       if (e.target.closest && e.target.closest('.btn-color-ruta')) return;
+      if (e.target.closest && e.target.closest('.btn-aforo-ruta')) return;
       // click en el item: hacer zoom a esa ruta
       const coords = r.puntos.map(p => [p.lat, p.lng]);
       if (coords.length) map.fitBounds(coords, { padding: [40, 40] });
