@@ -917,6 +917,81 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   .btn-ppt-ruta:hover {
     background: #fef2f2; border-color: #fca5a5; color: #dc2626;
   }
+  /* Botón para elegir color de la ruta */
+  .btn-color-ruta {
+    position: relative;
+    background: #ffffff; color: #6b7280;
+    border: 1px solid #e5e7eb; border-radius: 4px;
+    width: 22px; height: 22px; padding: 0; margin-left: 4px;
+    cursor: pointer; font-size: 12px; line-height: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.15s;
+    overflow: hidden;
+  }
+  .btn-color-ruta:hover {
+    background: #f0fdf4; border-color: #86efac; color: #16a34a;
+  }
+  /* El input color real va encima pero invisible, para abrir el picker nativo */
+  .btn-color-ruta input[type="color"] {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    opacity: 0; cursor: pointer; border: none; padding: 0;
+  }
+  /* Franja de color actual en la esquina del botón */
+  .btn-color-ruta .color-dot {
+    position: absolute; left: 2px; right: 2px; bottom: 2px;
+    height: 4px; border-radius: 2px;
+    border: 1px solid rgba(0,0,0,0.12);
+  }
+
+  /* Etiqueta de aforo: tamaño ajustable por variable + oculta opcional */
+  .ruta-ocup-lbl {
+    font-size: calc(10px * var(--aforo-scale, 1));
+  }
+  body.aforo-oculto .ruta-ocup-lbl { display: none; }
+
+  /* Globito de AFORO flotando ARRIBA del número de parada (como imagen 2) */
+  .marker-wrap {
+    position: relative;
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    overflow: visible;
+  }
+  .aforo-badge {
+    position: absolute;
+    bottom: 100%;                 /* justo encima del círculo */
+    left: 50%;
+    transform: translateX(-50%) scale(var(--aforo-scale, 1));
+    transform-origin: bottom center;
+    margin-bottom: 4px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 11px; font-weight: 800; line-height: 1;
+    padding: 2px 6px;
+    border-radius: 7px;
+    border: 1.5px solid #0f172a;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.35);
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 650;
+  }
+  /* Piquito del globito apuntando al punto */
+  .aforo-badge::after {
+    content: '';
+    position: absolute;
+    top: 100%; left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: #0f172a;
+  }
+  /* Color según ocupación de la parada */
+  .aforo-badge.a-cero { color: #dc2626; border-color: #dc2626; }
+  .aforo-badge.a-cero::after { border-top-color: #dc2626; }
+  .aforo-badge.a-ok   { color: #15803d; border-color: #15803d; }
+  .aforo-badge.a-ok::after   { border-top-color: #15803d; }
+  /* Ocultar todos los globitos cuando el aforo está apagado */
+  body.aforo-oculto .aforo-badge { display: none; }
+
   @keyframes pulseBtnZero {
     0%, 100% { box-shadow: 0 0 4px rgba(220,38,38,0.4); }
     50%      { box-shadow: 0 0 10px rgba(220,38,38,0.75); }
@@ -2377,6 +2452,21 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     </section>
 
     <section>
+      <h2>Aforo (usuarios)</h2>
+      <button class="toggle-btn active" id="btnToggleAforo" style="margin-bottom:8px">
+        👥 Mostrar aforo
+      </button>
+      <div class="slider-row">
+        <span style="font-size:11px">A−</span>
+        <input type="range" id="sliderAforo" min="0.8" max="2.2" step="0.1" value="1"/>
+        <span style="font-size:16px; font-weight:700">A+</span>
+      </div>
+      <div style="font-size:10px; color:#9ca3af; text-align:center; margin-top:4px">
+        Tamaño del texto de aforo: <span id="lblAforo">100%</span>
+      </div>
+    </section>
+
+    <section>
       <h2>Filtrar por planta</h2>
       <div id="chipsPlantas"></div>
     </section>
@@ -3081,6 +3171,67 @@ function generarColores(n) {
 }
 
 // =========================================================
+// COLOR PERSONALIZADO POR RUTA
+// =========================================================
+const COLOR_KEY_LS = 'jd_colores_ruta_v1';
+
+// Convierte cualquier color CSS (hsl(...) o #hex) a "#rrggbb" para <input type=color>
+function colorAHex(css) {
+  if (!css) return '#84cc16';
+  css = String(css).trim();
+  if (/^#[0-9a-fA-F]{6}$/.test(css)) return css;
+  if (/^#[0-9a-fA-F]{3}$/.test(css)) {
+    return '#' + css.slice(1).split('').map(c => c + c).join('');
+  }
+  // Pintamos en un canvas para resolver hsl() / rgb() / nombres a rgb
+  try {
+    const c = document.createElement('canvas');
+    c.width = c.height = 1;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#000';
+    ctx.fillStyle = css;              // si es inválido, queda en #000
+    ctx.fillRect(0, 0, 1, 1);
+    const d = ctx.getImageData(0, 0, 1, 1).data;
+    const h = n => n.toString(16).padStart(2, '0');
+    return '#' + h(d[0]) + h(d[1]) + h(d[2]);
+  } catch (e) {
+    return '#84cc16';
+  }
+}
+
+function cargarColoresLS() {
+  try { return JSON.parse(localStorage.getItem(COLOR_KEY_LS)) || {}; }
+  catch (e) { return {}; }
+}
+function guardarColorLS(id, color) {
+  const store = cargarColoresLS();
+  store[id] = color;
+  try { localStorage.setItem(COLOR_KEY_LS, JSON.stringify(store)); } catch (e) {}
+}
+
+// Aplica un color elegido a la ruta: repinta línea + marcadores y (si guardar) persiste.
+async function aplicarColorRuta(id, hex, guardar) {
+  const r = rutas[id];
+  if (!r) return;
+  r.color = hex;
+  // Invalidar nada de geometría: solo cambia el estilo, redibujamos la capa
+  await dibujarRuta(id);
+  if (guardar) {
+    guardarColorLS(id, hex);
+    flashToast('🎨 Color actualizado');
+    renderLista(document.getElementById('filtro').value);
+  }
+}
+
+// Reasigna los colores guardados a las rutas (tras cargar un archivo)
+function hidratarColoresEnRutas() {
+  const store = cargarColoresLS();
+  Object.keys(rutas).forEach(id => {
+    if (store[id]) rutas[id].color = store[id];
+  });
+}
+
+// =========================================================
 // ESTADO
 // =========================================================
 let rutas = {};       // { idRuta: { puntos:[], color, desc, planta, layer } }
@@ -3584,6 +3735,8 @@ function procesarCSV(csvText) {
   const ids = Object.keys(rutas).sort();
   const colores = generarColores(ids.length);
   ids.forEach((id, idx) => { rutas[id].color = colores[idx]; });
+  // Respetar colores que el usuario haya elegido antes para estas rutas
+  hidratarColoresEnRutas();
 
   dibujarTodas();
   renderLista();
@@ -4404,9 +4557,14 @@ async function dibujarRuta(id) {
     const size = isStart ? 26 : 22;
     const anchor = isStart ? 13 : 11;
 
+    // Globito de aforo arriba del número (como la imagen 2)
+    const benefVal = Number(p.beneficiados || 0);
+    const badgeCls = benefVal === 0 ? 'a-cero' : 'a-ok';
+    const aforoBadge = `<span class="aforo-badge ${badgeCls}">👥 ${benefVal}</span>`;
+
     const icon = L.divIcon({
       className: '',
-      html: `<div class="${cls}${extraCls}" style="${styleBg}">${p.sec}</div>`,
+      html: `<div class="marker-wrap">${aforoBadge}<div class="${cls}${extraCls}" style="${styleBg}">${p.sec}</div></div>`,
       iconSize: [size, size],
       iconAnchor: [anchor, anchor]
     });
@@ -4552,6 +4710,8 @@ function guardarBeneficiados(key, btn) {
 
   actualizarOcupacion();
   renderLista(document.getElementById('filtro').value);
+  // Redibujar la ruta para que el globito de aforo sobre el punto muestre el nuevo valor
+  if (r) { dibujarRuta(id); }
 }
 
 function hidratarBeneficiadosEnRutas() {
@@ -5026,6 +5186,12 @@ function renderLista(filtroTxt = '') {
                 <div class="ruta-ocup-bar ${cls}" style="width:${barPct}%"></div>
               </div>
               <span class="ruta-ocup-lbl">👥 ${tb}/${CAP_TOTAL} · <b style="color:${pctColor}">${pct}%</b></span>
+              <label class="btn-color-ruta"
+                     data-ruta-id="${id}"
+                     title="Elegir color de la ruta">🎨
+                <span class="color-dot" style="background:${r.color}"></span>
+                <input type="color" value="${colorAHex(r.color)}"/>
+              </label>
               <button type="button"
                       class="btn-zero-benef${r.highlightEmpty ? ' active' : ''}"
                       data-ruta-id="${id}"
@@ -5084,11 +5250,34 @@ function renderLista(filtroTxt = '') {
         generarCroquisPPT(id);
       });
     }
+    // Selector de color de la ruta
+    const colorLbl = div.querySelector('.btn-color-ruta');
+    if (colorLbl) {
+      // Evitar que abrir el picker dispare el zoom del item
+      colorLbl.addEventListener('click', (e) => { e.stopPropagation(); });
+      const colorInput = colorLbl.querySelector('input[type="color"]');
+      if (colorInput) {
+        // 'input' = mientras arrastra (vista previa en vivo); 'change' = al soltar (guarda)
+        colorInput.addEventListener('input', (e) => {
+          e.stopPropagation();
+          aplicarColorRuta(id, e.target.value, false);
+          const dot = colorLbl.querySelector('.color-dot');
+          if (dot) dot.style.background = e.target.value;
+          const sw = div.querySelector('.ruta-color');
+          if (sw) sw.style.background = e.target.value;
+        });
+        colorInput.addEventListener('change', (e) => {
+          e.stopPropagation();
+          aplicarColorRuta(id, e.target.value, true);
+        });
+      }
+    }
     div.addEventListener('click', e => {
       if (e.target === chk) return;
       if (e.target.closest && e.target.closest('.btn-zero-benef')) return;
       if (e.target.closest && e.target.closest('.btn-qr-ruta')) return;
       if (e.target.closest && e.target.closest('.btn-ppt-ruta')) return;
+      if (e.target.closest && e.target.closest('.btn-color-ruta')) return;
       // click en el item: hacer zoom a esa ruta
       const coords = r.puntos.map(p => [p.lat, p.lng]);
       if (coords.length) map.fitBounds(coords, { padding: [40, 40] });
@@ -6709,6 +6898,44 @@ document.querySelectorAll('#chipsTurnos .chip').forEach(chip => {
     document.documentElement.style.setProperty('--marker-scale', v);
     if (lbl) lbl.textContent = Math.round(v * 100) + '%';
   });
+})();
+
+// Control de AFORO: mostrar/ocultar + tamaño del texto de aforo en la lista.
+(function(){
+  const btn = document.getElementById('btnToggleAforo');
+  const s   = document.getElementById('sliderAforo');
+  const lbl = document.getElementById('lblAforo');
+  // Restaurar preferencias guardadas
+  try {
+    const oculto = localStorage.getItem('jd_aforo_oculto') === '1';
+    if (oculto) {
+      document.body.classList.add('aforo-oculto');
+      if (btn) { btn.classList.remove('active'); btn.textContent = '👁 Aforo oculto'; }
+    }
+    const esc = parseFloat(localStorage.getItem('jd_aforo_scale'));
+    if (!isNaN(esc)) {
+      document.documentElement.style.setProperty('--aforo-scale', esc);
+      if (s) s.value = esc;
+      if (lbl) lbl.textContent = Math.round(esc * 100) + '%';
+    }
+  } catch(e){}
+
+  if (btn) {
+    btn.addEventListener('click', () => {
+      const ocultoAhora = document.body.classList.toggle('aforo-oculto');
+      btn.classList.toggle('active', !ocultoAhora);
+      btn.textContent = ocultoAhora ? '👁 Aforo oculto' : '👥 Mostrar aforo';
+      try { localStorage.setItem('jd_aforo_oculto', ocultoAhora ? '1' : '0'); } catch(e){}
+    });
+  }
+  if (s) {
+    s.addEventListener('input', e => {
+      const v = parseFloat(e.target.value);
+      document.documentElement.style.setProperty('--aforo-scale', v);
+      if (lbl) lbl.textContent = Math.round(v * 100) + '%';
+      try { localStorage.setItem('jd_aforo_scale', v); } catch(e){}
+    });
+  }
 })();
 
 // =========================================================
