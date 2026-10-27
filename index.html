@@ -1642,9 +1642,9 @@ async function loadKpis(){
   });
 })();
 
-/* ============ INACTIVIDAD: cerrar sesion despues de 30 min sin actividad ============ */
+/* ============ INACTIVIDAD: cerrar sesion despues de 60 min sin actividad ============ */
 (function(){
-  const INACTIVITY_MIN = 30;
+  const INACTIVITY_MIN = 60;
   const INACTIVITY_MS  = INACTIVITY_MIN * 60 * 1000;
   const KEY_LAST = 'trx_last_activity';
   let timer = null;
