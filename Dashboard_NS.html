@@ -1297,13 +1297,31 @@ function norm(s){
   }
   return s;
 }
+// getFecha se llama MILLONES de veces por dibujado (cada filtro recorre DATA
+// varias veces). Antes recalculaba padStart/regex en cada llamada; ahora el
+// resultado se memoiza en la propia fila como propiedad NO enumerable, así no
+// se serializa a la caché ni aparece en Object.keys.
+function _stash(r,k,v){
+  try{ Object.defineProperty(r,k,{value:v,enumerable:false,writable:true,configurable:true}); }
+  catch(e){ try{ r[k]=v; }catch(e2){} }
+  return v;
+}
 function getFecha(r){
+  const c=r.__f; if(c!==undefined) return c;
   const y=r['Año']?String(r['Año']).trim():'';
   const m=r['Mes']?String(r['Mes']).trim():'';
   const d=r['Dia']?String(r['Dia']).trim():'';
+  let f;
   if(y&&m&&d&&!isNaN(y)&&!isNaN(m)&&!isNaN(d))
-    return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
-  return norm(r[C.fecha]);
+    f=`${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  else f=norm(r[C.fecha]);
+  return _stash(r,'__f',f);
+}
+// Mes de una fila, memoizado (el patrón normMonth+getFecha era el más caro)
+function rowMonth(r){
+  const c=r.__m; if(c!==undefined) return c;
+  const f=getFecha(r);
+  return _stash(r,'__m',f?f.slice(0,7):'');
 }
 function normMonth(f){ return f?f.slice(0,7):''; }
 const MESES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -1408,7 +1426,10 @@ const NS_NEEDED=['id','worker_id','business_unit','des','car','group',
   'Turno','Coordinador','Comentarios'];
 function nsNormName(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim().replace(/\s+/g,' '); }
 function idxToLetter(i){ let s='',n=i+1; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); } return s; }
-function nsProjKey(){ return 'ns_proj_v1_'+(CURRENT_UDN||'default').replace(/\s+/g,'_'); }
+// Letras de columna de Año / Mes / id: permiten pedirle a Google que filtre
+// ÉL el mes, en vez de bajar todo el histórico y filtrar en el navegador.
+let NS_L={y:'',m:'',id:''};
+function nsProjKey(){ return 'ns_proj_v2_'+(CURRENT_UDN||'default').replace(/\s+/g,'_'); }
 async function ensureNsProjection(){
   if(NS_PROJECTION) return;
   // 1) Reusar la proyección guardada: evita un round-trip a Google en cada carga
@@ -1417,7 +1438,9 @@ async function ensureNsProjection(){
     if(saved){
       const o=JSON.parse(saved);
       if(o && o.p && Array.isArray(o.h) && o.h.length){
-        NS_PROJECTION=o.p; detectCols(o.h); return;
+        NS_PROJECTION=o.p; detectCols(o.h);
+        if(o.L) NS_L=o.L;
+        if(NS_L.y&&NS_L.m) return;   // si falta el índice de mes, re-detectar
       }
     }
   }catch(e){}
@@ -1429,10 +1452,18 @@ async function ensureNsProjection(){
     const hdrs=detectCols(parseCSVLine(line));
     const want=new Set(NS_NEEDED.map(nsNormName));
     const letters=[], kept=[];
-    hdrs.forEach((h,i)=>{ if(want.has(nsNormName(h))){ letters.push(idxToLetter(i)); kept.push(h); } });
+    const L={y:'',m:'',id:''};
+    hdrs.forEach((h,i)=>{
+      const n=nsNormName(h), L_=idxToLetter(i);
+      if(n==='ano'||n==='año') L.y=L_;
+      else if(n==='mes')       L.m=L_;
+      else if(n==='id')        L.id=L_;
+      if(want.has(n)){ letters.push(L_); kept.push(h); }
+    });
     if(letters.length>=5){
       NS_PROJECTION=letters.join(',');   // si matchea poco, mejor traer todas
-      try{ localStorage.setItem(nsProjKey(),JSON.stringify({p:NS_PROJECTION,h:kept})); }catch(e){}
+      NS_L=L;
+      try{ localStorage.setItem(nsProjKey(),JSON.stringify({p:NS_PROJECTION,h:kept,L})); }catch(e){}
     }
   }catch(e){ NS_PROJECTION=''; }
 }
@@ -1447,6 +1478,41 @@ function countUrl(){
 }
 function inputsUrl(){
   return `https://docs.google.com/spreadsheets/d/${INPUTS_SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(INPUTS_NAME)}`;
+}
+// ── Consultas con filtro EN GOOGLE (no en el navegador) ───────────
+function tqUrl(q){
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${encodeURIComponent(q)}`;
+}
+// La columna "Mes" en esta hoja viene como texto en español ("octubre"),
+// no como número. Estos helpers aceptan ambos.
+const MES_A_NUM={enero:1,febrero:2,marzo:3,abril:4,mayo:5,junio:6,julio:7,
+  agosto:8,septiembre:9,setiembre:9,octubre:10,noviembre:11,diciembre:12};
+function mesAnyToNum(v){
+  const s=String(v==null?'':v).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+  if(/^\d+$/.test(s)){ const n=parseInt(s,10); return (n>=1&&n<=12)?n:0; }
+  return MES_A_NUM[s]||0;
+}
+// Valor LITERAL de Año/Mes que usa la hoja, por "ym" → reconstruye el WHERE exacto.
+let MONTH_RAW={};   // { '2026-10': {y:'2026', m:'octubre'} }
+
+function canQueryByMonth(){ return !!(NS_L.y && NS_L.m && NS_PROJECTION); }
+// Índice de meses: ~9 filas en vez de 200 000. Respuesta casi instantánea.
+function monthIndexUrl(){
+  const idc=NS_L.id||NS_L.y;
+  return tqUrl(`SELECT ${NS_L.y},${NS_L.m},COUNT(${idc}) GROUP BY ${NS_L.y},${NS_L.m}`);
+}
+// Comillas solo si el valor no es numérico (el filtro debe calzar el tipo real)
+function sqlVal(v){
+  const s=String(v==null?'':v).trim();
+  return /^\d+$/.test(s) ? s : `'${s.replace(/'/g,"''")}'`;
+}
+// Un solo mes, filtrado por Google, con los valores literales de la hoja.
+function monthRowsUrl(ym){
+  const raw=MONTH_RAW[ym];
+  if(raw) return tqUrl(`SELECT ${NS_PROJECTION} WHERE ${NS_L.y}=${sqlVal(raw.y)} AND ${NS_L.m}=${sqlVal(raw.m)}`);
+  const y=ym.slice(0,4), n=parseInt(ym.slice(5),10);
+  const nombre=['','enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][n]||'';
+  return tqUrl(`SELECT ${NS_PROJECTION} WHERE ${NS_L.y}=${y} AND ${NS_L.m}='${nombre}'`);
 }
 
 function parseMin(v){
@@ -1682,9 +1748,104 @@ window.addEventListener('DOMContentLoaded', ()=>{
 //  filas nuevas (delta) + una ventana corta para captar ediciones.
 // ══════════════════════════════════════════════════════════════════
 const NS_DB='DashboardNS_v4', NS_STORE='chunks';
+
+// ── Guardar archivos: funciona en la versión alojada Y en el archivo local ──
+// En la página alojada los enlaces de descarga normales no hacen nada, así que
+// se usa el guardador del visor; en local se usa el enlace de siempre.
+let _dlCap=undefined;
+async function nsDownloader(){
+  if(_dlCap!==undefined) return _dlCap;
+  _dlCap=null;
+  try{ if(window.claude && typeof window.claude.use==='function') _dlCap=await window.claude.use('downloads'); }catch(e){ _dlCap=null; }
+  return _dlCap;
+}
+async function nsSaveBlob(blob,filename){
+  const dl=await nsDownloader();
+  if(dl){
+    try{
+      const buf=await blob.arrayBuffer();
+      await dl.save({filename,data:new Uint8Array(buf)});
+      return true;
+    }catch(e){
+      if(e && (e.code==='cancelled'||e.code==='declined')) return false;
+      console.warn('Guardado por visor falló, intento enlace normal:',e);
+    }
+  }
+  try{
+    const a=document.createElement('a');
+    const url=URL.createObjectURL(blob);
+    a.href=url; a.download=filename; document.body.appendChild(a); a.click();
+    setTimeout(()=>{ try{ a.remove(); URL.revokeObjectURL(url); }catch(e){} },2000);
+    return true;
+  }catch(e){ alert('No se pudo descargar el archivo: '+e.message); return false; }
+}
+// Reemplazo de XLSX.writeFile que pasa por el guardador correcto
+async function nsSaveXLSX(wb,filename){
+  try{
+    const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    return await nsSaveBlob(new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),filename);
+  }catch(e){
+    // Último recurso: el guardado nativo de la librería (solo sirve en local)
+    try{ XLSX.writeFile(wb, filename); return true; }catch(e2){ alert('No se pudo generar el Excel: '+e2.message); return false; }
+  }
+}
+
+// ── Diagnóstico de rendimiento (para ver dónde se va el tiempo) ──
+const PERF={};
+function perfMark(k){ PERF[k]=Date.now(); }
+function perfSince(k){ return PERF[k]?((Date.now()-PERF[k])/1000).toFixed(1)+'s':'–'; }
+function diagShow(txt,warn){
+  let el=document.getElementById('nsDiag');
+  if(!el){
+    el=document.createElement('div');
+    el.id='nsDiag';
+    el.style.cssText='position:fixed;left:10px;bottom:10px;z-index:99999;max-width:380px;'+
+      'font:11px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;padding:8px 10px;border-radius:8px;'+
+      'background:#0f172aee;color:#e2e8f0;box-shadow:0 4px 16px #0003;cursor:pointer;white-space:pre-wrap';
+    el.title='Clic para ocultar';
+    el.onclick=()=>el.remove();
+    document.body.appendChild(el);
+  }
+  el.style.background=warn?'#7f1d1dee':'#0f172aee';
+  el.innerHTML=txt;
+}
+
+// ¿El navegador nos deja guardar caché? En Chrome, abrir el archivo con doble
+// clic (file://) BLOQUEA IndexedDB, así que la caché se perdía en silencio y
+// cada apertura volvía a descargar todo. Ahora se detecta y se avisa.
+let CACHE_OK=null;
+async function probeCache(){
+  if(CACHE_OK!==null) return CACHE_OK;
+  try{
+    const db=await nsOpenDB();
+    if(!db){ CACHE_OK=false; return false; }
+    CACHE_OK=await new Promise(res=>{
+      try{
+        const tx=db.transaction(NS_STORE,'readwrite');
+        tx.objectStore(NS_STORE).put({t:Date.now()},'__probe');
+        tx.oncomplete=()=>res(true); tx.onerror=()=>res(false); tx.onabort=()=>res(false);
+      }catch(e){ res(false); }
+    });
+  }catch(e){ CACHE_OK=false; }
+  return CACHE_OK;
+}
+function avisarSinCache(){
+  const esFile=location.protocol==='file:';
+  diagShow('⚠ <b>La caché NO se puede guardar</b><br>'+
+    (esFile
+      ? 'Estás abriendo el archivo con doble clic (file://) y Chrome bloquea el almacenamiento.<br>'+
+        'Por eso vuelve a descargar TODO cada vez.<br><br>'+
+        '<b>Solución:</b> abre el dashboard desde una dirección http (ver nota que te envié) '+
+        'o en <b>Firefox</b>, que sí lo permite en archivos locales.'
+      : 'El navegador rechazó IndexedDB (¿modo incógnito o almacenamiento lleno?).<br>'+
+        'Sal del modo incógnito o libera espacio del sitio.'), true);
+}
 // Filas finales que se vuelven a pedir siempre, para captar comentarios
 // o correcciones hechas en renglones ya existentes (~2 días de viajes).
 const REFRESH_WINDOW = 2200;
+// Si la caché del mes es más nueva que esto y tiene las mismas filas que el
+// Sheet, se abre sin bajar NADA. Súbelo o bájalo a tu gusto.
+const FRESH_HOURS = 2;
 const PARALLEL_CHUNKS = 3;    // descargas simultáneas en la carga inicial
 
 function nsOpenDB(){
@@ -1730,6 +1891,55 @@ function purgeOldCache(){
 
 let NS_HDRS=[];            // headers de la proyección activa
 let FORCE_FULL_RELOAD=false;
+let NET_ROWS=0, NET_CALLS=0;
+let AVAIL_MONTHS=new Set();   // meses que existen en el Sheet (no necesariamente cargados)
+let MONTH_COUNTS={};          // { '2026-10': 25431 }
+let LOADING_MONTH=null;
+let NS_MONTH_MODE=false;      // true = cargamos mes por mes desde Google
+
+// Baja un mes concreto (o todos) cuando el usuario lo elige en el desplegable.
+async function ensureMonthLoaded(ym){
+  if(!NS_MONTH_MODE) return false;              // modo antiguo: ya está todo
+  if(!ym){                                      // "Todos" → bajar los faltantes
+    const faltan=[...AVAIL_MONTHS].filter(m=>!loadedMonths.has(m)).sort().reverse();
+    if(!faltan.length) return false;
+    for(let i=0;i<faltan.length;i++){
+      bgProgress(i/faltan.length*100,'Cargando '+mesLabel(faltan[i])+'…');
+      await ensureMonthLoaded(faltan[i]);
+    }
+    bgProgress(null);
+    return true;
+  }
+  if(loadedMonths.has(ym)) return false;
+  if(LOADING_MONTH===ym) return false;
+  LOADING_MONTH=ym;
+  const udnKey=(CURRENT_UDN||'default').replace(/\s+/g,'_');
+  const key=udnKey+'|m|'+ym;
+  try{
+    bgProgress(30,'Cargando '+mesLabel(ym)+'…');
+    let chunk=await nsGet(key);                 // 1) caché
+    if(!chunk || !chunk.r || !chunk.r.length){  // 2) Google (solo ese mes)
+      const r=await fetch(monthRowsUrl(ym));
+      NET_CALLS++;
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      const d=parseCSVCompact(await r.text());
+      NET_ROWS+=d.r.length;
+      if(!d.r.length){ bgProgress(null); LOADING_MONTH=null; return false; }
+      if(!NS_HDRS.length) NS_HDRS=d.h;
+      chunk={h:d.h,r:d.r,ts:Date.now()};
+      await nsPutMany([[key,chunk]]);
+    }
+    DATA=DATA.concat(hydrateRows(chunk.h||NS_HDRS,chunk.r));
+    loadedMonths=new Set(); DATA.forEach(r=>{ const m=rowMonth(r); if(m) loadedMonths.add(m); });
+    bgProgress(100,'Listo');
+    setTimeout(()=>bgProgress(null),700);
+    return true;
+  }catch(e){
+    console.warn('[NS] no se pudo cargar el mes',ym,e);
+    bgProgress(null);
+    return false;
+  }finally{ LOADING_MONTH=null; }
+}
 
 async function loadSheet(){
   const overlay=document.getElementById('loadingOverlay');
@@ -1738,6 +1948,8 @@ async function loadSheet(){
   const errMsg =document.getElementById('errMsg');
 
   purgeOldCache();
+  perfMark('t0');
+  NET_ROWS=0; NET_CALLS=0;
 
   const udnKey  = (CURRENT_UDN||'default').replace(/\s+/g,'_');
   const kMeta   = udnKey+'|__meta';
@@ -1755,18 +1967,74 @@ async function loadSheet(){
   const mesPrev=`${_dp.getFullYear()}-${String(_dp.getMonth()+1).padStart(2,'0')}`;
 
   let painted=false;
-  function recalcMonths(){ loadedMonths=new Set(); DATA.forEach(r=>{ const m=normMonth(getFecha(r)); if(m) loadedMonths.add(m); }); }
+  function recalcMonths(){ loadedMonths=new Set(); DATA.forEach(r=>{ const m=rowMonth(r); if(m) loadedMonths.add(m); }); }
   function revealUI(){ if(banner) banner.classList.add('hidden'); if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',350); } closeUdnModal(); painted=true; }
   function pintar(){ fillAllSelects(); if(loadedMonths.has(mesActual)&&!SC_SEL.mes){ scSetVal('mes',mesActual,mesLabel(mesActual)); } cascadeSelects(); buildCoordMap(); draw(); }
 
   async function fetchCount(){
-    try{ const r=await fetch(countUrl()); if(!r.ok) return 0; const t=await r.text(); const nums=t.match(/[\d.]+/g); return nums&&nums.length?Math.floor(parseFloat(nums[nums.length-1]))||0:0; }catch(e){ return 0; }
+    const t=Date.now();
+    try{ const r=await fetch(countUrl()); NET_CALLS++; if(!r.ok) return 0; const tx=await r.text();
+      PERF.countMs=Date.now()-t;
+      const nums=tx.match(/[\d.]+/g); return nums&&nums.length?Math.floor(parseFloat(nums[nums.length-1]))||0:0;
+    }catch(e){ return 0; }
   }
   // Devuelve filas COMPACTAS {h,r}
   async function fetchCompact(off,lim){
-    const r=await fetch(csvUrl(off,lim));
+    const t=Date.now();
+    const r=await fetch(csvUrl(off,lim)); NET_CALLS++;
     if(!r.ok) throw new Error('HTTP '+r.status+'. Verifica que el Sheet sea público (Compartir → Cualquier persona con el enlace).');
-    return parseCSVCompact(await r.text());
+    const txt=await r.text();
+    PERF.netMs=(PERF.netMs||0)+(Date.now()-t);
+    const out=parseCSVCompact(txt);
+    NET_ROWS+=out.r.length;
+    return out;
+  }
+  // Índice de meses: pide a Google el conteo agrupado por Año/Mes (~12 filas)
+  async function fetchMonthIndex(){
+    const t=Date.now();
+    try{
+      const r=await fetch(monthIndexUrl()); NET_CALLS++;
+      if(!r.ok) return null;
+      const {h,r:rows}=parseCSVCompact(await r.text());
+      PERF.idxMs=Date.now()-t;
+      if(!rows.length) return null;
+      const out=[]; MONTH_RAW={};
+      rows.forEach(a=>{
+        const yRaw=String(a[0]).trim();
+        const mRaw=String(a[1]).trim();
+        const y=parseInt(yRaw.replace(/[^\d]/g,''),10);
+        const m=mesAnyToNum(mRaw);                       // "octubre" → 10
+        const n=parseInt(String(a[2]).replace(/[^\d]/g,''),10)||0;
+        if(y>2000&&m>=1&&m<=12){
+          const ym=`${y}-${String(m).padStart(2,'0')}`;
+          MONTH_RAW[ym]={y:yRaw,m:mRaw};                 // guardar literal para el WHERE
+          out.push({ym,y,m,n});
+        }
+      });
+      return out.length?out:null;
+    }catch(e){ return null; }
+  }
+  async function fetchMonthRows(ym){
+    const t=Date.now();
+    const r=await fetch(monthRowsUrl(ym)); NET_CALLS++;
+    if(!r.ok) throw new Error('HTTP '+r.status+' al pedir el mes '+ym);
+    const out=parseCSVCompact(await r.text());
+    PERF.netMs=(PERF.netMs||0)+(Date.now()-t);
+    NET_ROWS+=out?out.r.length:0;
+    return out;
+  }
+  function diagFinal(fuente){
+    diagShow(
+      '<b>Diagnóstico de carga</b>  ·  '+(CURRENT_UDN||'')+'\n'+
+      'fuente        : '+fuente+'\n'+
+      'filas totales : '+DATA.length.toLocaleString('es-MX')+'\n'+
+      'bajadas de red: '+NET_ROWS.toLocaleString('es-MX')+'  ('+NET_CALLS+' peticiones)\n'+
+      'tiempo Google : '+(((PERF.netMs||0)+(PERF.countMs||0))/1000).toFixed(1)+'s'+
+        '   (conteo '+(((PERF.countMs||0))/1000).toFixed(1)+'s)\n'+
+      'tiempo total  : '+perfSince('t0')+'\n'+
+      'caché         : '+(CACHE_OK?'activa ✓':'NO DISPONIBLE ✗')+
+      (CACHE_OK?'':'\n\n⚠ Sin caché se vuelve a descargar todo cada vez.'),
+      !CACHE_OK);
   }
 
   // Agrupa objetos por mes y los guarda compactos en IndexedDB
@@ -1774,7 +2042,7 @@ async function loadSheet(){
     if(!NS_HDRS.length) return;
     const byMonth={};
     months.forEach(m=>byMonth[m]=[]);
-    DATA.forEach(r=>{ const m=normMonth(getFecha(r)); if(m && byMonth[m]) byMonth[m].push(r); });
+    DATA.forEach(r=>{ const m=rowMonth(r); if(m && byMonth[m]) byMonth[m].push(r); });
     const entries=Object.keys(byMonth).map(m=>[kMonth(m),{h:NS_HDRS,r:dehydrateRows(NS_HDRS,byMonth[m])}]);
     if(entries.length) await nsPutMany(entries);
   }
@@ -1803,6 +2071,83 @@ async function loadSheet(){
     bgProgress(null);
     await ensureNsProjection();         // columnas reducidas (si falla → todas)
     if(!stillMine()) return;
+
+    // ¿Se puede guardar caché? Si no, avisamos en vez de fallar en silencio.
+    const puedeCachear=await probeCache();
+    if(!puedeCachear) avisarSinCache();
+
+    // ══ CAMINO RÁPIDO POR MES: Google filtra, no el navegador ══
+    // Solo se baja el mes que se está viendo (~25 000 filas en vez de 150 000).
+    // Los meses viejos se bajan cuando los eliges, y quedan en caché.
+    if(canQueryByMonth()){
+      const idx=await fetchMonthIndex();
+      if(!stillMine()) return;
+      if(idx && idx.length){
+        AVAIL_MONTHS=new Set(idx.map(o=>o.ym));
+        MONTH_COUNTS={}; idx.forEach(o=>MONTH_COUNTS[o.ym]=o.n);
+        NS_MONTH_MODE=true;
+
+        const objetivo = AVAIL_MONTHS.has(mesActual)
+          ? mesActual
+          : [...AVAIL_MONTHS].sort().reverse()[0];
+
+        // 1) Caché de ese mes → pintar al instante
+        let pintadoDeCache=false, cacheAlDia=false;
+        if(!forceFull){
+          const c=await nsGet(kMonth(objetivo));
+          if(!stillMine()) return;
+          if(c && c.r && c.r.length){
+            NS_HDRS=c.h||NS_HDRS;
+            DATA=hydrateRows(c.h||NS_HDRS,c.r);
+            recalcMonths(); revealUI(); pintar(); pintadoDeCache=true;
+            // Si el Sheet tiene las mismas filas que la caché y ésta es
+            // reciente, no hay nada nuevo que bajar: apertura instantánea.
+            const esperado=MONTH_COUNTS[objetivo]||0;
+            const edadH=(Date.now()-(c.ts||0))/3600000;
+            if(esperado>0 && c.r.length===esperado && edadH<FRESH_HOURS) cacheAlDia=true;
+          }
+        }
+
+        if(cacheAlDia){
+          bgProgress(100,'Al día · sin descargas');
+          diagFinal('caché del mes (sin bajar nada)');
+          setTimeout(()=>{ if(stillMine()) bgProgress(null); },1200);
+          return;
+        }
+
+        // 2) Bajar ese mes fresco (una sola petición, filtrada por Google)
+        bgProgress(40, pintadoDeCache?'Actualizando '+mesLabel(objetivo)+'…':'Cargando '+mesLabel(objetivo)+'…');
+        let d=null;
+        try{ d=await fetchMonthRows(objetivo); }
+        catch(e){ if(!pintadoDeCache) throw e; console.warn('[NS] mes falló',e); }
+        if(!stillMine()) return;
+
+        if(d && d.r.length){
+          NS_HDRS=d.h;
+          DATA=hydrateRows(d.h,d.r);
+          recalcMonths();
+          if(!pintadoDeCache) revealUI();
+          pintar();
+          bgProgress(85,'Guardando…');
+          await nsPutMany([[kMonth(objetivo),{h:NS_HDRS,r:d.r,ts:Date.now()}]]);
+          await nsPutMany([[kMeta,{count:0,months:[...new Set([...AVAIL_MONTHS])],ts:Date.now(),hdrs:NS_HDRS,v:5,byMonth:true}]]);
+        } else if(!pintadoDeCache){
+          // El filtro por mes no sirvió en este Sheet (formato raro en Año/Mes).
+          // En vez de fallar, se usa el método anterior de bloques.
+          console.warn('[NS] el filtro por mes no devolvió filas → uso el método anterior');
+          NS_MONTH_MODE=false; AVAIL_MONTHS=new Set();
+        }
+        if(NS_MONTH_MODE){
+          bgProgress(100,'Listo');
+          diagFinal(pintadoDeCache?'caché del mes + refresco':'un solo mes desde Google');
+          setTimeout(()=>{ if(stillMine()) bgProgress(null); },1200);
+          return;
+        }
+        // si llegamos aquí, el modo por mes se descartó: sigue el método anterior
+      } else {
+        console.warn('[NS] índice de meses vacío → uso el método anterior');
+      }
+    }
 
     const meta = forceFull ? null : await nsGet(kMeta);
     if(!stillMine()) return;
@@ -1884,6 +2229,7 @@ async function loadSheet(){
         recalcMonths(); pintar();
       }
       bgProgress(100,'Datos completos');
+      diagFinal('caché local + delta');
       setTimeout(()=>{ if(stillMine()) bgProgress(null); },900);
       return;
     }
@@ -1944,7 +2290,8 @@ async function loadSheet(){
     await saveMonths([...loadedMonths]);
     await saveMeta(realCount);
     if(!stillMine()) return;
-    bgProgress(100,'Listo · próxima carga instantánea');
+    bgProgress(100, CACHE_OK?'Listo · próxima carga instantánea':'Listo (sin caché)');
+    diagFinal('descarga COMPLETA desde Google');
     setTimeout(()=>{ if(stillMine()) bgProgress(null); },1500);
 
   }catch(e){
@@ -2023,6 +2370,14 @@ function scSelect(e,key){
   }
   scSetVal(key,val,lbl);
   document.getElementById('sc-'+key).classList.remove('open');
+  // ── Mes: si ese mes aún no está en memoria, se baja solo ese mes ──
+  if(key==='mes' && NS_MONTH_MODE && (val==='' || !loadedMonths.has(val))){
+    ensureMonthLoaded(val).then(cargo=>{
+      if(cargo){ fillAllSelects(); buildCoordMap(); }
+      cascadeSelects(); draw();
+    });
+    return;
+  }
   cascadeSelects();
   draw();
 }
@@ -2136,7 +2491,9 @@ function fillAllSelects(){
   // Pintar la UDN activa en el input del sidebar
   const _udnInp = document.getElementById('sc-udn-input');
   if(_udnInp){ _udnInp.value = CURRENT_UDN; _udnInp.setAttribute('data-selected-lbl', CURRENT_UDN); }
-  SC_VALS.mes   =[...loadedMonths].sort((a,b)=>b.localeCompare(a));
+  // El desplegable lista TODOS los meses que existen en el Sheet, aunque
+  // todavía no estén en memoria: al elegir uno se baja solo ese mes.
+  SC_VALS.mes   =[...new Set([...loadedMonths,...AVAIL_MONTHS])].sort((a,b)=>b.localeCompare(a));
   SC_VALS.sem   =uniq(DATA.map(r=>r[C.semana]||''));
   SC_VALS.turno =uniq(DATA.map(r=>(r[C.turno]||'').trim()));
   SC_VALS.ruta  =uniq(DATA.map(r=>(r[C.ruta]||'').trim()));
@@ -2148,7 +2505,7 @@ function cascadeSelects(){
   const f=getF();
   const base=DATA.filter(r=>{
     if(f.udn   && r[C.udn]!==f.udn) return false;
-    if(f.mes   && normMonth(getFecha(r))!==f.mes) return false;
+    if(f.mes   && rowMonth(r)!==f.mes) return false;
     if(f.sem   && r[C.semana]!==f.sem) return false;
     if(f.turno && (r[C.turno]||'').trim()!==f.turno) return false;
     return true;
@@ -2165,7 +2522,7 @@ function cascadeSelects(){
   SC_VALS.turno=uniq(base.map(r=>(r[C.turno]||'').trim()));
   SC_VALS.ope  =uniq(base.map(r=>(r[C.driver]||'').trim()));
   SC_VALS.car  =uniq(base.map(r=>(r[C.car]||'').trim()));
-  const baseSem=DATA.filter(r=>{ if(f.udn&&r[C.udn]!==f.udn) return false; if(f.mes&&normMonth(getFecha(r))!==f.mes) return false; return true; });
+  const baseSem=DATA.filter(r=>{ if(f.udn&&r[C.udn]!==f.udn) return false; if(f.mes&&rowMonth(r)!==f.mes) return false; return true; });
   SC_VALS.sem=uniq(baseSem.map(r=>r[C.semana]||''));
   // UDN siempre son los 3 libros disponibles; nunca filtra rows (eso cambia el SHEET_ID)
   SC_VALS.udn = UDN_LIST.slice();
@@ -2214,7 +2571,7 @@ function filterRows(panelHint){
   const activePanel=panelHint||(document.getElementById('panel-llegadas').classList.contains('active')?'lle':'ini');
   const estado=kpiFilter[activePanel];
   return DATA.filter(r=>{
-    if(f.mes   && normMonth(getFecha(r))!==f.mes)   return false;
+    if(f.mes   && rowMonth(r)!==f.mes)   return false;
     if(f.sem   && r[C.semana]!==f.sem)               return false;
     if(f.udn   && r[C.udn]!==f.udn)                  return false;
     if(f.cli   && r[C.cliente]!==f.cli)               return false;
@@ -2376,7 +2733,7 @@ function showExportToast(label, count){
 }
 
 
-function exportCatalogo(){
+async function exportCatalogo(){
   if(!DATA||DATA.length===0){ alert('No hay datos cargados.'); return; }
   buildCoordMap();
   const rowsAll = filterRows('ini');
@@ -2385,7 +2742,7 @@ function exportCatalogo(){
   // Filtro explícito por mes/fechas + excluir filas sin jefe válido (viajes especiales/fuera de maestro)
   const f = getF();
   const rows = rowsAll.filter(r=>{
-    if(f.mes){ if(normMonth(getFecha(r))!==f.mes) return false; }
+    if(f.mes){ if(rowMonth(r)!==f.mes) return false; }
     else {
       const d=getFecha(r);
       if(f.fi && d < f.fi) return false;
@@ -2454,7 +2811,7 @@ function exportCatalogo(){
   XLSX.utils.book_append_sheet(wb, ws, 'Catálogo Unidades');
 
   const {label:pLabel, fileTag:pTag} = getActivePeriod();
-  XLSX.writeFile(wb, `Catalogo_Unidades_${pTag}.xlsx`);
+  await nsSaveXLSX(wb, `Catalogo_Unidades_${pTag}.xlsx`);
   showExportToast(pLabel, catalogFinal.length);
 }
 
@@ -3048,13 +3405,11 @@ async function exportClientesConRutas(tbl, tipo){
   // ── Descargar ──
   const buf=await wb.xlsx.writeBuffer();
   const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`Traxion_NS_${tipo}_Completo_${fechaFile}.xlsx`;
-  a.click();
+  await nsSaveBlob(blob, `Traxion_NS_${tipo}_Completo_${fechaFile}.xlsx`);
 }
 
 
-function exportXLSX(tbl,label){
+async function exportXLSX(tbl,label){
   const rows=[...tableData[tbl]].sort((a,b)=>(a.pct-b.pct)*sortState[tbl].dir);
   const isIni=!tbl.startsWith('l');
   const isCliTable=(tbl==='cli'||tbl==='lcli');
@@ -3081,7 +3436,7 @@ function exportXLSX(tbl,label){
   ws['!cols']=[{wch:4},{wch:36},{wch:8},{wch:13},{wch:12},{wch:24},{wch:22},{wch:18},{wch:18},{wch:15}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,label.replace(/_/g,' ').slice(0,31));
-  XLSX.writeFile(wb,`Traxion_${label}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  await nsSaveXLSX(wb, `Traxion_${label}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 // ── Drill modal nivel 1 ───────────────────────────────────────────
@@ -3404,9 +3759,7 @@ async function exportDrillModal(){
   // ── Guardar ──
   const buf=await wb.xlsx.writeBuffer();
   const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`Traxion_NS_${tipo}_Rutas_${cliente.slice(0,20)}_${new Date().toISOString().slice(0,10)}.xlsx`;
-  a.click();
+  await nsSaveBlob(blob, `Traxion_NS_${tipo}_Rutas_${cliente.slice(0,20)}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 async function exportDetailModal(){
@@ -3479,9 +3832,7 @@ async function exportDetailModal(){
   });
   const buf=await wb.xlsx.writeBuffer();
   const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`Traxion_NS_${tipo}_Viajes_${nombre.slice(0,20)}_${new Date().toISOString().slice(0,10)}.xlsx`;
-  a.click();
+  await nsSaveBlob(blob, `Traxion_NS_${tipo}_Viajes_${nombre.slice(0,20)}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 function closeDrill(e){ if(e.target===document.getElementById('drillModal')) document.getElementById('drillModal').classList.remove('open'); }
@@ -3792,7 +4143,7 @@ function openCoordModal(coord){
   document.getElementById('coordModal').classList.add('open');
 }
 
-function exportCoordExcel(){
+async function exportCoordExcel(){
   const { coord, cars } = _coordModalData;
   if(!cars.length){ alert('Sin carros para exportar.'); return; }
   const wb   = XLSX.utils.book_new();
@@ -3807,14 +4158,14 @@ function exportCoordExcel(){
   ws['!cols'] = [{wch:26},{wch:38},{wch:24},{wch:26},{wch:10},{wch:14},{wch:34}];
   XLSX.utils.book_append_sheet(wb, ws, 'Carros');
   const {label:pLabel2, fileTag:pTag2} = getActivePeriod();
-  XLSX.writeFile(wb, `Carros_${coord.replace(/\s+/g,'_')}_${pTag2}.xlsx`);
+  await nsSaveXLSX(wb, `Carros_${coord.replace(/\s+/g,'_')}_${pTag2}.xlsx`);
   showExportToast(pLabel2, carsFiltered.length);
 }
 
 function openOperadorModal(driver){
   if(!driver||driver==='–') return;
   const mesActual=getCurrentMonth();
-  const rows=DATA.filter(r=>(r[C.driver]||'').trim()===driver && normMonth(getFecha(r))===mesActual);
+  const rows=DATA.filter(r=>(r[C.driver]||'').trim()===driver && rowMonth(r)===mesActual);
   const totT=rows.length;
   const mesLbl=mesLabel(mesActual);
 
