@@ -501,6 +501,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
 
       <button class="btn-reset" onclick="resetFilters()">↺ Limpiar filtros</button>
       <button class="btn-reset" onclick="exportCatalogo()" style="border-color:#7ed321;color:#16a34a">📥 Catálogo Unidades</button>
+      <button class="btn-reset" onclick="recargarTodo()" style="border-color:#cbd5e1;color:#6b7a99" title="Vuelve a descargar todo el histórico desde Google Sheets (tarda). Úsalo solo si notas datos viejos.">🔄 Recargar todo</button>
     </div><!-- /sidebar-filters -->
   </aside>
 
@@ -1328,10 +1329,8 @@ function parseCSVLine(line){
   cols.push(cur.trim());
   return cols;
 }
-function parseCSV(text){
-  const lines=text.trim().split(/\r?\n/);
-  if(lines.length<2) return [];
-  const hdrs=parseCSVLine(lines[0]);
+// Detecta los nombres reales de columnas clave (se usa en ambos parsers)
+function detectCols(hdrs){
   if(!hdrs.includes(C.udn)){
     const f=hdrs.find(h=>h==='business_unit'||h.toLowerCase().includes('business')||h.toLowerCase().includes('unidad')||h.toLowerCase().includes('udn')||h.toLowerCase().includes('negocio'));
     if(f) C.udn=f;
@@ -1350,17 +1349,55 @@ function parseCSV(text){
       const x=h.toLowerCase().replace(/[\s_\-.]/g,'');
       return x==='workerid'||x==='nomina'||x==='employeeid'||x==='empleadoid'||x==='idoperador'||x==='operadorid'||x==='numnomina'||x==='nominaop';
     });
-    if(f){ C.workerId=f; console.log('[KM] Columna nómina detectada en NS:',f); }
+    if(f){ C.workerId=f; }
   }
+  return hdrs;
+}
+
+// ── Parser COMPACTO: devuelve {h:[headers], r:[[valores]]} ──
+// Las filas compactas son ~5x más baratas de guardar/leer en IndexedDB
+// que objetos, y el hidratado a objetos se hace una sola vez.
+function parseCSVCompact(text){
+  const lines=text.trim().split(/\r?\n/);
+  if(lines.length<2) return {h:[],r:[]};
+  const hdrs=detectCols(parseCSVLine(lines[0]));
+  const nC=hdrs.length;
   const rows=[];
   for(let i=1;i<lines.length;i++){
-    if(!lines[i].trim()) continue;
-    const cols=parseCSVLine(lines[i]);
-    const obj={};
-    hdrs.forEach((h,idx)=>{obj[h]=cols[idx]!==undefined?cols[idx]:'';});
-    if(hdrs.some(h=>obj[h]&&obj[h].trim()!=='')) rows.push(obj);
+    const ln=lines[i];
+    if(!ln.trim()) continue;
+    const cols=parseCSVLine(ln);
+    if(cols.length<nC){ for(let j=cols.length;j<nC;j++) cols[j]=''; }
+    else if(cols.length>nC) cols.length=nC;
+    let vacio=true;
+    for(let j=0;j<nC;j++){ if(cols[j]!==''){ vacio=false; break; } }
+    if(!vacio) rows.push(cols);
   }
-  return rows;
+  return {h:hdrs,r:rows};
+}
+// Hidrata filas compactas → objetos (lo que consume todo el dashboard)
+function hydrateRows(hdrs,rows){
+  const nC=hdrs.length, out=new Array(rows.length);
+  for(let i=0;i<rows.length;i++){
+    const a=rows[i], o={};
+    for(let j=0;j<nC;j++) o[hdrs[j]]=a[j];
+    out[i]=o;
+  }
+  return out;
+}
+// Deshidrata objetos → filas compactas, para guardar en caché
+function dehydrateRows(hdrs,objs){
+  const nC=hdrs.length, out=new Array(objs.length);
+  for(let i=0;i<objs.length;i++){
+    const o=objs[i], a=new Array(nC);
+    for(let j=0;j<nC;j++){ const v=o[hdrs[j]]; a[j]=v===undefined||v===null?'':v; }
+    out[i]=a;
+  }
+  return out;
+}
+function parseCSV(text){
+  const {h,r}=parseCSVCompact(text);
+  return hydrateRows(h,r);
 }
 // ── Proyección de columnas: traer SOLO las que usa el dashboard (≈ mitad del peso) ──
 let NS_PROJECTION='';   // letras de columna (p.ej. "A,D,H"); '' = todas
@@ -1371,18 +1408,32 @@ const NS_NEEDED=['id','worker_id','business_unit','des','car','group',
   'Turno','Coordinador','Comentarios'];
 function nsNormName(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim().replace(/\s+/g,' '); }
 function idxToLetter(i){ let s='',n=i+1; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=Math.floor((n-1)/26); } return s; }
+function nsProjKey(){ return 'ns_proj_v1_'+(CURRENT_UDN||'default').replace(/\s+/g,'_'); }
 async function ensureNsProjection(){
   if(NS_PROJECTION) return;
+  // 1) Reusar la proyección guardada: evita un round-trip a Google en cada carga
+  try{
+    const saved=localStorage.getItem(nsProjKey());
+    if(saved){
+      const o=JSON.parse(saved);
+      if(o && o.p && Array.isArray(o.h) && o.h.length){
+        NS_PROJECTION=o.p; detectCols(o.h); return;
+      }
+    }
+  }catch(e){}
   try{
     const tq=encodeURIComponent('SELECT * LIMIT 1');
     const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${tq}`;
     const r=await fetch(url); if(!r.ok) return;
     const line=(await r.text()).trim().split(/\r?\n/)[0];
-    const hdrs=parseCSVLine(line);
+    const hdrs=detectCols(parseCSVLine(line));
     const want=new Set(NS_NEEDED.map(nsNormName));
-    const letters=[];
-    hdrs.forEach((h,i)=>{ if(want.has(nsNormName(h))) letters.push(idxToLetter(i)); });
-    if(letters.length>=5) NS_PROJECTION=letters.join(',');   // si matchea poco, mejor traer todas
+    const letters=[], kept=[];
+    hdrs.forEach((h,i)=>{ if(want.has(nsNormName(h))){ letters.push(idxToLetter(i)); kept.push(h); } });
+    if(letters.length>=5){
+      NS_PROJECTION=letters.join(',');   // si matchea poco, mejor traer todas
+      try{ localStorage.setItem(nsProjKey(),JSON.stringify({p:NS_PROJECTION,h:kept})); }catch(e){}
+    }
   }catch(e){ NS_PROJECTION=''; }
 }
 function csvUrl(offset, limit){
@@ -1624,150 +1675,296 @@ window.addEventListener('DOMContentLoaded', ()=>{
   }
 });
 
+// ══════════════════════════════════════════════════════════════════
+//  CACHÉ COMPLETA EN INDEXEDDB (particionada por UDN y por mes)
+//  Antes: cada carga re-descargaba TODO el histórico del Sheet.
+//  Ahora: el histórico vive en el navegador y solo se bajan las
+//  filas nuevas (delta) + una ventana corta para captar ediciones.
+// ══════════════════════════════════════════════════════════════════
+const NS_DB='DashboardNS_v4', NS_STORE='chunks';
+// Filas finales que se vuelven a pedir siempre, para captar comentarios
+// o correcciones hechas en renglones ya existentes (~2 días de viajes).
+const REFRESH_WINDOW = 2200;
+const PARALLEL_CHUNKS = 3;    // descargas simultáneas en la carga inicial
+
+function nsOpenDB(){
+  return new Promise(resolve=>{
+    if(!self.indexedDB){ resolve(null); return; }
+    let req;
+    try{ req=indexedDB.open(NS_DB,1); }catch(e){ resolve(null); return; }
+    req.onerror=()=>resolve(null);
+    req.onblocked=()=>resolve(null);
+    req.onsuccess=()=>resolve(req.result);
+    req.onupgradeneeded=e=>{ const db=e.target.result; if(!db.objectStoreNames.contains(NS_STORE)) db.createObjectStore(NS_STORE); };
+  });
+}
+async function nsGet(key){
+  try{ const db=await nsOpenDB(); if(!db) return null;
+    return await new Promise(res=>{ const tx=db.transaction(NS_STORE,'readonly'); const r=tx.objectStore(NS_STORE).get(key); r.onsuccess=()=>res(r.result||null); r.onerror=()=>res(null); });
+  }catch(e){ return null; }
+}
+// Guarda varias entradas en UNA sola transacción (mucho más rápido)
+async function nsPutMany(entries){
+  try{ const db=await nsOpenDB(); if(!db) return false;
+    return await new Promise(res=>{
+      const tx=db.transaction(NS_STORE,'readwrite'); const st=tx.objectStore(NS_STORE);
+      entries.forEach(([k,v])=>{ try{ st.put(v,k); }catch(e){} });
+      tx.oncomplete=()=>res(true); tx.onerror=()=>res(false); tx.onabort=()=>res(false);
+    });
+  }catch(e){ return false; }
+}
+async function nsClearUdn(udnKey){
+  try{ const db=await nsOpenDB(); if(!db) return;
+    const keys=await new Promise(res=>{ const tx=db.transaction(NS_STORE,'readonly'); const r=tx.objectStore(NS_STORE).getAllKeys(); r.onsuccess=()=>res(r.result||[]); r.onerror=()=>res([]); });
+    const mine=keys.filter(k=>String(k).indexOf(udnKey+'|')===0);
+    if(!mine.length) return;
+    await new Promise(res=>{ const tx=db.transaction(NS_STORE,'readwrite'); const st=tx.objectStore(NS_STORE); mine.forEach(k=>{try{st.delete(k);}catch(e){}}); tx.oncomplete=()=>res(); tx.onerror=()=>res(); });
+  }catch(e){}
+}
+// Borra la caché vieja (v3) que ya no se usa, una sola vez
+let _oldDbPurged=false;
+function purgeOldCache(){
+  if(_oldDbPurged) return; _oldDbPurged=true;
+  try{ indexedDB.deleteDatabase('DashboardNS'); }catch(e){}
+}
+
+let NS_HDRS=[];            // headers de la proyección activa
+let FORCE_FULL_RELOAD=false;
+
 async function loadSheet(){
   const overlay=document.getElementById('loadingOverlay');
   const loadMsg=document.getElementById('loadingMsg');
   const banner =document.getElementById('errBanner');
   const errMsg =document.getElementById('errMsg');
 
-  // ── Caché IndexedDB: SOLO mes actual + mes anterior (ligera → entrada instantánea) ──
-  const DB_NAME='DashboardNS', STORE='ns_cache';
-  const udnKey   = (CURRENT_UDN||'default').replace(/\s+/g,'_');
-  const CACHE_KEY='ns_recent_v3_'+udnKey;   // { ts, rows:[mes actual + mes anterior] }
-  const COUNT_KEY='ns_count_v3_'+udnKey;
+  purgeOldCache();
 
-  function openDB(){
-    return new Promise(resolve=>{
-      if(!self.indexedDB){ resolve(null); return; }
-      const req=indexedDB.open(DB_NAME,1);
-      req.onerror=()=>resolve(null);
-      req.onsuccess=()=>resolve(req.result);
-      req.onupgradeneeded=e=>{ const db=e.target.result; if(!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE); };
-    });
-  }
-  async function cacheGet(key){
-    try{ const db=await openDB(); if(!db) return null;
-      return await new Promise(res=>{ const tx=db.transaction(STORE,'readonly'); const r=tx.objectStore(STORE).get(key); r.onsuccess=()=>res(r.result); r.onerror=()=>res(null); });
-    }catch(e){ return null; }
-  }
-  async function cacheSet(key,value){
-    try{ const db=await openDB(); if(!db) return;
-      return await new Promise(res=>{ const tx=db.transaction(STORE,'readwrite'); tx.objectStore(STORE).put(value,key); tx.oncomplete=()=>res(); tx.onerror=()=>res(); });
-    }catch(e){}
-  }
+  const udnKey  = (CURRENT_UDN||'default').replace(/\s+/g,'_');
+  const kMeta   = udnKey+'|__meta';
+  const kMonth  = m=>udnKey+'|m|'+m;
 
   // Token: si cambian de UDN a media carga, abortamos la anterior
   const myToken=(loadSheet._token=(loadSheet._token||0)+1);
   const stillMine=()=>myToken===loadSheet._token;
 
-  NS_PROJECTION='';   // recalcular columnas para esta UDN
+  const forceFull=FORCE_FULL_RELOAD; FORCE_FULL_RELOAD=false;
 
   const mesActual=getCurrentMonth();
   const _n=new Date();
   const _dp=new Date(_n.getFullYear(), _n.getMonth()-1, 1);
   const mesPrev=`${_dp.getFullYear()}-${String(_dp.getMonth()+1).padStart(2,'0')}`;
-  const RECENT=new Set([mesActual, mesPrev]);   // lo que SÍ se guarda en caché
 
+  let painted=false;
   function recalcMonths(){ loadedMonths=new Set(); DATA.forEach(r=>{ const m=normMonth(getFecha(r)); if(m) loadedMonths.add(m); }); }
-  function revealUI(){ if(banner) banner.classList.add('hidden'); if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',350); } closeUdnModal(); }
-  function pintar(){ fillAllSelects(); if(loadedMonths.has(mesActual)){ scSetVal('mes',mesActual,mesLabel(mesActual)); } cascadeSelects(); buildCoordMap(); draw(); }
-  // Reemplaza SOLO el mes actual con las filas frescas; conserva lo demás
-  function refreshCurrent(tail){
-    if(!tail||!tail.length) return;
-    DATA=DATA.filter(r=>normMonth(getFecha(r))!==mesActual);
-    const cur=tail.filter(r=>normMonth(getFecha(r))===mesActual);
-    DATA=DATA.concat(cur);
-  }
-  async function saveRecent(ts){
-    try{ const rows=DATA.filter(r=>RECENT.has(normMonth(getFecha(r)))); await cacheSet(CACHE_KEY,{ts:ts||Date.now(), rows}); }catch(e){}
-  }
+  function revealUI(){ if(banner) banner.classList.add('hidden'); if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',350); } closeUdnModal(); painted=true; }
+  function pintar(){ fillAllSelects(); if(loadedMonths.has(mesActual)&&!SC_SEL.mes){ scSetVal('mes',mesActual,mesLabel(mesActual)); } cascadeSelects(); buildCoordMap(); draw(); }
+
   async function fetchCount(){
     try{ const r=await fetch(countUrl()); if(!r.ok) return 0; const t=await r.text(); const nums=t.match(/[\d.]+/g); return nums&&nums.length?Math.floor(parseFloat(nums[nums.length-1]))||0:0; }catch(e){ return 0; }
   }
-  async function fetchRows(off,lim){
+  // Devuelve filas COMPACTAS {h,r}
+  async function fetchCompact(off,lim){
     const r=await fetch(csvUrl(off,lim));
     if(!r.ok) throw new Error('HTTP '+r.status+'. Verifica que el Sheet sea público (Compartir → Cualquier persona con el enlace).');
-    return parseCSV(await r.text());
+    return parseCSVCompact(await r.text());
+  }
+
+  // Agrupa objetos por mes y los guarda compactos en IndexedDB
+  async function saveMonths(months){
+    if(!NS_HDRS.length) return;
+    const byMonth={};
+    months.forEach(m=>byMonth[m]=[]);
+    DATA.forEach(r=>{ const m=normMonth(getFecha(r)); if(m && byMonth[m]) byMonth[m].push(r); });
+    const entries=Object.keys(byMonth).map(m=>[kMonth(m),{h:NS_HDRS,r:dehydrateRows(NS_HDRS,byMonth[m])}]);
+    if(entries.length) await nsPutMany(entries);
+  }
+  async function saveMeta(count){
+    const months=[...loadedMonths].sort();
+    await nsPutMany([[kMeta,{count,months,ts:Date.now(),hdrs:NS_HDRS,v:4}]]);
+  }
+
+  // Mezcla filas nuevas sobre DATA reemplazando por id (para comentarios editados)
+  function mergeById(objs){
+    if(!objs.length) return new Set();
+    const idx=new Map();
+    for(let i=0;i<DATA.length;i++){ const id=String(DATA[i][C.id]||'').trim(); if(id) idx.set(id,i); }
+    const touched=new Set();
+    for(let i=0;i<objs.length;i++){
+      const o=objs[i], id=String(o[C.id]||'').trim();
+      const m=normMonth(getFecha(o)); if(m) touched.add(m);
+      if(id && idx.has(id)) DATA[idx.get(id)]=o;
+      else { idx.set(id,DATA.length); DATA.push(o); }
+    }
+    return touched;
   }
 
   try{
-    loadMsg.innerHTML='Cargando…<br>Un momento';
+    if(loadMsg) loadMsg.innerHTML='Cargando…<br>Un momento';
     bgProgress(null);
     await ensureNsProjection();         // columnas reducidas (si falla → todas)
-    const FC=firstChunkSize();
+    if(!stillMine()) return;
 
-    // ── 1) CACHÉ (mes actual + anterior): pintar al INSTANTE ──
-    let cached=null, fromCache=false;
-    try{ cached=await cacheGet(CACHE_KEY); }catch(e){}
-    if(cached && cached.rows && cached.rows.length && stillMine()){
-      DATA=cached.rows; recalcMonths(); revealUI(); pintar(); fromCache=true;
-    }
+    const meta = forceFull ? null : await nsGet(kMeta);
+    if(!stillMine()) return;
+    if(forceFull) await nsClearUdn(udnKey);
 
-    // ── 2) Conteo real (para ubicar el final = mes actual) ──
-    const realCount=await fetchCount(); if(!stillMine()) return;
-    let baseCount=realCount>0?realCount:0;
-    if(baseCount<=0){ try{ baseCount=parseInt(localStorage.getItem(COUNT_KEY)||'0')||0; }catch(e){} }
+    // ══ RUTA RÁPIDA: hay caché completa ══
+    if(meta && meta.count>0 && Array.isArray(meta.months) && meta.months.length){
+      NS_HDRS = (meta.hdrs&&meta.hdrs.length)?meta.hdrs:NS_HDRS;
 
-    if(baseCount>0){
-      const off=baseCount>FC?(baseCount-FC):0;
-      const lim=Math.min(FC,baseCount);
-
-      // ── 3) Refrescar SIEMPRE el mes actual (bloque final, columnas reducidas) ──
-      let tail=[];
-      try{ tail=await fetchRows(off,lim); }catch(e){ if(!fromCache) throw e; }
-      if(!stillMine()) return;
-      if(tail.length){
-        if(fromCache){ refreshCurrent(tail); recalcMonths(); }
-        else { DATA=tail.slice(); recalcMonths(); revealUI(); }
-        if(realCount>0){ try{ localStorage.setItem(COUNT_KEY,String(realCount)); }catch(e){} }
-        pintar();
-        saveRecent();   // caché queda con el mes actual fresco (+ anterior si cae en el bloque)
-      } else if(!fromCache){
-        throw new Error('Sin filas válidas. Abre F12 → Console para ver el detalle.');
+      // Meses realmente hidratados en memoria. Solo estos se pueden volver a
+      // guardar: escribir un mes que está a medias borraría su caché completa.
+      const inMem=new Set();
+      async function ensureMonthInMem(m){
+        if(inMem.has(m)) return;
+        inMem.add(m);
+        if(meta.months.indexOf(m)<0) return;      // mes nuevo: no hay nada que recuperar
+        const c=await nsGet(kMonth(m));
+        if(c&&c.r&&c.r.length){ if(!NS_HDRS.length) NS_HDRS=c.h; DATA=DATA.concat(hydrateRows(c.h||NS_HDRS,c.r)); }
       }
 
-      // ── 4) Histórico más viejo en segundo plano (solo en memoria; NO se cachea) ──
-      let build=DATA.slice();
-      let nextEnd=off;
-      const total=off||1;
-      if(nextEnd>0) bgProgress(0,'Cargando meses anteriores…');
-      while(nextEnd>0){
-        if(!stillMine()) return;
-        const start=Math.max(0,nextEnd-BG_CHUNK);
-        const limit=nextEnd-start;
-        let more=[];
-        try{ more=await fetchRows(start,limit); }catch(e){ console.warn('Error histórico',e); break; }
-        if(!stillMine()) return;
-        if(more.length){
-          const have=new Set(build.map(r=>(r[C.id]||'').toString().trim()));
-          const add=more.filter(r=>!have.has((r[C.id]||'').toString().trim()));
-          if(add.length){
-            build=build.concat(add);
-            DATA=build; recalcMonths();
-            const mesVisto=SC_SEL.mes||mesActual;
-            fillAllSelects();
-            if(add.some(r=>normMonth(getFecha(r))===mesVisto)){ buildCoordMap(); draw(); }
+      // 1) Pintar YA con mes actual + anterior desde IndexedDB
+      const first=[mesActual,mesPrev].filter(m=>meta.months.indexOf(m)>=0);
+      const firstChunks=await Promise.all(first.map(m=>nsGet(kMonth(m))));
+      if(!stillMine()) return;
+      DATA=[];
+      firstChunks.forEach((c,i)=>{ inMem.add(first[i]); if(c&&c.r&&c.r.length){ if(!NS_HDRS.length) NS_HDRS=c.h; DATA=DATA.concat(hydrateRows(c.h||NS_HDRS,c.r)); } });
+      inMem.add(mesActual); inMem.add(mesPrev);
+      recalcMonths();
+      // El desplegable de Mes muestra TODO el histórico aunque aún no esté en memoria
+      meta.months.forEach(m=>loadedMonths.add(m));
+      revealUI(); pintar();
+
+      // 2) Delta: solo lo nuevo + ventana de refresco (1 sola petición pequeña)
+      const newCount=await fetchCount();
+      if(!stillMine()) return;
+      if(newCount>0 && newCount < meta.count-50){
+        // El Sheet se recortó o se rehízo: la caché ya no sirve
+        console.warn('[NS] conteo menor al cacheado → recarga completa');
+        FORCE_FULL_RELOAD=true; return loadSheet();
+      }
+      if(newCount>0){
+        const off=Math.max(0,Math.min(meta.count, newCount-REFRESH_WINDOW));
+        const lim=newCount-off;
+        if(lim>0){
+          bgProgress(35,'Actualizando datos recientes…');
+          let d=null;
+          try{ d=await fetchCompact(off,lim); }catch(e){ console.warn('[NS] delta falló',e); }
+          if(!stillMine()) return;
+          if(d && d.r.length){
+            if(!NS_HDRS.length) NS_HDRS=d.h;
+            const objs=hydrateRows(d.h,d.r);
+            // Si el delta toca un mes que aún no está en memoria, se trae su
+            // caché completa ANTES de mezclar, para no guardarlo incompleto.
+            const pre=new Set(); objs.forEach(o=>{ const m=normMonth(getFecha(o)); if(m&&!inMem.has(m)) pre.add(m); });
+            for(const m of pre){ await ensureMonthInMem(m); if(!stillMine()) return; }
+            const touched=mergeById(objs);
+            recalcMonths(); meta.months.forEach(m=>loadedMonths.add(m));
+            pintar();
+            bgProgress(70,'Guardando…');
+            await saveMonths([...touched].filter(m=>inMem.has(m)));
+            await saveMeta(newCount);
+          } else {
+            await saveMeta(newCount);
           }
         }
-        nextEnd=start;
-        bgProgress(Math.min(99,(total-nextEnd)/total*100));
-        await new Promise(r=>setTimeout(r,0));
       }
-      if(!stillMine()) return;
-      DATA=build; recalcMonths(); pintar();
+
+      // 3) Resto del histórico desde IndexedDB (sin red), en segundo plano
+      const rest=meta.months.filter(m=>!inMem.has(m)).sort().reverse();
+      if(rest.length){
+        bgProgress(0,'Cargando histórico local…');
+        for(let i=0;i<rest.length;i++){
+          if(!stillMine()) return;
+          await ensureMonthInMem(rest[i]);
+          bgProgress(Math.min(99,(i+1)/rest.length*100),'Cargando histórico local…');
+          if(i%2===1) await new Promise(r=>setTimeout(r,0));
+        }
+        if(!stillMine()) return;
+        recalcMonths(); pintar();
+      }
       bgProgress(100,'Datos completos');
-      setTimeout(()=>{ if(stillMine()) bgProgress(null); },1200);
-      saveRecent();   // la caché SIEMPRE queda ligera: solo mes actual + anterior
-    } else if(!fromCache){
-      throw new Error('No se pudo obtener el conteo de filas. Verifica el acceso al Sheet.');
+      setTimeout(()=>{ if(stillMine()) bgProgress(null); },900);
+      return;
     }
+
+    // ══ RUTA LENTA: primera vez (o recarga forzada) → descarga completa ══
+    const realCount=await fetchCount();
+    if(!stillMine()) return;
+    if(realCount<=0) throw new Error('No se pudo obtener el conteo de filas. Verifica el acceso al Sheet.');
+
+    const FC=Math.min(firstChunkSize(),realCount);
+    const tailOff=Math.max(0,realCount-FC);
+
+    // a) Bloque final primero → el usuario ve el mes actual cuanto antes
+    bgProgress(5,'Descarga inicial (solo esta vez)…');
+    const tail=await fetchCompact(tailOff,realCount-tailOff);
+    if(!stillMine()) return;
+    if(!tail.r.length) throw new Error('Sin filas válidas. Abre F12 → Console para ver el detalle.');
+    NS_HDRS=tail.h;
+    DATA=hydrateRows(tail.h,tail.r);
+    recalcMonths(); revealUI(); pintar();
+
+    // b) Resto del histórico en bloques PARALELOS (antes era secuencial)
+    const jobs=[];
+    for(let end=tailOff; end>0; end=Math.max(0,end-BG_CHUNK)){
+      const start=Math.max(0,end-BG_CHUNK);
+      jobs.push([start,end-start]);
+      if(start===0) break;
+    }
+    if(jobs.length){
+      bgProgress(8,'Descarga inicial (solo esta vez)…');
+      const seen=new Set(DATA.map(r=>String(r[C.id]||'').trim()));
+      let done=0, cursor=0;
+      async function worker(){
+        while(cursor<jobs.length){
+          if(!stillMine()) return;
+          const [st,ln]=jobs[cursor++];
+          let part=null;
+          try{ part=await fetchCompact(st,ln); }catch(e){ console.warn('[NS] bloque histórico falló',e); }
+          if(!stillMine()) return;
+          if(part&&part.r.length){
+            const objs=hydrateRows(part.h,part.r);
+            const add=[];
+            for(let i=0;i<objs.length;i++){ const id=String(objs[i][C.id]||'').trim(); if(id&&seen.has(id)) continue; if(id) seen.add(id); add.push(objs[i]); }
+            if(add.length) DATA=DATA.concat(add);
+          }
+          done++;
+          bgProgress(8+Math.min(88,done/jobs.length*88),'Descarga inicial (solo esta vez)…');
+          await new Promise(r=>setTimeout(r,0));
+        }
+      }
+      await Promise.all(Array.from({length:Math.min(PARALLEL_CHUNKS,jobs.length)},worker));
+      if(!stillMine()) return;
+      recalcMonths(); pintar();
+    }
+
+    // c) Guardar TODO en caché: las próximas aperturas serán instantáneas
+    bgProgress(97,'Guardando en caché…');
+    await saveMonths([...loadedMonths]);
+    await saveMeta(realCount);
+    if(!stillMine()) return;
+    bgProgress(100,'Listo · próxima carga instantánea');
+    setTimeout(()=>{ if(stillMine()) bgProgress(null); },1500);
+
   }catch(e){
     console.error(e);
     if(overlay) overlay.style.display='none';
     closeUdnModal();
     bgProgress(null);
-    if(banner&&errMsg){ errMsg.textContent=e.message; banner.classList.remove('hidden'); }
+    if(!painted && banner && errMsg){ errMsg.textContent=e.message; banner.classList.remove('hidden'); }
   }
+}
+
+// Forzar una descarga completa desde Google (limpia la caché de esta UDN)
+function recargarTodo(){
+  if(!CURRENT_UDN || !SHEET_ID){ alert('Primero selecciona una UDN.'); return; }
+  FORCE_FULL_RELOAD=true;
+  DATA=[]; loadedMonths=new Set();
+  if(myChartIni){ myChartIni.destroy(); myChartIni=null; }
+  if(myChartLle){ myChartLle.destroy(); myChartLle=null; }
+  openUdnModal(CURRENT_UDN);
+  loadSheet();
 }
 
 // ── Searchable select logic ───────────────────────────────────────
@@ -1879,16 +2076,9 @@ function switchUdn(udn){
   // Resetear el banner de "selecciona UDN"
   const _bn=document.getElementById('errBanner');
   if(_bn){ _bn.classList.add('hidden'); _bn.style.background=''; _bn.style.borderLeftColor=''; _bn.style.color=''; }
-  // Limpiar caché local para no mezclar UDN
-  try{
-    const req = indexedDB.open('DashboardNS', 1);
-    req.onsuccess = () => { try{
-      const db=req.result, tx=db.transaction('ns_cache','readwrite'), store=tx.objectStore('ns_cache');
-      store.delete('full_data_v1');
-      store.delete('full_data_v2_'+(CURRENT_UDN||'default').replace(/\s+/g,'_'));
-    }catch(e){} };
-  }catch(e){}
-  // Borrar el conteo total viejo compartido entre UDNs (bug anterior)
+  // La caché está particionada por UDN (clave "<UDN>|..."), así que NO se borra:
+  // cada UDN conserva su histórico y vuelve a abrir al instante.
+  NS_PROJECTION=''; NS_HDRS=[];   // la proyección se recupera de localStorage por UDN
   try{ localStorage.removeItem('ns_total_rows_v1'); }catch(e){}
   // Siempre el MODAL con logo (primera carga y cambio de UDN), nunca el overlay.
   openUdnModal(udn);
