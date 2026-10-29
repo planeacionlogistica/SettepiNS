@@ -1950,6 +1950,7 @@ async function loadSheet(){
   purgeOldCache();
   perfMark('t0');
   NET_ROWS=0; NET_CALLS=0;
+  window.__PERF={_t:Date.now()};   // desglose de tiempos de dibujado (se reinicia por carga)
 
   const udnKey  = (CURRENT_UDN||'default').replace(/\s+/g,'_');
   const kMeta   = udnKey+'|__meta';
@@ -1969,7 +1970,15 @@ async function loadSheet(){
   let painted=false;
   function recalcMonths(){ loadedMonths=new Set(); DATA.forEach(r=>{ const m=rowMonth(r); if(m) loadedMonths.add(m); }); }
   function revealUI(){ if(banner) banner.classList.add('hidden'); if(overlay){ overlay.classList.add('hidden'); setTimeout(()=>overlay.style.display='none',350); } closeUdnModal(); painted=true; }
-  function pintar(){ fillAllSelects(); if(loadedMonths.has(mesActual)&&!SC_SEL.mes){ scSetVal('mes',mesActual,mesLabel(mesActual)); } cascadeSelects(); buildCoordMap(); draw(); }
+  function pintar(){
+    window.__PERF=window.__PERF||{};
+    let _t=Date.now();
+    fillAllSelects(); window.__PERF.p_fill=(window.__PERF.p_fill||0)+(Date.now()-_t); _t=Date.now();
+    if(loadedMonths.has(mesActual)&&!SC_SEL.mes){ scSetVal('mes',mesActual,mesLabel(mesActual)); }
+    cascadeSelects(); window.__PERF.p_casc=(window.__PERF.p_casc||0)+(Date.now()-_t); _t=Date.now();
+    buildCoordMap(); window.__PERF.p_coord=(window.__PERF.p_coord||0)+(Date.now()-_t); _t=Date.now();
+    draw(); window.__PERF.p_draw=(window.__PERF.p_draw||0)+(Date.now()-_t);
+  }
 
   async function fetchCount(){
     const t=Date.now();
@@ -2024,16 +2033,26 @@ async function loadSheet(){
     return out;
   }
   function diagFinal(fuente){
+    const P=window.__PERF||{};
+    const ms=v=>((v||0)/1000).toFixed(1)+'s';
+    const idx=((PERF.idxMs||0)/1000).toFixed(1);
     diagShow(
       '<b>Diagnóstico de carga</b>  ·  '+(CURRENT_UDN||'')+'\n'+
       'fuente        : '+fuente+'\n'+
       'filas totales : '+DATA.length.toLocaleString('es-MX')+'\n'+
       'bajadas de red: '+NET_ROWS.toLocaleString('es-MX')+'  ('+NET_CALLS+' peticiones)\n'+
-      'tiempo Google : '+(((PERF.netMs||0)+(PERF.countMs||0))/1000).toFixed(1)+'s'+
-        '   (conteo '+(((PERF.countMs||0))/1000).toFixed(1)+'s)\n'+
-      'tiempo total  : '+perfSince('t0')+'\n'+
-      'caché         : '+(CACHE_OK?'activa ✓':'NO DISPONIBLE ✗')+
-      (CACHE_OK?'':'\n\n⚠ Sin caché se vuelve a descargar todo cada vez.'),
+      'red Google    : '+ms((PERF.netMs||0)+(PERF.countMs||0))+'   índice '+idx+'s\n'+
+      '─ dibujado en pantalla ─\n'+
+      '  selects      : '+ms(P.p_fill)+'\n'+
+      '  cascada      : '+ms(P.p_casc)+'\n'+
+      '  coordinador  : '+ms(P.p_coord)+'\n'+
+      '  draw total   : '+ms(P.p_draw)+'\n'+
+      '    ·filtros   : '+ms(P.d_filter)+'\n'+
+      '    ·kpis      : '+ms(P.d_kpis)+'\n'+
+      '    ·gráficas  : '+ms(P.d_charts)+'\n'+
+      '    ·tablas    : '+ms(P.d_tables)+'\n'+
+      'TIEMPO TOTAL  : '+perfSince('t0')+'\n'+
+      'caché         : '+(CACHE_OK?'activa ✓':'NO DISPONIBLE ✗'),
       !CACHE_OK);
   }
 
@@ -3139,6 +3158,7 @@ window.addEventListener('resize',()=>{ clearTimeout(_sparkT); _sparkT=setTimeout
 // ── Main draw ─────────────────────────────────────────────────────
 function draw(){
   if(!DATA.length) return;
+  if(window.__PERF) window.__PERF._t=Date.now();
   const f=getF();
   const parts=[];
   if(f.mes)   parts.push(mesLabel(f.mes));
@@ -3162,6 +3182,7 @@ function draw(){
 
   const rowsIni=filterRows('ini');
   const rowsLle=filterRows('lle');
+  if(window.__PERF){ window.__PERF.d_filter=(window.__PERF.d_filter||0)+(Date.now()-window.__PERF._t); window.__PERF._t=Date.now(); }
 
   CHART_SFX=sfx;
   renderKpis(true,allBase);
@@ -3171,9 +3192,11 @@ function draw(){
     document.getElementById(id).textContent=['Resumen por Cliente','Resumen por Gerente','Resumen por Jefe','Resumen por Coordinador','Resumen por Operador'][i]+sfx);
   ['ltCliTitle','ltGerTitle','ltJefTitle','ltCoordTitle','ltOperTitle'].forEach((id,i)=>
     document.getElementById(id).textContent=['Resumen por Cliente','Resumen por Gerente','Resumen por Jefe','Resumen por Coordinador','Resumen por Operador'][i]+sfx);
+  if(window.__PERF){ window.__PERF.d_kpis=(window.__PERF.d_kpis||0)+(Date.now()-window.__PERF._t); window.__PERF._t=Date.now(); }
 
   myChartIni=buildChart('chart-ini',rowsIni,C.retardo,'Inicios tarde',myChartIni,'ini');
   myChartLle=buildChart('chart-lle',rowsLle,C.llegada,'Llegadas tarde',myChartLle,'lle');
+  if(window.__PERF){ window.__PERF.d_charts=(window.__PERF.d_charts||0)+(Date.now()-window.__PERF._t); window.__PERF._t=Date.now(); }
 
   buildTable(rowsIni,C.cliente,'cli',true);
   buildTable(rowsIni,C.gerente,'ger',true);
@@ -3186,6 +3209,7 @@ function draw(){
   buildTable(rowsLle,C.jefe,'ljef',false);
   buildTable(rowsLle,C.coord,'lcoord',false);
   buildTable(rowsLle,C.driver,'loper',false);
+  if(window.__PERF){ window.__PERF.d_tables=(window.__PERF.d_tables||0)+(Date.now()-window.__PERF._t); window.__PERF._t=Date.now(); }
 }
 
 // ── Excel export ──────────────────────────────────────────────────
