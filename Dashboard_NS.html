@@ -130,7 +130,7 @@ html,body{background:var(--bg);color:var(--text);font-family:"Inter",sans-serif;
 #drillDetailModal{z-index:820;}
 #drillDetailModal .modal-box{max-width:1150px;}
 #drillDetailModal .modal-body{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-#drillDetailModal .modal-table{table-layout:fixed;min-width:1025px;width:100%;border-collapse:collapse;}
+#drillDetailModal .modal-table{table-layout:fixed;min-width:1115px;width:100%;border-collapse:collapse;}
 #operadorModal{z-index:830;}
 .modal-box{background:var(--white);border-radius:14px;box-shadow:0 16px 48px rgba(0,0,0,.25);width:100%;max-width:720px;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;}
 /* ── Drill modal nivel 1 ── */
@@ -889,7 +889,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
           <col style="width:80px"><col style="width:95px">
           <col style="width:80px"><col style="width:95px">
           <col style="width:70px"><col style="width:70px">
-          <col style="width:90px">
+          <col style="width:180px">
         </colgroup>
         <thead id="detailThead"><tr>
           <th style="width:40px"></th>
@@ -1429,7 +1429,7 @@ function idxToLetter(i){ let s='',n=i+1; while(n>0){ const m=(n-1)%26; s=String.
 // Letras de columna de Año / Mes / id: permiten pedirle a Google que filtre
 // ÉL el mes, en vez de bajar todo el histórico y filtrar en el navegador.
 let NS_L={y:'',m:'',id:''};
-function nsProjKey(){ return 'ns_proj_v2_'+(CURRENT_UDN||'default').replace(/\s+/g,'_'); }
+function nsProjKey(){ return 'ns_proj_v3_'+(CURRENT_UDN||'default').replace(/\s+/g,'_'); }
 async function ensureNsProjection(){
   if(NS_PROJECTION) return;
   // 1) Reusar la proyección guardada: evita un round-trip a Google en cada carga
@@ -1747,7 +1747,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
 //  Ahora: el histórico vive en el navegador y solo se bajan las
 //  filas nuevas (delta) + una ventana corta para captar ediciones.
 // ══════════════════════════════════════════════════════════════════
-const NS_DB='DashboardNS_v4', NS_STORE='chunks';
+const NS_DB='DashboardNS_v5', NS_STORE='chunks';
 
 // ── Guardar archivos: funciona en la versión alojada Y en el archivo local ──
 // En la página alojada los enlaces de descarga normales no hacen nada, así que
@@ -1887,6 +1887,16 @@ let _oldDbPurged=false;
 function purgeOldCache(){
   if(_oldDbPurged) return; _oldDbPurged=true;
   try{ indexedDB.deleteDatabase('DashboardNS'); }catch(e){}
+  try{ indexedDB.deleteDatabase('DashboardNS_v4'); }catch(e){}
+  // Limpiar también la proyección vieja de columnas, por si cambió la estructura del Sheet
+  try{
+    const toDel=[];
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k && k.indexOf('ns_proj_v2_')===0) toDel.push(k);
+    }
+    toDel.forEach(k=>localStorage.removeItem(k));
+  }catch(e){}
 }
 
 let NS_HDRS=[];            // headers de la proyección activa
@@ -3685,7 +3695,7 @@ function rerenderDetailModal(){
       <td class="r" style="font-size:.72rem;white-space:nowrap;color:#374151;font-weight:600">${eEta}</td>
       <td class="r">${minCell(minIni,0)}</td>
       <td class="r">${minCell(minLle,0)}</td>
-      <td style="text-align:center;padding:.3rem .3rem;white-space:nowrap">${comentBtn}</td>
+      <td style="padding:.25rem .35rem;vertical-align:middle">${comentBtn}</td>
     </tr>`;
   }).join('')||'<tr><td colspan="12" class="table-empty">Sin viajes registrados</td></tr>';
 }
@@ -3931,19 +3941,28 @@ function closeAuditModal(){
 // ── Modal comentario del viaje (guarda en NS!BC vía Apps Script) ──────
 const MOTIVOS_COMENTARIO=['Operador dormido','Tráfico','Falla mecánica','Retraso del cliente','Clima','Accidente / incidente','Operador no se presentó','Falta de unidad','Otro'];
 
-// Botón 💬 para un renglón del detalle. Verde lleno si ya tiene comentario.
+// Celda de comentario: muestra el texto si existe (clic para editar).
+// Si está vacío, muestra "+ Agregar" tenue.
 function comentarioBtnHTML(r, tripId){
   if(!tripId) return '';
   const com=String((r&&r[C.comentario])||'').trim();
   const tiene=com.length>0;
-  const comEsc=com.replace(/"/g,'&quot;').replace(/'/g,"\\'");
-  const title=tiene?('Comentario: '+com.replace(/"/g,'&quot;')):'Agregar comentario';
-  const style=tiene
-    ? 'background:#7ed321;color:#1a2236;border:1px solid #5cb800;'
-    : 'background:#fff;color:#6b7a99;border:1px solid #dde3f0;';
-  return `<button onclick="openComentarioModal('${tripId}','${comEsc}')"
-     style="${style}border-radius:5px;padding:.15rem .35rem;font-size:.62rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;line-height:1.4"
-     title="${title}">💬</button>`;
+  const comEsc=com.replace(/\\/g,'\\\\').replace(/"/g,'&quot;').replace(/'/g,"\\'");
+  const comHtml=tiene?com.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):'';
+  if(tiene){
+    return `<div onclick="openComentarioModal('${tripId}','${comEsc}')"
+       style="cursor:pointer;background:#f0fdf4;color:#166534;border:1px solid #86efac;border-radius:5px;
+              padding:.22rem .4rem;font-size:.68rem;font-weight:600;line-height:1.3;
+              white-space:normal;overflow:hidden;text-overflow:ellipsis;
+              display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+              max-height:2.6em;text-align:left;font-family:'Inter',sans-serif"
+       title="Clic para editar: ${comHtml}">${comHtml}</div>`;
+  }
+  return `<div onclick="openComentarioModal('${tripId}','')"
+     style="cursor:pointer;background:#fff;color:#9ca3af;border:1px dashed #dde3f0;border-radius:5px;
+            padding:.22rem .4rem;font-size:.66rem;font-weight:500;line-height:1.3;
+            text-align:center;font-family:'Inter',sans-serif"
+     title="Agregar comentario">+ Agregar</div>`;
 }
 
 function openComentarioModal(tripId, comentarioActual){
@@ -4307,7 +4326,7 @@ function openDrillDetail(rutaK,clienteK,tbl){
       <td class="r" style="font-size:.72rem;white-space:nowrap;color:#374151;font-weight:600">${eEta}</td>
       <td class="r">${minCell(minIni,0)}</td>
       <td class="r">${minCell(minLle,0)}</td>
-      <td style="text-align:center;padding:.3rem .3rem;white-space:nowrap">${comentBtn}</td>
+      <td style="padding:.25rem .35rem;vertical-align:middle">${comentBtn}</td>
     </tr>`;
   }).join('')||'<tr><td colspan="12" class="table-empty">Sin viajes registrados</td></tr>';
 
