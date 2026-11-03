@@ -1496,6 +1496,24 @@ function mesAnyToNum(v){
 let MONTH_RAW={};   // { '2026-10': {y:'2026', m:'octubre'} }
 
 function canQueryByMonth(){ return !!(NS_L.y && NS_L.m && NS_PROJECTION); }
+// ── Índice de meses cacheado en localStorage ──────────────────────
+// La consulta COUNT GROUP BY Año,Mes a Google tarda ~10 s y bloqueaba
+// la apertura. Ahora se guarda el último índice por UDN: la siguiente
+// apertura pinta YA con el índice guardado y revalida en segundo plano.
+function monthIdxKey(){ return 'ns_monthidx_v1_'+(CURRENT_UDN||'default').replace(/\s+/g,'_'); }
+function saveMonthIndex(idx){
+  try{ localStorage.setItem(monthIdxKey(),JSON.stringify({idx,raw:MONTH_RAW,ts:Date.now()})); }catch(e){}
+}
+function loadMonthIndexCached(){
+  try{
+    const o=JSON.parse(localStorage.getItem(monthIdxKey())||'null');
+    if(o && Array.isArray(o.idx) && o.idx.length){
+      if(o.raw) MONTH_RAW=o.raw;
+      return o.idx;
+    }
+  }catch(e){}
+  return null;
+}
 // Índice de meses: ~9 filas en vez de 200 000. Respuesta casi instantánea.
 function monthIndexUrl(){
   const idc=NS_L.id||NS_L.y;
@@ -1795,19 +1813,16 @@ const PERF={};
 function perfMark(k){ PERF[k]=Date.now(); }
 function perfSince(k){ return PERF[k]?((Date.now()-PERF[k])/1000).toFixed(1)+'s':'–'; }
 function diagShow(txt,warn){
-  let el=document.getElementById('nsDiag');
-  if(!el){
-    el=document.createElement('div');
-    el.id='nsDiag';
-    el.style.cssText='position:fixed;left:10px;bottom:10px;z-index:99999;max-width:380px;'+
-      'font:11px/1.45 ui-monospace,SFMono-Regular,Menlo,monospace;padding:8px 10px;border-radius:8px;'+
-      'background:#0f172aee;color:#e2e8f0;box-shadow:0 4px 16px #0003;cursor:pointer;white-space:pre-wrap';
-    el.title='Clic para ocultar';
-    el.onclick=()=>el.remove();
-    document.body.appendChild(el);
-  }
-  el.style.background=warn?'#7f1d1dee':'#0f172aee';
-  el.innerHTML=txt;
+  // El diagnóstico de carga ya NO se muestra en pantalla: va solo a la consola
+  // (F12 → Console) para auditar sin estorbar al usuario.
+  try{
+    const plano=String(txt).replace(/<[^>]*>/g,'');   // quitar HTML (<b>, <br>…)
+    if(warn) console.warn('[NS diagnóstico]\n'+plano);
+    else     console.log('%c[NS diagnóstico]','color:#84cc16;font-weight:bold','\n'+plano);
+  }catch(e){}
+  // Por si quedó un cuadro de una versión anterior, lo quitamos.
+  const viejo=document.getElementById('nsDiag');
+  if(viejo) viejo.remove();
 }
 
 // ¿El navegador nos deja guardar caché? En Chrome, abrir el archivo con doble
@@ -1928,7 +1943,12 @@ async function ensureMonthLoaded(ym){
   try{
     bgProgress(30,'Cargando '+mesLabel(ym)+'…');
     let chunk=await nsGet(key);                 // 1) caché
-    if(!chunk || !chunk.r || !chunk.r.length){  // 2) Google (solo ese mes)
+    // ¿La caché está completa? Si el mes tiene menos filas de las que Google
+    // reporta (p.ej. se guardó a la mitad en una versión vieja), se re-baja.
+    const esperado=MONTH_COUNTS[ym]||0;
+    const incompleta = chunk && chunk.r && esperado>0 && chunk.r.length<esperado;
+    if(!chunk || !chunk.r || !chunk.r.length || incompleta){  // 2) Google (solo ese mes)
+      if(incompleta) bgProgress(40,'Completando '+mesLabel(ym)+'…');
       const r=await fetch(monthRowsUrl(ym));
       NET_CALLS++;
       if(!r.ok) throw new Error('HTTP '+r.status);
@@ -2030,6 +2050,7 @@ async function loadSheet(){
           out.push({ym,y,m,n});
         }
       });
+      if(out.length) saveMonthIndex(out);               // la próxima apertura no espera el índice
       return out.length?out:null;
     }catch(e){ return null; }
   }
@@ -2106,11 +2127,65 @@ async function loadSheet(){
     if(!puedeCachear) avisarSinCache();
 
     // ══ CAMINO RÁPIDO POR MES: Google filtra, no el navegador ══
-    // Solo se baja el mes que se está viendo (~25 000 filas en vez de 150 000).
-    // Los meses viejos se bajan cuando los eliges, y quedan en caché.
+    // Orden nuevo (apertura al instante):
+    //   1) Índice de meses desde localStorage (sin red) → sabemos qué mes pintar
+    //   2) Caché del mes en IndexedDB → pintar YA
+    //   3) Índice fresco + revalidación del mes → en SEGUNDO PLANO
+    // Así la pantalla aparece sin esperar la consulta de ~10 s a Google.
     if(canQueryByMonth()){
-      const idx=await fetchMonthIndex();
-      if(!stillMine()) return;
+      // 1) Índice guardado (instantáneo). Si no hay, se pide a Google ahora.
+      let idx = forceFull ? null : loadMonthIndexCached();
+      let idxFromCache = !!idx;
+
+      // Primera apertura del dashboard sin índice guardado, pero YA hay datos
+      // del mes actual en IndexedDB: pintamos ESE mes al instante y pedimos el
+      // índice en paralelo (no bloqueamos la pantalla con los ~10 s).
+      if(!idx && !forceFull){
+        const cNow=await nsGet(kMonth(mesActual));
+        if(!stillMine()) return;
+        if(cNow && cNow.r && cNow.r.length){
+          NS_HDRS=cNow.h||NS_HDRS;
+          DATA=hydrateRows(cNow.h||NS_HDRS,cNow.r);
+          NS_MONTH_MODE=true;
+          loadedMonths=new Set([mesActual]);
+          AVAIL_MONTHS=new Set([mesActual]);
+          recalcMonths(); revealUI(); pintar();
+          bgProgress(50,'Datos listos · cargando índice…');
+          // Índice fresco en 2º plano → habilita el desplegable de meses viejos
+          (async()=>{
+            try{
+              const fresh=await fetchMonthIndex();
+              if(!stillMine()||!fresh||!fresh.length){ bgProgress(null); return; }
+              AVAIL_MONTHS=new Set(fresh.map(o=>o.ym));
+              MONTH_COUNTS={}; fresh.forEach(o=>MONTH_COUNTS[o.ym]=o.n);
+              fillAllSelects();
+              // Revalidar el mes actual si Google reporta más filas de las que tengo
+              const esperado=MONTH_COUNTS[mesActual]||0;
+              const yaTengo=DATA.filter(r=>rowMonth(r)===mesActual).length;
+              if(esperado>0 && yaTengo<esperado){
+                bgProgress(60,'Actualizando '+mesLabel(mesActual)+'…');
+                const d=await fetchMonthRows(mesActual);
+                if(stillMine() && d && d.r.length){
+                  NS_HDRS=d.h;
+                  DATA=DATA.filter(r=>rowMonth(r)!==mesActual).concat(hydrateRows(d.h,d.r));
+                  recalcMonths(); pintar();
+                  await nsPutMany([[kMonth(mesActual),{h:NS_HDRS,r:d.r,ts:Date.now()}]]);
+                }
+              }
+              await nsPutMany([[kMeta,{count:0,months:[...AVAIL_MONTHS],ts:Date.now(),hdrs:NS_HDRS,v:5,byMonth:true}]]);
+              bgProgress(100,'Listo'); setTimeout(()=>{ if(stillMine()) bgProgress(null); },800);
+            }catch(e){ console.warn('[NS] índice 2º plano',e); bgProgress(null); }
+          })();
+          diagFinal('caché del mes (índice en 2º plano)');
+          return;
+        }
+      }
+
+      if(!idx){
+        idx = await fetchMonthIndex();
+        if(!stillMine()) return;
+      }
+
       if(idx && idx.length){
         AVAIL_MONTHS=new Set(idx.map(o=>o.ym));
         MONTH_COUNTS={}; idx.forEach(o=>MONTH_COUNTS[o.ym]=o.n);
@@ -2120,8 +2195,8 @@ async function loadSheet(){
           ? mesActual
           : [...AVAIL_MONTHS].sort().reverse()[0];
 
-        // 1) Caché de ese mes → pintar al instante
-        let pintadoDeCache=false, cacheAlDia=false;
+        // 2) Caché del mes → pintar al instante
+        let pintadoDeCache=false, cacheCompleta=false;
         if(!forceFull){
           const c=await nsGet(kMonth(objetivo));
           if(!stillMine()) return;
@@ -2129,46 +2204,82 @@ async function loadSheet(){
             NS_HDRS=c.h||NS_HDRS;
             DATA=hydrateRows(c.h||NS_HDRS,c.r);
             recalcMonths(); revealUI(); pintar(); pintadoDeCache=true;
-            // Si el Sheet tiene las mismas filas que la caché y ésta es
-            // reciente, no hay nada nuevo que bajar: apertura instantánea.
+            // ¿La caché tiene TODAS las filas que Google reporta para ese mes?
+            // Si sí y es reciente, no hace falta re-bajar. Si no (p.ej. un mes
+            // viejo que se guardó a la mitad), se re-baja en segundo plano.
             const esperado=MONTH_COUNTS[objetivo]||0;
             const edadH=(Date.now()-(c.ts||0))/3600000;
-            if(esperado>0 && c.r.length===esperado && edadH<FRESH_HOURS) cacheAlDia=true;
+            if(esperado>0 && c.r.length>=esperado && edadH<FRESH_HOURS) cacheCompleta=true;
           }
         }
 
-        if(cacheAlDia){
-          bgProgress(100,'Al día · sin descargas');
-          diagFinal('caché del mes (sin bajar nada)');
-          setTimeout(()=>{ if(stillMine()) bgProgress(null); },1200);
+        // Si pintamos desde caché, el resto (revalidar índice y mes) va en
+        // SEGUNDO PLANO: la pantalla ya está lista, no bloqueamos nada.
+        if(pintadoDeCache){
+          bgProgress(100, cacheCompleta?'Al día':'Datos listos · actualizando…');
+          diagFinal(idxFromCache?'caché del mes (apertura instantánea)':'caché del mes + índice fresco');
+          setTimeout(()=>{ if(stillMine()) bgProgress(null); },1000);
+          // Revalidación diferida
+          (async()=>{
+            try{
+              // a) Si el índice vino de localStorage, refrescarlo ahora en 2º plano
+              if(idxFromCache){
+                const fresh=await fetchMonthIndex();
+                if(!stillMine()||!fresh||!fresh.length) return;
+                AVAIL_MONTHS=new Set(fresh.map(o=>o.ym));
+                MONTH_COUNTS={}; fresh.forEach(o=>MONTH_COUNTS[o.ym]=o.n);
+                fillAllSelects();
+              }
+              // b) ¿El mes en pantalla quedó incompleto o es el mes en curso
+              //    (que gana filas cada día)? Re-bajar. Un mes pasado y completo
+              //    NO se vuelve a bajar: ya está bien en caché.
+              const esperado=MONTH_COUNTS[objetivo]||0;
+              const yaTengo=DATA.filter(r=>rowMonth(r)===objetivo).length;
+              const incompletoAhora = esperado>0 && yaTengo<esperado;
+              const esMesEnCurso = objetivo===mesActual;
+              const necesitaRefresco = incompletoAhora || (esMesEnCurso && !cacheCompleta);
+              if(necesitaRefresco){
+                bgProgress(50,'Actualizando '+mesLabel(objetivo)+'…');
+                const d=await fetchMonthRows(objetivo);
+                if(!stillMine()||!d||!d.r.length) { bgProgress(null); return; }
+                NS_HDRS=d.h;
+                // Reemplaza solo ese mes en DATA
+                DATA=DATA.filter(r=>rowMonth(r)!==objetivo).concat(hydrateRows(d.h,d.r));
+                recalcMonths(); pintar();
+                await nsPutMany([[kMonth(objetivo),{h:NS_HDRS,r:d.r,ts:Date.now()}]]);
+                await nsPutMany([[kMeta,{count:0,months:[...AVAIL_MONTHS],ts:Date.now(),hdrs:NS_HDRS,v:5,byMonth:true}]]);
+              }
+              bgProgress(100,'Listo');
+              setTimeout(()=>{ if(stillMine()) bgProgress(null); },800);
+            }catch(e){ console.warn('[NS] revalidación 2º plano',e); bgProgress(null); }
+          })();
           return;
         }
 
-        // 2) Bajar ese mes fresco (una sola petición, filtrada por Google)
-        bgProgress(40, pintadoDeCache?'Actualizando '+mesLabel(objetivo)+'…':'Cargando '+mesLabel(objetivo)+'…');
+        // Sin caché del mes: hay que bajarlo (primera vez con esta UDN/mes)
+        bgProgress(40,'Cargando '+mesLabel(objetivo)+'…');
         let d=null;
         try{ d=await fetchMonthRows(objetivo); }
-        catch(e){ if(!pintadoDeCache) throw e; console.warn('[NS] mes falló',e); }
+        catch(e){ console.warn('[NS] mes falló',e); }
         if(!stillMine()) return;
 
         if(d && d.r.length){
           NS_HDRS=d.h;
           DATA=hydrateRows(d.h,d.r);
-          recalcMonths();
-          if(!pintadoDeCache) revealUI();
-          pintar();
+          recalcMonths(); revealUI(); pintar();
           bgProgress(85,'Guardando…');
           await nsPutMany([[kMonth(objetivo),{h:NS_HDRS,r:d.r,ts:Date.now()}]]);
-          await nsPutMany([[kMeta,{count:0,months:[...new Set([...AVAIL_MONTHS])],ts:Date.now(),hdrs:NS_HDRS,v:5,byMonth:true}]]);
-        } else if(!pintadoDeCache){
-          // El filtro por mes no sirvió en este Sheet (formato raro en Año/Mes).
-          // En vez de fallar, se usa el método anterior de bloques.
+          await nsPutMany([[kMeta,{count:0,months:[...AVAIL_MONTHS],ts:Date.now(),hdrs:NS_HDRS,v:5,byMonth:true}]]);
+          // Si el índice venía de localStorage, refrescarlo en 2º plano
+          if(idxFromCache){ (async()=>{ try{ await fetchMonthIndex(); if(stillMine()) fillAllSelects(); }catch(e){} })(); }
+        } else {
+          // El filtro por mes no sirvió en este Sheet: usar método anterior.
           console.warn('[NS] el filtro por mes no devolvió filas → uso el método anterior');
           NS_MONTH_MODE=false; AVAIL_MONTHS=new Set();
         }
         if(NS_MONTH_MODE){
           bgProgress(100,'Listo');
-          diagFinal(pintadoDeCache?'caché del mes + refresco':'un solo mes desde Google');
+          diagFinal('un solo mes desde Google');
           setTimeout(()=>{ if(stillMine()) bgProgress(null); },1200);
           return;
         }
