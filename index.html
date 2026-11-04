@@ -1749,8 +1749,9 @@ async function loadKpis(){
 .trxr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .trxr-field{display:flex;flex-direction:column;gap:5px}
 .trxr-field label{font-size:11px;font-weight:700;color:#475569;letter-spacing:.3px}
-.trxr-field input,.trxr-field textarea{border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 11px;font-family:inherit;font-size:13px;color:#1f2937;outline:none;transition:border-color .18s,box-shadow .18s;background:#fff;width:100%}
-.trxr-field input:focus,.trxr-field textarea:focus{border-color:#84cc16;box-shadow:0 0 0 3px rgba(132,204,22,.18)}
+.trxr-field input,.trxr-field textarea,.trxr-field select{border:1.5px solid #e2e8f0;border-radius:8px;padding:9px 11px;font-family:inherit;font-size:13px;color:#1f2937;outline:none;transition:border-color .18s,box-shadow .18s;background:#fff;width:100%}
+.trxr-field select{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 10px center;background-size:15px;padding-right:32px}
+.trxr-field input:focus,.trxr-field textarea:focus,.trxr-field select:focus{border-color:#84cc16;box-shadow:0 0 0 3px rgba(132,204,22,.18)}
 .trxr-field textarea{resize:vertical;min-height:58px;line-height:1.45;font-size:12.5px}
 .trxr-field .hint{font-size:10.5px;color:#94a3b8;font-weight:500;line-height:1.3}
 .trxr-field.full{grid-column:1/-1}
@@ -1786,6 +1787,7 @@ async function loadKpis(){
         <div class="trxr-grid">
           <div class="trxr-field"><label>Empresa</label><input id="f_empresa" value="SETTEPI"></div>
           <div class="trxr-field"><label>Cliente</label><input id="f_cliente" value="ENERYA"></div>
+          <div class="trxr-field"><label>Planta a analizar</label><select id="f_planta"></select></div>
           <div class="trxr-field"><label>Fecha inicial</label><input type="date" id="f_fini" value="2026-10-01"></div>
           <div class="trxr-field"><label>Fecha final</label><input type="date" id="f_ffin" value="2026-10-31"></div>
         </div>
@@ -1795,7 +1797,7 @@ async function loadKpis(){
         <h4 class="trxr-sec-title">Resumen ejecutivo</h4>
         <div class="trxr-field full"><textarea id="f_resumen" rows="4">El servicio a {CLIENTE} en {PERIODO} con un cumplimiento de 94.4% en llegadas y 88.7% en inicios.
 Si bien los inicios mejoraron 2.7 pp vs el periodo anterior, las llegadas retrocedieron 1.9 pp.
-El analisis identifica 5 rutas que concentran la mayor parte de la afectacion en los tres indicadores clave (llegadas, inicios y calidad de ruta), lo que permite focalizar el plan de accion.</textarea><span class="hint">Una idea por renglon = un parrafo. Puedes usar {CLIENTE} y {PERIODO}.</span></div>
+El analisis identifica 5 rutas que concentran la mayor parte de la afectacion en los tres indicadores clave (llegadas, inicios y calidad de ruta), lo que permite focalizar el plan de accion.</textarea><span class="hint">Una idea por renglon = un parrafo. Puedes usar {CLIENTE}, {PERIODO} y {PLANTA}.</span></div>
       </div>
 
       <div class="trxr-sec">
@@ -1901,6 +1903,11 @@ Comunicar al cliente el plan de recuperacion y los compromisos especificos por r
   const MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   const COL={blue:'1F4E79',blueL:'2E86DE',green:'27AE60',red:'C0392B',gray:'555555',dark:'222222',line:'D9DEE6'};
 
+  /* ===== LISTA DE PLANTAS (editable) =====
+     Agrega o quita plantas en esta lista. La primera queda seleccionada por defecto.
+     Ejemplo: const PLANTAS=['Todas las plantas','Planta Garcia','Planta Santa Catarina']; */
+  const PLANTAS=['Todas las plantas'];
+
   const overlay=document.getElementById('trxrOverlay');
   const btnOpen=document.getElementById('trxReportBtn');
   const btnClose=document.getElementById('trxrClose');
@@ -1910,6 +1917,9 @@ Comunicar al cliente el plan de recuperacion y los compromisos especificos por r
   const msgWrap=document.getElementById('trxrMsg');
   const spin=document.getElementById('trxrSpin');
   const stage=document.getElementById('trxrChartStage');
+
+  (function fillPlantas(){ const sel=document.getElementById('f_planta'); if(!sel) return;
+    sel.innerHTML=PLANTAS.map(p=>'<option value="'+p.replace(/"/g,'&quot;')+'">'+p+'</option>').join(''); })();
 
   function openModal(){ overlay.classList.add('show'); setMsg('Listo para generar',''); }
   function closeModal(){ overlay.classList.remove('show'); }
@@ -2037,8 +2047,9 @@ Comunicar al cliente el plan de recuperacion y los compromisos especificos por r
 
     /* ===== PORTADA / ENCABEZADO ===== */
     title('REPORTE EJECUTIVO '+D.empresa+' – '+D.cliente);
+    const plantaTxt = D.plantaEsp ? ('  ·  Planta: '+D.planta) : '';
     const rango = (D.fini||D.ffin)? ('  ·  '+fmtDate(D.finiISO)+' a '+fmtDate(D.ffinISO)) : '';
-    subtitle('Análisis DMAIC · '+D.per+rango);
+    subtitle('Análisis DMAIC · '+D.per+plantaTxt+rango);
 
     /* ===== RESUMEN ===== */
     h1('Resumen ejecutivo');
@@ -2117,12 +2128,13 @@ Comunicar al cliente el plan de recuperacion y los compromisos especificos por r
     const finiISO=val('f_fini'), ffinISO=val('f_ffin');
     const per=periodo(finiISO,ffinISO)||'el periodo';
     const cliente=val('f_cliente')||'CLIENTE', empresa=val('f_empresa')||'EMPRESA';
-    const repl=t=>t.replace(/\{CLIENTE\}/g,cliente).replace(/\{PERIODO\}/g,per).replace(/\{EMPRESA\}/g,empresa);
+    const planta=val('f_planta')||'Todas las plantas', plantaEsp=!/todas/i.test(planta);
+    const repl=t=>t.replace(/\{CLIENTE\}/g,cliente).replace(/\{PERIODO\}/g,per).replace(/\{EMPRESA\}/g,empresa).replace(/\{PLANTA\}/g,planta);
     const viajes=num('f_viajes'), trafico=num('f_trafico'), indisc=num('f_indisc');
     const parseCal=id=>rows(id).map(r=>({ruta:r[0]||'',v:parseFloat(String(r[1]||'').replace('%',''))||0}));
     const parseR=id=>rows(id).map(r=>({ruta:r[0]||'',tarde:parseFloat(r[1])||0,total:r[2]!=null&&r[2]!==''?parseFloat(r[2]):0}));
     return {
-      empresa,cliente,finiISO,ffinISO,fini:fmtDate(finiISO),ffin:fmtDate(ffinISO),per,
+      empresa,cliente,planta,plantaEsp,finiISO,ffinISO,fini:fmtDate(finiISO),ffin:fmtDate(ffinISO),per,
       resumen:lines('f_resumen').map(repl),
       definicion:lines('f_definicion').map(repl),
       analisis:lines('f_analisis').map(repl),
@@ -2156,7 +2168,8 @@ Comunicar al cliente el plan de recuperacion y los compromisos especificos por r
       const D=collect();
       const imgs=buildCharts(D);
       const blob=await buildDoc(D,imgs);
-      const name='Reporte_'+slug(D.empresa)+'_'+slug(D.cliente)+'_'+slug(D.per)+'.docx';
+      const pl = D.plantaEsp ? '_'+slug(D.planta) : '';
+      const name='Reporte_'+slug(D.cliente)+pl+'_'+slug(D.per)+'.docx';
       download(blob,name);
       setMsg('✓ Word generado: '+name,'ok');
     }catch(e){
