@@ -1793,10 +1793,9 @@ async function loadKpis(){
         <h4 class="trxr-sec-title">Encabezado y periodo</h4>
         <div class="trxr-grid">
           <div class="trxr-field"><label>Empresa</label><input id="f_empresa" value="SETTEPI"></div>
-          <div class="trxr-field"><label>Cliente</label><input id="f_cliente" value="ENERYA"></div>
           <div class="trxr-field"><label>Planta a analizar</label><select id="f_planta"></select></div>
-          <div class="trxr-field"><label>Fecha inicial</label><input type="date" id="f_fini" value="2026-10-01"></div>
-          <div class="trxr-field"><label>Fecha final</label><input type="date" id="f_ffin" value="2026-10-31"></div>
+          <div class="trxr-field"><label>Semana inicial</label><input type="number" id="f_sem_ini" min="1" max="53" placeholder="ej. 40"></div>
+          <div class="trxr-field"><label>Semana final <span style="font-weight:500;color:#94a3b8">(opcional)</span></label><input type="number" id="f_sem_fin" min="1" max="53" placeholder="= inicial"></div>
           <div class="trxr-field full" style="flex-direction:row;align-items:flex-start;gap:9px;margin-top:2px">
             <input type="checkbox" id="f_real" checked style="width:auto;margin-top:2px;cursor:pointer;accent-color:#84cc16">
             <label for="f_real" style="margin:0;cursor:pointer;font-weight:600;line-height:1.35">Llenar autom&aacute;ticamente con datos reales de los tableros (Nivel de Servicio y Calidad de ruta). Si lo desmarcas, se usan los datos que escribas en el formulario.</label>
@@ -2064,8 +2063,7 @@ Comunicar al cliente el plan de recuperacion y los compromisos especificos por r
     /* ===== PORTADA / ENCABEZADO ===== */
     title('REPORTE EJECUTIVO '+D.empresa+' – '+D.cliente);
     const plantaTxt = D.plantaEsp ? ('  ·  Planta: '+D.planta) : '';
-    const rango = (D.fini||D.ffin)? ('  ·  '+fmtDate(D.finiISO)+' a '+fmtDate(D.ffinISO)) : '';
-    subtitle('Análisis DMAIC · '+D.per+plantaTxt+rango);
+    subtitle('Análisis DMAIC · '+D.per+plantaTxt);
 
     /* ===== RESUMEN ===== */
     h1('Resumen ejecutivo');
@@ -2141,16 +2139,17 @@ Comunicar al cliente el plan de recuperacion y los compromisos especificos por r
   }
 
   function collect(){
-    const finiISO=val('f_fini'), ffinISO=val('f_ffin');
-    const per=periodo(finiISO,ffinISO)||'el periodo';
-    const cliente=val('f_cliente')||'CLIENTE', empresa=val('f_empresa')||'EMPRESA';
+    const empresa=val('f_empresa')||'SETTEPI';
     const planta=val('f_planta')||'Todas las plantas', plantaEsp=!/todas/i.test(planta);
+    const cliente=plantaEsp?planta:empresa;
+    const semIni=parseInt(val('f_sem_ini'),10), semFin=parseInt(val('f_sem_fin'),10)||semIni;
+    const per=semLabel(semIni,semFin);
     const repl=t=>t.replace(/\{CLIENTE\}/g,cliente).replace(/\{PERIODO\}/g,per).replace(/\{EMPRESA\}/g,empresa).replace(/\{PLANTA\}/g,planta);
     const viajes=num('f_viajes'), trafico=num('f_trafico'), indisc=num('f_indisc');
     const parseCal=id=>rows(id).map(r=>({ruta:r[0]||'',v:parseFloat(String(r[1]||'').replace('%',''))||0}));
     const parseR=id=>rows(id).map(r=>({ruta:r[0]||'',tarde:parseFloat(r[1])||0,total:r[2]!=null&&r[2]!==''?parseFloat(r[2]):0}));
     return {
-      empresa,cliente,planta,plantaEsp,finiISO,ffinISO,fini:fmtDate(finiISO),ffin:fmtDate(ffinISO),per,
+      empresa,cliente,planta,plantaEsp,semIni,semFin,per,
       resumen:lines('f_resumen').map(repl),
       definicion:lines('f_definicion').map(repl),
       analisis:lines('f_analisis').map(repl),
@@ -2208,18 +2207,140 @@ Comunicar al cliente el plan de recuperacion y los compromisos especificos por r
   const btnAuto=document.getElementById('trxrAuto');
   if(btnAuto) btnAuto.addEventListener('click', function(){ autoFill(true); setMsg('✓ Textos autollenados a partir de los números','ok'); });
 
+  /* ======= LECTURA DE DATOS REALES DE LOS TABLEROS ======= */
+  const NS_SHEET_ID='1YZG92UT4EI8VbNoKy0Vm0mWrujTr-8mSccJHphswKeg'; // base Settepi Garcia
+  const NS_SHEET_NAME='NS';
+  const CAL_SHEET_ID='1pM6VXlIwDYfH-A-1C6KR0SZZ2EQ50oZ9tbHZIJOQ1Zs'; // Calidad de ruta
+  const CAL_GID='0';
+  const CAUSA_EXT=['trafico','clima','accidente','incidente','retraso del cliente','manifestacion','bloqueo'];
+  const CAUSA_CTRL=['operador dormido','operador no se presento','falla mecanica','falta de unidad','indisciplina','operador'];
+  const NSC={cliente:'group',ruta:'des',viajes:'Cantidad de viajes',ini:'Inicios_Tarde',lle:'Llegadas_Tarde',coment:'Comentarios',sem:'Semana',anio:'Año'};
+  let REPORT_YEAR='';
+  function weekNum(s){ const n=parseFloat(String(s==null?'':s).replace(',','.')); return isNaN(n)?null:n; }
+  function colLetter(i){ let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26); } return s; }
+  function semLabel(a,b){ if(!a||isNaN(a)) return 'el periodo'; const yr=REPORT_YEAR?(' de '+REPORT_YEAR):''; return (b&&b!==a)?('semanas '+a+'–'+b+yr):('semana '+a+yr); }
+
+  function normName(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/^[A-Z0-9]{2,4}\s*-\s*/,'').replace(/[^A-Z0-9]+/g,' ').trim(); }
+  function countViajes(v){ const n=parseInt(v,10); return (n>0)?n:1; }
+  function isOne(v){ return String(v||'').trim()==='1'; }
+  function setVal(id,v){ const e=document.getElementById(id); if(e) e.value=(v==null?'':String(v)); }
+  function gvizCsv(id,sheetName,gid){ let u='https://docs.google.com/spreadsheets/d/'+id+'/gviz/tq?tqx=out:csv&headers=1'; if(sheetName)u+='&sheet='+encodeURIComponent(sheetName); if(gid!=null)u+='&gid='+gid; return u; }
+  function parseCSV(text){
+    const rows=[]; let row=[],cur='',q=false;
+    for(let i=0;i<text.length;i++){ const c=text[i];
+      if(q){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+      else { if(c==='"')q=true; else if(c===','){row.push(cur);cur='';} else if(c==='\n'){row.push(cur);rows.push(row);row=[];cur='';} else if(c!=='\r')cur+=c; } }
+    if(cur!==''||row.length){ row.push(cur); rows.push(row); }
+    const headers=(rows.shift()||[]).map(h=>h.trim());
+    const objs=rows.filter(r=>r.some(x=>x!=='')).map(r=>{ const o={}; headers.forEach((h,i)=>o[h]=r[i]!==undefined?r[i]:''); return o; });
+    return {headers,objs};
+  }
+  function keyOf(headers,cands){ for(const c of cands){ const k=headers.find(h=>normName(h)===normName(c)); if(k)return k; } return null; }
+  function rowDate(o){ const a=o[NSC.anio],m=o[NSC.mes],d=o[NSC.dia]; if(a&&m&&d){ const dt=new Date(+a,+m-1,+d); if(!isNaN(dt))return dt; }
+    const v=String(o[NSC.fecha]||'').trim(); let mm=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(mm)return new Date(+mm[1],+mm[2]-1,+mm[3]); mm=v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(mm)return new Date(+mm[3],+mm[2]-1,+mm[1]); const dt=new Date(v); return isNaN(dt)?null:dt; }
+  async function fetchRows(url){ const r=await fetch(url,{cache:'no-store'}); if(!r.ok)throw new Error('HTTP '+r.status); const t=await r.text(); if(/^\s*</.test(t))throw new Error('la hoja no es accesible'); return parseCSV(t); }
+
+  function aggNS(rows, pN, sI, sF){
+    let viajes=0,lle=0,ini=0; const byR={}; const causa={ext:0,ctrl:0,sin:0};
+    rows.forEach(o=>{
+      if(pN!=='TODAS LAS PLANTAS' && normName(o[NSC.cliente])!==pN) return;
+      const w=weekNum(o[NSC.sem]); if(w==null||w<sI||w>sF) return;
+      const v=countViajes(o[NSC.viajes]); const L=isOne(o[NSC.lle]), I=isOne(o[NSC.ini]);
+      viajes+=v; if(L)lle+=v; if(I)ini+=v;
+      const ruta=(o[NSC.ruta]||'').trim()||'(sin ruta)'; const b=byR[ruta]||(byR[ruta]={ruta,viajes:0,lle:0,ini:0}); b.viajes+=v; if(L)b.lle+=v; if(I)b.ini+=v;
+      if(L){ const c=normName(o[NSC.coment]); if(!c)causa.sin+=v; else if(CAUSA_EXT.some(x=>c.includes(normName(x))))causa.ext+=v; else if(CAUSA_CTRL.some(x=>c.includes(normName(x))))causa.ctrl+=v; else causa.sin+=v; }
+    });
+    return {viajes,lle,ini,byR,causa};
+  }
+
+  async function fetchNS(loWeek, hiWeek){
+    // intenta filtrar por Semana del lado del servidor (menos datos); si falla, trae todo
+    try{
+      const head=await fetchRows(gvizCsv(NS_SHEET_ID,NS_SHEET_NAME)+'&tq='+encodeURIComponent('limit 1'));
+      const idx=head.headers.findIndex(h=>normName(h)===normName('Semana'));
+      if(idx>=0){
+        const L=colLetter(idx);
+        const q='select * where '+L+' >= '+loWeek+' and '+L+' <= '+hiWeek;
+        const data=await fetchRows(gvizCsv(NS_SHEET_ID,NS_SHEET_NAME)+'&tq='+encodeURIComponent(q));
+        if(data.objs.length) return data;
+      }
+    }catch(e){}
+    return await fetchRows(gvizCsv(NS_SHEET_ID,NS_SHEET_NAME));
+  }
+  function detectYear(rows,pN,sI,sF){ const c={}; rows.forEach(o=>{ if(pN!=='TODAS LAS PLANTAS'&&normName(o[NSC.cliente])!==pN)return; const w=weekNum(o[NSC.sem]); if(w==null||w<sI||w>sF)return; const y=String(o[NSC.anio]||'').trim(); if(y)c[y]=(c[y]||0)+1; }); let best='',n=0; for(const k in c)if(c[k]>n){n=c[k];best=k;} return best; }
+
+  async function pullReal(){
+    const planta=val('f_planta')||'Todas las plantas'; const pN=normName(planta);
+    const semIni=parseInt(val('f_sem_ini'),10); if(isNaN(semIni)) throw new Error('escribe la semana inicial');
+    const semFin=parseInt(val('f_sem_fin'),10)||semIni;
+    const span=Math.max(1,semFin-semIni+1); const pFin=semIni-1, pIni=pFin-span+1;
+    // ---- Nivel de Servicio ----
+    const ns=await fetchNS(pIni, semFin);
+    const A=aggNS(ns.objs,pN,semIni,semFin);
+    if(A.viajes===0) throw new Error('no hay viajes para '+planta+' en la(s) semana(s) '+semIni+(semFin!==semIni?('–'+semFin):''));
+    REPORT_YEAR=detectYear(ns.objs,pN,semIni,semFin);
+    const cLle=+(100*(A.viajes-A.lle)/A.viajes).toFixed(1), cIni=+(100*(A.viajes-A.ini)/A.viajes).toFixed(1);
+    const P=aggNS(ns.objs,pN,pIni,pFin);
+    const vs=(cur,prevV,prevT)=>{ if(!prevT) return '—'; const prev=100*(prevT-prevV)/prevT; const d=+(cur-prev).toFixed(1); return (d>=0?'▲ ':'▼ ')+Math.abs(d)+' pp'; };
+    // rutas top
+    const rutas=Object.values(A.byR);
+    const topL=rutas.filter(b=>b.lle>0).sort((a,b)=>b.lle-a.lle).slice(0,5);
+    const topI=rutas.filter(b=>b.ini>0).sort((a,b)=>b.ini-a.ini).slice(0,5);
+    // ---- Calidad de ruta ----
+    let calProm=0, baja=[], meta=[], calByRuta={};
+    try{
+      const cal=await fetchRows(gvizCsv(CAL_SHEET_ID,null,CAL_GID));
+      const kPl=keyOf(cal.headers,['Planta']), kR=keyOf(cal.headers,['Desc Ruta','Descripcion Ruta','DescRuta']), kId=keyOf(cal.headers,['ID Ruta','Id Ruta','IdRuta']), kPd=keyOf(cal.headers,['Cal Pd','CalPd','Calif Parada']), kTip=keyOf(cal.headers,['Tip. Ser.','Tip Ser','TipSer']), kSem=keyOf(cal.headers,['Semana','Sem']);
+      const byC={};
+      cal.objs.forEach(o=>{ if(kTip && normName(o[kTip])!=='E') return; if(pN!=='TODAS LAS PLANTAS' && kPl && normName(o[kPl])!==pN) return;
+        if(kSem){ const w=weekNum(o[kSem]); if(w!=null && (w<semIni||w>semFin)) return; }
+        const nm=(o[kR]||(kId?o[kId]:'')||'').trim(); if(!nm)return; const val=parseFloat(String(o[kPd]).replace('%','').replace(',','.')); if(isNaN(val))return;
+        const b=byC[nm]||(byC[nm]={nm,sum:0,n:0}); b.sum+=val;b.n++; });
+      const rc=Object.values(byC).map(b=>({ruta:b.nm,v:+(b.sum/b.n).toFixed(1)})); rc.forEach(r=>calByRuta[normName(r.ruta)]=r.v);
+      if(rc.length){ calProm=+(rc.reduce((a,b)=>a+b.v,0)/rc.length).toFixed(1); baja=rc.filter(r=>r.v<98).sort((a,b)=>a.v-b.v); meta=rc.filter(r=>r.v>=98).sort((a,b)=>b.v-a.v); }
+    }catch(e){ /* si calidad falla, seguimos con NS */ }
+    // ---- Volcar al formulario ----
+    setVal('f_lleg',cLle); setVal('f_ini',cIni); setVal('f_cal', calProm||'');
+    setVal('f_lleg_vs', vs(cLle,P.lle,P.viajes)); setVal('f_ini_vs', vs(cIni,P.ini,P.viajes));
+    setVal('f_viajes',A.viajes); setVal('f_tarde',A.lle); setVal('f_trafico',A.causa.ext); setVal('f_indisc',A.causa.ctrl);
+    setVal('f_rlleg', topL.map(b=>b.ruta+' | '+b.lle+' | '+b.viajes).join('\n'));
+    setVal('f_rini',  topI.map(b=>b.ruta+' | '+b.ini).join('\n'));
+    setVal('f_calbaja', baja.slice(0,12).map(r=>r.ruta+' | '+r.v).join('\n'));
+    setVal('f_calmeta', meta.slice(0,12).map(r=>r.ruta+' | '+r.v).join('\n'));
+    // rutas criticas (cruce de los 3 ejes)
+    const crit={}; topL.forEach(b=>{const k=b.ruta;crit[k]=crit[k]||{ruta:k,lle:0,ini:0};crit[k].lle=b.lle;}); topI.forEach(b=>{const k=b.ruta;crit[k]=crit[k]||{ruta:k,lle:0,ini:0};crit[k].ini=b.ini;});
+    const critRows=Object.values(crit).map(c=>{ const cv=calByRuta[normName(c.ruta)]; const ejes=(c.lle>0?1:0)+(c.ini>0?1:0)+((cv!=null&&cv<98)?1:0); return {ruta:c.ruta,lle:c.lle,ini:c.ini,cal:cv,prio:ejes>=3?'P1 - Critica':(ejes>=2?'P1 - Critica':'P2 - Alta')}; })
+      .sort((a,b)=>(b.lle+b.ini)-(a.lle+a.ini)).slice(0,6);
+    setVal('f_criticas', critRows.map(c=>c.ruta+' | '+(c.lle||'—')+' | '+(c.ini||'—')+' | '+(c.cal!=null?c.cal+'%':'—')+' | '+c.prio).join('\n'));
+    // limpiar textos para que se regeneren con los numeros reales
+    ['f_resumen','f_definicion','f_analisis','f_causa','f_plantxt'].forEach(id=>setVal(id,''));
+    return {viajes:A.viajes, sinClasif:A.causa.sin};
+  }
+
   btnGen.addEventListener('click', async function(){
-    if(!val('f_ffin')){ setMsg('Elige al menos la fecha final','err'); return; }
+    const _real=document.getElementById('f_real')&&document.getElementById('f_real').checked;
+    if(_real && isNaN(parseInt(val('f_sem_ini'),10))){ setMsg('Escribe la semana inicial','err'); return; }
     btnGen.disabled=true; setMsg('Cargando librerías…','load');
     try{
       await ensureLibs();
+      const usarReal=document.getElementById('f_real') && document.getElementById('f_real').checked;
+      if(usarReal){
+        setMsg('Leyendo tableros (Nivel de Servicio y Calidad)…','load');
+        try{
+          const info=await pullReal();
+          let extra = info.sinClasif>0 ? (' ('+info.sinClasif+' viajes tarde sin motivo capturado en Comentarios)') : '';
+          setMsg('Datos reales cargados: '+info.viajes+' viajes'+extra+'. Generando…','load');
+        }catch(e){
+          setMsg('No pude leer los tableros: '+(e&&e.message?e.message:'error')+'. Desmarca la casilla para usar el formulario manual.','err');
+          btnGen.disabled=false; return;
+        }
+      }
       setMsg('Generando gráficas y documento…','load');
       autoFill(false);
       const D=collect();
       const imgs=buildCharts(D);
       const blob=await buildDoc(D,imgs);
-      const pl = D.plantaEsp ? '_'+slug(D.planta) : '';
-      const name='Reporte_'+slug(D.cliente)+pl+'_'+slug(D.per)+'.docx';
+      const name='Reporte_'+slug(D.cliente)+'_'+slug(D.per)+'.docx';
       download(blob,name);
       setMsg('✓ Word generado: '+name,'ok');
     }catch(e){
