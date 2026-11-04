@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DASH | Traxion</title>
@@ -644,6 +643,10 @@ body.trx-has-maximized .trx-hover-strip{display:block}
       </div>
 
     </div>
+    <button type="button" class="trx-report-side js-trx-report-open" id="trxReportBtnSide" title="Generar Reporte Ejecutivo (Word)">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Generar Reporte (Word)
+    </button>
     <button type="button" class="logout-btn" id="logoutBtn">
       <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Cerrar sesion
@@ -675,10 +678,6 @@ body.trx-has-maximized .trx-hover-strip{display:block}
       <img src="dash-logo.png" alt="DASH by TRAXION" class="hero-logo">
       <p>Logistica &middot; Operaciones &middot; Seguridad</p>
       <p class="tagline">Movemos lo mas valioso, conectamos destinos</p>
-      <button type="button" id="trxReportBtn" class="trx-report-cta">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Generar Reporte Ejecutivo (Word)
-      </button>
     </div>
   </main>
 </div>
@@ -1728,6 +1727,13 @@ async function loadKpis(){
 .trx-report-cta svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .trx-report-cta::after{content:'';position:absolute;top:0;left:-120%;width:55%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);transform:skewX(-20deg);transition:left .6s ease}
 .trx-report-cta:hover::after{left:140%}
+/* ---- Boton de reporte dentro del sidebar (arriba de Cerrar sesion) ---- */
+.trx-report-side{width:100%;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;background:#84cc16;color:#1f2937;border:0;border-radius:8px;padding:10px 12px;font-family:inherit;font-weight:800;font-size:12.5px;letter-spacing:.3px;line-height:1.2;text-align:center;cursor:pointer;box-shadow:0 6px 16px rgba(132,204,22,.3);transition:background .2s,transform .15s,box-shadow .25s;position:relative;overflow:hidden}
+.trx-report-side:hover{background:#65a30d;transform:translateY(-1px);box-shadow:0 10px 22px rgba(132,204,22,.4)}
+.trx-report-side:active{transform:translateY(0) scale(.98)}
+.trx-report-side svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sidebar.collapsed .trx-report-side{width:44px;height:44px;padding:9px;align-self:center;font-size:0;gap:0}
+.sidebar.collapsed .trx-report-side svg{width:18px;height:18px}
 
 /* ---- Overlay + modal ---- */
 .trxr-overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);z-index:9700;display:none;align-items:center;justify-content:center;padding:18px}
@@ -1907,7 +1913,7 @@ Comunicar al cliente el plan de recuperacion y los compromisos especificos por r
   /* ===== LISTA DE PLANTAS (editable) =====
      Agrega o quita plantas en esta lista. La primera queda seleccionada por defecto.
      Ejemplo: const PLANTAS=['Todas las plantas','Planta Garcia','Planta Santa Catarina']; */
-  const PLANTAS=['Todas las plantas'];
+  const PLANTAS=['Todas las plantas','ACUMENT','ALCALI','AMD','ARTIGRAF','BRAZEWAY','BRUNNEN','CONMET','DONALDSON','EMPAQUES CARVAJAL','ENERYA','FANTASIAS MIGUEL','GINO','GONHER','GRUPO ALEN','GRUPO SID GARCIA','HARIMASA','JOHN DEERE','LUBRAL','MARATHON','MOLISABA','MRM MTY','NAVISTAR','NEMAK','NOVEM','REHAU','RYDER CIENEGA','RYDER GARCIA','SANTANDER MTY','TIENDAS SORIANA','VERTEX MTY','VITRO','YANFENG'];
 
   const overlay=document.getElementById('trxrOverlay');
   const btnOpen=document.getElementById('trxReportBtn');
@@ -1924,6 +1930,7 @@ Comunicar al cliente el plan de recuperacion y los compromisos especificos por r
 
   function openModal(){ overlay.classList.add('show'); setMsg('Listo para generar',''); }
   function closeModal(){ overlay.classList.remove('show'); }
+  document.querySelectorAll('.js-trx-report-open').forEach(function(b){ b.addEventListener('click', openModal); });
   if(btnOpen) btnOpen.addEventListener('click', openModal);
   btnClose.addEventListener('click', closeModal);
   btnCancel.addEventListener('click', closeModal);
