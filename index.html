@@ -1888,6 +1888,10 @@ Comunicar al cliente el plan de recuperacion y los compromisos especificos por r
     </div>
     <div class="trxr-foot">
       <span class="trxr-msg" id="trxrMsg"><span class="trxr-spin" id="trxrSpin"></span><span id="trxrMsgTxt">Listo para generar</span></span>
+      <button type="button" class="trxr-btn ghost" id="trxrAuto" title="Redactar solo los textos a partir de los numeros">
+        <svg viewBox="0 0 24 24"><path d="M12 3l1.9 4.8L19 9.5l-4.1 2.9L16 18l-4-2.6L8 18l1.1-5.6L5 9.5l5.1-1.7z"/></svg>
+        Autollenar textos
+      </button>
       <button type="button" class="trxr-btn ghost" id="trxrCancel">Cancelar</button>
       <button type="button" class="trxr-btn primary" id="trxrGen">
         <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -2167,12 +2171,46 @@ Comunicar al cliente el plan de recuperacion y los compromisos especificos por r
   }
   const slug=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9]+/g,'_').replace(/^_+|_+$/g,'');
 
+  /* ===== Autollenado de textos a partir de los numeros ===== */
+  function autoFill(force){
+    const D=collect();
+    const planta = D.plantaEsp ? (' ('+D.planta+')') : '';
+    const nCrit = D.criticas.filter(r=>r[0]).length || 5;
+    const tarde = D.tarde||0;
+    const pTr = tarde? Math.round(D.trafico/tarde*100):0;
+    const pIn = tarde? Math.round(D.indisc/tarde*100):0;
+    const cmpLleg = D.lleg>=D.llegMeta?'dentro de meta':('por debajo de la meta ('+D.llegMeta+'%)');
+    const cmpIni  = D.ini>=D.iniMeta?'dentro de meta':('por debajo de la meta ('+D.iniMeta+'%)');
+    const cmpCal  = D.cal>=D.calMeta?'dentro de meta':('por debajo de la meta ('+D.calMeta+'%)');
+    const vsTxt = (D.llegVs && D.llegVs!=='—') ? ('; las llegadas registran '+D.llegVs+' y los inicios '+D.iniVs+' respecto al periodo anterior') : '';
+    const T={};
+    T.f_resumen=[
+      'El servicio a '+D.cliente+planta+' en '+D.per+' cerró con '+D.lleg+'% de cumplimiento en llegadas y '+D.ini+'% en inicios.',
+      'La calidad de ruta promedió '+D.cal+'% (meta '+D.calMeta+'%)'+vsTxt+'.',
+      'El análisis identifica '+nCrit+' rutas que concentran la mayor parte de la afectación en los tres indicadores clave (llegadas, inicios y calidad de ruta), lo que permite focalizar el plan de acción.'
+    ].join('\n');
+    T.f_definicion=[
+      'Se manifestó un deterioro en el nivel de servicio'+planta+' durante '+D.per+'. Esta situación requiere ser cuantificada mediante el análisis de los servicios programados y ejecutados, los retrasos en llegadas a planta, los retrasos en inicios de recorrido, la calidad de ruta y la frecuencia y distribución de los incumplimientos.',
+      'El objetivo es conocer en qué condiciones se presentan las principales desviaciones del servicio, identificar las causas raíz y establecer acciones de mejora sostenibles que recuperen el nivel de servicio comprometido.'
+    ].join('\n');
+    T.f_analisis=[
+      'Al cruzar los tres indicadores (llegadas '+D.lleg+'%, inicios '+D.ini+'% y calidad de ruta '+D.cal+'%), se identifica un patrón claro: unas pocas rutas concentran el deterioro de manera simultánea en varios ejes. Esto cambia la prioridad: en lugar de atacar todas las rutas, conviene intervenir las '+nCrit+' rutas de alto impacto.',
+      'En conjunto, el cumplimiento de llegadas quedó '+cmpLleg+', los inicios '+cmpIni+' y la calidad de ruta '+cmpCal+'.'
+    ].join('\n');
+    T.f_causa='De los '+tarde+' viajes con llegada tarde, el '+pTr+'% ('+D.trafico+' viajes) corresponden a tráfico (causa externa, parcialmente controlable con ajuste de horarios) y el '+pIn+'% ('+D.indisc+' viajes) a indisciplina operativa (causa 100% controlable).';
+    T.f_plantxt='El plan se organiza de forma inmediata y por causa raíz. Se prioriza la intervención en las '+nCrit+' rutas críticas identificadas en el punto 3.1, que concentran la mayor parte del deterioro'+(D.plantaEsp?(' de '+D.planta):'')+'.';
+    Object.keys(T).forEach(function(id){ const el=document.getElementById(id); if(el && (force || !el.value.trim())) el.value=T[id]; });
+  }
+  const btnAuto=document.getElementById('trxrAuto');
+  if(btnAuto) btnAuto.addEventListener('click', function(){ autoFill(true); setMsg('✓ Textos autollenados a partir de los números','ok'); });
+
   btnGen.addEventListener('click', async function(){
     if(!val('f_ffin')){ setMsg('Elige al menos la fecha final','err'); return; }
     btnGen.disabled=true; setMsg('Cargando librerías…','load');
     try{
       await ensureLibs();
       setMsg('Generando gráficas y documento…','load');
+      autoFill(false);
       const D=collect();
       const imgs=buildCharts(D);
       const blob=await buildDoc(D,imgs);
