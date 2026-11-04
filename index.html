@@ -1797,6 +1797,10 @@ async function loadKpis(){
           <div class="trxr-field"><label>Planta a analizar</label><select id="f_planta"></select></div>
           <div class="trxr-field"><label>Fecha inicial</label><input type="date" id="f_fini" value="2026-10-01"></div>
           <div class="trxr-field"><label>Fecha final</label><input type="date" id="f_ffin" value="2026-10-31"></div>
+          <div class="trxr-field full" style="flex-direction:row;align-items:flex-start;gap:9px;margin-top:2px">
+            <input type="checkbox" id="f_real" checked style="width:auto;margin-top:2px;cursor:pointer;accent-color:#84cc16">
+            <label for="f_real" style="margin:0;cursor:pointer;font-weight:600;line-height:1.35">Llenar autom&aacute;ticamente con datos reales de los tableros (Nivel de Servicio y Calidad de ruta). Si lo desmarcas, se usan los datos que escribas en el formulario.</label>
+          </div>
         </div>
       </div>
 
