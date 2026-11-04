@@ -1773,6 +1773,9 @@ async function loadKpis(){
 .trxr-btn.primary{background:#84cc16;color:#1f2937;box-shadow:0 6px 16px rgba(132,204,22,.35)}
 .trxr-btn.primary:hover{background:#65a30d}
 .trxr-btn.primary:disabled{background:#9ca3af;cursor:wait;box-shadow:none}
+.trxr-btn.data{background:#1f4e79;color:#fff}
+.trxr-btn.data:hover{background:#163a5c}
+.trxr-btn.data:disabled{background:#9ca3af;cursor:wait}
 .trxr-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 @media (max-width:560px){.trxr-body{padding:14px 14px 4px}.trxr-sec{padding:12px}}
 </style>
@@ -1891,6 +1894,10 @@ Comunicar al cliente el plan de recuperacion y los compromisos especificos por r
     </div>
     <div class="trxr-foot">
       <span class="trxr-msg" id="trxrMsg"><span class="trxr-spin" id="trxrSpin"></span><span id="trxrMsgTxt">Listo para generar</span></span>
+      <button type="button" class="trxr-btn data" id="trxrData" title="Leer Nivel de Servicio y Calidad para la planta y semana elegidas y llenar el formulario">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Traer datos reales
+      </button>
       <button type="button" class="trxr-btn ghost" id="trxrAuto" title="Redactar solo los textos a partir de los numeros">
         <svg viewBox="0 0 24 24"><path d="M12 3l1.9 4.8L19 9.5l-4.1 2.9L16 18l-4-2.6L8 18l1.1-5.6L5 9.5l5.1-1.7z"/></svg>
         Autollenar textos
@@ -2206,6 +2213,21 @@ Comunicar al cliente el plan de recuperacion y los compromisos especificos por r
   }
   const btnAuto=document.getElementById('trxrAuto');
   if(btnAuto) btnAuto.addEventListener('click', function(){ autoFill(true); setMsg('✓ Textos autollenados a partir de los números','ok'); });
+
+  const btnData=document.getElementById('trxrData');
+  if(btnData) btnData.addEventListener('click', async function(){
+    if(isNaN(parseInt(val('f_sem_ini'),10))){ setMsg('Escribe la semana inicial','err'); return; }
+    btnData.disabled=true; btnGen.disabled=true;
+    setMsg('Leyendo tableros (Nivel de Servicio y Calidad)…','load');
+    try{
+      const info=await pullReal();
+      autoFill(true);
+      const extra = info.sinClasif>0 ? (' · '+info.sinClasif+' tarde sin motivo en Comentarios') : '';
+      setMsg('✓ '+(val('f_planta')||'Planta')+': '+info.viajes+' viajes cargados del tablero'+extra,'ok');
+    }catch(e){
+      setMsg('No pude leer los tableros: '+(e&&e.message?e.message:'error'),'err');
+    }finally{ btnData.disabled=false; btnGen.disabled=false; }
+  });
 
   /* ======= LECTURA DE DATOS REALES DE LOS TABLEROS ======= */
   const NS_SHEET_ID='1YZG92UT4EI8VbNoKy0Vm0mWrujTr-8mSccJHphswKeg'; // base Settepi Garcia
