@@ -216,12 +216,148 @@ h1, h2, h3, .num, .card h2, .ger-stat .num, .rango-card .num, .ideal-kpi .num,
   50% { opacity:0.4; }
 }
 
-/* ========== MOTOR DE RUTAS ========== */
+/* ========== LOADER CENTRADO (overlay con card KM VACÍO) ========== */
+.loader-overlay {
+  position:fixed; inset:0; z-index:99999;
+  background:radial-gradient(ellipse at center, rgba(15,23,42,0.92) 0%, rgba(2,6,23,0.96) 100%);
+  backdrop-filter:blur(6px);
+  display:flex; align-items:center; justify-content:center;
+  animation:loaderFadeIn 0.25s ease-out;
+  padding:20px;
+}
+.loader-overlay.hidden { display:none; }
+.loader-overlay.fade-out {
+  animation:loaderFadeOut 0.4s ease-out forwards;
+}
+@keyframes loaderFadeIn {
+  from { opacity:0; }
+  to   { opacity:1; }
+}
+@keyframes loaderFadeOut {
+  from { opacity:1; }
+  to   { opacity:0; visibility:hidden; }
+}
+
+/* Card central con glassmorphism sutil */
+.loader-card {
+  display:flex; flex-direction:column; align-items:center;
+  gap:24px;
+  padding:48px 60px;
+  background:rgba(30,41,59,0.5);
+  border:1px solid rgba(163,230,53,0.18);
+  border-radius:20px;
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.4),
+    0 0 80px rgba(163,230,53,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+  min-width:360px;
+  max-width:420px;
+  text-align:center;
+  animation:loaderCardIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes loaderCardIn {
+  from { opacity:0; transform:translateY(14px) scale(0.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+
+/* Brand */
+.loader-brand {
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+.loader-brand-title {
+  font-size:36px;
+  font-weight:900;
+  color:#a3e635;
+  letter-spacing:4px;
+  line-height:1;
+  text-shadow:
+    0 0 24px rgba(163,230,53,0.4),
+    0 0 48px rgba(163,230,53,0.2);
+  font-family:'Inter', sans-serif;
+  animation:loaderGlow 2.5s ease-in-out infinite;
+}
+@keyframes loaderGlow {
+  0%, 100% { text-shadow:0 0 24px rgba(163,230,53,0.4), 0 0 48px rgba(163,230,53,0.2); }
+  50%      { text-shadow:0 0 32px rgba(163,230,53,0.6), 0 0 64px rgba(163,230,53,0.35); }
+}
+.loader-brand-sub {
+  font-size:9.5px;
+  font-weight:700;
+  color:#64748b;
+  letter-spacing:3.5px;
+  text-transform:uppercase;
+  font-family:'Inter', sans-serif;
+}
+
+/* Barra de progreso indefinida minimalista */
+.loader-progress {
+  width:100%;
+  height:3px;
+  background:rgba(163,230,53,0.08);
+  border-radius:2px;
+  overflow:hidden;
+  position:relative;
+}
+.loader-progress-bar {
+  position:absolute; top:0; left:0; bottom:0;
+  width:40%;
+  background:linear-gradient(90deg, transparent 0%, #a3e635 50%, transparent 100%);
+  border-radius:2px;
+  box-shadow:0 0 12px rgba(163,230,53,0.5);
+  animation:loaderBar 1.4s ease-in-out infinite;
+}
+@keyframes loaderBar {
+  0%   { left:-40%; }
+  100% { left:100%; }
+}
+
+/* Textos */
+.loader-text {
+  color:#fff;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  font-family:'Inter', sans-serif;
+  margin-top:-4px;
+}
+.loader-sub {
+  color:#94a3b8;
+  font-size:11px;
+  font-weight:500;
+  letter-spacing:0.3px;
+  font-family:'Inter', sans-serif;
+  margin-top:-18px;
+  line-height:1.4;
+}
+
+/* Tres puntos pulsantes decorativos (ritmo) */
+.loader-dots {
+  display:flex; gap:6px; align-items:center;
+  margin-top:-4px;
+}
+.loader-dots span {
+  width:6px; height:6px; border-radius:50%;
+  background:#a3e635;
+  opacity:0.3;
+  animation:loaderDot 1.4s ease-in-out infinite;
+}
+.loader-dots span:nth-child(1) { animation-delay:0s; }
+.loader-dots span:nth-child(2) { animation-delay:0.2s; }
+.loader-dots span:nth-child(3) { animation-delay:0.4s; }
+@keyframes loaderDot {
+  0%, 60%, 100% { opacity:0.3; transform:scale(1); }
+  30%           { opacity:1;   transform:scale(1.3); box-shadow:0 0 8px rgba(163,230,53,0.6); }
+}
+
+@media (max-width: 500px) {
+  .loader-card { min-width:auto; padding:36px 32px; width:100%; }
+  .loader-brand-title { font-size:28px; letter-spacing:3px; }
+}
+
+/* CSS obsoleto (motor de rutas) — mantenido vacío por compatibilidad */
 .side-motor {
-  margin-top:auto;
-  margin-bottom:16px;
-  background:rgba(30,41,59,0.6);
-  border-color:rgba(163,230,53,0.15);
+  display:none;
 }
 .motor-badge {
   margin-left:auto;
@@ -328,28 +464,98 @@ h1, h2, h3, .num, .card h2, .ger-stat .num, .rango-card .num, .ideal-kpi .num,
 
 /* Toolbar de tabla con botón exportar Excel */
 .table-toolbar {
-  display:flex; align-items:center; justify-content:space-between;
-  margin-bottom:8px; padding:0 2px;
+  display:flex; align-items:flex-start; justify-content:space-between;
+  margin-bottom:10px; padding:0 2px;
   gap:12px; flex-wrap:wrap;
 }
 .table-toolbar-info {
   font-size:12px; color:#64748b; font-weight:500;
+  flex:1;
 }
 .table-toolbar-info b { color:#0f172a; }
+
+/* Panel de stats del filtro actual (sobre la tabla) */
+.filter-stats-wrap {
+  display:flex; flex-direction:column; gap:6px;
+}
+.filter-stats-main {
+  display:flex; align-items:center; gap:0;
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  padding:8px 4px;
+  box-shadow:0 1px 2px rgba(15,23,42,0.03);
+}
+.stat-cell {
+  padding:4px 16px;
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+  min-width:0;
+}
+.stat-num {
+  font-size:17px; font-weight:800; color:#0f172a;
+  line-height:1; letter-spacing:-0.5px;
+  font-variant-numeric:tabular-nums;
+}
+.stat-lbl {
+  font-size:9px; color:#94a3b8;
+  text-transform:uppercase; letter-spacing:0.6px;
+  font-weight:700; white-space:nowrap;
+}
+.stat-divider {
+  width:1px; height:28px;
+  background:#e2e8f0;
+  flex-shrink:0;
+}
+.stat-mini-rangos {
+  flex-direction:row; gap:5px; padding:4px 12px;
+}
+.mini-r {
+  display:inline-flex; align-items:center; gap:3px;
+  padding:3px 7px;
+  border-radius:5px;
+  font-size:10px; font-weight:600;
+  letter-spacing:0.2px;
+  white-space:nowrap;
+  border:1px solid;
+}
+.mini-r b {
+  font-size:11px; font-weight:800;
+  font-variant-numeric:tabular-nums;
+}
+.mini-r-ok   { background:#f0fdf4; color:#166534; border-color:#bbf7d0; }
+.mini-r-mid  { background:#fefce8; color:#854d0e; border-color:#fde68a; }
+.mini-r-warn { background:#fff7ed; color:#9a3412; border-color:#fed7aa; }
+.mini-r-bad  { background:#fef2f2; color:#991b1b; border-color:#fecaca; }
+
+.filter-chips {
+  display:flex; flex-wrap:wrap; gap:5px;
+}
+.filter-chip {
+  display:inline-flex; align-items:center;
+  padding:3px 10px;
+  background:#eff6ff;
+  color:#1e40af;
+  border:1px solid #bfdbfe;
+  border-radius:12px;
+  font-size:10px; font-weight:700;
+  letter-spacing:0.2px;
+}
 .btn-descargar-excel {
-  padding:8px 16px;
+  padding:5px 11px;
   background:#16a34a; color:#fff;
-  border:none; border-radius:8px;
-  font-size:12px; font-weight:700;
+  border:none; border-radius:6px;
+  font-size:10.5px; font-weight:700;
   cursor:pointer;
-  display:inline-flex; align-items:center; gap:6px;
-  box-shadow:0 2px 6px rgba(22,163,74,0.25);
+  display:inline-flex; align-items:center; gap:4px;
+  box-shadow:0 1px 3px rgba(22,163,74,0.2);
   transition:all 0.15s;
+  letter-spacing:0.2px;
+  line-height:1.3;
 }
 .btn-descargar-excel:hover {
   background:#15803d;
   transform:translateY(-1px);
-  box-shadow:0 4px 10px rgba(22,163,74,0.35);
+  box-shadow:0 3px 8px rgba(22,163,74,0.3);
 }
 .btn-descargar-excel:disabled {
   opacity:0.5; cursor:not-allowed; transform:none; box-shadow:none;
@@ -1570,11 +1776,162 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
   font-style:italic;
 }
 
-/* ============ ÍNDICE / LISTADO DE OPERADORES CRÍTICOS ============ */
+/* ============ LISTADO COMPLETO DE OPERADORES (vista alternativas) ============ */
+.alt-list-wrap {
+  background:#fff;
+  border-radius:12px;
+  overflow:hidden;
+  box-shadow:0 2px 10px rgba(15,23,42,0.08);
+  border:1px solid #e2e8f0;
+  margin-bottom:14px;
+}
+.alt-list-row {
+  border-bottom:1px solid #f1f5f9;
+  cursor:pointer;
+  transition:background 0.1s;
+  background:#fff;
+}
+.alt-list-row:last-child { border-bottom:none; }
+.alt-list-row:hover { background:#f8fafc; }
+.alt-list-row.expandido {
+  background:#f8fafc;
+}
+.alt-list-row.expandido .alt-list-head {
+  border-bottom:1px solid #e2e8f0;
+}
+.alt-list-row.expandido .alt-list-chevron {
+  transform:rotate(180deg);
+  color:#a3e635;
+}
+.alt-list-head {
+  display:grid;
+  grid-template-columns:78px 1fr auto 22px;
+  gap:14px;
+  align-items:center;
+  padding:9px 16px;
+}
+.alt-list-km {
+  text-align:center;
+  padding:5px 8px;
+  border-radius:7px;
+  border:1px solid;
+  line-height:1;
+}
+.alt-list-km-num {
+  font-size:18px; font-weight:800;
+  letter-spacing:-0.5px;
+  font-variant-numeric:tabular-nums;
+}
+.alt-list-km-lbl {
+  font-size:8.5px; font-weight:700;
+  margin-top:2px;
+  letter-spacing:0.3px;
+  opacity:0.85;
+}
+.alt-list-km.ok   { background:#f0fdf4; border-color:#bbf7d0; color:#166534; }
+.alt-list-km.mid  { background:#fefce8; border-color:#fde68a; color:#854d0e; }
+.alt-list-km.warn { background:#fff7ed; border-color:#fed7aa; color:#9a3412; }
+.alt-list-km.bad  { background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+.alt-list-info {
+  min-width:0;
+  overflow:hidden;
+}
+.alt-list-nombre {
+  font-size:13.5px; font-weight:700; color:#0f172a;
+  letter-spacing:-0.2px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.alt-list-detalles {
+  font-size:10.5px; color:#64748b;
+  margin-top:3px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.alt-list-detalles b { color:#334155; font-weight:700; }
+.alt-list-status {
+  padding:4px 11px;
+  border-radius:12px;
+  font-size:10px; font-weight:800;
+  letter-spacing:0.5px;
+  white-space:nowrap;
+  text-transform:uppercase;
+}
+.alt-list-status.buena { background:#dcfce7; color:#166534; border:1px solid #86efac; }
+.alt-list-status.baja  { background:#fef3c7; color:#78350f; border:1px solid #fde68a; }
+.alt-list-status.sin   { background:#f1f5f9; color:#64748b; border:1px solid #e2e8f0; }
+.alt-list-chevron {
+  color:#cbd5e1;
+  font-size:14px; font-weight:700;
+  transition:transform 0.2s, color 0.2s;
+  text-align:center;
+}
+.alt-list-body {
+  padding:0;
+  background:linear-gradient(to bottom, #f8fafc 0%, #ffffff 100%);
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 0.25s ease-out;
+}
+.alt-list-row.expandido .alt-list-body {
+  padding:12px 16px 14px 16px;
+  max-height:none;
+  overflow:visible;
+}
+
+.alt-opciones-wrap { display:flex; flex-direction:column; gap:6px; }
+.alt-opciones-header {
+  font-size:11px; color:#475569;
+  padding:4px 10px;
+  background:#fff;
+  border-left:3px solid #a3e635;
+  border-radius:0 6px 6px 0;
+  margin-bottom:6px;
+}
+.alt-opciones-header b { color:#0f172a; font-weight:700; }
+
+.alt-empty-expanded {
+  text-align:center;
+  padding:28px 20px;
+  background:#fff;
+  border-radius:10px;
+  color:#64748b;
+}
+.alt-empty-icon { font-size:32px; margin-bottom:8px; }
+.alt-empty-title {
+  font-size:13px; font-weight:700; color:#475569;
+  margin-bottom:6px;
+}
+.alt-empty-text {
+  font-size:11.5px; color:#64748b;
+  max-width:480px; margin:0 auto;
+  line-height:1.5;
+}
+.alt-empty-text b { color:#0f172a; }
+
+.alt-benef {
+  display:inline-block;
+  margin-left:6px;
+  padding:1px 6px;
+  background:#dcfce7; color:#166534;
+  border-radius:4px;
+  font-size:9.5px; font-weight:800;
+  letter-spacing:0.2px;
+  font-variant-numeric:tabular-nums;
+}
+
+.alt-list-help {
+  padding:8px 18px;
+  background:#f8fafc;
+  border-top:1px solid #e2e8f0;
+  font-size:11px; color:#475569;
+  line-height:1.5;
+}
+.alt-list-help b { color:#0f172a; }
+
+/* Compatibilidad: estilos antiguos del índice (siguen siendo usados en el header) */
 .alt-indice {
   background:#fff;
   border-radius:12px;
-  margin-bottom:20px;
+  margin-bottom:12px;
   overflow:hidden;
   box-shadow:0 2px 10px rgba(15,23,42,0.08);
   border:1px solid #e2e8f0;
@@ -2824,7 +3181,7 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
 /* TARJETAS DE RANGOS (semáforo) */
 .rangos {
   display:grid; grid-template-columns:repeat(4,1fr);
-  gap:10px; margin-bottom:12px;
+  gap:10px; margin-bottom:0;
 }
 .rango-card {
   background:#fff; padding:9px 13px; border-radius:10px;
@@ -2928,18 +3285,46 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
 }
 
 /* COMPARATIVA POR GERENCIA */
+/* ===== BLOQUES KPI (SETTEPI GARCIA / POR GERENCIA) ===== */
+.kpi-block {
+  margin-bottom:12px;
+}
+.kpi-block-title {
+  display:flex; align-items:center; gap:10px;
+  font-size:10px; font-weight:800;
+  color:#0f172a;
+  letter-spacing:1.4px;
+  text-transform:uppercase;
+  padding:0 2px 7px 2px;
+  border-bottom:1px solid #e2e8f0;
+  margin-bottom:8px;
+}
+.kpi-block-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:#a3e635;
+  box-shadow:0 0 6px rgba(163,230,53,0.55);
+  flex-shrink:0;
+}
+.kpi-block-sub {
+  font-size:9.5px; color:#94a3b8;
+  font-weight:600;
+  letter-spacing:0.3px;
+  text-transform:none;
+  margin-left:auto;
+}
+
+/* ===== TARJETAS DE GERENCIA (compactas con 4 rangos) ===== */
 .gerencias-comp {
   display:grid; grid-template-columns:repeat(3,1fr);
-  gap:10px; margin-bottom:12px;
+  gap:10px; margin-bottom:0;
 }
 .ger-card {
-  background:#fff; padding:10px 14px; border-radius:10px;
+  background:#fff; padding:10px 13px; border-radius:10px;
   box-shadow:0 1px 3px rgba(15,23,42,0.06);
   border-left:3px solid #0f172a;
   transition:transform 0.15s, box-shadow 0.15s;
 }
 .ger-card:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(15,23,42,0.09); }
-/* Todas las gerencias comparten el mismo estilo, sin colores distintivos */
 .ger-card.eric,
 .ger-card.omar,
 .ger-card.miguel,
@@ -2949,36 +3334,61 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
 }
 .ger-head {
   display:flex; justify-content:space-between; align-items:baseline;
-  margin-bottom:10px;
-  padding-bottom:8px;
+  margin-bottom:9px;
+  padding-bottom:7px;
   border-bottom:1px solid #f1f5f9;
 }
 .ger-name {
-  font-weight:700; font-size:13px; color:#0f172a;
+  font-weight:800; font-size:13px; color:#0f172a;
   letter-spacing:-0.3px;
 }
-.ger-ops {
-  font-size:10px; color:#94a3b8; font-weight:600;
+.ger-head-stats {
+  display:flex; gap:9px; align-items:baseline;
+  font-size:10px; font-weight:700;
   letter-spacing:-0.1px;
 }
-.ger-stats {
-  display:grid; grid-template-columns:repeat(3,1fr); gap:8px;
+.ger-ops   { color:#0f172a; }
+.ger-prom  { color:#64748b; }
+
+/* Grid 4 columnas: los 4 rangos como mini chips */
+.ger-rangos {
+  display:grid; grid-template-columns:repeat(4, 1fr); gap:5px;
 }
-.ger-stat { text-align:center; }
-.ger-stat .num {
-  font-size:20px; font-weight:800; line-height:1;
-  color:#0f172a;                    /* mismo color para todos los números */
+.ger-r {
+  display:flex; flex-direction:column; align-items:center;
+  padding:6px 4px;
+  border-radius:7px;
+  border:1px solid transparent;
+  text-align:center;
+  line-height:1.1;
+  transition:transform 0.1s;
+}
+.ger-r:hover { transform:translateY(-1px); }
+.ger-r .num {
+  font-size:17px; font-weight:800;
   letter-spacing:-0.5px;
+  font-variant-numeric:tabular-nums;
 }
-.ger-stat .lbl {
-  font-size:9px; color:#94a3b8; margin-top:4px;
-  text-transform:uppercase; letter-spacing:0.6px; font-weight:700;
+.ger-r .lbl {
+  font-size:8.5px; font-weight:700;
+  margin-top:2px;
+  letter-spacing:0.2px;
+  opacity:0.85;
 }
-/* Pequeño indicador de color arriba del número (delgado, sutil, discreto) */
-.ger-stat.ok  .num::before { content:''; }
-.ger-stat.bad .num::before { content:''; }
-.ger-stat.avg .num::before { content:''; }
-/* Alternativamente: mantener acento sutil con un solo tono (opcional, actualmente OFF) */
+.ger-r .pct {
+  font-size:8px; font-weight:600;
+  margin-top:1px;
+  opacity:0.6;
+  font-variant-numeric:tabular-nums;
+}
+.ger-r-ok   { background:#f0fdf4; border-color:#bbf7d0; }
+.ger-r-ok   .num, .ger-r-ok   .lbl, .ger-r-ok   .pct { color:#166534; }
+.ger-r-mid  { background:#fefce8; border-color:#fde68a; }
+.ger-r-mid  .num, .ger-r-mid  .lbl, .ger-r-mid  .pct { color:#854d0e; }
+.ger-r-warn { background:#fff7ed; border-color:#fed7aa; }
+.ger-r-warn .num, .ger-r-warn .lbl, .ger-r-warn .pct { color:#9a3412; }
+.ger-r-bad  { background:#fef2f2; border-color:#fecaca; }
+.ger-r-bad  .num, .ger-r-bad  .lbl, .ger-r-bad  .pct { color:#991b1b; }
 </style>
 </head>
 
@@ -3036,27 +3446,29 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
     <span class="side-status-text">Conectando...</span>
   </div>
 
-  <div class="side-section side-motor">
-    <div class="side-section-label">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-      MOTOR DE RUTAS
-      <span class="motor-badge" id="orsBadge">OSRM</span>
+  <!-- Motor de rutas eliminado del sidebar (se mantienen inputs ocultos para no romper el código) -->
+  <span id="orsBadge" style="display:none">OSRM</span>
+  <span id="orsStatus" style="display:none"></span>
+  <input type="password" id="orsKeyInput" style="display:none" />
+  <button id="orsKeySave" style="display:none"></button>
+  <button id="orsKeyClear" style="display:none"></button>
+</div>
+
+<!-- Loader centrado con logo KM VACÍO (visible al cargar datos) -->
+<div class="loader-overlay" id="loaderOverlay">
+  <div class="loader-card">
+    <div class="loader-brand">
+      <div class="loader-brand-title">KM VACÍO</div>
+      <div class="loader-brand-sub">TRAXIÓN · FLOTA BAU</div>
     </div>
-    <details class="side-details">
-      <summary class="side-details-toggle">Configurar API</summary>
-      <div class="side-details-body">
-        <div class="motor-status" id="orsStatus">Usando OSRM (rutas básicas)</div>
-        <label class="motor-lbl">API Key de OpenRouteService:</label>
-        <input type="password" id="orsKeyInput" class="motor-input" placeholder="Pega tu API key..." />
-        <div class="motor-buttons">
-          <button id="orsKeySave" class="motor-btn primary">Guardar</button>
-          <button id="orsKeyClear" class="motor-btn ghost" style="display:none">Quitar</button>
-        </div>
-        <div class="motor-help">
-          Gratis en <a href="https://openrouteservice.org/dev/#/signup" target="_blank">openrouteservice.org</a> — 2000 rutas/día con perfil HGV.
-        </div>
-      </div>
-    </details>
+    <div class="loader-progress">
+      <div class="loader-progress-bar"></div>
+    </div>
+    <div class="loader-text" id="loaderText">Cargando datos</div>
+    <div class="loader-sub" id="loaderSub">Descargando información desde Google Sheets</div>
+    <div class="loader-dots">
+      <span></span><span></span><span></span>
+    </div>
   </div>
 </div>
 
@@ -3065,7 +3477,7 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
   <!-- TAB: KILOMETRAJE VACÍO -->
   <section id="tab-km" class="tab active">
 
-    <!-- KPIs superiores ocultos (los datos clave están en las tarjetas de gerentes y rangos) -->
+    <!-- KPIs superiores ocultos (se siguen calculando internamente) -->
     <div class="kpis" style="display:none">
       <div class="card kpi-total"><h2 id="totalKM">0</h2><p>KM Vacío Total</p><small class="kpi-sub" id="totalKMSub"></small></div>
       <div class="card kpi-prom"><h2 id="promedioKM">0</h2><p>Promedio KM</p><small class="kpi-sub" id="promedioKMSub"></small></div>
@@ -3073,9 +3485,25 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
       <div class="card kpi-mayor"><h2 id="mayorKM">0</h2><p>Mayor KM</p><small class="kpi-sub" id="mayorKMSub"></small></div>
     </div>
 
-    <div class="gerencias-comp" id="comparativaGerencias"></div>
+    <!-- BLOQUE 1 · KPI SETTEPI GARCIA (global, todos los operadores) -->
+    <div class="kpi-block">
+      <div class="kpi-block-title">
+        <span class="kpi-block-dot"></span>
+        KPI SETTEPI GARCIA
+        <span class="kpi-block-sub">Datos consolidados · Toda la operación</span>
+      </div>
+      <div class="rangos" id="rangosCards"></div>
+    </div>
 
-    <div class="rangos" id="rangosCards"></div>
+    <!-- BLOQUE 2 · KPI POR GERENCIA -->
+    <div class="kpi-block">
+      <div class="kpi-block-title">
+        <span class="kpi-block-dot"></span>
+        KPI POR GERENCIA
+        <span class="kpi-block-sub">Distribución por gerente · Rangos individuales</span>
+      </div>
+      <div class="gerencias-comp" id="comparativaGerencias"></div>
+    </div>
 
     <div class="filters">
       <div class="op-selector-wrap">
@@ -3347,7 +3775,7 @@ tr.selected .nom-chip { background:#bfdbfe; color:#1e40af; }
       <span class="lbl">Filtro:</span>
       <select id="cuadGerencia">
         <option value="">Todas las gerencias</option>
-        <option value="ERICK SANDOVAL">ERICK SANDOVAL</option>
+        <option value="ERIC SANDOVAL">ERIC SANDOVAL</option>
         <option value="OMAR GONZALEZ">OMAR GONZALEZ</option>
         <option value="MIGUEL GRANADOS">MIGUEL GRANADOS</option>
       </select>
@@ -3643,53 +4071,57 @@ const COL = {
   driverRosterId: 5, unidad: 21
 };
 
-// Asignaciones oficiales (actualizadas): CLIENTE → JEFE, GERENTE
+// Asignaciones oficiales (actualizadas noviembre 2026): CLIENTE → JEFE, GERENTE
 const JEFES_POR_PLANTA = {
   'ACU-ACUMENT':'MIGUEL GRANADOS','ALC-ALCALI':'MIGUEL GRANADOS','AMD-AMD':'JOEL MENA',
   'BRU-BRUNNEN':'MIGUEL GRANADOS','BWY-BRAZEWAY':'RAUL MARTINEZ','CON-CONMET':'JULIO GANDARA',
-  'DND-DONALDSON':'RAUL MARTINEZ','EMC-EMPAQUES CARVAJAL':'HUMBERTO PALOMARES',
-  'EYA-ENERYA':'JOEL MENA','FMI-FANTASIAS MIGUEL':'JOEL MENA','GAL-GRUPO ALEN':'HUMBERTO PALOMARES',
-  'GIN-GINO':'HUMBERTO PALOMARES','GON-GONHER':'JOEL MENA','GRA-ARTIGRAF':'JOEL MENA',
-  'HAR-HARIMASA':'MIGUEL GRANADOS','JOH-JOHN DEERE':'HUMBERTO PALOMARES',
-  'LBL-LUBRAL':'JOEL MENA','MOL-MOLISABA':'MIGUEL GRANADOS','MRM-MRM MTY':'JOEL MENA',
+  'DND-DONALDSON':'RAUL MARTINEZ','EMC-EMPAQUES CARVAJAL':'JULIO LOPEZ',
+  'EYA-ENERYA':'JOEL MENA','FMI-FANTASIAS MIGUEL':'JOEL MENA','GAL-GRUPO ALEN':'JULIO LOPEZ',
+  'GIN-GINO':'MIGUEL GRANADOS','GON-GONHER':'JOEL MENA','GRA-ARTIGRAF':'JOEL MENA',
+  'HAR-HARIMASA':'MIGUEL GRANADOS','JOH-JOHN DEERE':'JULIO LOPEZ',
+  'LBL-LUBRAL':'JOEL MENA','MOL-MOLISABA':'MIGUEL GRANADOS','MRM-MRM MTY':'MIGUEL GRANADOS',
   'NAV-NAVISTAR':'RAUL MARTINEZ','NEM-NEMAK':'ABRAHAM COBOS','NOV-NOVEM':'JOEL MENA',
   'REG-MARATHON':'JOEL MENA','REG-REGAL MARATHON':'JOEL MENA','REH-REHAU':'MIGUEL GRANADOS',
   'RYC-RYDER CIENEGA':'JULIO GANDARA','RYD-RYDER GARCIA':'MIGUEL GRANADOS',
-  'SID-GRUPO SID GARCIA':'JOEL MENA','STD-SANTANDER MTY':'MIGUEL GRANADOS',
-  'TSO-TIENDAS SORIANA':'HUMBERTO PALOMARES','VIT-VITRO':'MIGUEL GRANADOS',
-  'VTE-VERTEX MTY':'JOEL MENA','YAN-YANFENG':'JULIO GANDARA','YKE-YANFENG - KEIPER':'JULIO GANDARA'
+  'SID-GRUPO SID GARCIA':'JOEL MENA','STD-SANTANDER MTY':'JOEL MENA',
+  'TSO-TIENDAS SORIANA':'JULIO LOPEZ','VIT-VITRO':'MIGUEL GRANADOS',
+  'VTE-VERTEX MTY':'JOEL MENA','YAN-YANFENG':'JULIO GANDARA','YKE-YANFENG - KEIPER':'JULIO GANDARA',
+  'SIT MANUFACTURING':'JULIO GANDARA','BAT-BRITISH AMERICAN TOBACCO MEXICO':'ABRAHAM COBOS',
+  'BAT-BRITISH AMERICAN TOBACCO':'ABRAHAM COBOS'
 };
 
 const GERENTES_POR_JEFE = {
-  // Nuevas asignaciones actualizadas
   'MIGUEL GRANADOS':'MIGUEL GRANADOS',
-  'JOEL MENA':'ERICK SANDOVAL',
+  'JULIO LOPEZ':'MIGUEL GRANADOS',
+  'JOEL MENA':'ERIC SANDOVAL',
+  'ABRAHAM COBOS':'ERIC SANDOVAL',
   'RAUL MARTINEZ':'OMAR GONZALEZ',
-  'JULIO GANDARA':'OMAR GONZALEZ',
-  'HUMBERTO PALOMARES':'MIGUEL GRANADOS',
-  'ABRAHAM COBOS':'ERICK SANDOVAL'
+  'JULIO GANDARA':'OMAR GONZALEZ'
 };
 
-// Coordinador por planta + subdivisión (F1, F2, N1, J1, etc.)
-// La subdivisión se detecta por el prefijo de la ruta (antes del primer guión)
+// Coordinador por planta (cuando NO hay subdivisión en la ruta)
 const COORDINADOR_PLANTA = {
   'ACU-ACUMENT':'EDGAR DE LA CRUZ','ALC-ALCALI':'HERNAN RUBIO','AMD-AMD':'IRVING GONZALEZ',
   'BRU-BRUNNEN':'EDGAR DE LA CRUZ','BWY-BRAZEWAY':'OSCAR LUCIO','DND-DONALDSON':'FERNANDO ESPINOZA',
   'EMC-EMPAQUES CARVAJAL':'IXCATL OLAZARAN','EYA-ENERYA':'IRVING GONZALEZ',
   'FMI-FANTASIAS MIGUEL':'GABRIEL MORALES','GAL-GRUPO ALEN':'IXCATL OLAZARAN',
-  'GIN-GINO':'ANGEL ORTIZ','GON-GONHER':'IRVING GONZALEZ','GRA-ARTIGRAF':'DANIEL CASTILLO',
-  'HAR-HARIMASA':'MANUEL AVALOS','LBL-LUBRAL':'DANIEL CASTILLO','MOL-MOLISABA':'EDGAR DE LA CRUZ',
-  'MRM-MRM MTY':'DANIEL CASTILLO','NOV-NOVEM':'GABRIEL MORALES','REG-MARATHON':'GABRIEL MORALES',
+  'GIN-GINO':'ANGEL ORTIZ','GON-GONHER':'IRVING GONZALEZ','GRA-ARTIGRAF':'IRVING GONZALEZ',
+  'HAR-HARIMASA':'MANUEL AVALOS','LBL-LUBRAL':'IRVING GONZALEZ','MOL-MOLISABA':'EDGAR DE LA CRUZ',
+  'MRM-MRM MTY':'EDGAR DE LA CRUZ','NOV-NOVEM':'GABRIEL MORALES','REG-MARATHON':'GABRIEL MORALES',
   'REG-REGAL MARATHON':'GABRIEL MORALES','REH-REHAU':'HERNAN RUBIO','RYC-RYDER CIENEGA':'ANDRES CARREON',
-  'RYD-RYDER GARCIA':'MANUEL AVALOS','SID-GRUPO SID GARCIA':'DANIEL CASTILLO',
-  'STD-SANTANDER MTY':'EDGAR DE LA CRUZ','TSO-TIENDAS SORIANA':'ANGEL ORTIZ',
-  'VTE-VERTEX MTY':'DANIEL CASTILLO','YAN-YANFENG':'ANDRES CARREON','YKE-YANFENG - KEIPER':'ANDRES CARREON',
-  'SIT MANUFACTURING':'OMAR HERNANDEZ'
+  'RYD-RYDER GARCIA':'MANUEL AVALOS','SID-GRUPO SID GARCIA':'IRVING GONZALEZ',
+  'STD-SANTANDER MTY':'IRVING GONZALEZ','TSO-TIENDAS SORIANA':'ANGEL ORTIZ',
+  'VTE-VERTEX MTY':'IRVING GONZALEZ','YAN-YANFENG':'ANDRES CARREON','YKE-YANFENG - KEIPER':'ANDRES CARREON',
+  'SIT MANUFACTURING':'OMAR HERNANDEZ',
+  'BAT-BRITISH AMERICAN TOBACCO MEXICO':'DIEGO SANCHEZ',
+  'BAT-BRITISH AMERICAN TOBACCO':'DIEGO SANCHEZ'
 };
+// Coordinador por planta + subdivisión (F1, F2, F3, F4, N1-N4, J1, J2, V1, V2)
 const COORDINADOR_SUBDIV = {
   'CON-CONMET|F1':'EFREN PEREZ CRUZ','CON-CONMET|F2':'ROBERTO MTZ',
-  'JOH-JOHN DEERE|J1':'MANUEL AVALOS','JOH-JOHN DEERE|J2':'ANGEL ORTIZ',
-  'NAV-NAVISTAR|N1':'IVAN IBARRA','NAV-NAVISTAR|N2':'ALBERTO ORTA',
+  'CON-CONMET|F3':'FRIDA MUÑIZ','CON-CONMET|F4':'FRIDA MUÑIZ',
+  'JOH-JOHN DEERE|J1':'ANGEL ORTIZ','JOH-JOHN DEERE|J2':'ANGEL ORTIZ',
+  'NAV-NAVISTAR|N1':'IVAN IBARRA','NAV-NAVISTAR|N2':'ANGEL JIMENEZ',
   'NAV-NAVISTAR|N3':'NICOLAS ROCHA','NAV-NAVISTAR|N4':'ISAEL RODRIGUEZ',
   'NEM-NEMAK|F1':'NICOLAS CORONADO','NEM-NEMAK|F2':'DIEGO SANCHEZ','NEM-NEMAK|F3':'CELESTE LOPEZ',
   'VIT-VITRO|V1':'MANUEL AVALOS','VIT-VITRO|V2':'EDGAR DE LA CRUZ'
@@ -3726,6 +4158,25 @@ function setStatus(text, tipo) {
   const textEl = el.querySelector('.side-status-text');
   if (textEl) textEl.textContent = text;
   else el.textContent = text;  // fallback
+}
+
+// Helpers del loader centrado con logo
+function mostrarLoader(texto, subtexto) {
+  const o = document.getElementById('loaderOverlay');
+  if (!o) return;
+  o.classList.remove('hidden', 'fade-out');
+  if (texto)   document.getElementById('loaderText').textContent = texto;
+  if (subtexto !== undefined) document.getElementById('loaderSub').textContent = subtexto;
+}
+function actualizarLoader(texto, subtexto) {
+  if (texto !== undefined)   document.getElementById('loaderText').textContent = texto;
+  if (subtexto !== undefined) document.getElementById('loaderSub').textContent = subtexto;
+}
+function ocultarLoader() {
+  const o = document.getElementById('loaderOverlay');
+  if (!o || o.classList.contains('hidden')) return;
+  o.classList.add('fade-out');
+  setTimeout(() => o.classList.add('hidden'), 350);
 }
 let operadorSel = null;
 // Semanas: guardamos los datos crudos y filtramos por semana en tiempo real
@@ -4200,37 +4651,43 @@ function renderComparativaGerencias() {
   operadores.forEach(o => {
     const g = o.gerente;
     if (!g || g === 'SIN ASIGNAR') return;
-    if (!porGer[g]) porGer[g] = { ops: 0, sumaKm: 0, lt5: 0, gt15: 0 };
+    if (!porGer[g]) porGer[g] = { ops:0, sumaKm:0, r1:0, r2:0, r3:0, r4:0 };
     porGer[g].ops++;
     porGer[g].sumaKm += o.kmVacio;
-    if (o.kmVacio < 5)   porGer[g].lt5++;
-    if (o.kmVacio >= 15) porGer[g].gt15++;
+    if (o.kmVacio < 5)                        porGer[g].r1++;
+    else if (o.kmVacio < 10)                  porGer[g].r2++;
+    else if (o.kmVacio < 15)                  porGer[g].r3++;
+    else                                       porGer[g].r4++;
   });
 
-  const orden = ['ERICK SANDOVAL', 'OMAR GONZALEZ', 'MIGUEL GRANADOS'];
-  const cls = { 'ERICK SANDOVAL': 'eric', 'OMAR GONZALEZ': 'omar', 'MIGUEL GRANADOS': 'miguel' };
+  const orden = ['ERIC SANDOVAL', 'OMAR GONZALEZ', 'MIGUEL GRANADOS'];
+  const cls = { 'ERIC SANDOVAL': 'eric', 'OMAR GONZALEZ': 'omar', 'MIGUEL GRANADOS': 'miguel' };
 
   cont.innerHTML = orden.map(g => {
-    const d = porGer[g] || { ops: 0, sumaKm: 0, lt5: 0, gt15: 0 };
+    const d = porGer[g] || { ops:0, sumaKm:0, r1:0, r2:0, r3:0, r4:0 };
     const prom = d.ops ? (d.sumaKm / d.ops) : 0;
+    const pct = (n) => d.ops ? ((n / d.ops) * 100).toFixed(0) : 0;
     return `
       <div class="ger-card ${cls[g]}">
         <div class="ger-head">
           <div class="ger-name">${g}</div>
-          <div class="ger-ops">${d.ops} operadores</div>
+          <div class="ger-head-stats">
+            <span class="ger-ops">${d.ops} ops</span>
+            <span class="ger-prom">${prom.toFixed(1)} prom</span>
+          </div>
         </div>
-        <div class="ger-stats">
-          <div class="ger-stat ok">
-            <div class="num">${d.lt5}</div>
-            <div class="lbl">&lt; 5 km</div>
+        <div class="ger-rangos">
+          <div class="ger-r ger-r-ok"   title="Menos de 5 km">
+            <span class="num">${d.r1}</span><span class="lbl">&lt;5</span><span class="pct">${pct(d.r1)}%</span>
           </div>
-          <div class="ger-stat bad">
-            <div class="num">${d.gt15}</div>
-            <div class="lbl">&gt; 15 km</div>
+          <div class="ger-r ger-r-mid"  title="5 a 10 km">
+            <span class="num">${d.r2}</span><span class="lbl">5-10</span><span class="pct">${pct(d.r2)}%</span>
           </div>
-          <div class="ger-stat avg">
-            <div class="num">${prom.toFixed(1)}</div>
-            <div class="lbl">prom km</div>
+          <div class="ger-r ger-r-warn" title="10 a 15 km">
+            <span class="num">${d.r3}</span><span class="lbl">10-15</span><span class="pct">${pct(d.r3)}%</span>
+          </div>
+          <div class="ger-r ger-r-bad"  title="Más de 15 km">
+            <span class="num">${d.r4}</span><span class="lbl">&gt;15</span><span class="pct">${pct(d.r4)}%</span>
           </div>
         </div>
       </div>
@@ -4386,17 +4843,68 @@ function renderTabla() {
   const tbody = document.getElementById('tablaOperadores');
   const lista = operadoresFiltrados().sort((a, b) => b.kmVacio - a.kmVacio);
 
-  // Actualizar el info del toolbar
+  // Actualizar el info del toolbar con stats del filtro actual
   const info = document.getElementById('tableToolbarInfo');
   const btn = document.getElementById('btnDescargarExcel');
   if (info) {
     const total = operadores.length;
     if (!lista.length) {
-      info.innerHTML = 'Sin operadores para mostrar';
-    } else if (lista.length === total) {
-      info.innerHTML = `Mostrando <b>${lista.length}</b> operador${lista.length === 1 ? '' : 'es'}`;
+      info.innerHTML = '<span style="color:#94a3b8;font-style:italic">Sin operadores para mostrar</span>';
     } else {
-      info.innerHTML = `Mostrando <b>${lista.length}</b> de <b>${total}</b> operadores (con filtros)`;
+      // Calcular estadísticas del subconjunto filtrado
+      const sumaKm = lista.reduce((s, o) => s + o.kmVacio, 0);
+      const promKm = sumaKm / lista.length;
+      const maxKm = Math.max(...lista.map(o => o.kmVacio));
+      const r1 = lista.filter(o => o.kmVacio < 5).length;
+      const r2 = lista.filter(o => o.kmVacio >= 5 && o.kmVacio < 10).length;
+      const r3 = lista.filter(o => o.kmVacio >= 10 && o.kmVacio < 15).length;
+      const r4 = lista.filter(o => o.kmVacio >= 15).length;
+      const hayFiltros = lista.length !== total;
+
+      // Detectar qué filtros están activos para mostrar un chip descriptivo
+      const chips = [];
+      if (filtroPlantas.size) chips.push(`🏭 ${[...filtroPlantas].slice(0,2).join(', ')}${filtroPlantas.size > 2 ? ` +${filtroPlantas.size-2}` : ''}`);
+      if (filtroGerentes.size) chips.push(`👤 ${[...filtroGerentes].slice(0,2).join(', ')}${filtroGerentes.size > 2 ? ` +${filtroGerentes.size-2}` : ''}`);
+      if (filtroJefes.size) chips.push(`👥 ${[...filtroJefes].slice(0,2).join(', ')}${filtroJefes.size > 2 ? ` +${filtroJefes.size-2}` : ''}`);
+      if (filtroZonas && filtroZonas.size) chips.push(`🗺️ ${[...filtroZonas].slice(0,2).join(', ')}`);
+      if (filtroRutas.size) chips.push(`🚌 ${filtroRutas.size} ruta${filtroRutas.size===1?'':'s'}`);
+      const chipsHtml = chips.length
+        ? `<div class="filter-chips">${chips.map(c => `<span class="filter-chip">${c}</span>`).join('')}</div>`
+        : '';
+
+      info.innerHTML = `
+        <div class="filter-stats-wrap">
+          <div class="filter-stats-main">
+            <div class="stat-cell">
+              <div class="stat-num">${lista.length}</div>
+              <div class="stat-lbl">${hayFiltros ? `de ${total} ops` : 'Operadores'}</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-cell">
+              <div class="stat-num">${promKm.toFixed(2)}</div>
+              <div class="stat-lbl">Promedio KM</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-cell">
+              <div class="stat-num">${sumaKm.toFixed(0)}</div>
+              <div class="stat-lbl">Total KM/día</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-cell">
+              <div class="stat-num">${maxKm.toFixed(1)}</div>
+              <div class="stat-lbl">Máx KM</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-cell stat-mini-rangos">
+              <div class="mini-r mini-r-ok"   title="Menos de 5 km"><b>${r1}</b> &lt;5</div>
+              <div class="mini-r mini-r-mid"  title="5 a 10 km"><b>${r2}</b> 5-10</div>
+              <div class="mini-r mini-r-warn" title="10 a 15 km"><b>${r3}</b> 10-15</div>
+              <div class="mini-r mini-r-bad"  title="Más de 15 km"><b>${r4}</b> &gt;15</div>
+            </div>
+          </div>
+          ${chipsHtml}
+        </div>
+      `;
     }
   }
   if (btn) btn.disabled = lista.length === 0;
@@ -5933,6 +6441,15 @@ function limpiarSwapMap() {
 // de swap para cada operador crítico (>15 y 10-15). Cuando un
 // jefe descarta una, aparece la siguiente automáticamente.
 // =========================================================
+// =========================================================
+// VISTA ALTERNATIVAS (rediseñada - noviembre 2026)
+//
+// Listado de TODOS los operadores (no solo críticos), ordenados por km vacío
+// descendente. Cada operador es una fila clickeable (acordeón) que al expandir
+// muestra sus alternativas donde AMBOS operadores bajan sus km vacío (win-win).
+// =========================================================
+let altExpandidoId = null;  // id del operador cuya fila está expandida actualmente
+
 function renderSwapsAlternativas() {
   const cont = document.getElementById('tablaSwaps');
   if (!paresTodos.length) {
@@ -5940,317 +6457,308 @@ function renderSwapsAlternativas() {
     return;
   }
 
-  // 1. Identificar operadores CRÍTICOS (>15 km) y MEDIOS (10-15 km)
-  //    Aplicar los mismos filtros de modo (jefe/coord/planta) que ya definió el usuario
-  let opsCriticos = operadores.filter(o => o.diasEntreSemana.size > 3 && o.kmVacio > 15);
-  let opsMedios   = operadores.filter(o => o.diasEntreSemana.size > 3 && o.kmVacio > 10 && o.kmVacio <= 15);
+  // 1. Obtener la lista COMPLETA de operadores (no solo críticos)
+  //    y aplicar los filtros del modo actual
+  let todosOps = operadores.filter(o => o.diasEntreSemana.size > 3);
 
   if (modoSwap === 'jefe') {
-    opsCriticos = opsCriticos.filter(o => o.jefe !== 'SIN ASIGNAR');
-    opsMedios   = opsMedios.filter(o => o.jefe !== 'SIN ASIGNAR');
+    todosOps = todosOps.filter(o => o.jefe !== 'SIN ASIGNAR');
   } else if (modoSwap === 'gerencia') {
-    opsCriticos = opsCriticos.filter(o => o.gerente !== 'SIN ASIGNAR');
-    opsMedios   = opsMedios.filter(o => o.gerente !== 'SIN ASIGNAR');
+    todosOps = todosOps.filter(o => o.gerente !== 'SIN ASIGNAR');
   } else if (modoSwap === 'coordinador') {
-    opsCriticos = opsCriticos.filter(o => o.coordinador !== 'SIN ASIGNAR');
-    opsMedios   = opsMedios.filter(o => o.coordinador !== 'SIN ASIGNAR');
+    todosOps = todosOps.filter(o => o.coordinador !== 'SIN ASIGNAR');
   } else if (modoSwap === 'planta') {
     if (!plantasSwapSeleccionadas.size) {
-      cont.innerHTML = '<div class="empty">Elige al menos una planta para ver las alternativas.</div>';
+      cont.innerHTML = '<div class="empty">Elige al menos una planta para ver el listado.</div>';
       return;
     }
-    opsCriticos = opsCriticos.filter(o => plantasSwapSeleccionadas.has(o.planta));
-    opsMedios   = opsMedios.filter(o => plantasSwapSeleccionadas.has(o.planta));
+    todosOps = todosOps.filter(o => plantasSwapSeleccionadas.has(o.planta));
   }
 
-  // Ordenar críticos: peor primero
-  opsCriticos.sort((a, b) => b.kmVacio - a.kmVacio);
-  opsMedios.sort((a, b) => b.kmVacio - a.kmVacio);
+  // Ordenar de MAYOR km vacío a MENOR
+  todosOps.sort((a, b) => b.kmVacio - a.kmVacio);
 
-  const todosOps = [...opsCriticos, ...opsMedios];
   if (!todosOps.length) {
-    cont.innerHTML = '<div class="empty">🎉 No hay operadores en zona crítica (>10 km) con este filtro.</div>';
+    cont.innerHTML = '<div class="empty">Sin operadores en este filtro.</div>';
     return;
   }
 
-  // 2. Para cada operador crítico, encontrar todas las alternativas en paresTodos
-  //    donde ese operador aparece Y ambos quedan <=12 km después del swap
-  const MAX_ALTS = 5;
-  const bloques = todosOps.map(op => {
-    const alts = paresTodos.filter(p => (p.A.id === op.id || p.B.id === op.id))
-      .map(p => {
-        // Asegurar que "A" siempre sea el operador principal
-        const esA = p.A.id === op.id;
-        return {
-          principal: esA ? p.A : p.B,
-          alt: esA ? p.B : p.A,
-          kmPrincipalNuevo: esA ? p.nuevoA : p.nuevoB,
-          kmAltNuevo: esA ? p.nuevoB : p.nuevoA,
-          ahorro: p.ahorro,
-          rescate: p.rescate,
-          rescateMedio: p.rescateMedio || 0,
-          swapOriginal: p,
-          swapIdxEnRecomendados: swapsRecomendados.findIndex(s => swapId(s) === swapId(p))
-        };
-      })
-      .filter(a => {
-        // REGLA 1: el ALT (el otro operador del swap) también debe estar >10 km actualmente.
-        // Solo emparejamos operadores que YA están en zona crítica/media entre sí,
-        // para que el cambio beneficie a AMBOS y no arrastre a uno que ya estaba bien.
-        if (a.alt.kmVacio <= 10) return false;
+  // 2. Pre-calcular cuántas alternativas tiene cada operador (para el badge en la fila)
+  //    REGLA WIN-WIN: el swap debe REDUCIR km vacío en AMBOS operadores
+  const altsPorOp = new Map();
+  todosOps.forEach(op => {
+    const alts = encontrarAlternativasWinWin(op);
+    altsPorOp.set(String(op.id), alts);
+  });
 
-        // REGLA 2: los DOS operadores deben quedar <=10 km después del swap.
-        // Esto asegura que el cambio saca a AMBOS de la zona problemática.
-        if (a.kmPrincipalNuevo > 10) return false;
-        if (a.kmAltNuevo > 10) return false;
-
-        // Filtrar descartadas
-        const key = `${op.id}|${a.alt.id}`;
-        if (altsDescartadas.has(key)) return false;
-        return true;
-      })
-      .sort((a, b) => {
-        // Ordenar: primero las que dejen al principal MÁS bajo, luego mayor ahorro
-        if (Math.abs(a.kmPrincipalNuevo - b.kmPrincipalNuevo) > 0.5) {
-          return a.kmPrincipalNuevo - b.kmPrincipalNuevo;
-        }
-        return b.ahorro - a.ahorro;
-      })
-      .slice(0, MAX_ALTS);
-
-    return { op, alts };
-  }).filter(b => b.alts.length > 0);  // Solo mostrar operadores con alternativas
-
-  const opsSinAlts = todosOps.length - bloques.length;
-  const totalAltsMostradas = bloques.reduce((s, b) => s + b.alts.length, 0);
+  const conAlts = todosOps.filter(o => altsPorOp.get(String(o.id)).length > 0).length;
+  const sinAlts = todosOps.length - conAlts;
+  const totalAlts = [...altsPorOp.values()].reduce((s, arr) => s + arr.length, 0);
   const totalDescartadas = altsDescartadas.size;
 
-  // Toggle "restaurar" visible solo si hay descartadas
   const btnRestaurar = document.getElementById('btnRestaurarAlts');
   if (btnRestaurar) btnRestaurar.style.display = totalDescartadas > 0 ? 'inline-block' : 'none';
 
-  // Header con resumen
+  // 3. Header con resumen y buscador
   const headerHtml = `
-    <div style="background:#fff;border-radius:10px;padding:14px 18px;margin-bottom:14px;
-                box-shadow:0 1px 3px rgba(15,23,42,0.06);display:flex;justify-content:space-between;
-                align-items:center;gap:14px;flex-wrap:wrap;">
-      <div>
-        <div style="font-size:13px;font-weight:800;color:#0f172a">
-          🎯 ${bloques.length} operadores con alternativas
-        </div>
-        <div style="font-size:11px;color:#64748b;margin-top:3px">
-          ${opsCriticos.length} críticos (&gt;15 km) · ${opsMedios.length} medios (10-15 km) ·
-          ${totalAltsMostradas} propuestas totales
-          ${opsSinAlts > 0 ? ` · ⚠️ ${opsSinAlts} sin alternativas viables` : ''}
-          ${totalDescartadas > 0 ? ` · 🗑️ ${totalDescartadas} descartadas` : ''}
-        </div>
-      </div>
-      <div style="font-size:11px;color:#64748b;text-align:right;line-height:1.6">
-        💡 <b style="color:#0f172a">Reglas activas:</b><br>
-        Ambos operadores &gt; 10 km · Ambos quedan ≤ 10 km después del swap<br>
-        Cada operador tiene hasta ${MAX_ALTS} opciones ordenadas de mejor a peor.
-      </div>
-    </div>
-  `;
-
-  // Índice/listado de operadores (para navegar rápido y saber quién tiene qué)
-  const opsSinAltsSetIdx = new Set();
-  todosOps.forEach(op => { if (!bloques.find(b => b.op.id === op.id)) opsSinAltsSetIdx.add(op.id); });
-
-  const indiceItems = todosOps.map(op => {
-    const bloque = bloques.find(b => b.op.id === op.id);
-    const nAlts = bloque ? bloque.alts.length : 0;
-    const esCrit = op.kmVacio > 15;
-    const anchor = `alt-op-${op.id}`;
-    const statusCls = nAlts === 0 ? 'sin' : (nAlts >= 3 ? 'buena' : 'baja');
-    const statusTxt = nAlts === 0 ? 'SIN OPCIONES' : `${nAlts} opción${nAlts === 1 ? '' : 'es'}`;
-
-    return `
-      <a href="#${anchor}" class="idx-row ${esCrit ? 'crit' : 'medio'}" data-anchor="${anchor}">
-        <div class="idx-km ${esCrit ? 'crit' : 'medio'}">${op.kmVacio.toFixed(1)}</div>
-        <div class="idx-info">
-          <div class="idx-nombre">${op.nombre}</div>
-          <div class="idx-detalles">
-            <span>Nóm ${op.id}</span> ·
-            <span>${op.planta}</span> ·
-            <span>${op.jefe}</span>
-          </div>
-        </div>
-        <div class="idx-status ${statusCls}">
-          ${nAlts === 0 ? '⚠️' : (nAlts >= 3 ? '✓' : '·')} ${statusTxt}
-        </div>
-      </a>
-    `;
-  }).join('');
-
-  const indiceHtml = `
     <div class="alt-indice">
       <div class="alt-indice-header">
         <div>
-          <div class="alt-indice-title">📇 Listado de operadores críticos</div>
-          <div class="alt-indice-sub">Click en cualquier operador para saltar a sus alternativas</div>
+          <div class="alt-indice-title">📋 LISTADO DE OPERADORES</div>
+          <div class="alt-indice-sub">${todosOps.length} operadores · ${conAlts} con alternativas · ${totalAlts} propuestas totales${totalDescartadas > 0 ? ` · 🗑️ ${totalDescartadas} descartadas` : ''}</div>
         </div>
-        <input type="text" id="altIndiceBuscar" placeholder="🔎 Buscar por nombre, nómina, planta..." class="alt-indice-search"/>
+        <input type="text" id="altListBuscar" placeholder="🔎 Buscar por nombre, nómina, planta..." class="alt-indice-search"/>
       </div>
-      <div class="alt-indice-body" id="altIndiceBody">
-        ${indiceItems}
-      </div>
-      <div class="alt-indice-legend">
-        <span class="idx-leg crit">🔴 Crítico &gt;15 km</span>
-        <span class="idx-leg medio">🟠 Medio 10-15 km</span>
-        <span class="idx-leg buena">✓ 3+ opciones</span>
-        <span class="idx-leg baja">· 1-2 opciones</span>
-        <span class="idx-leg sin">⚠️ Sin opciones</span>
+      <div class="alt-list-help">
+        💡 Click en cualquier operador para ver sus <b>alternativas de cambio</b>.
+        Solo se muestran swaps donde <b>AMBOS operadores bajan km vacío</b> (beneficio mutuo).
       </div>
     </div>
   `;
 
-  // Render de cada bloque
-  const bloquesHtml = bloques.map(({ op, alts }) => {
-    const esCritico = op.kmVacio > 15;
-    const zonaCls = esCritico ? 'zona-critica' : 'zona-media';
-    const badgeCls = esCritico ? 'critica' : 'media';
-    const badgeTxt = esCritico ? '🔴 CRÍTICO >15 KM' : '🟠 MEDIO 10-15 KM';
-    const kmCls = esCritico ? 'critico' : 'medio';
+  // 4. Listado tipo acordeón - cada operador clickeable
+  const listadoHtml = `
+    <div class="alt-list-wrap" id="altListWrap">
+      ${todosOps.map(op => renderFilaOperadorAlt(op, altsPorOp.get(String(op.id)))).join('')}
+    </div>
+  `;
 
-    const altsHtml = alts.map((a, i) => {
-      const key = `${op.id}|${a.alt.id}`;
-      const cls = colorKmDespues(a.kmPrincipalNuevo);
-      const clsAlt = colorKmDespues(a.kmAltNuevo);
-      const esMejor = i === 0;
-      return `
-        <div class="alt-item ${esMejor ? 'mejor' : ''}">
-          <div class="alt-rank">${i + 1}</div>
-          <div class="alt-info">
-            <div class="alt-info-nombre">${a.alt.nombre}</div>
-            <div class="alt-info-detalles">
-              <span>Nóm <b>${a.alt.id}</b></span>
-              <span>${a.alt.planta}</span>
-              <span>Actual: <b style="color:${a.alt.kmVacio > 15 ? '#dc2626' : (a.alt.kmVacio > 10 ? '#ea580c' : (a.alt.kmVacio > 5 ? '#ca8a04' : '#16a34a'))}">${a.alt.kmVacio.toFixed(1)} km</b></span>
-              <span>Hora: <b>${a.alt.horario}</b></span>
-            </div>
-            <div class="alt-info-ruta">
-              Ruta: <span class="strike">${op.ruta}</span> <span class="arrow">→</span> <b>${a.alt.ruta}</b>
-            </div>
-          </div>
-          <div class="alt-numeros">
-            <div class="alt-numero-km">
-              <span class="antes">${op.kmVacio.toFixed(1)}</span>
-              →
-              <span class="despues ${cls}">${a.kmPrincipalNuevo.toFixed(2)} km</span>
-            </div>
-            <div class="alt-ahorro">Ahorro: ${a.ahorro.toFixed(1)} km/día</div>
-            <div style="font-size:10px;color:#64748b;margin-top:2px">
-              (${a.alt.nombre.split(' ')[0]} queda: <b style="color:${a.kmAltNuevo > 10 ? '#dc2626' : (a.kmAltNuevo > 5 ? '#ca8a04' : '#16a34a')}">${a.kmAltNuevo.toFixed(1)} km</b>)
-            </div>
-          </div>
-          <div class="alt-actions">
-            <button class="alt-btn-ver-mapa" onclick="abrirMapaAlternativa('${op.id}','${a.alt.id}')">📍 Ver mapa</button>
-            <button class="alt-btn-descartar" onclick="descartarAlt('${op.id}','${a.alt.id}','${a.alt.nombre.replace(/'/g, '')}')">✕ No puede</button>
-          </div>
-        </div>
-      `;
-    }).join('');
+  cont.innerHTML = headerHtml + listadoHtml;
 
-    return `
-      <div class="alt-card" id="alt-op-${op.id}">
-        <div class="alt-card-header ${zonaCls}">
-          <div class="alt-card-op">
-            <div class="alt-card-badge ${badgeCls}">${badgeTxt}</div>
-            <div class="alt-card-info">
-              <div class="alt-card-nombre">${op.nombre}</div>
-              <div class="alt-card-detalles">
-                <span>Nóm <b>${op.id}</b></span>
-                <span>Planta <b>${op.planta}</b></span>
-                <span>Ruta <b>${op.ruta}</b></span>
-                <span>Jefe <b>${op.jefe}</b></span>
-              </div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:14px">
-            <div class="alt-card-km ${kmCls}">
-              ${op.kmVacio.toFixed(1)}<span class="um">km actual</span>
-            </div>
-            <div class="alt-card-alts-count">${alts.length} opcion${alts.length === 1 ? '' : 'es'}</div>
-          </div>
-        </div>
-        <div class="alt-card-body">
-          ${altsHtml}
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // Operadores sin alternativas (para transparencia)
-  const opsSinAltsList = todosOps.filter(op => !bloques.find(b => b.op.id === op.id));
-  let sinAltsHtml = '';
-  if (opsSinAltsList.length > 0) {
-    sinAltsHtml = `
-      <div class="alt-card" style="margin-top:20px">
-        <div class="alt-card-header" style="border-bottom-color:#94a3b8;background:#475569">
-          <div class="alt-card-op">
-            <div class="alt-card-badge" style="background:#64748b;color:#fff">⚠️ SIN ALTERNATIVAS VIABLES</div>
-            <div class="alt-card-info">
-              <div class="alt-card-nombre">${opsSinAltsList.length} operador${opsSinAltsList.length === 1 ? '' : 'es'} sin propuesta</div>
-              <div class="alt-card-detalles">Estos operadores no tienen swaps que rescaten sin empeorar a otros. Considera ampliar filtros (más plantas, gerencia, etc.)</div>
-            </div>
-          </div>
-        </div>
-        <div class="alt-card-body">
-          ${opsSinAltsList.map(op => `
-            <div class="alt-item" style="opacity:0.65">
-              <div class="alt-rank" style="background:#e2e8f0;color:#475569">—</div>
-              <div class="alt-info">
-                <div class="alt-info-nombre">${op.nombre}</div>
-                <div class="alt-info-detalles">
-                  <span>Nóm <b>${op.id}</b></span>
-                  <span>${op.planta}</span>
-                  <span>${op.ruta}</span>
-                  <span>Jefe: <b>${op.jefe}</b></span>
-                </div>
-              </div>
-              <div class="alt-numeros">
-                <div class="alt-numero-km">
-                  <span class="despues alto">${op.kmVacio.toFixed(1)} km</span>
-                </div>
-                <div class="alt-motivo">Sin alternativa disponible</div>
-              </div>
-              <div></div>
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  }
-
-  cont.innerHTML = headerHtml + indiceHtml + bloquesHtml + sinAltsHtml;
-
-  // Wiring: buscador del índice
-  const buscar = document.getElementById('altIndiceBuscar');
+  // 5. Wiring: buscador filtra filas en vivo
+  const buscar = document.getElementById('altListBuscar');
   if (buscar) {
     buscar.addEventListener('input', () => {
       const q = buscar.value.trim().toLowerCase();
-      document.querySelectorAll('#altIndiceBody .idx-row').forEach(row => {
-        const txt = row.textContent.toLowerCase();
+      document.querySelectorAll('#altListWrap .alt-list-row').forEach(row => {
+        const txt = (row.dataset.search || '').toLowerCase();
         row.style.display = (!q || txt.includes(q)) ? '' : 'none';
       });
     });
   }
 
-  // Wiring: click en el índice hace scroll suave a la tarjeta y la resalta un momento
-  document.querySelectorAll('#altIndiceBody .idx-row').forEach(row => {
+  // 6. Wiring: click en una fila expande/colapsa sus alternativas
+  document.querySelectorAll('#altListWrap .alt-list-row').forEach(row => {
     row.addEventListener('click', (e) => {
-      e.preventDefault();
-      const anchor = row.dataset.anchor;
-      const target = document.getElementById(anchor);
-      if (target) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        target.classList.add('alt-card-highlight');
-        setTimeout(() => target.classList.remove('alt-card-highlight'), 1500);
-      }
+      if (e.target.closest('button')) return;  // no interceptar clicks en botones
+      const opId = row.dataset.opid;
+      toggleAltExpand(opId);
     });
   });
+
+  // Si había uno expandido, re-expandirlo
+  if (altExpandidoId) {
+    const row = document.querySelector(`.alt-list-row[data-opid="${altExpandidoId}"]`);
+    if (row) {
+      expandirAlt(altExpandidoId, false);
+    }
+  }
 }
+
+// Busca alternativas WIN-WIN para un operador dado.
+// Regla: el swap debe REDUCIR km vacío en AMBOS operadores (los dos ganan).
+function encontrarAlternativasWinWin(op) {
+  return paresTodos.filter(p => (p.A.id === op.id || p.B.id === op.id))
+    .map(p => {
+      const esA = p.A.id === op.id;
+      return {
+        principal: esA ? p.A : p.B,
+        alt: esA ? p.B : p.A,
+        kmPrincipalNuevo: esA ? p.nuevoA : p.nuevoB,
+        kmAltNuevo: esA ? p.nuevoB : p.nuevoA,
+        ahorro: p.ahorro,
+        rescate: p.rescate,
+        rescateMedio: p.rescateMedio || 0,
+        swapOriginal: p
+      };
+    })
+    .filter(a => {
+      // REGLA WIN-WIN: ambos operadores deben BAJAR sus km vacío
+      // Margen mínimo de 0.3 km para considerar "mejora real" (evita swaps triviales)
+      if (a.kmPrincipalNuevo >= op.kmVacio - 0.3) return false;
+      if (a.kmAltNuevo >= a.alt.kmVacio - 0.3) return false;
+      // Filtrar descartadas
+      const key = `${op.id}|${a.alt.id}`;
+      if (altsDescartadas.has(key)) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      // Ordenar: mayor ahorro total primero
+      return b.ahorro - a.ahorro;
+    });
+}
+
+// Render de UNA fila del listado (colapsada por defecto)
+function renderFilaOperadorAlt(op, alts) {
+  const nAlts = alts.length;
+  const km = op.kmVacio;
+  let zonaCls, zonaBadge;
+  if (km > 15)       { zonaCls = 'bad';  zonaBadge = '🔴 >15'; }
+  else if (km > 10)  { zonaCls = 'warn'; zonaBadge = '🟠 10-15'; }
+  else if (km >= 5)  { zonaCls = 'mid';  zonaBadge = '🟡 5-10'; }
+  else               { zonaCls = 'ok';   zonaBadge = '🟢 <5'; }
+
+  const statusCls = nAlts === 0 ? 'sin' : (nAlts >= 3 ? 'buena' : 'baja');
+  const statusTxt = nAlts === 0 ? 'SIN OPCIONES' : `${nAlts} opción${nAlts === 1 ? '' : 'es'}`;
+
+  const searchTxt = `${op.nombre} ${op.id} ${op.planta} ${op.ruta} ${op.jefe} ${op.coordinador || ''}`;
+
+  return `
+    <div class="alt-list-row" data-opid="${op.id}" data-search="${searchTxt.replace(/"/g, '&quot;')}">
+      <div class="alt-list-head">
+        <div class="alt-list-km ${zonaCls}">
+          <div class="alt-list-km-num">${km.toFixed(1)}</div>
+          <div class="alt-list-km-lbl">${zonaBadge}</div>
+        </div>
+        <div class="alt-list-info">
+          <div class="alt-list-nombre">${op.nombre}</div>
+          <div class="alt-list-detalles">
+            <span>Nóm <b>${op.id}</b></span> ·
+            <span><b>${op.planta}</b></span> ·
+            <span>Ruta <b>${op.ruta}</b></span> ·
+            <span>Jefe <b>${op.jefe}</b></span>
+          </div>
+        </div>
+        <div class="alt-list-status ${statusCls}">
+          ${nAlts === 0 ? '⚠' : (nAlts >= 3 ? '✓' : '•')} ${statusTxt}
+        </div>
+        <div class="alt-list-chevron">▾</div>
+      </div>
+      <div class="alt-list-body" id="alt-body-${op.id}"></div>
+    </div>
+  `;
+}
+
+// Toggle expandir/colapsar una fila
+function toggleAltExpand(opId) {
+  const row = document.querySelector(`.alt-list-row[data-opid="${opId}"]`);
+  if (!row) return;
+  const abierto = row.classList.contains('expandido');
+
+  // Colapsar el que estaba abierto (acordeón: solo uno a la vez)
+  if (altExpandidoId && altExpandidoId !== opId) {
+    const prev = document.querySelector(`.alt-list-row[data-opid="${altExpandidoId}"]`);
+    if (prev) {
+      prev.classList.remove('expandido');
+      const prevBody = document.getElementById(`alt-body-${altExpandidoId}`);
+      if (prevBody) prevBody.innerHTML = '';
+    }
+  }
+
+  if (abierto) {
+    // Era este mismo el que estaba abierto → colapsarlo
+    row.classList.remove('expandido');
+    document.getElementById(`alt-body-${opId}`).innerHTML = '';
+    altExpandidoId = null;
+  } else {
+    expandirAlt(opId, true);
+  }
+}
+
+// Expande una fila específica
+function expandirAlt(opId, scroll) {
+  const row = document.querySelector(`.alt-list-row[data-opid="${opId}"]`);
+  const body = document.getElementById(`alt-body-${opId}`);
+  if (!row || !body) return;
+
+  const op = operadores.find(o => String(o.id) === String(opId));
+  if (!op) return;
+
+  const alts = encontrarAlternativasWinWin(op);
+  row.classList.add('expandido');
+  altExpandidoId = opId;
+
+  if (!alts.length) {
+    body.innerHTML = `
+      <div class="alt-empty-expanded">
+        <div class="alt-empty-icon">🤷</div>
+        <div class="alt-empty-title">Sin alternativas viables para este operador</div>
+        <div class="alt-empty-text">
+          No hay otro operador con quien intercambiar rutas donde ambos bajen sus km vacío.
+          Prueba con un filtro más amplio (modo <b>Gerencia</b> o <b>Por planta</b> con más plantas).
+        </div>
+      </div>
+    `;
+  } else {
+    const nombre1 = op.nombre.split(' ')[0];
+    body.innerHTML = `
+      <div class="alt-opciones-wrap">
+        <div class="alt-opciones-header">
+          💡 ${alts.length} alternativa${alts.length === 1 ? '' : 's'} donde <b>${nombre1}</b> y el otro operador <b>bajan km vacío</b>
+        </div>
+        ${alts.map((a, i) => renderOpcionAlt(op, a, i)).join('')}
+      </div>
+    `;
+  }
+
+  if (scroll) {
+    setTimeout(() => {
+      row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 50);
+  }
+}
+
+// Render de UNA opción (alternativa) dentro del acordeón expandido
+function renderOpcionAlt(op, a, i) {
+  const esMejor = i === 0;
+  const clsPrinc = colorKmDespues(a.kmPrincipalNuevo);
+  const clsAlt   = colorKmDespues(a.kmAltNuevo);
+  const colorAltActual =
+    a.alt.kmVacio > 15 ? '#dc2626' :
+    a.alt.kmVacio > 10 ? '#ea580c' :
+    a.alt.kmVacio > 5  ? '#ca8a04' : '#16a34a';
+
+  const ahorroPrinc = (op.kmVacio - a.kmPrincipalNuevo).toFixed(1);
+  const ahorroAlt   = (a.alt.kmVacio - a.kmAltNuevo).toFixed(1);
+
+  return `
+    <div class="alt-item ${esMejor ? 'mejor' : ''}">
+      <div class="alt-rank">${i + 1}</div>
+      <div class="alt-info">
+        <div class="alt-info-nombre">${a.alt.nombre}</div>
+        <div class="alt-info-detalles">
+          <span>Nóm <b>${a.alt.id}</b></span>
+          <span>${a.alt.planta}</span>
+          <span>Actual: <b style="color:${colorAltActual}">${a.alt.kmVacio.toFixed(1)} km</b></span>
+          <span>Hora: <b>${a.alt.horario}</b></span>
+        </div>
+        <div class="alt-info-ruta">
+          Ruta: <span class="strike">${op.ruta}</span> <span class="arrow">→</span> <b>${a.alt.ruta}</b>
+        </div>
+      </div>
+      <div class="alt-numeros">
+        <div class="alt-numero-km">
+          <span class="antes">${op.kmVacio.toFixed(1)}</span>
+          →
+          <span class="despues ${clsPrinc}">${a.kmPrincipalNuevo.toFixed(2)} km</span>
+          <span class="alt-benef">▼ ${ahorroPrinc}</span>
+        </div>
+        <div style="font-size:10.5px; color:#64748b; margin-top:3px">
+          ${a.alt.nombre.split(' ')[0]}:
+          <span style="text-decoration:line-through; color:#94a3b8">${a.alt.kmVacio.toFixed(1)}</span>
+          →
+          <b style="color:${a.kmAltNuevo > 15 ? '#dc2626' : (a.kmAltNuevo > 10 ? '#ea580c' : (a.kmAltNuevo > 5 ? '#ca8a04' : '#16a34a'))}">${a.kmAltNuevo.toFixed(2)} km</b>
+          <span class="alt-benef">▼ ${ahorroAlt}</span>
+        </div>
+        <div class="alt-ahorro" style="margin-top:4px">Ahorro total: ${a.ahorro.toFixed(1)} km/día</div>
+      </div>
+      <div class="alt-actions">
+        <button class="alt-btn-ver-mapa" onclick="event.stopPropagation(); abrirMapaAlternativa('${op.id}','${a.alt.id}')">📍 Ver mapa</button>
+        <button class="alt-btn-descartar" onclick="event.stopPropagation(); descartarAltYRefrescar('${op.id}','${a.alt.id}')">✕ No puede</button>
+      </div>
+    </div>
+  `;
+}
+
+// Descartar una alternativa y refrescar solo esa fila expandida
+function descartarAltYRefrescar(opId, altId) {
+  const key = `${opId}|${altId}`;
+  altsDescartadas.add(key);
+  try { localStorage.setItem('altsDescartadas', JSON.stringify([...altsDescartadas])); } catch (e) {}
+  // Re-renderizar toda la vista para actualizar contadores en TODAS las filas
+  renderSwapsAlternativas();
+}
+window.descartarAltYRefrescar = descartarAltYRefrescar;
 
 // Helper para clase de color según KM
 function colorKmDespues(km) {
@@ -6941,6 +7449,7 @@ async function cargarDesdeGoogleSheet() {
   const origText = btn ? btn.textContent : '';
   if (btn) { btn.textContent = '⏳ Cargando desde Sheet...'; btn.disabled = true; }
   setStatus('Descargando datos remotos...', 'loading');
+  mostrarLoader('Cargando datos...', 'Descargando información desde Google Sheets');
 
   return new Promise((resolve, reject) => {
     // Preparar el receptor global de la respuesta
@@ -6954,6 +7463,7 @@ async function cargarDesdeGoogleSheet() {
       respondido = true;
       if (btn) { btn.textContent = '❌ Timeout'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500); }
       setStatus('Sin respuesta del Sheet', 'error');
+      ocultarLoader();
       alert('El Google Sheet no respondió en 30 segundos.\n\nVerifica:\n' +
             '1. Que el sheet esté compartido como "Cualquier persona con el enlace puede ver"\n' +
             '2. Que la hoja se llame exactamente "' + GOOGLE_SHEET_NAME + '"\n' +
@@ -7002,20 +7512,29 @@ async function cargarDesdeGoogleSheet() {
           const csvText = filas.map(f =>
             f.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')
           ).join('\n');
+          actualizarLoader('Procesando datos...', `${filas.length - 1} filas del sheet`);
           procesarCSV(csvText);
         }
 
         if (btn) { btn.textContent = '✓ Cargado desde Sheet'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2000); }
 
-        // Cargar facturación (segunda hoja) en background - no bloquea la UI
-        cargarFacturacion().catch(e => console.warn('Facturación no disponible:', e));
-        cargarZonas().catch(e => console.warn('Zonas no disponibles:', e));
-        cargarPlantillaOperadores().catch(e => console.warn('Plantilla operadores no disponible:', e));
+        // Ocultar loader inmediatamente — los datos principales ya están listos
+        ocultarLoader();
+
+        // Cargar hojas secundarias EN PARALELO y en BACKGROUND (no bloquea la UI)
+        Promise.all([
+          cargarFacturacion().catch(e => console.warn('Facturación no disponible:', e)),
+          cargarZonas().catch(e => console.warn('Zonas no disponibles:', e)),
+          cargarPlantillaOperadores().catch(e => console.warn('Plantilla operadores no disponible:', e))
+        ]).then(() => {
+          console.log('✓ Todas las hojas secundarias cargadas');
+        });
 
         resolve();
       } catch (e) {
         if (btn) { btn.textContent = '❌ Error'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500); }
         setStatus('Error al procesar', 'error');
+        ocultarLoader();
         alert('Error procesando la respuesta del Sheet:\n\n' + e.message);
         console.error(e);
         reject(e);
@@ -7031,6 +7550,7 @@ async function cargarDesdeGoogleSheet() {
       clearTimeout(timeout);
       if (btn) { btn.textContent = '❌ Error'; setTimeout(() => { btn.textContent = origText; btn.disabled = false; }, 2500); }
       setStatus('No se pudo descargar', 'error');
+      ocultarLoader();
       alert('No se pudo descargar el Google Sheet.\n\nCausas posibles:\n' +
             '1. El sheet NO está compartido como "Cualquier persona con el enlace puede ver"\n' +
             '2. No hay conexión a internet\n' +
