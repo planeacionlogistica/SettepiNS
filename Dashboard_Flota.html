@@ -88,7 +88,7 @@ nav{background:var(--navy);padding:0 26px;display:flex;align-items:center;height
 .main{flex:1;padding:1.15rem 1.3rem 2.2rem;display:flex;flex-direction:column;gap:1.15rem;min-width:0;}
 
 /* ── Loading ── */
-.loading-overlay{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4rem;transition:opacity .4s;}
+.loading-overlay{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4rem;transition:opacity .25s;}
 .loading-overlay.hidden{opacity:0;pointer-events:none;}
 .loading-logo-img{height:140px;width:auto;object-fit:contain;}
 .loading-box{background:#fff;border-radius:16px;padding:2rem 2.8rem;box-shadow:0 8px 30px rgba(24,32,49,.1);display:flex;flex-direction:column;align-items:center;gap:1rem;min-width:320px;text-align:center;border:1px solid var(--line);}
@@ -96,8 +96,8 @@ nav{background:var(--navy);padding:0 26px;display:flex;align-items:center;height
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-title{font-size:.9rem;font-weight:700;color:var(--ink);}
 .loading-bar-track{width:100%;height:5px;background:var(--line);border-radius:3px;overflow:hidden;}
-.loading-bar-fill{height:100%;width:0%;background:var(--brand);border-radius:3px;animation:loadbar 8s ease-out forwards;}
-@keyframes loadbar{0%{width:0%}80%{width:85%}100%{width:95%}}
+.loading-bar-fill{height:100%;width:0%;background:var(--brand);border-radius:3px;animation:loadbar 1.4s ease-out forwards;}
+@keyframes loadbar{0%{width:0%}60%{width:75%}100%{width:92%}}
 .err{background:#FCECEC;border-left:3px solid var(--crit);padding:.8rem 1rem;font-size:.8rem;color:#9B2C2C;border-radius:8px;}
 .err.hidden{display:none;}
 
@@ -730,15 +730,20 @@ async function loadInputs(){
 
 let ODDO_MAP={}, ODDO_LOADED=false;
 async function loadOddo(){
+  // Probamos los posibles nombres de hoja EN PARALELO y nos quedamos con el primero válido,
+  // en vez de ir uno por uno en serie (lo que gastaba varios round-trips al arrancar).
   const candidates=[ODDO_SHEET,'Odoo','oddo','odoo','ODDO','ODOO'];
+  const tryFetch=async(sn)=>{
+    const res=await fetch(csvUrl(sn));if(!res.ok)throw 0;
+    const text=await res.text();if(text.trim().startsWith('<'))throw 0;
+    const parsed=parseCSV(text);if(!parsed||!parsed.length)throw 0;
+    return {rows:parsed,sheetUsed:sn};
+  };
   let rows=null,sheetUsed=null;
-  for(const sn of candidates){
-    try{
-      const res=await fetch(csvUrl(sn));if(!res.ok)continue;
-      const text=await res.text();if(text.trim().startsWith('<'))continue;
-      const parsed=parseCSV(text);if(parsed&&parsed.length){rows=parsed;sheetUsed=sn;break;}
-    }catch(e){}
-  }
+  try{
+    const r=await Promise.any(candidates.map(tryFetch));
+    rows=r.rows;sheetUsed=r.sheetUsed;
+  }catch(e){}
   if(!rows){console.warn('Hoja Oddo no disponible.');return;}
   const hdrs=Object.keys(rows[0]);
   let idCol=hdrs.find(h=>['vehicle id','vehicleid','id vehicle','ids','id','id unidad','id vehiculo'].includes(low(h)));
@@ -762,7 +767,8 @@ function getOddoOrden(unitId){
 window.addEventListener('DOMContentLoaded',async()=>{
   const ov=document.getElementById('loadingOverlay');
   try{
-    const [flotaRes]=await Promise.all([fetch(csvUrl(SHEET_NAME)),loadInputs(),loadOddo()]);
+    // 1) Solo esperamos la hoja principal (Flota) para poder pintar y entrar YA.
+    const flotaRes=await fetch(csvUrl(SHEET_NAME));
     if(!flotaRes.ok)throw new Error('HTTP '+flotaRes.status+' — verifica que el Sheet sea público y la hoja se llame "Flota".');
     const rows=parseCSV(await flotaRes.text());
     if(!rows.length)throw new Error('Sin datos en hoja "Flota".');
@@ -771,8 +777,12 @@ window.addEventListener('DOMContentLoaded',async()=>{
     const fechaEl=document.getElementById('fechaVal'),badgeEl=document.getElementById('fechaBadge');
     let fechaStr=C.fechaVal||(C.fechaActualizadoCol&&rows[0]?rows[0][C.fechaActualizadoCol]||'':'');
     if(fechaStr){fechaEl.textContent=fechaStr;badgeEl.style.display='inline-flex';}
-    ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',450);
+    // 2) Pintamos y quitamos el overlay de inmediato (no esperamos a Inputs/Oddo).
+    ov.classList.add('hidden');setTimeout(()=>ov.style.display='none',300);
     cascadeFilters();draw();
+    // 3) Inputs y Oddo cargan en segundo plano; al llegar, re-dibujamos sin bloquear la entrada.
+    loadInputs().then(()=>{try{drawClientes(filteredData());}catch(e){}}).catch(()=>{});
+    loadOddo().then(()=>{try{if(document.getElementById('unitModal').classList.contains('open'))renderModalRows();}catch(e){}}).catch(()=>{});
   }catch(e){console.error(e);ov.style.display='none';document.getElementById('errMsg').textContent=e.message;document.getElementById('errBanner').classList.remove('hidden');}
 });
 
