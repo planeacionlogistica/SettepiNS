@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Settepi · Apego a la Programación</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>
+  :root{
+    --bg:#f5f6f8;
+    --surface:#ffffff;
+    --surface-2:#fafbfc;
+    --border:#e4e7eb;
+    --border-strong:#d1d5db;
+    --text:#111827;
+    --text-muted:#6b7280;
+    --text-subtle:#9ca3af;
+    --header-bg:#1f2937;
+    --header-text:#ffffff;
+    --accent:#84cc16;
+    --accent-soft:#f7fee7;
+    --accent-text:#4d7c0f;
+    --primary:#111827;
+    --primary-hover:#374151;
+    --row-hover:#f9fafb;
+    --shadow:0 1px 2px rgba(16,24,40,.04), 0 1px 3px rgba(16,24,40,.06);
+    --shadow-lg:0 4px 12px rgba(16,24,40,.08);
+    --mismatch-bg:#fef3c7;
+    --mismatch-text:#92400e;
+    --day-co-bg:#f3f4f6;
+    --day-cc-bg:#ffffff;
+    --lvl-g-bg:#e5e7eb;
+    --lvl-j-bg:#f3f4f6;
+    --total-bg:#111827;
+    --total-text:#ffffff;
+  }
+  [data-theme="dark"]{
+    --bg:#0b0f17;
+    --surface:#141a24;
+    --surface-2:#1a2130;
+    --border:#283040;
+    --border-strong:#3a4258;
+    --text:#e8ecf4;
+    --text-muted:#9aa4b8;
+    --text-subtle:#6b7490;
+    --header-bg:#0b0f17;
+    --header-text:#f1f5f9;
+    --accent:#a3e635;
+    --accent-soft:#1f2a14;
+    --accent-text:#bef264;
+    --primary:#f1f5f9;
+    --primary-hover:#cbd5e1;
+    --row-hover:#1a2130;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 1px 3px rgba(0,0,0,.4);
+    --shadow-lg:0 4px 12px rgba(0,0,0,.4);
+    --mismatch-bg:#78350f;
+    --mismatch-text:#fde68a;
+    --day-co-bg:#1a2130;
+    --day-cc-bg:#141a24;
+    --lvl-g-bg:#1f2937;
+    --lvl-j-bg:#1a2130;
+    --total-bg:#000000;
+    --total-text:#f1f5f9;
+  }
+  [data-theme="dark"] .btn-primary{background:var(--primary);color:#0b0f17}
+  [data-theme="dark"] .btn-primary:hover{background:var(--primary-hover)}
+
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{background:var(--bg);color:var(--text)}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    font-size:14px;
+    line-height:1.5;
+    padding:24px;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    letter-spacing:-0.01em;
+    transition:background .2s ease,color .2s ease;
+  }
+  .container{max-width:1680px;margin:0 auto}
+
+  /* ===== Header ===== */
+  .header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:20px;
+    padding-bottom:16px;
+    border-bottom:1px solid var(--border);
+  }
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand-mark{
+    width:40px;height:40px;
+    background:var(--primary);
+    color:var(--surface);
+    border-radius:10px;
+    display:grid;place-items:center;
+    font-weight:900;font-size:16px;
+    letter-spacing:-0.03em;
+  }
+  [data-theme="dark"] .brand-mark{background:var(--accent);color:#0b0f17}
+  .brand-text h1{
+    font-size:20px;
+    font-weight:800;
+    letter-spacing:-0.02em;
+    line-height:1.2;
+    color:var(--text);
+  }
+  .brand-text .sub{
+    font-size:12px;
+    color:var(--text-muted);
+    font-weight:500;
+    margin-top:2px;
+  }
+  .header-actions{display:flex;align-items:center;gap:8px}
+  .theme-toggle{
+    width:38px;height:38px;
+    border:1px solid var(--border-strong);
+    background:var(--surface);
+    border-radius:10px;
+    cursor:pointer;
+    display:grid;place-items:center;
+    color:var(--text);
+    transition:all .15s ease;
+  }
+  .theme-toggle:hover{background:var(--surface-2);border-color:var(--text-muted)}
+  .theme-toggle svg{width:18px;height:18px}
+  .theme-toggle .icon-sun{display:none}
+  [data-theme="dark"] .theme-toggle .icon-sun{display:block}
+  [data-theme="dark"] .theme-toggle .icon-moon{display:none}
+
+  /* ===== Upload ===== */
+  .upload-bar{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    background:var(--surface);
+    padding:12px;
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
+    margin-bottom:12px;
+  }
+  .upload-btn{position:relative}
+  .upload-btn input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;z-index:2}
+  .upload-btn label{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 14px;
+    border:1.5px dashed var(--border-strong);
+    border-radius:10px;
+    background:var(--surface-2);
+    font-weight:600;
+    cursor:pointer;
+    font-size:13px;
+    color:var(--text);
+    transition:all .15s ease;
+    min-height:48px;
+  }
+  .upload-btn label:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-text)}
+  .upload-btn.loaded label{
+    background:var(--accent-soft);
+    border-style:solid;
+    border-color:var(--accent);
+    color:var(--accent-text);
+  }
+  .upload-icon{
+    width:28px;height:28px;flex-shrink:0;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    display:grid;place-items:center;
+    font-size:14px;
+  }
+  .upload-btn.loaded .upload-icon{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .upload-text{display:flex;flex-direction:column;min-width:0;flex:1}
+  .upload-title{font-size:12px;font-weight:700;letter-spacing:-.01em}
+  .upload-filename{font-size:11px;font-weight:400;opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* ===== Actions ===== */
+  .actions{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+  .btn{
+    padding:10px 18px;
+    border:1px solid transparent;
+    border-radius:10px;
+    font-family:inherit;
+    font-weight:600;
+    cursor:pointer;
+    font-size:13px;
+    letter-spacing:-.01em;
+    transition:all .15s ease;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .btn-primary{background:var(--primary);color:var(--surface)}
+  .btn-primary:hover:not(:disabled){background:var(--primary-hover)}
+  .btn-primary:disabled{background:var(--border-strong);color:var(--text-subtle);cursor:not-allowed}
+  .btn-export{
+    background:var(--surface);
+    color:var(--text);
+    border-color:var(--border-strong);
+  }
+  .btn-export:hover{background:var(--surface-2);border-color:var(--text-muted)}
+
+  /* ===== Layout ===== */
+  .layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:16px;align-items:start}
+  .panel{
+    background:var(--surface);
+    padding:16px;
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
+    position:sticky;
+    top:16px;
+  }
+  .panel h3{
+    font-size:11px;
+    font-weight:800;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--text-muted);
+    padding-bottom:10px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:12px;
+  }
+  .panel label{
+    display:block;
+    font-size:11px;
+    font-weight:600;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    margin:12px 0 5px;
+  }
+  .panel select{
+    width:100%;
+    padding:8px 10px;
+    border:1px solid var(--border-strong);
+    border-radius:8px;
+    font-family:inherit;
+    font-size:13px;
+    background:var(--surface);
+    color:var(--text);
+    font-weight:500;
+    cursor:pointer;
+    transition:border-color .15s ease;
+  }
+  .panel select:hover:not(:disabled){border-color:var(--text-muted)}
+  .panel select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .panel select:disabled{background:var(--surface-2);color:var(--text-subtle);cursor:not-allowed}
+  .panel .hint{
+    font-size:11px;
+    color:var(--text-subtle);
+    margin-top:14px;
+    padding-top:12px;
+    border-top:1px solid var(--border);
+    line-height:1.5;
+  }
+
+  .rango{
+    display:none;
+    font-size:12px;
+    color:var(--text-muted);
+    margin-bottom:12px;
+    padding:8px 12px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-weight:500;
+  }
+
+  /* ===== Tabs ===== */
+  .tabs{
+    display:inline-flex;
+    gap:2px;
+    background:var(--surface);
+    padding:4px;
+    border-radius:10px;
+    margin-bottom:16px;
+    border:1px solid var(--border);
+    box-shadow:var(--shadow);
+  }
+  .tab{
+    padding:8px 18px;
+    border:none;
+    background:transparent;
+    cursor:pointer;
+    border-radius:7px;
+    font-family:inherit;
+    font-weight:600;
+    font-size:13px;
+    color:var(--text-muted);
+    transition:all .15s ease;
+    letter-spacing:-.01em;
+  }
+  .tab:hover{color:var(--text)}
+  .tab.active{background:var(--primary);color:var(--surface)}
+  [data-theme="dark"] .tab.active{background:var(--accent);color:#0b0f17}
+
+  /* ===== Stats ===== */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+  .stat{
+    background:var(--surface);
+    padding:16px 18px;
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
+  }
+  .stat .label{
+    font-size:11px;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    font-weight:700;
+    letter-spacing:.06em;
+  }
+  .stat .value{
+    font-size:28px;
+    font-weight:800;
+    margin-top:4px;
+    letter-spacing:-.03em;
+    color:var(--text);
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ===== Tables ===== */
+  .table-wrap{
+    background:var(--surface);
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    border:1px solid var(--border);
+    margin-bottom:16px;
+    overflow:hidden;
+  }
+  .table-wrap.scrollable{overflow:auto}
+  /* La tabla de Detalle crece a la derecha y se le puede dar scroll horizontal */
+  #wrap-detalle{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch}
+  table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}
+  thead{background:var(--header-bg);color:var(--header-text)}
+  thead th{background:var(--header-bg)}
+  thead tr.hd th{
+    padding:10px 8px;
+    font-weight:700;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    white-space:nowrap;
+    cursor:pointer;
+    user-select:none;
+    transition:background .15s ease;
+    border-bottom:1px solid var(--border);
+  }
+  thead tr.hd th:hover{background:var(--primary-hover)}
+  [data-theme="dark"] thead tr.hd th:hover{background:#1a2130}
+  thead .arrow{display:inline-block;width:10px;margin-left:3px;font-size:9px;opacity:.8}
+  th{text-align:left}
+  th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+  th.center,td.center{text-align:center}
+  tbody tr{border-bottom:1px solid var(--border)}
+  tbody tr:not(.lvl-g):not(.lvl-j):hover{background:var(--row-hover)}
+  td{padding:7px 8px;white-space:nowrap;border-bottom:1px solid var(--border);color:var(--text)}
+  tbody tr:last-child td{border-bottom:none}
+
+  .apego-cell{font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
+  .empty{padding:48px;text-align:center;color:var(--text-subtle);font-weight:500}
+  .day-cell{
+    text-align:center;
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    font-size:10.5px;
+    font-weight:500;
+    min-width:44px;
+    padding:6px 4px;
+    letter-spacing:-.02em;
+  }
+  #tbl-detalle{table-layout:auto;width:max-content;min-width:100%}
+  #tbl-detalle td,#tbl-detalle th{padding:6px 6px}
+  .day-co{background:var(--day-co-bg)}
+  .day-cc{background:var(--day-cc-bg)}
+  .lvl-g{background:var(--lvl-g-bg);font-weight:800}
+  .lvl-g td{font-weight:800}
+  .lvl-j{background:var(--lvl-j-bg)}
+  .lvl-j td{font-weight:700}
+  .mismatch{background:var(--mismatch-bg) !important;color:var(--mismatch-text);font-weight:700}
+  .group-co{border-left:2px solid var(--border-strong)}
+  .group-cc{border-left:2px solid var(--primary)}
+  [data-theme="dark"] .group-cc{border-left-color:var(--accent)}
+
+  tbody tr.total-row{background:var(--total-bg) !important;color:var(--total-text)}
+  tbody tr.total-row td{background:var(--total-bg) !important;color:var(--total-text);font-weight:700;text-transform:uppercase;letter-spacing:.05em;border-bottom:none}
+  tbody tr.total-row td.apego-cell{color:#111 !important;text-transform:none;letter-spacing:0}
+
+  /* Resumen por planta más compacta */
+  #tbl-resumen{font-size:11.5px}
+  #tbl-resumen thead tr.hd th{padding:8px 10px;font-size:10px}
+  #tbl-resumen td{padding:5px 10px}
+  #tbl-personas{font-size:11.5px}
+  #tbl-personas thead tr.hd th{padding:8px 10px;font-size:10px}
+  #tbl-personas td{padding:5px 10px}
+
+  .resumen-grid{display:grid;grid-template-columns:minmax(280px,420px) minmax(0,1fr);gap:16px;align-items:start}
+
+  @media (max-width:1100px){
+    .resumen-grid{grid-template-columns:1fr}
+  }
+  @media (max-width:900px){
+    body{padding:16px}
+    .layout{grid-template-columns:1fr}
+    .panel{position:static}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .upload-bar{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <div class="brand">
+      <div class="brand-mark">S</div>
+      <div class="brand-text">
+        <h1>Settepi · Apego a la Programación</h1>
+        <div class="sub">Comparativa diaria: carro programado vs ejecutado</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="theme-toggle" id="btn-theme" title="Cambiar tema" aria-label="Cambiar tema">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="upload-bar">
+    <div class="upload-btn" id="btn-conf">
+      <input type="file" id="file-conf" accept=".xlsx,.xls,.csv">
+      <label for="file-conf">
+        <span class="upload-icon">🚚</span>
+        <span class="upload-text">
+          <span class="upload-title">Viajes Facturación</span>
+          <span class="upload-filename" id="name-conf">Selecciona archivo Excel</span>
+        </span>
+      </label>
+    </div>
+    <div class="upload-btn" id="btn-carta">
+      <input type="file" id="file-carta" accept=".csv">
+      <label for="file-carta">
+        <span class="upload-icon">📋</span>
+        <span class="upload-text">
+          <span class="upload-title">Carta Operativa</span>
+          <span class="upload-filename" id="name-carta">Selecciona archivo CSV</span>
+        </span>
+      </label>
+    </div>
+    <div class="upload-btn" id="btn-asig">
+      <input type="file" id="file-asig" accept=".xlsx,.xls">
+      <label for="file-asig">
+        <span class="upload-icon">👥</span>
+        <span class="upload-text">
+          <span class="upload-title">Asignación de clientes</span>
+          <span class="upload-filename" id="name-asig">Selecciona archivo Excel</span>
+        </span>
+      </label>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="btn-calc" disabled>Calcular Apego</button>
+    <button class="btn btn-export" id="btn-export-xlsx" style="display:none">↓ Exportar Excel</button>
+  </div>
+
+  <div class="layout">
+    <aside class="panel">
+      <h3>Filtros</h3>
+      <label for="f-gerente">Gerente</label>
+      <select id="f-gerente" disabled><option value="">Todos</option></select>
+      <label for="f-jefe">Jefe</label>
+      <select id="f-jefe" disabled><option value="">Todos</option></select>
+      <label for="f-coord">Coordinador</label>
+      <select id="f-coord" disabled><option value="">Todos</option></select>
+      <label for="f-cliente">Cliente / Planta</label>
+      <select id="f-cliente" disabled><option value="">Todas</option></select>
+      <p class="hint" id="panel-hint">Sube el archivo de asignación para activar los filtros de Gerente, Jefe y Coordinador.</p>
+    </aside>
+
+    <main>
+      <div class="rango" id="rango"></div>
+
+      <div class="tabs" id="tabs" style="display:none">
+        <button class="tab active" data-view="detalle">Detalle</button>
+        <button class="tab" data-view="resumen">Resumen por Planta</button>
+      </div>
+
+      <div class="stats" id="stats" style="display:none">
+        <div class="stat"><div class="label">Programado</div><div class="value" id="s-val">0</div></div>
+        <div class="stat"><div class="label">Coincidente</div><div class="value" id="s-check">0</div></div>
+        <div class="stat"><div class="label">Servicios</div><div class="value" id="s-servicios">0</div></div>
+        <div class="stat"><div class="label">Apego Total</div><div class="value" id="s-apego">0%</div></div>
+      </div>
+
+      <div class="table-wrap" id="wrap-detalle">
+        <table id="tbl-detalle">
+          <thead></thead>
+          <tbody id="tbody-detalle"><tr><td colspan="21" class="empty">Carga ambos archivos y presiona "Calcular Apego"</td></tr></tbody>
+        </table>
+      </div>
+
+      <div id="wrap-resumen-grid" style="display:none">
+        <div class="resumen-grid">
+          <div class="table-wrap">
+            <table id="tbl-resumen">
+              <thead></thead>
+              <tbody id="tbody-resumen"></tbody>
+            </table>
+          </div>
+          <div class="table-wrap">
+            <table id="tbl-personas">
+              <thead></thead>
+              <tbody id="tbody-personas"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+// ===== Theme =====
+const themeBtn = document.getElementById('btn-theme');
+const savedTheme = (()=>{ try { return localStorage.getItem('settepi-theme'); } catch(e){ return null; } })();
+if (savedTheme === 'dark') document.documentElement.setAttribute('data-theme','dark');
+themeBtn.addEventListener('click', () => {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (isDark) document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme','dark');
+  try { localStorage.setItem('settepi-theme', isDark ? 'light' : 'dark'); } catch(e){}
+});
+
+// Valores fijos
+const EXCLUIR_ID = 'GVE';
+const TOL_MIN = 60;
+
+const C_CONF = { idsrv:1, ruta:3, carro:7, tipo:9, planta:10, fecha:11, horario:12 };
+const C_CARTA = { planta:0, ruta:1, desc:2, tipo:4, idsrv:8, horario:11, carro:23, lun:16, mar:17, mie:18, jue:19, vie:20, sab:21, dom:22 };
+
+let rawConf=null, rawCarta=null, _detalle=[], calculado=false;
+let _asigRows=[], _asigMap={};
+let _diasValidos=[]; // array ordenado de índices 0..6 que sí se validaron
+
+function setData(target, data){
+  if (target === 'conf') rawConf = data; else rawCarta = data;
+}
+function cargado(btnId, nameId, f, n){
+  document.getElementById(nameId).textContent = f.name + ' · ' + n + ' filas';
+  document.getElementById(btnId).classList.add('loaded');
+  document.getElementById('btn-calc').disabled = !(rawConf && rawCarta);
+}
+function setupUpload(inputId, btnId, nameId, target){
+  document.getElementById(inputId).addEventListener('change', e => {
+    const f = e.target.files[0]; if(!f) return;
+    const esExcel = /\.xlsx?$/i.test(f.name);
+    if (esExcel){
+      const rd = new FileReader();
+      rd.onload = ev => {
+        try {
+          const wb = XLSX.read(new Uint8Array(ev.target.result), {type:'array'});
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const data = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:false});
+          setData(target, data);
+          cargado(btnId, nameId, f, data.length);
+        } catch(err){
+          document.getElementById(nameId).textContent = 'No se pudo leer el Excel';
+        }
+      };
+      rd.readAsArrayBuffer(f);
+    } else {
+      Papa.parse(f, {header:false, skipEmptyLines:true, complete: res => {
+        setData(target, res.data);
+        cargado(btnId, nameId, f, res.data.length);
+      }});
+    }
+  });
+}
+setupUpload('file-conf','btn-conf','name-conf','conf');
+setupUpload('file-carta','btn-carta','name-carta','carta');
+
+function norm(s){ return (s==null?'':String(s)).trim().toUpperCase(); }
+function horaToMin(s){
+  if (!s) return -1;
+  const m = String(s).trim().match(/(\d{1,2})[:.](\d{2})/);
+  if (!m) return -1;
+  return parseInt(m[1],10)*60 + parseInt(m[2],10);
+}
+function normR(s){ return norm(s).replace(/\s+/g,' '); }
+// Normaliza la llave de emparejamiento (id_servicio) entre Carta y Confirmación:
+// quita la letra de tipo de viaje (R/A/…) que la Confirmación inserta antes del número,
+// p.ej. E-ALP-T1-R0007 -> E-ALP-T1-0007, para que ambos reportes casen.
+function normKey(s){ return norm(s).replace(/(-T[0-9?]-)[A-Z?](?=[0-9])/,'$1'); }
+function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function slug(s){ return String(s==null?'':s).trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+
+function parseFecha(fechaStr){
+  if (!fechaStr) return null;
+  const s = String(fechaStr).trim();
+  let d;
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) d = new Date(s.substring(0,10)+'T12:00:00');
+  else if (/^\d{1,2}\/\d{1,2}\/\d{4}/.test(s)){ const p=s.substring(0,10).split('/'); d=new Date(`${p[2]}-${String(p[1]).padStart(2,'0')}-${String(p[0]).padStart(2,'0')}T12:00:00`); }
+  else if (/^\d{1,2}-\d{1,2}-\d{4}/.test(s)){ const p=s.substring(0,10).split('-'); d=new Date(`${p[2]}-${String(p[1]).padStart(2,'0')}-${String(p[0]).padStart(2,'0')}T12:00:00`); }
+  else d = new Date(s);
+  return isNaN(d) ? null : d;
+}
+function diaDe(d){ const js = d.getDay(); return js === 0 ? 6 : js - 1; }
+function hoyLocal(){ const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate(), 0, 0, 0); }
+function fmtDia(d){
+  const n = ['dom','lun','mar','mié','jue','vie','sáb'][d.getDay()];
+  return n + ' ' + String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+}
+function colorApego(p){
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (p < 0.7){
+    const t=p/0.7;
+    if (isDark) return `rgba(239,68,68,${0.35+t*0.25})`;
+    return `rgb(248,${Math.round(113+(220-113)*t)},${Math.round(113+(38-113)*t)})`;
+  }
+  const t=(p-0.7)/0.3;
+  if (isDark) return `rgba(132,204,22,${0.35+t*0.35})`;
+  return `rgb(${Math.round(248+(134-248)*t)},${Math.round(220+(239-220)*t)},${Math.round(38+(172-38)*t)})`;
+}
+
+document.getElementById('file-asig').addEventListener('change', e => {
+  const f = e.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = ev => {
+    try {
+      const wb = XLSX.read(new Uint8Array(ev.target.result), {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      cargarAsignacion(XLSX.utils.sheet_to_json(ws, {header:1, defval:'', raw:false}), f.name);
+    } catch(err){
+      document.getElementById('name-asig').textContent = 'No se pudo leer el Excel';
+    }
+  };
+  rd.readAsArrayBuffer(f);
+});
+
+function cargarAsignacion(rows, nombre){
+  const hdr = (rows[0] || []).map(slug);
+  const ix = { planta:hdr.indexOf('planta'), coordinador:hdr.indexOf('coordinador'), jefe:hdr.indexOf('jefe'), gerente:hdr.indexOf('gerente') };
+  if (Object.values(ix).some(v => v < 0)){ ix.planta=0; ix.coordinador=1; ix.jefe=2; ix.gerente=3; }
+  _asigRows = []; _asigMap = {};
+  for (let i=1; i<rows.length; i++){
+    const r = rows[i] || [];
+    const planta = normR(r[ix.planta]);
+    if (!planta) continue;
+    const a = {
+      planta,
+      coordinador: String(r[ix.coordinador]==null?'':r[ix.coordinador]).trim(),
+      jefe:        String(r[ix.jefe]==null?'':r[ix.jefe]).trim(),
+      gerente:     String(r[ix.gerente]==null?'':r[ix.gerente]).trim()
+    };
+    _asigRows.push(a); _asigMap[planta] = a;
+  }
+  const lbl = document.getElementById('name-asig');
+  if (!_asigRows.length){
+    lbl.textContent = 'Sin datos: revisa columnas Planta, Coordinador, Jefe, Gerente';
+    document.getElementById('btn-asig').classList.remove('loaded');
+    return;
+  }
+  lbl.textContent = nombre + ' · ' + _asigRows.length + ' plantas';
+  document.getElementById('btn-asig').classList.add('loaded');
+  poblarPanel();
+  refresh();
+}
+
+// Enlaza la planta de la carta con la asignación. La carta puede venir como
+// "COD-NOMBRE" (ej. ACU-ACUMENT) y la asignación solo con el nombre (ACUMENT),
+// así que probamos la llave completa y, si no, la parte después del código.
+function asigDe(planta){
+  const p = normR(planta);
+  if (_asigMap[p]) return _asigMap[p];
+  const m = p.match(/^[A-Z0-9]{2,4}-(.+)$/);
+  if (m){ const q = normR(m[1]); if (_asigMap[q]) return _asigMap[q]; }
+  return null;
+}
+
+const SEL = { gerente:document.getElementById('f-gerente'), jefe:document.getElementById('f-jefe'), coordinador:document.getElementById('f-coord'), cliente:document.getElementById('f-cliente') };
+
+function poblarPanel(){
+  const actual = {};
+  Object.keys(SEL).forEach(k => actual[k] = SEL[k].value);
+  const asigOf = pl => asigDe(pl) || {};
+  // plantas presentes en el detalle, con su asignación resuelta
+  const base = [...new Set(_detalle.map(d => normR(d.planta)))].map(pl => {
+    const a = asigOf(pl);
+    return { planta:pl, gerente:a.gerente||'', jefe:a.jefe||'', coordinador:a.coordinador||'' };
+  });
+  const cumple = (a, omitir) =>
+    ['gerente','jefe','coordinador'].every(k => k === omitir || !actual[k] || a[k] === actual[k]) &&
+    (omitir === 'cliente' || !actual.cliente || a.planta === actual.cliente);
+  const ordenar = arr => arr.sort((x,y) => x.localeCompare(y,'es',{numeric:true}));
+  const llenar = (campo, vals) => {
+    const vacio = campo === 'cliente' ? 'Todas' : 'Todos';
+    SEL[campo].innerHTML = `<option value="">${vacio}</option>` + vals.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    SEL[campo].value = vals.includes(actual[campo]) ? actual[campo] : '';
+  };
+  ['gerente','jefe','coordinador'].forEach(campo =>
+    llenar(campo, ordenar([...new Set(base.filter(a => cumple(a,campo)).map(a => a[campo]).filter(Boolean))])));
+  llenar('cliente', ordenar([...new Set(base.filter(a => cumple(a,'cliente')).map(a => a.planta))]));
+  const conAsig = _asigRows.length > 0;
+  ['gerente','jefe','coordinador'].forEach(k => SEL[k].disabled = !conAsig);
+  SEL.cliente.disabled = !calculado;
+  document.getElementById('panel-hint').style.display = conAsig ? 'none' : 'block';
+}
+Object.values(SEL).forEach(s => s.addEventListener('change', () => { poblarPanel(); refresh(); }));
+
+function pasaPanel(planta){
+  const g = SEL.gerente.value, j = SEL.jefe.value, c = SEL.coordinador.value, cl = SEL.cliente.value;
+  if (cl && normR(planta) !== cl) return false;
+  if (!g && !j && !c) return true;
+  const a = asigDe(planta);
+  if (!a) return false;
+  return (!g || a.gerente === g) && (!j || a.jefe === j) && (!c || a.coordinador === c);
+}
+
+document.getElementById('btn-calc').addEventListener('click', () => {
+  let minD=null, maxD=null;
+  for (let i=1; i<rawConf.length; i++){
+    const r = rawConf[i]; if (!r || !r.length) continue;
+    const d = parseFecha(r[C_CONF.fecha]); if (!d) continue;
+    if (!minD || d < minD) minD = d;
+    if (!maxD || d > maxD) maxD = d;
+  }
+  let fin = null;
+  if (maxD){
+    const ayer = hoyLocal(); ayer.setHours(12,0,0,0); ayer.setDate(ayer.getDate()-1);
+    fin = maxD > ayer ? ayer : new Date(maxD);
+  }
+  const diasValidos = new Set();
+  if (minD && fin && fin >= minD){
+    const c = new Date(minD);
+    for (let n=0; n<7 && c <= fin; n++){ diasValidos.add(diaDe(c)); c.setDate(c.getDate()+1); }
+  }
+  calculado = true;
+  const elRango = document.getElementById('rango');
+  if (!diasValidos.size){
+    _detalle = [];
+    elRango.textContent = 'Aún no hay días vencidos en la Confirmación (el día de hoy se valida hasta que cierre).';
+    poblarPanel();
+    refresh();
+    return;
+  }
+  elRango.innerHTML = '<strong>Días validados:</strong> ' + fmtDia(minD) + ' → ' + fmtDia(fin) + (fin < maxD ? '  ·  no incluye hoy ni días posteriores' : '');
+
+  const ejecMap = {};
+  for (let i=1; i<rawConf.length; i++){
+    const r = rawConf[i]; if (!r || !r.length) continue;
+    const idsrv = normKey(r[C_CONF.idsrv]);
+    if (EXCLUIR_ID && idsrv.includes(EXCLUIR_ID)) continue;
+    const carro = norm(r[C_CONF.carro]);
+    const fecha = parseFecha(r[C_CONF.fecha]);
+    if (!idsrv || !carro || !fecha || fecha > fin) continue;
+    const dia = diaDe(fecha);
+    const horaStr = String(r[C_CONF.horario]||'').trim();
+    const horaMin = horaToMin(horaStr);
+    if (!ejecMap[idsrv]) ejecMap[idsrv] = {};
+    if (!ejecMap[idsrv][dia]) ejecMap[idsrv][dia] = [];
+    ejecMap[idsrv][dia].push({horaMin, carro, horaStr});
+  }
+
+  const dias = [C_CARTA.lun, C_CARTA.mar, C_CARTA.mie, C_CARTA.jue, C_CARTA.vie, C_CARTA.sab, C_CARTA.dom];
+  const detalle = [];
+  for (let i=1; i<rawCarta.length; i++){
+    const r = rawCarta[i]; if (!r || !r.length) continue;
+    const idsrv = normKey(r[C_CARTA.idsrv]);
+    if (EXCLUIR_ID && idsrv.includes(EXCLUIR_ID)) continue;
+    const planta = norm(r[C_CARTA.planta]);
+    const ruta = normR(r[C_CARTA.ruta]);
+    const desc = String(r[C_CARTA.desc]||'').trim();
+    const horarioRaw = String(r[C_CARTA.horario]||'').trim();
+    const carro = norm(r[C_CARTA.carro]);
+    if (!planta || !carro) continue;
+
+    const co = ['','','','','','',''];
+    const cc = ['','','','','','',''];
+    const horProgMin = horaToMin(horarioRaw);
+    let val=0, check=0;
+    const ejecPorDia = ejecMap[idsrv] || {};
+    for (let d=0; d<7; d++){
+      if (!diasValidos.has(d)) continue;
+      const v = String(r[dias[d]]||'').trim();
+      const n = parseInt(v,10);
+      if (!isNaN(n) && n > 0){
+        co[d] = carro;
+        val++;
+        const lista = ejecPorDia[d] || [];
+        let mejor = null, mejorDiff = Infinity;
+        for (const ej of lista){
+          if (ej.usado) continue;
+          if (horProgMin < 0 || ej.horaMin < 0){
+            if (mejor === null){ mejor = ej; mejorDiff = 0; }
+            continue;
+          }
+          const diff = Math.abs(ej.horaMin - horProgMin);
+          if (diff <= TOL_MIN && diff < mejorDiff){
+            mejor = ej;
+            mejorDiff = diff;
+          }
+        }
+        if (mejor){
+          mejor.usado = true;
+          cc[d] = mejor.carro;
+          if (mejor.carro === carro) check++;
+        }
+      }
+    }
+    if (val === 0) continue;
+    detalle.push({ planta, ruta, desc, key: idsrv, time: horarioRaw, val, check, apego: check/val, co, cc });
+  }
+  _detalle = detalle;
+  _diasValidos = [...diasValidos].sort((a,b)=>a-b);
+  rebuildDetalleCols();
+  poblarPanel();
+  refresh();
+});
+
+function rebuildDetalleCols(){
+  COLS_DET.length = 0;
+  COLS_DET.push({k:'planta', label:'cod_planta', t:'text', get:d=>d.planta});
+  COLS_DET.push({k:'ruta',   label:'ruta',       t:'text', get:d=>d.ruta});
+  COLS_DET.push({k:'desc',   label:'des_ruta',   t:'text', get:d=>d.desc});
+  COLS_DET.push({k:'time',   label:'time',       t:'text', get:d=>d.time});
+  COLS_DET.push({k:'val',    label:'val',        t:'num',  cls:'num',    get:d=>d.val});
+  COLS_DET.push({k:'check',  label:'check',      t:'num',  cls:'num',    get:d=>d.check});
+  COLS_DET.push({k:'apego',  label:'apego',      t:'pct',  cls:'center', get:d=>d.apego});
+  const dias = _diasValidos.length ? _diasValidos : [0,1,2,3,4,5,6];
+  dias.forEach((d,idx)=> COLS_DET.push({k:'co'+d, label:(d+1)+'_co', t:'text', cls:'center'+(idx===0?' group-co':''), get:row=>row.co[d]}));
+  dias.forEach((d,idx)=> COLS_DET.push({k:'cc'+d, label:(d+1)+'_cc', t:'text', cls:'center'+(idx===0?' group-cc':''), get:row=>row.cc[d]}));
+  buildHead('tbl-detalle', COLS_DET, ST.detalle, renderDetalle);
+}
+
+const COLS_DET = [
+  {k:'planta', label:'cod_planta', t:'text', get:d=>d.planta},
+  {k:'ruta',   label:'ruta',       t:'text', get:d=>d.ruta},
+  {k:'desc',   label:'des_ruta',   t:'text', get:d=>d.desc},
+  {k:'time',   label:'time',       t:'text', get:d=>d.time},
+  {k:'val',    label:'val',        t:'num',  cls:'num',    get:d=>d.val},
+  {k:'check',  label:'check',      t:'num',  cls:'num',    get:d=>d.check},
+  {k:'apego',  label:'apego',      t:'pct',  cls:'center', get:d=>d.apego}
+];
+
+const COLS_RES = [
+  {k:'planta', label:'cod_planta', t:'text', get:d=>d.planta},
+  {k:'val',    label:'val',        t:'num',  cls:'num',    get:d=>d.val},
+  {k:'check',  label:'check',      t:'num',  cls:'num',    get:d=>d.check},
+  {k:'apego',  label:'apego',      t:'pct',  cls:'center', get:d=>d.apego}
+];
+
+const COLS_PER = [
+  {k:'gerente',     label:'gerente',     t:'text'},
+  {k:'jefe',        label:'jefe',        t:'text'},
+  {k:'coordinador', label:'coordinador', t:'text'},
+  {k:'val',         label:'val',         t:'num',  cls:'num'},
+  {k:'check',       label:'check',       t:'num',  cls:'num'},
+  {k:'apego',       label:'apego',       t:'pct',  cls:'center'}
+];
+
+const ST = {
+  detalle:  { sort:null,    dir:1 },
+  resumen:  { sort:'apego', dir:1 },
+  personas: { sort:'apego', dir:1 }
+};
+
+function defDetalle(a,b){
+  if (a.planta !== b.planta) return a.planta.localeCompare(b.planta);
+  if (a.ruta !== b.ruta) return a.ruta.localeCompare(b.ruta);
+  if (a.desc !== b.desc) return String(a.desc).localeCompare(String(b.desc));
+  return String(a.time).localeCompare(String(b.time));
+}
+function defResumen(a,b){ return a.planta.localeCompare(b.planta); }
+
+function cmpCol(col, a, b, dir){
+  const va = col.get(a), vb = col.get(b);
+  const ea = (va === '' || va == null), eb = (vb === '' || vb == null);
+  if (ea || eb) return ea && eb ? 0 : (ea ? 1 : -1);
+  const r = (col.t === 'num' || col.t === 'pct') ? (va - vb) : String(va).localeCompare(String(vb), 'es', {numeric:true});
+  return r * dir;
+}
+
+function procesar(rows, cols, st, def){
+  const col = cols.find(c => c.k === st.sort);
+  const list = rows.slice();
+  list.sort((a,b) => {
+    if (col){ const r = cmpCol(col, a, b, st.dir); if (r) return r; }
+    return def(a,b);
+  });
+  return list;
+}
+
+function marcarOrden(thead, cols, st){
+  thead.querySelectorAll('tr.hd th').forEach((th,i) => {
+    th.querySelector('.arrow').textContent = cols[i].k === st.sort ? (st.dir === 1 ? '▲' : '▼') : '';
+  });
+}
+
+function buildHead(tblId, cols, st, onChange){
+  const thead = document.querySelector('#'+tblId+' thead');
+  const tr = document.createElement('tr'); tr.className = 'hd';
+  cols.forEach(c => {
+    const th = document.createElement('th');
+    th.className = c.cls || '';
+    th.innerHTML = c.label + '<span class="arrow"></span>';
+    th.title = 'Clic para ordenar';
+    th.addEventListener('click', () => {
+      if (st.sort === c.k) st.dir = -st.dir; else { st.sort = c.k; st.dir = 1; }
+      marcarOrden(thead, cols, st);
+      onChange();
+    });
+    tr.appendChild(th);
+  });
+  thead.innerHTML = '';
+  thead.appendChild(tr);
+  marcarOrden(thead, cols, st);
+}
+
+function rowsPanel(){ return _detalle.filter(d => pasaPanel(d.planta)); }
+
+function resumenDe(rows){
+  const m = {};
+  rows.forEach(d => {
+    if (!m[d.planta]) m[d.planta] = { planta:d.planta, val:0, check:0 };
+    m[d.planta].val += d.val;
+    m[d.planta].check += d.check;
+  });
+  return Object.values(m).map(r => ({...r, apego: r.val>0 ? r.check/r.val : 0}));
+}
+
+function refresh(){
+  if (!calculado) return;
+  const rows = rowsPanel();
+  const totVal = rows.reduce((s,d) => s + d.val, 0);
+  const totCheck = rows.reduce((s,d) => s + d.check, 0);
+  document.getElementById('stats').style.display = 'grid';
+  document.getElementById('tabs').style.display = 'inline-flex';
+  document.getElementById('rango').style.display = 'block';
+  document.getElementById('btn-export-xlsx').style.display = 'inline-flex';
+  document.getElementById('s-val').textContent = totVal.toLocaleString('es-MX');
+  document.getElementById('s-check').textContent = totCheck.toLocaleString('es-MX');
+  document.getElementById('s-servicios').textContent = rows.length.toLocaleString('es-MX');
+  document.getElementById('s-apego').textContent = (totVal>0 ? totCheck/totVal*100 : 0).toFixed(0) + '%';
+  renderDetalle();
+  renderResumen();
+  renderPersonas();
+}
+
+function renderDetalle(){
+  const list = procesar(rowsPanel(), COLS_DET, ST.detalle, defDetalle);
+  const tb = document.getElementById('tbody-detalle');
+  const dias = _diasValidos.length ? _diasValidos : [0,1,2,3,4,5,6];
+  const colspan = 7 + dias.length * 2;
+  if (!list.length){
+    tb.innerHTML = `<tr><td colspan="${colspan}" class="empty">No hay servicios con los filtros actuales.</td></tr>`;
+    return;
+  }
+  const out = [];
+  list.forEach(d => {
+    let coCells = '', ccCells = '';
+    dias.forEach((i,idx) => {
+      const c0 = d.co[i], c1 = d.cc[i];
+      const miss = c0 && c1 && c0 !== c1;
+      const cls0 = 'day-cell day-co' + (idx===0?' group-co':'');
+      const cls1 = 'day-cell day-cc' + (idx===0?' group-cc':'') + (miss?' mismatch':'');
+      coCells += `<td class="${cls0}">${c0||''}</td>`;
+      ccCells += `<td class="${cls1}">${c1||''}</td>`;
+    });
+    out.push(`<tr>
+      <td><strong>${d.planta}</strong></td>
+      <td>${d.ruta}</td>
+      <td>${esc(d.desc)}</td>
+      <td>${d.time}</td>
+      <td class="num">${d.val}</td>
+      <td class="num">${d.check}</td>
+      <td class="apego-cell" style="background:${colorApego(d.apego)}">${(d.apego*100).toFixed(0)}%</td>
+      ${coCells}${ccCells}</tr>`);
+  });
+  tb.innerHTML = out.join('');
+}
+
+function renderResumen(){
+  const list = procesar(resumenDe(rowsPanel()), COLS_RES, ST.resumen, defResumen);
+  const tb = document.getElementById('tbody-resumen');
+  let tv=0, tc=0;
+  const out = [];
+  list.forEach(r => {
+    tv += r.val; tc += r.check;
+    out.push(`<tr><td><strong>${r.planta}</strong></td>
+      <td class="num">${r.val}</td><td class="num">${r.check}</td>
+      <td class="apego-cell" style="background:${colorApego(r.apego)}">${(r.apego*100).toFixed(0)}%</td></tr>`);
+  });
+  const ap = tv>0 ? tc/tv : 0;
+  out.push(`<tr class="total-row"><td>TOTAL</td>
+    <td class="num">${tv}</td><td class="num">${tc}</td>
+    <td class="apego-cell" style="background:${colorApego(ap)}">${(ap*100).toFixed(0)}%</td></tr>`);
+  tb.innerHTML = out.join('');
+}
+
+function personasDe(rows){
+  const G = {};
+  rows.forEach(d => {
+    const a = asigDe(d.planta) || {};
+    const gn = a.gerente || 'SIN ASIGNAR', jn = a.jefe || 'SIN ASIGNAR', cn = a.coordinador || 'SIN ASIGNAR';
+    const g = G[gn] || (G[gn] = {nombre:gn, val:0, check:0, hijos:{}});
+    const j = g.hijos[jn] || (g.hijos[jn] = {nombre:jn, val:0, check:0, hijos:{}});
+    const c = j.hijos[cn] || (j.hijos[cn] = {nombre:cn, val:0, check:0});
+    [g,j,c].forEach(n => { n.val += d.val; n.check += d.check; });
+  });
+  return G;
+}
+function ordenNodos(obj){
+  const st = ST.personas;
+  const porNombre = ['gerente','jefe','coordinador'].includes(st.sort);
+  const ap = n => n.val > 0 ? n.check / n.val : 0;
+  const nom = (x,y) => x.nombre.localeCompare(y.nombre, 'es', {numeric:true});
+  return Object.values(obj).sort((x,y) => {
+    let r;
+    if (porNombre) r = nom(x,y);
+    else if (st.sort === 'val') r = x.val - y.val;
+    else if (st.sort === 'check') r = x.check - y.check;
+    else r = ap(x) - ap(y);
+    return (r * st.dir) || nom(x,y);
+  });
+}
+function renderPersonas(){
+  const tb = document.getElementById('tbody-personas');
+  if (!_asigRows.length){
+    tb.innerHTML = '<tr><td colspan="6" class="empty">Sube el archivo de asignación para ver esta tabla.</td></tr>';
+    return;
+  }
+  const G = personasDe(rowsPanel());
+  const gerentes = ordenNodos(G);
+  if (!gerentes.length){
+    tb.innerHTML = '<tr><td colspan="6" class="empty">No hay datos con los filtros actuales.</td></tr>';
+    return;
+  }
+  const celdas = n => {
+    const ap = n.val > 0 ? n.check / n.val : 0;
+    return `<td class="num">${n.val}</td><td class="num">${n.check}</td><td class="apego-cell" style="background:${colorApego(ap)}">${(ap*100).toFixed(0)}%</td>`;
+  };
+  const out = [];
+  let tv = 0, tc = 0;
+  gerentes.forEach(g => {
+    tv += g.val; tc += g.check;
+    out.push(`<tr class="lvl-g"><td>${esc(g.nombre)}</td><td></td><td></td>${celdas(g)}</tr>`);
+    ordenNodos(g.hijos).forEach(j => {
+      out.push(`<tr class="lvl-j"><td></td><td>${esc(j.nombre)}</td><td></td>${celdas(j)}</tr>`);
+      ordenNodos(j.hijos).forEach(c => out.push(`<tr><td></td><td></td><td>${esc(c.nombre)}</td>${celdas(c)}</tr>`));
+    });
+  });
+  out.push(`<tr class="total-row"><td>TOTAL</td><td></td><td></td>
+    <td class="num">${tv}</td><td class="num">${tc}</td>
+    <td class="apego-cell" style="background:${colorApego(tv>0?tc/tv:0)}">${(tv>0?tc/tv*100:0).toFixed(0)}%</td></tr>`);
+  tb.innerHTML = out.join('');
+}
+
+buildHead('tbl-detalle', COLS_DET, ST.detalle, renderDetalle);
+buildHead('tbl-resumen', COLS_RES, ST.resumen, renderResumen);
+buildHead('tbl-personas', COLS_PER, ST.personas, renderPersonas);
+
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  const v = t.dataset.view;
+  document.getElementById('wrap-detalle').style.display = v==='detalle' ? 'block' : 'none';
+  document.getElementById('wrap-resumen-grid').style.display = v==='resumen' ? 'block' : 'none';
+}));
+
+document.getElementById('btn-theme').addEventListener('click', () => { if (calculado) { renderDetalle(); renderResumen(); renderPersonas(); } });
+
+// Convierte el apego (0..1) al mismo degradado rojo→amarillo→verde de la tabla, en hex ARGB para Excel
+function apegoHexExcel(p){
+  let r,g,b;
+  if (p < 0.7){ const t=p/0.7; r=248; g=Math.round(113+(220-113)*t); b=Math.round(113+(38-113)*t); }
+  else { const t=(p-0.7)/0.3; r=Math.round(248+(134-248)*t); g=Math.round(220+(239-220)*t); b=Math.round(38+(172-38)*t); }
+  const h = n => n.toString(16).padStart(2,'0').toUpperCase();
+  return 'FF'+h(r)+h(g)+h(b);
+}
+
+document.getElementById('btn-export-xlsx').addEventListener('click', async () => {
+  if (!calculado || typeof ExcelJS === 'undefined') return;
+  const btn = document.getElementById('btn-export-xlsx');
+  const txt = btn.textContent; btn.textContent = 'Generando…'; btn.disabled = true;
+  try {
+    const dias = _diasValidos.length ? _diasValidos : [0,1,2,3,4,5,6];
+    const wb = new ExcelJS.Workbook();
+    const HEAD_FILL = {type:'pattern', pattern:'solid', fgColor:{argb:'FF1F2937'}};
+    const HEAD_FONT = {bold:true, color:{argb:'FFFFFFFF'}, size:10};
+    const MISS_FILL = {type:'pattern', pattern:'solid', fgColor:{argb:'FFFEF3C7'}};
+    const apFill = p => ({type:'pattern', pattern:'solid', fgColor:{argb:apegoHexExcel(p)}});
+    const pintarHead = ws => ws.getRow(1).eachCell(c => { c.fill=HEAD_FILL; c.font=HEAD_FONT; c.alignment={horizontal:'center'}; });
+
+    // ===== Hoja Detalle =====
+    const ws = wb.addWorksheet('Detalle', {views:[{state:'frozen', ySplit:1, xSplit:3}]});
+    ws.addRow(['cod_planta','ruta','des_ruta','time','val','check','apego',
+               ...dias.map(d=>(d+1)+'_co'), ...dias.map(d=>(d+1)+'_cc')]);
+    const detList = procesar(rowsPanel(), COLS_DET, ST.detalle, defDetalle);
+    const nCo = dias.length, apCol = 7, coStart = 8, ccStart = 8 + nCo;
+    detList.forEach(d => {
+      const row = ws.addRow([d.planta, d.ruta, d.desc, d.time, d.val, d.check, d.apego,
+        ...dias.map(i=>d.co[i]||''), ...dias.map(i=>d.cc[i]||'')]);
+      const ap = row.getCell(apCol);
+      ap.numFmt = '0%'; ap.fill = apFill(d.apego); ap.alignment = {horizontal:'center'}; ap.font = {bold:true};
+      dias.forEach((i,idx) => {
+        const c0 = d.co[i], c1 = d.cc[i];
+        if (c0 && c1 && c0 !== c1){
+          const cell = row.getCell(ccStart + idx);
+          cell.fill = MISS_FILL; cell.font = {color:{argb:'FF92400E'}, bold:true};
+          cell.alignment = {horizontal:'center'};
+        }
+      });
+    });
+    pintarHead(ws);
+    const anchos = [16,8,24,8,7,7,9];
+    ws.columns.forEach((col,i) => { col.width = i < anchos.length ? anchos[i] : 8; });
+    for (let c=coStart; c<coStart+nCo*2; c++) ws.getColumn(c).alignment = {horizontal:'center'};
+    ws.getColumn(5).alignment = {horizontal:'center'};
+    ws.getColumn(6).alignment = {horizontal:'center'};
+
+    // ===== Hoja Resumen por Planta =====
+    const ws2 = wb.addWorksheet('Resumen por Planta', {views:[{state:'frozen', ySplit:1}]});
+    ws2.addRow(['cod_planta','val','check','apego']);
+    const resList = procesar(resumenDe(rowsPanel()), COLS_RES, ST.resumen, defResumen);
+    let tv=0, tc=0;
+    resList.forEach(r => {
+      tv+=r.val; tc+=r.check;
+      const row = ws2.addRow([r.planta, r.val, r.check, r.apego]);
+      const ap = row.getCell(4);
+      ap.numFmt='0%'; ap.fill=apFill(r.apego); ap.alignment={horizontal:'center'}; ap.font={bold:true};
+    });
+    const apTot = tv>0 ? tc/tv : 0;
+    const totRow = ws2.addRow(['TOTAL', tv, tc, apTot]);
+    totRow.eachCell(c => c.font = {bold:true});
+    const tcell = totRow.getCell(4);
+    tcell.numFmt='0%'; tcell.fill=apFill(apTot); tcell.alignment={horizontal:'center'};
+    pintarHead(ws2);
+    ws2.columns.forEach((col,i) => col.width = [24,8,8,10][i]);
+    ws2.getColumn(2).alignment={horizontal:'center'}; ws2.getColumn(3).alignment={horizontal:'center'};
+
+    const buf = await wb.xlsx.writeBuffer();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+    a.download = 'apego.xlsx'; a.click();
+  } catch(err){
+    alert('No se pudo generar el Excel: ' + err.message);
+  } finally {
+    btn.textContent = txt; btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>
