@@ -224,6 +224,17 @@
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 14px; background: #f8fafc; font-size: 12px; color: #64748b;
   }
+  /* Route list: severity group header rows */
+  table.plants-table tbody tr.route-group-row,
+  table.plants-table tbody tr.route-group-row:hover { background: #f1f5f9; cursor: default; }
+  table.plants-table tbody tr.route-group-row td {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.6px; color: #475569; padding: 10px 14px;
+  }
+  table.plants-table td.route-code {
+    font-family: ui-monospace, "SF Mono", Monaco, monospace;
+    font-size: 11px; color: #64748b;
+  }
 
   /* ---------- Route cards ---------- */
   .cards-grid {
@@ -610,16 +621,28 @@ function processRows(rows) {
   render();
 }
 
-function loadSheet() {
+function loadSheet(attempt) {
+  attempt = attempt || 1;
+  const MAX_ATTEMPTS = 6;   // reintentos automáticos antes de mostrar el error
   const overlay = document.getElementById('loadingOverlay');
   const txt = document.getElementById('loadingText');
   overlay.classList.remove('hidden');
-  txt.textContent = 'Cargando datos desde Google Sheets…';
+  txt.textContent = attempt === 1
+    ? 'Cargando datos desde Google Sheets…'
+    : 'Reintentando carga… (' + attempt + '/' + MAX_ATTEMPTS + ')';
   document.querySelector('.loading-error')?.remove();
 
   const cb = 'gvizCB_' + Math.random().toString(36).slice(2).replace(/[^a-z0-9]/g,'');
+  // Pedimos SOLO las columnas que el tablero usa y SOLO las filas tipo "E".
+  // Reduce la descarga de 23 columnas × ~109k filas a 13 columnas × filas E,
+  // que es lo que causaba el timeout / error al cargar.
+  // Columnas: A Planta, B Tip.Ser, C Desc Ruta, D ID Ruta, E Sec, F Pos,
+  //           G Parada, H Lat, I Lng, J H1, T Cal Rt, U Cal Pd, W Semana.
+  const TQ = encodeURIComponent("select A,B,C,D,E,F,G,H,I,J,T,U,W where B='E'");
   const url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
-              '/gviz/tq?tqx=out:json;responseHandler:' + cb + '&gid=' + SHEET_GID +
+              '/gviz/tq?tqx=out:json;responseHandler:' + cb +
+              '&tq=' + TQ +
+              '&gid=' + SHEET_GID +
               '&_=' + Date.now();
 
   let timeoutId = null;
@@ -631,6 +654,13 @@ function loadSheet() {
   };
 
   const showError = (msg) => {
+    // Reintento automático: muchos de estos fallos son cortes pasajeros de red/JSONP
+    if (attempt < MAX_ATTEMPTS) {
+      const wait = Math.min(3000, 900 * attempt);   // backoff espaciado (evita que Google lo frene)
+      txt.textContent = 'Conectando con Google Sheets… (intento ' + (attempt + 1) + ' de ' + MAX_ATTEMPTS + ')';
+      setTimeout(() => loadSheet(attempt + 1), wait);
+      return;
+    }
     txt.textContent = 'No se pudo cargar el Sheet.';
     document.querySelector('.loading-error')?.remove();
     const errBox = document.createElement('div');
@@ -664,8 +694,8 @@ function loadSheet() {
   };
   timeoutId = setTimeout(() => {
     cleanup();
-    showError('Timeout esperando la respuesta del Sheet (30 s).');
-  }, 30000);
+    showError('Timeout esperando la respuesta del Sheet.');
+  }, 20000);
   document.body.appendChild(script);
 }
 
@@ -952,41 +982,35 @@ function renderRoutes() {
     return;
   }
 
-  // Build cards, injecting section headers when severity changes
-  let lastOrder = -1;
+  // Build a LIST (table), injecting severity section header rows when the group changes
   const sectionLabels = {
     0: {label: 'Rutas con calidad baja (< 90%)', color: '#ef4444'},
     1: {label: 'Rutas con calidad media (90 – 97.99%)', color: '#f59e0b'},
     2: {label: 'Rutas dentro de meta (≥ 98%)', color: '#22c55e'},
     3: {label: 'Rutas sin datos (N/A)', color: '#94a3b8'},
   };
-  const cardsHTML = routes.map(r => {
+  let lastOrder = -1;
+  let n = 0;
+  const rowsHTML = routes.map(r => {
     const ord = severityOrder(r.cal_pd);
-    let sectionHTML = '';
+    let headerRow = '';
     if (ord !== lastOrder) {
       lastOrder = ord;
       const sec = sectionLabels[ord];
-      sectionHTML = `<div class="routes-severity-header"><span class="dot" style="background:${sec.color}"></span>${sec.label}</div>`;
+      headerRow = `<tr class="route-group-row"><td colspan="6">` +
+        `<span class="dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${sec.color};margin-right:8px;vertical-align:middle;"></span>` +
+        `${sec.label}</td></tr>`;
     }
-    return sectionHTML + `
-      <div class="card g-${colorClassForScore(r.cal_pd)}" data-ruta="${escapeAttr(r.id_ruta)}">
-        <div class="c-title"><span>${escapeHtml(r.desc_ruta)}</span></div>
-        <div class="c-code">${escapeHtml(r.id_ruta)}</div>
-        <div class="c-stats">
-          <div class="stat s-${colorClassForScore(r.cal_rt)}">
-            <div class="s-label">Cal Ruta</div>
-            <div class="s-value">${fmtScore(r.cal_rt)}</div>
-          </div>
-          <div class="stat s-${colorClassForScore(r.cal_pd)}">
-            <div class="s-label">Cal Parada</div>
-            <div class="s-value">${fmtScore(r.cal_pd)}</div>
-          </div>
-        </div>
-        <div class="c-meta">
-          <span><strong>${r.paradas}</strong> paradas</span>
-          <span>Ver mapa →</span>
-        </div>
-      </div>
+    n++;
+    return headerRow + `
+      <tr data-ruta="${escapeAttr(r.id_ruta)}">
+        <td class="num">${n}</td>
+        <td><span class="plant-name">${escapeHtml(r.desc_ruta)}<span class="arrow">▸</span></span></td>
+        <td class="route-code">${escapeHtml(r.id_ruta)}</td>
+        <td class="num">${r.paradas}</td>
+        <td class="right txt-${colorClassForScore(r.cal_rt)}">${fmtScore(r.cal_rt)}</td>
+        <td class="right txt-${colorClassForScore(r.cal_pd)}">${fmtScore(r.cal_pd)}</td>
+      </tr>
     `;
   }).join('');
 
@@ -1000,12 +1024,30 @@ function renderRoutes() {
       <span class="count-badge">${routes.length}</span>
       ${naHint}
     </div>
-    <div class="cards-grid">${cardsHTML}</div>
+    <div class="plants-table-wrap">
+      <table class="plants-table">
+        <thead>
+          <tr>
+            <th class="num">#</th>
+            <th>RUTA</th>
+            <th>ID RUTA</th>
+            <th class="num">PARADAS</th>
+            <th class="right">CAL RUTA</th>
+            <th class="right">CAL PARADA</th>
+          </tr>
+        </thead>
+        <tbody>${rowsHTML}</tbody>
+      </table>
+      <div class="table-footer">
+        <span>Ordenado por severidad y Cal Parada (peor primero)</span>
+        <span>${routes.length} rutas</span>
+      </div>
+    </div>
   `;
 
-  container.querySelectorAll('.card').forEach(c => {
-    c.addEventListener('click', () => {
-      STATE.ruta = c.dataset.ruta;
+  container.querySelectorAll('tbody tr[data-ruta]').forEach(tr => {
+    tr.addEventListener('click', () => {
+      STATE.ruta = tr.dataset.ruta;
       STATE.view = 'stops';
       STATE.search = '';
       document.getElementById('searchInput').value = '';
