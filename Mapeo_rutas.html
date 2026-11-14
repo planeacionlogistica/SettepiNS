@@ -2453,6 +2453,11 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           <button class="primary" id="btnExportMyMaps">🗺 My Maps + QR</button>
           <button id="btnExport" disabled>⇪ Exportar cambios <span id="badgeCambios"></span></button>
           <button id="btnExportTodo" class="primary">📊 Exportar TODO</button>
+          <div style="height:1px;background:#e5e7eb;margin:8px 0"></div>
+          <button class="primary" id="btnExportVisor" title="Genera un HTML con mapa y filtros por planta y ruta, para abrir o compartir">🌐 Exportar visor (mapa + filtros)</button>
+          <button id="btnGuardarProyecto" title="Descarga todas las rutas (incluidas las que diseñes) en un archivo .json">💾 Guardar proyecto (.json)</button>
+          <button id="btnAbrirProyecto" title="Carga un proyecto .json para seguir editándolo">📂 Abrir proyecto (.json)</button>
+          <input type="file" id="fileAbrirProyecto" accept=".json,application/json" style="display:none"/>
         </div>
       </details>
 
@@ -8292,6 +8297,174 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
   // Reset del value para que se pueda re-seleccionar el mismo archivo
   e.target.value = '';
 });
+
+
+// =========================================================
+// PLANTILLA DEL VISOR HTML INDEPENDIENTE (se inyectan los datos al exportar)
+// =========================================================
+const VIEWER_TPL = "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n<meta charset=\"utf-8\"/>\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>\n<title>Visor de Rutas</title>\n<link rel=\"stylesheet\" href=\"https://unpkg.com/leaflet/dist/leaflet.css\"/>\n<script src=\"https://unpkg.com/leaflet/dist/leaflet.js\"><\/script>\n<style>\n  * { box-sizing: border-box; }\n  html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif; }\n  #app { display: flex; height: 100vh; width: 100%; overflow: hidden; }\n  /* ===== Panel lateral ===== */\n  #side {\n    width: 320px; min-width: 320px; height: 100%; background: #0f172a; color: #e5e7eb;\n    display: flex; flex-direction: column; border-right: 1px solid #1e293b;\n  }\n  #side .head { padding: 14px 16px; border-bottom: 1px solid #1e293b; background: linear-gradient(180deg,#132033,#0f172a); }\n  #side .head h1 { margin: 0; font-size: 16px; letter-spacing: .3px; }\n  #side .head .sub { font-size: 11px; color: #94a3b8; margin-top: 3px; }\n  #side .kpis { display: flex; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #1e293b; }\n  #side .kpi { flex: 1; background: #1e293b; border-radius: 8px; padding: 7px 8px; text-align: center; }\n  #side .kpi b { display: block; font-size: 16px; color: #39ff14; }\n  #side .kpi span { font-size: 9px; color: #94a3b8; text-transform: uppercase; letter-spacing: .4px; }\n  #side .body { flex: 1; overflow-y: auto; padding: 12px 14px; }\n  .grp { margin-bottom: 16px; }\n  .grp-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: #93c5fd; margin-bottom: 6px; display:flex; justify-content:space-between; align-items:center; }\n  .grp-title .acts { display: flex; gap: 4px; }\n  .mini-btn { background: #1e293b; border: 1px solid #334155; color: #cbd5e1; font-size: 10px; border-radius: 5px; padding: 2px 7px; cursor: pointer; }\n  .mini-btn:hover { background: #334155; color: #fff; }\n  .search { width: 100%; padding: 6px 8px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #e5e7eb; font-size: 12px; margin-bottom: 7px; }\n  .search:focus { outline: none; border-color: #39ff14; }\n  .list { max-height: 230px; overflow-y: auto; border: 1px solid #1e293b; border-radius: 8px; padding: 4px; }\n  .list.rutas { max-height: 320px; }\n  .item { display: flex; align-items: center; gap: 7px; padding: 5px 6px; border-radius: 6px; cursor: pointer; font-size: 12px; }\n  .item:hover { background: #1e293b; }\n  .item input { accent-color: #39ff14; cursor: pointer; margin:0; }\n  .item .dot { width: 11px; height: 11px; border-radius: 3px; flex: 0 0 auto; border: 1px solid rgba(255,255,255,.25); }\n  .item .lbl { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }\n  .item .cnt { font-size: 10px; color: #64748b; }\n  .empty { font-size: 11px; color: #64748b; font-style: italic; padding: 8px; text-align:center; }\n  #side .foot { padding: 10px 14px; border-top: 1px solid #1e293b; background:#0b1220; display:flex; flex-direction:column; gap:7px; }\n  .foot-btn { width:100%; padding: 8px; border-radius: 7px; border: 1px solid #334155; background:#1e293b; color:#e5e7eb; font-size:12px; font-weight:600; cursor:pointer; }\n  .foot-btn:hover { background:#334155; }\n  .foot-btn.green { background: linear-gradient(180deg,#4ade80,#22c55e); color:#052e16; border:none; }\n  /* ===== Mapa ===== */\n  #map { flex: 1; height: 100%; }\n  .leaflet-popup-content { font-size: 13px; }\n  .stop-dot { background:#fff; border:3px solid #333; border-radius:50%; width:14px;height:14px; box-shadow:0 1px 4px rgba(0,0,0,.4); }\n  .start-dot { background:#16a34a; border:3px solid #fff; border-radius:50%; width:18px;height:18px; box-shadow:0 0 6px rgba(22,163,74,.9); }\n  .planta-dot { background:#dc2626; border:3px solid #fff; border-radius:4px; width:18px;height:18px; box-shadow:0 0 6px rgba(220,38,38,.9); }\n  /* Responsive */\n  #burger { display:none; }\n  @media (max-width: 760px) {\n    #side { position: absolute; z-index: 1500; transform: translateX(-100%); transition: transform .2s; box-shadow: 4px 0 20px rgba(0,0,0,.4); }\n    #side.open { transform: translateX(0); }\n    #burger { display:flex; position:absolute; z-index:1400; top:12px; left:12px; width:44px;height:44px; align-items:center;justify-content:center; background:#0f172a; color:#fff; border:none; border-radius:10px; font-size:20px; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,.3); }\n  }\n</style>\n</head>\n<body>\n<div id=\"app\">\n  <button id=\"burger\" onclick=\"document.getElementById('side').classList.toggle('open')\">☰</button>\n  <aside id=\"side\">\n    <div class=\"head\">\n      <h1>🚌 Visor de Rutas</h1>\n      <div class=\"sub\" id=\"subtitulo\">Filtra por planta y por ruta</div>\n    </div>\n    <div class=\"kpis\">\n      <div class=\"kpi\"><b id=\"kpiRutas\">0</b><span>Rutas</span></div>\n      <div class=\"kpi\"><b id=\"kpiParadas\">0</b><span>Paradas</span></div>\n      <div class=\"kpi\"><b id=\"kpiKm\">0</b><span>Km</span></div>\n    </div>\n    <div class=\"body\">\n      <div class=\"grp\">\n        <div class=\"grp-title\">Plantas\n          <span class=\"acts\">\n            <button class=\"mini-btn\" onclick=\"setAllPlantas(true)\">Todas</button>\n            <button class=\"mini-btn\" onclick=\"setAllPlantas(false)\">Ninguna</button>\n          </span>\n        </div>\n        <div class=\"list\" id=\"listPlantas\"></div>\n      </div>\n      <div class=\"grp\">\n        <div class=\"grp-title\">Rutas\n          <span class=\"acts\">\n            <button class=\"mini-btn\" onclick=\"setAllRutas(true)\">Todas</button>\n            <button class=\"mini-btn\" onclick=\"setAllRutas(false)\">Ninguna</button>\n          </span>\n        </div>\n        <input type=\"text\" class=\"search\" id=\"buscaRuta\" placeholder=\"Buscar ruta...\" oninput=\"renderRutas()\"/>\n        <div class=\"list rutas\" id=\"listRutas\"></div>\n      </div>\n    </div>\n    <div class=\"foot\">\n      <button class=\"foot-btn\" onclick=\"document.getElementById('fileJson').click()\">📂 Cargar proyecto (.json)</button>\n      <button class=\"foot-btn green\" onclick=\"centrarVisibles()\">⊕ Centrar en visibles</button>\n      <input type=\"file\" id=\"fileJson\" accept=\".json,application/json\" style=\"display:none\"/>\n    </div>\n  </aside>\n  <div id=\"map\"></div>\n</div>\n<script>\n// ====== Datos del proyecto (se inyectan al exportar) ======\nvar PROYECTO = /*__ROUTES_DATA__*/null;\n\n// ====== Estado ======\nvar map = L.map('map', { zoomControl: true }).setView([25.67, -100.30], 10);\nL.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {\n  maxZoom: 19, attribution: '&copy; OpenStreetMap'\n}).addTo(map);\n\nvar RUTAS = [];              // normalizadas\nvar plantasSel = {};         // { planta: true/false }\nvar rutasSel = {};           // { id: true/false }\nvar capas = {};              // { id: L.layerGroup }\n\nfunction esc(s){ return String(s==null?'':s).replace(/[&<>\"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c];}); }\n\nfunction normalizar(proj){\n  var out = [];\n  if (!proj || !Array.isArray(proj.rutas)) return out;\n  proj.rutas.forEach(function(r){\n    var paradas = (r.paradas || r.puntos || []).map(function(p){\n      return {\n        nombre: p.nombre || p.parada || '',\n        lat: +(p.lat), lng: +(p.lng),\n        beneficiados: +(p.beneficiados || 0),\n        horarios: p.horarios || [],\n        tipoPos: p.tipoPos || (/(planta)/i.test(p.pos||'') ? 'planta' : '')\n      };\n    }).filter(function(p){ return isFinite(p.lat) && isFinite(p.lng); });\n    var geom = Array.isArray(r.geom) && r.geom.length>1 ? r.geom.map(function(c){return [+c[0],+c[1]];}) : paradas.map(function(p){return [p.lat,p.lng];});\n    out.push({\n      id: String(r.id!=null?r.id:(r.descRuta||'Ruta')),\n      descRuta: r.descRuta || '',\n      planta: (r.planta || '').trim(),\n      color: r.color || '#2563eb',\n      distanciaKm: +(r.distanciaKm || 0),\n      geom: geom,\n      paradas: paradas\n    });\n  });\n  return out;\n}\n\nfunction cargarProyecto(proj){\n  if (proj && proj.generado) document.getElementById('subtitulo').textContent = 'Generado: ' + String(proj.generado).slice(0,16).replace('T',' ');\n  RUTAS = normalizar(proj);\n  // Estado inicial: todo seleccionado\n  plantasSel = {}; rutasSel = {};\n  plantasDistintas().forEach(function(pl){ plantasSel[pl] = true; });\n  RUTAS.forEach(function(r){ rutasSel[r.id] = true; });\n  // limpiar capas previas\n  Object.keys(capas).forEach(function(id){ map.removeLayer(capas[id]); });\n  capas = {};\n  renderPlantas();\n  renderRutas();\n  aplicar(true);\n}\n\nfunction plantasDistintas(){\n  var set = {};\n  RUTAS.forEach(function(r){ set[r.planta] = true; });\n  return Object.keys(set).sort();\n}\n\nfunction renderPlantas(){\n  var cont = document.getElementById('listPlantas');\n  var plantas = plantasDistintas();\n  if (!plantas.length){ cont.innerHTML = '<div class=\"empty\">Sin datos</div>'; return; }\n  cont.innerHTML = plantas.map(function(pl){\n    var n = RUTAS.filter(function(r){ return r.planta === pl; }).length;\n    var label = pl === '' ? '(Sin planta)' : pl;\n    return '<label class=\"item\">'+\n      '<input type=\"checkbox\" '+(plantasSel[pl]?'checked':'')+' onchange=\"togglePlanta('+JSON.stringify(pl).replace(/\"/g,'&quot;')+', this.checked)\"/>'+\n      '<span class=\"lbl\">'+esc(label)+'</span><span class=\"cnt\">'+n+'</span></label>';\n  }).join('');\n}\n\nfunction renderRutas(){\n  var cont = document.getElementById('listRutas');\n  var q = (document.getElementById('buscaRuta').value || '').toLowerCase();\n  // Solo rutas de plantas seleccionadas\n  var visibles = RUTAS.filter(function(r){ return plantasSel[r.planta]; });\n  if (q) visibles = visibles.filter(function(r){\n    return (r.id + ' ' + r.descRuta + ' ' + r.planta).toLowerCase().indexOf(q) >= 0;\n  });\n  if (!visibles.length){ cont.innerHTML = '<div class=\"empty\">Ninguna ruta coincide</div>'; return; }\n  cont.innerHTML = visibles.map(function(r){\n    var txt = r.id + (r.descRuta ? ' — ' + r.descRuta : '');\n    return '<label class=\"item\">'+\n      '<input type=\"checkbox\" '+(rutasSel[r.id]?'checked':'')+' onchange=\"toggleRuta('+JSON.stringify(r.id).replace(/\"/g,'&quot;')+', this.checked)\"/>'+\n      '<span class=\"dot\" style=\"background:'+esc(r.color)+'\"></span>'+\n      '<span class=\"lbl\" title=\"'+esc(txt)+'\">'+esc(txt)+'</span></label>';\n  }).join('');\n}\n\nfunction togglePlanta(pl, val){\n  plantasSel[pl] = val;\n  // Al cambiar planta, las rutas de esa planta siguen su propio check,\n  // pero solo se dibujan si su planta está activa.\n  renderRutas();\n  aplicar(false);\n}\nfunction toggleRuta(id, val){ rutasSel[id] = val; aplicar(false); }\nfunction setAllPlantas(val){ plantasDistintas().forEach(function(pl){ plantasSel[pl]=val; }); renderPlantas(); renderRutas(); aplicar(true); }\nfunction setAllRutas(val){\n  // Solo afecta rutas actualmente listadas (según plantas activas + búsqueda)\n  var q = (document.getElementById('buscaRuta').value || '').toLowerCase();\n  RUTAS.filter(function(r){ return plantasSel[r.planta]; })\n       .filter(function(r){ return !q || (r.id+' '+r.descRuta+' '+r.planta).toLowerCase().indexOf(q)>=0; })\n       .forEach(function(r){ rutasSel[r.id]=val; });\n  renderRutas(); aplicar(true);\n}\n\nfunction rutaEsVisible(r){ return plantasSel[r.planta] && rutasSel[r.id]; }\n\nfunction dibujarRuta(r){\n  var g = L.layerGroup();\n  L.polyline(r.geom, { color: r.color, weight: 4, opacity: 0.85 })\n    .bindPopup('<b>'+esc(r.id)+'</b><br>'+esc(r.descRuta)+'<br><small>'+esc(r.planta||'Sin planta')+'</small><br><b>'+r.distanciaKm.toFixed(2)+' km</b> · '+r.paradas.length+' paradas')\n    .addTo(g);\n  r.paradas.forEach(function(p, i){\n    var cls = i===0 ? 'start-dot' : (p.tipoPos==='planta' ? 'planta-dot' : 'stop-dot');\n    var sz = i===0 || p.tipoPos==='planta' ? 18 : 14;\n    var icon = L.divIcon({ className:'', html:'<div class=\"'+cls+'\"></div>', iconSize:[sz,sz], iconAnchor:[sz/2,sz/2] });\n    var hor = (p.horarios && p.horarios.length) ? '<br>🕒 '+esc(p.horarios.join(', ')) : '';\n    var ben = p.beneficiados ? '<br>👥 '+p.beneficiados : '';\n    L.marker([p.lat,p.lng], { icon: icon })\n      .bindPopup('<b>'+esc(p.nombre||('Parada '+(i+1)))+'</b><br><small>'+esc(r.id)+'</small>'+hor+ben)\n      .addTo(g);\n  });\n  return g;\n}\n\nfunction aplicar(centrar){\n  var nR=0, nP=0, km=0;\n  RUTAS.forEach(function(r){\n    var vis = rutaEsVisible(r);\n    if (vis){\n      if (!capas[r.id]) capas[r.id] = dibujarRuta(r);\n      if (!map.hasLayer(capas[r.id])) capas[r.id].addTo(map);\n      nR++; nP += r.paradas.length; km += r.distanciaKm;\n    } else {\n      if (capas[r.id] && map.hasLayer(capas[r.id])) map.removeLayer(capas[r.id]);\n    }\n  });\n  document.getElementById('kpiRutas').textContent = nR;\n  document.getElementById('kpiParadas').textContent = nP;\n  document.getElementById('kpiKm').textContent = km.toFixed(0);\n  if (centrar) centrarVisibles();\n}\n\nfunction centrarVisibles(){\n  var pts = [];\n  RUTAS.forEach(function(r){ if (rutaEsVisible(r)) r.geom.forEach(function(c){ pts.push(c); }); });\n  if (pts.length){ try { map.fitBounds(pts, { padding:[40,40] }); } catch(e){} }\n}\n\n// Cargar un .json externo en el visor\ndocument.getElementById('fileJson').addEventListener('change', function(e){\n  var f = e.target.files[0]; if (!f) return;\n  var rd = new FileReader();\n  rd.onload = function(ev){\n    try {\n      var proj = JSON.parse(ev.target.result);\n      cargarProyecto(proj);\n      if (window.innerWidth <= 760) document.getElementById('side').classList.remove('open');\n    } catch(err){ alert('No se pudo leer el archivo JSON: ' + err.message); }\n  };\n  rd.readAsText(f);\n  e.target.value = '';\n});\n\n// Arranque\nif (PROYECTO) cargarProyecto(PROYECTO);\nelse document.getElementById('subtitulo').textContent = 'Carga un proyecto .json para comenzar';\n<\/script>\n</body>\n</html>\n";
+
+// =========================================================
+// SUBIR / BAJAR PROYECTO  +  EXPORTAR VISOR HTML (mapa con filtros)
+// =========================================================
+function _descargarArchivo(nombre, contenido, mime) {
+  const blob = new Blob([contenido], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nombre;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+function _geomDeRuta(id) {
+  const r = rutas[id];
+  const cache = cacheCalles[id];
+  const g = Array.isArray(cache) ? cache : (cache && cache.geom);
+  if (g && g.length > 1) return g.map(c => [c[0], c[1]]);
+  const pts = (r.puntos || []).slice().sort((a, b) => a.sec - b.sec);
+  return pts.map(p => [p.lat, p.lng]);
+}
+
+// Construye el objeto de proyecto (con geometría de calles precalculada)
+async function construirProyecto(precalcular) {
+  const ids = Object.keys(rutas);
+  if (precalcular && typeof modoCalles !== 'undefined' && modoCalles) {
+    const cand = ids.filter(id => (rutas[id].puntos || []).length > 1);
+    for (let i = 0; i < cand.length; i += 3) {
+      await Promise.all(cand.slice(i, i + 3).map(async id => {
+        const cache = cacheCalles[id];
+        const g = Array.isArray(cache) ? cache : (cache && cache.geom);
+        if (g && g.length > 1) return;
+        const puntos = rutas[id].puntos.slice().sort((a, b) => a.sec - b.sec);
+        try { await obtenerGeometriaCalles(id, puntos); } catch (e) {}
+      }));
+    }
+  }
+  const rutasOut = ids.map(id => {
+    const r = rutas[id];
+    const puntos = (r.puntos || []).slice().sort((a, b) => a.sec - b.sec).map(p => ({
+      sec: p.sec, pos: p.pos, tipoPos: p.tipoPos, parada: p.parada,
+      lat: p.lat, lng: p.lng, latOrig: p.latOrig, lngOrig: p.lngOrig,
+      beneficiados: p.beneficiados, horarios: p.horarios || [],
+      marcadoRojo: !!p.marcadoRojo, nuevo: !!p.nuevo
+    }));
+    return {
+      id, descRuta: r.descRuta || '', planta: r.planta || '', tipServ: r.tipServ || '',
+      color: r.color || '#2563eb', visible: r.visible !== false,
+      evitarPeaje: !!r.evitarPeaje, turnos: r.turnos || [],
+      distanciaKm: +(r.distanciaKm || 0),
+      viaPoints: (r.viaPoints || []).map(v => ({ lat: v.lat, lng: v.lng })),
+      puntos,
+      geom: _geomDeRuta(id)
+    };
+  });
+  return { tipo: 'mapeo-rutas-proyecto', version: 1, generado: new Date().toISOString(), rutas: rutasOut };
+}
+
+// BAJAR: guardar proyecto editable (.json) para volver a subirlo después
+async function guardarProyecto() {
+  if (!Object.keys(rutas).length) { alert('No hay rutas para guardar. Carga o diseña rutas primero.'); return; }
+  flashToast('💾 Preparando proyecto…');
+  const proj = await construirProyecto(true);
+  _descargarArchivo('Proyecto_Rutas_' + new Date().toISOString().slice(0, 10) + '.json',
+    JSON.stringify(proj), 'application/json;charset=utf-8');
+  flashToast('✅ Proyecto guardado (.json)');
+}
+
+// BAJAR: exportar visor HTML independiente (mapa + filtros por planta y ruta)
+async function exportarVisorHTML() {
+  if (!Object.keys(rutas).length) { alert('No hay rutas para exportar. Carga o diseña rutas primero.'); return; }
+  flashToast('🌐 Generando visor…');
+  const proj = await construirProyecto(true);
+  const dataViewer = {
+    generado: proj.generado,
+    rutas: proj.rutas.map(r => ({
+      id: r.id, descRuta: r.descRuta, planta: r.planta, color: r.color,
+      distanciaKm: r.distanciaKm, geom: r.geom,
+      paradas: r.puntos.map(p => ({
+        nombre: p.parada, lat: p.lat, lng: p.lng,
+        beneficiados: p.beneficiados, horarios: p.horarios,
+        tipoPos: p.tipoPos || (/(planta)/i.test(p.pos || '') ? 'planta' : '')
+      }))
+    }))
+  };
+  const html = VIEWER_TPL.replace('/*__ROUTES_DATA__*/null', JSON.stringify(dataViewer));
+  _descargarArchivo('Visor_Rutas_' + new Date().toISOString().slice(0, 10) + '.html',
+    html, 'text/html;charset=utf-8');
+  flashToast('✅ Visor HTML listo para compartir');
+}
+
+// SUBIR: abrir un proyecto .json y reconstruir las rutas en la plataforma
+function abrirProyecto(file) {
+  if (!file) return;
+  const rd = new FileReader();
+  rd.onload = (ev) => {
+    let proj;
+    try { proj = JSON.parse(ev.target.result); }
+    catch (e) { alert('El archivo no es un JSON válido.'); return; }
+    if (!proj || !Array.isArray(proj.rutas)) { alert('El archivo no tiene el formato de proyecto esperado.'); return; }
+    cargarProyectoEnApp(proj);
+  };
+  rd.readAsText(file);
+}
+
+function cargarProyectoEnApp(proj) {
+  try { if (typeof pushUndo === 'function') pushUndo(); } catch (e) {}
+  // Limpiar estado actual
+  Object.values(rutas).forEach(r => { if (r.layer) map.removeLayer(r.layer); });
+  rutas = {};
+  Object.keys(cacheCalles).forEach(k => delete cacheCalles[k]);
+
+  proj.rutas.forEach(sr => {
+    const id = String(sr.id);
+    const puntos = (sr.puntos || []).map(p => ({
+      sec: p.sec, pos: p.pos || '', tipoPos: p.tipoPos, parada: p.parada || '',
+      lat: +p.lat, lng: +p.lng,
+      latOrig: (p.latOrig != null ? +p.latOrig : +p.lat),
+      lngOrig: (p.lngOrig != null ? +p.lngOrig : +p.lng),
+      beneficiados: +(p.beneficiados || 0), horarios: p.horarios || [],
+      marcadoRojo: !!p.marcadoRojo, nuevo: !!p.nuevo
+    }));
+    rutas[id] = {
+      puntos, descRuta: sr.descRuta || id, planta: sr.planta || '',
+      tipServ: sr.tipServ || '', color: sr.color || '#2563eb',
+      visible: sr.visible !== false, evitarPeaje: !!sr.evitarPeaje,
+      turnos: sr.turnos || [],
+      viaPoints: (sr.viaPoints || []).map(v => ({ lat: +v.lat, lng: +v.lng })),
+      layer: L.layerGroup()
+    };
+    // Sembrar la geometría guardada para que el trazo se vea igual sin recalcular
+    if (Array.isArray(sr.geom) && sr.geom.length > 1) {
+      cacheCalles[id] = { geom: sr.geom.map(c => [+c[0], +c[1]]), distance: (+sr.distanciaKm || 0) * 1000 };
+    }
+  });
+
+  flashToast('📂 Proyecto cargado: ' + Object.keys(rutas).length + ' rutas');
+  dibujarTodas();
+  renderLista();
+  try { renderChipsFiltros(); } catch (e) {}
+  try { actualizarOcupacion(); } catch (e) {}
+  try { actualizarBadgeCambios(); } catch (e) {}
+  ajustarVista();
+}
+
+// Wire-up de los botones de proyecto / visor
+(function () {
+  const bV = document.getElementById('btnExportVisor');
+  const bG = document.getElementById('btnGuardarProyecto');
+  const bA = document.getElementById('btnAbrirProyecto');
+  const inp = document.getElementById('fileAbrirProyecto');
+  if (bV) bV.addEventListener('click', exportarVisorHTML);
+  if (bG) bG.addEventListener('click', guardarProyecto);
+  if (bA && inp) bA.addEventListener('click', () => inp.click());
+  if (inp) inp.addEventListener('change', (e) => {
+    const f = e.target.files[0];
+    abrirProyecto(f);
+    e.target.value = '';
+  });
+})();
+
+
 
 // =========================================================
 // CREAR RUTA PUNTO POR PUNTO (trazo en vivo, verde fosforescente)
