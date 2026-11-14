@@ -2307,6 +2307,94 @@ https://github.com/nodeca/pako/blob/main/LICENSE
   #userUploadZone .toggle-btn { margin-bottom: 4px; }
   #usersUploadStatus { padding: 2px 4px 6px; }
   #userUploadZone.loading { opacity: 0.65; pointer-events: none; }
+
+  /* ===== Panel flotante: Crear ruta punto por punto ===== */
+  #crearRutaPanel {
+    position: absolute; top: 14px; right: 14px; z-index: 1200;
+    width: 320px; max-height: calc(100% - 28px); display: none;
+    flex-direction: column; background: #0f172a; color: #e5e7eb;
+    border: 2px solid #39ff14; border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35); overflow: hidden;
+    font-size: 13px;
+  }
+  #crearRutaPanel.open { display: flex; }
+  #crearRutaPanel .crp-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 12px; background: linear-gradient(180deg,#132033,#0f172a);
+    border-bottom: 1px solid #1e293b;
+  }
+  #crearRutaPanel .crp-head b { color: #39ff14; font-size: 14px; letter-spacing: .3px; }
+  #crearRutaPanel .crp-close {
+    background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; line-height: 1;
+  }
+  #crearRutaPanel .crp-close:hover { color: #fff; }
+  #crearRutaPanel .crp-body { padding: 10px 12px; overflow-y: auto; }
+  #crearRutaPanel .crp-field { margin-bottom: 8px; }
+  #crearRutaPanel .crp-field label {
+    display: block; font-size: 11px; color: #94a3b8; margin-bottom: 3px; font-weight: 600;
+  }
+  #crearRutaPanel input[type="text"], #crearRutaPanel input[type="number"], #crearRutaPanel select {
+    width: 100%; box-sizing: border-box; padding: 6px 8px; border-radius: 6px;
+    border: 1px solid #334155; background: #1e293b; color: #e5e7eb; font-size: 12px;
+  }
+  #crearRutaPanel input:focus, #crearRutaPanel select:focus { outline: none; border-color: #39ff14; }
+  #crearRutaPanel .crp-row { display: flex; gap: 8px; }
+  #crearRutaPanel .crp-row .crp-field { flex: 1; }
+  #crearRutaPanel .crp-color-row { display: flex; align-items: center; gap: 8px; }
+  #crearRutaPanel input[type="color"] {
+    width: 40px; height: 32px; padding: 0; border: 1px solid #334155; border-radius: 6px;
+    background: #1e293b; cursor: pointer;
+  }
+  #crearRutaPanel .crp-hint {
+    font-size: 11px; color: #a3e635; background: rgba(57,255,20,.08);
+    border: 1px solid rgba(57,255,20,.25); border-radius: 6px; padding: 6px 8px; margin-bottom: 8px;
+  }
+  #crearRutaPanel .crp-stops { margin-top: 6px; }
+  #crearRutaPanel .crp-stops-title {
+    font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .4px; margin: 6px 0 4px;
+  }
+  #crearRutaPanel .crp-stop {
+    background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+    padding: 7px 8px; margin-bottom: 6px;
+  }
+  #crearRutaPanel .crp-stop-head {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 5px;
+  }
+  #crearRutaPanel .crp-stop-num {
+    background: #39ff14; color: #052e16; font-weight: 800; font-size: 11px;
+    min-width: 20px; height: 20px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center;
+  }
+  #crearRutaPanel .crp-stop-coord { font-size: 10px; color: #64748b; flex: 1; }
+  #crearRutaPanel .crp-stop-del {
+    background: none; border: none; color: #f87171; cursor: pointer; font-size: 14px; padding: 0 2px;
+  }
+  #crearRutaPanel .crp-stop-del:hover { color: #ef4444; }
+  #crearRutaPanel .crp-stop .crp-mini { margin-bottom: 5px; }
+  #crearRutaPanel .crp-stop .crp-mini:last-child { margin-bottom: 0; }
+  #crearRutaPanel .crp-stop label { font-size: 10px; color: #94a3b8; }
+  #crearRutaPanel .crp-empty { font-size: 11px; color: #64748b; font-style: italic; padding: 4px 0; }
+  #crearRutaPanel .crp-foot {
+    display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid #1e293b; background: #0b1220;
+  }
+  #crearRutaPanel .crp-foot button {
+    flex: 1; padding: 8px 6px; border-radius: 7px; font-weight: 700; font-size: 12px;
+    cursor: pointer; border: 1px solid transparent;
+  }
+  #crearRutaPanel .crp-undo { background: #1e293b; color: #e5e7eb; border-color: #334155; }
+  #crearRutaPanel .crp-undo:hover:not(:disabled) { background: #334155; }
+  #crearRutaPanel .crp-cancel { background: #3f1d1d; color: #fca5a5; border-color: #7f1d1d; }
+  #crearRutaPanel .crp-cancel:hover { background: #7f1d1d; color: #fff; }
+  #crearRutaPanel .crp-save { background: linear-gradient(180deg,#4ade80,#22c55e); color: #052e16; }
+  #crearRutaPanel .crp-save:hover:not(:disabled) { filter: brightness(1.08); }
+  #crearRutaPanel button:disabled { opacity: .5; cursor: not-allowed; }
+  /* Marcadores verdes del trazo en construcción */
+  .crp-marker {
+    background: #39ff14; color: #052e16; font-weight: 800; font-size: 11px;
+    width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; border: 2px solid #052e16; box-shadow: 0 0 6px rgba(57,255,20,.8);
+  }
 </style>
 </head>
 <body>
@@ -2350,6 +2438,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       <details class="tool-group" open>
         <summary class="tool-group-title"><span class="tg-ico">✏</span> Edición <span class="tg-caret">▾</span></summary>
         <div class="tool-group-body">
+          <button id="btnCrearRuta">✏️ Crear ruta (punto por punto)</button>
           <button id="btnEdit">Editar: OFF</button>
           <button id="btnParadas">Editar paradas</button>
           <button id="btnAddParada">➕ Agregar parada</button>
@@ -2426,6 +2515,46 @@ https://github.com/nodeca/pako/blob/main/LICENSE
       </div>
     </div>
     <div id="map"></div>
+
+    <!-- Panel flotante: Crear ruta punto por punto -->
+    <div id="crearRutaPanel">
+      <div class="crp-head">
+        <b>✏️ Crear ruta</b>
+        <button class="crp-close" id="crpClose" title="Cancelar">×</button>
+      </div>
+      <div class="crp-body">
+        <div class="crp-hint">Haz clic en el mapa para ir agregando paradas. El trazo se dibuja al momento en <b style="color:#39ff14">verde fosforescente</b>. Puedes editar los datos de cada parada abajo.</div>
+        <div class="crp-field">
+          <label>ID / nombre de la ruta</label>
+          <input type="text" id="crpRutaId" placeholder="Ej. E-NUEVA-001" maxlength="60"/>
+        </div>
+        <div class="crp-field">
+          <label>Descripción (opcional)</label>
+          <input type="text" id="crpRutaDesc" placeholder="Ej. Ruta nueva zona norte" maxlength="120"/>
+        </div>
+        <div class="crp-row">
+          <div class="crp-field">
+            <label>Planta (opcional)</label>
+            <input type="text" id="crpRutaPlanta" placeholder="Ej. Planta A" maxlength="60"/>
+          </div>
+          <div class="crp-field" style="flex:0 0 auto">
+            <label>Color del trazo</label>
+            <div class="crp-color-row">
+              <input type="color" id="crpRutaColor" value="#39ff14"/>
+            </div>
+          </div>
+        </div>
+        <div class="crp-stops">
+          <div class="crp-stops-title">Paradas (<span id="crpCount">0</span>)</div>
+          <div id="crpStopsList"><div class="crp-empty">Aún no hay paradas. Haz clic en el mapa.</div></div>
+        </div>
+      </div>
+      <div class="crp-foot">
+        <button class="crp-undo" id="crpUndo" disabled>↶ Quitar último</button>
+        <button class="crp-cancel" id="crpCancel">Cancelar</button>
+        <button class="crp-save" id="crpSave" disabled>✓ Guardar ruta</button>
+      </div>
+    </div>
 
     <!-- Panel de Vista de Calle (Street View) -->
     <div id="svPanel">
@@ -2866,7 +2995,8 @@ const COL = {
   lat: 7,
   lng: 8,
   h1: 9, h2: 10, h3: 11,
-  aforo: -1     // se detecta dinámicamente por nombre; si falla, se usa la columna O (índice 14)
+  aforo: -1,    // se detecta dinámicamente por nombre; si falla, se usa la columna O (índice 14)
+  color: -1     // se detecta dinámicamente: columna cuyo encabezado sea "color"
 };
 
 // Columnas donde puede venir el AFORO. Se detectan por contenido.
@@ -2952,6 +3082,65 @@ function detectarColumnaAforo(headerRow, filas) {
   } else {
     console.warn('[AFORO] No se detectó columna de aforo. Todas las paradas quedarán en 0.');
   }
+}
+
+// =========================================================
+// COLUMNA "COLOR" (opcional) — detectar y resolver colores por nombre
+// =========================================================
+// Detecta la columna cuyo encabezado sea exactamente "color" (o "colores").
+// Solo se usa si el archivo la trae; si no, COL.color queda en -1 y se ignora.
+function detectarColumnaColor(headerRow) {
+  COL.color = -1;
+  if (!Array.isArray(headerRow)) return;
+  const norm = s => (s || '').toString().toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[\s._-]/g, '').trim();
+  for (let i = 0; i < headerRow.length; i++) {
+    const h = norm(headerRow[i]);
+    if (h === 'color' || h === 'colores') { COL.color = i; break; }
+  }
+  if (COL.color >= 0) console.log(`[COLOR] Columna "color" detectada en índice ${COL.color}.`);
+}
+
+// Diccionario de nombres de color en español → hex (incluye tonos "fosforescentes").
+const COLORES_ES = {
+  'verde': '#16a34a', 'verdefosforescente': '#39ff14', 'verdefosfo': '#39ff14',
+  'verdeneon': '#39ff14', 'verdefluorescente': '#39ff14', 'verdelima': '#84cc16',
+  'verdeclaro': '#4ade80', 'verdeoscuro': '#15803d', 'verdementa': '#34d399',
+  'rojo': '#dc2626', 'rojofosforescente': '#ff1744', 'rojoclaro': '#f87171', 'rojooscuro': '#991b1b',
+  'azul': '#2563eb', 'azulclaro': '#60a5fa', 'azuloscuro': '#1e3a8a', 'azulrey': '#1d4ed8',
+  'azulcielo': '#38bdf8', 'azulmarino': '#1e3a8a', 'celeste': '#38bdf8',
+  'amarillo': '#eab308', 'amarillofosforescente': '#eaff00', 'amarilloneon': '#eaff00',
+  'naranja': '#ea580c', 'naranjafosforescente': '#ff6600', 'naranjaneon': '#ff6600',
+  'morado': '#9333ea', 'violeta': '#7c3aed', 'purpura': '#9333ea', 'lila': '#c084fc',
+  'rosa': '#ec4899', 'rosado': '#ec4899', 'rosafosforescente': '#ff10f0', 'fucsia': '#d946ef', 'magenta': '#d946ef',
+  'cafe': '#92400e', 'marron': '#92400e', 'chocolate': '#78350f',
+  'negro': '#111827', 'gris': '#6b7280', 'grisoscuro': '#374151', 'grisclaro': '#9ca3af',
+  'blanco': '#f3f4f6', 'cian': '#06b6d4', 'turquesa': '#14b8a6', 'aqua': '#06b6d4',
+  'dorado': '#d4af37', 'oro': '#d4af37', 'plata': '#9ca3af', 'plateado': '#9ca3af',
+  'coral': '#fb7185', 'salmon': '#fda4af', 'oliva': '#65a30d', 'indigo': '#4f46e5',
+  'vino': '#7f1d1d', 'beige': '#d6c7a1', 'durazno': '#fdba74'
+};
+
+// Convierte el valor de la columna "color" a un hex utilizable.
+// Acepta: hex (#f00, #ff0000), nombres en inglés (green, red...), rgb()/hsl()
+// y nombres en español ("verde", "verde fosforescente", "rojo"...). Devuelve
+// null si no se reconoce (para no pisar el color de paleta).
+function resolverColorArchivo(txt) {
+  if (txt == null) return null;
+  let s = String(txt).trim();
+  if (!s) return null;
+  // 1) hex directo
+  if (/^#[0-9a-fA-F]{3}$/.test(s) || /^#[0-9a-fA-F]{6}$/.test(s)) return colorAHex(s);
+  // 2) nombre en español (quitando acentos/espacios)
+  const key = s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[\s._-]/g, '');
+  if (COLORES_ES[key]) return COLORES_ES[key];
+  // 3) resolver vía canvas (nombres en inglés, rgb(), hsl(), etc.)
+  //    colorAHex devuelve '#000000' cuando el valor es inválido; usamos eso como señal.
+  const hex = colorAHex(s);
+  if (hex && hex.toLowerCase() !== '#000000') return hex;
+  // Si el usuario escribió literalmente "negro"/"black" sí lo queremos:
+  if (key === 'negro' || key === 'black') return '#111827';
+  return null;
 }
 
 // =========================================================
@@ -3698,6 +3887,8 @@ function procesarCSV(csvText) {
 
   // Detectar encabezado y columna aforo dinámicamente (nombre o columna O fija)
   detectarColumnaAforo(filas[0], filas);
+  // Detectar columna "color" (opcional). Solo aplica si el archivo la trae.
+  detectarColumnaColor(filas[0]);
   rutas = {};
   let totalAforoLeido = 0, paradasConAforo = 0;
   for (let i = 1; i < filas.length; i++) {
@@ -3730,11 +3921,17 @@ function procesarCSV(csvText) {
         visible: true
       };
     }
-    // Horarios: columnas desde la 9, EXCLUYENDO cualquier columna de aforo.
+    // Color desde la columna "color" (si existe): tomamos el primer valor no vacío de la ruta.
+    if (COL.color >= 0 && !rutas[idRuta].colorArchivo) {
+      const cv = (c[COL.color] || '').toString().trim();
+      if (cv) rutas[idRuta].colorArchivo = cv;
+    }
+    // Horarios: columnas desde la 9, EXCLUYENDO cualquier columna de aforo y la de color.
     const aforoSet = new Set(COL.aforoCols || []);
     const horarios = [];
     for (let k = COL.h1; k < c.length; k++) {
       if (aforoSet.has(k)) continue;          // saltar columnas de aforo
+      if (k === COL.color) continue;          // saltar columna de color
       const v = (c[k] || '').toString().trim();
       if (v && !_pareceAforo(v)) horarios.push(v);   // además, ignorar enteros sueltos
     }
@@ -3770,6 +3967,16 @@ function procesarCSV(csvText) {
   ids.forEach((id, idx) => { rutas[id].color = colores[idx]; });
   // Respetar colores que el usuario haya elegido antes para estas rutas
   hidratarColoresEnRutas();
+  // Si el archivo trae columna "color", ESTA tiene prioridad: pinta cada ruta
+  // según el nombre/código de color indicado en esa columna.
+  if (COL.color >= 0) {
+    let aplicados = 0;
+    ids.forEach(id => {
+      const hex = resolverColorArchivo(rutas[id].colorArchivo);
+      if (hex) { rutas[id].color = hex; aplicados++; }
+    });
+    console.log(`[COLOR] Colores aplicados desde columna "color": ${aplicados}/${ids.length}.`);
+  }
   // Respetar qué rutas tenían el aforo oculto
   hidratarAforoOcultoEnRutas();
 
@@ -8085,6 +8292,237 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
   // Reset del value para que se pueda re-seleccionar el mismo archivo
   e.target.value = '';
 });
+
+// =========================================================
+// CREAR RUTA PUNTO POR PUNTO (trazo en vivo, verde fosforescente)
+// =========================================================
+let modoCrearRuta = false;
+let _crearRutaPuntos = [];                 // [{lat,lng,parada,hora,aforo,tipo}]
+const _crearRutaLayer = L.layerGroup();    // capa de preview (no se agrega a rutas hasta guardar)
+const CRP_VERDE = '#39ff14';
+
+function _crpEscapar(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  })[c]);
+}
+
+// Sincroniza un campo del modelo cuando el usuario escribe en el panel.
+window._crpUpd = function(idx, campo, val) {
+  if (_crearRutaPuntos[idx]) _crearRutaPuntos[idx][campo] = val;
+};
+
+function toggleCrearRuta() {
+  if (modoCrearRuta) { cerrarCrearRuta(false); return; }
+  abrirCrearRuta();
+}
+
+function abrirCrearRuta() {
+  // Apagar otros modos que capturan clics del mapa
+  if (typeof modoAgregarParada !== 'undefined' && modoAgregarParada) document.getElementById('btnAddParada').click();
+  if (typeof modoDesvio !== 'undefined' && modoDesvio) document.getElementById('btnDesvio').click();
+  if (typeof modoEditarTrazo !== 'undefined' && modoEditarTrazo) document.getElementById('btnEditarTrazo').click();
+
+  modoCrearRuta = true;
+  _crearRutaPuntos = [];
+  _crearRutaLayer.clearLayers();
+  _crearRutaLayer.addTo(map);
+
+  const panel = document.getElementById('crearRutaPanel');
+  panel.classList.add('open');
+  document.getElementById('btnCrearRuta').classList.add('primary');
+  document.getElementById('crpRutaColor').value = CRP_VERDE;
+  map.getContainer().style.cursor = 'crosshair';
+  map.doubleClickZoom.disable();   // para que los clics rápidos no hagan zoom
+
+  renderCrpStops();
+  flashToast('✏️ Haz clic en el mapa para ir trazando la ruta');
+}
+
+function cerrarCrearRuta(guardado) {
+  modoCrearRuta = false;
+  _crearRutaLayer.clearLayers();
+  map.removeLayer(_crearRutaLayer);
+  document.getElementById('crearRutaPanel').classList.remove('open');
+  document.getElementById('btnCrearRuta').classList.remove('primary');
+  map.getContainer().style.cursor = '';
+  map.doubleClickZoom.enable();
+  if (!guardado) _crearRutaPuntos = [];
+}
+
+// Clic en el mapa: agrega una parada al trazo en construcción
+map.on('click', (e) => {
+  if (!modoCrearRuta) return;
+  _crearRutaPuntos.push({
+    lat: e.latlng.lat, lng: e.latlng.lng,
+    parada: '', hora: '', aforo: 0,
+    tipo: _crearRutaPuntos.length === 0 ? 'inicio' : 'intermedia'
+  });
+  redibujarCrearRuta();
+  renderCrpStops();
+});
+
+// Dibuja el trazo en vivo (línea verde + marcadores numerados arrastrables)
+function redibujarCrearRuta() {
+  _crearRutaLayer.clearLayers();
+  const color = document.getElementById('crpRutaColor').value || CRP_VERDE;
+  const coords = _crearRutaPuntos.map(p => [p.lat, p.lng]);
+
+  if (coords.length >= 2) {
+    L.polyline(coords, { color, weight: 5, opacity: 0.95 }).addTo(_crearRutaLayer);
+  }
+
+  _crearRutaPuntos.forEach((p, i) => {
+    const icon = L.divIcon({
+      className: '',
+      html: `<div class="crp-marker" style="background:${color}">${i + 1}</div>`,
+      iconSize: [22, 22], iconAnchor: [11, 11]
+    });
+    const m = L.marker([p.lat, p.lng], { icon, draggable: true }).addTo(_crearRutaLayer);
+    m.on('drag', (ev) => {
+      const nl = ev.target.getLatLng();
+      p.lat = nl.lat; p.lng = nl.lng;
+      // redibujar solo la línea de forma ligera
+      _crearRutaLayer.eachLayer(l => { if (l instanceof L.Polyline) l.setLatLngs(_crearRutaPuntos.map(q => [q.lat, q.lng])); });
+    });
+    m.on('dragend', () => {
+      redibujarCrearRuta();
+      const lbl = document.getElementById('crpCoord' + i);
+      if (lbl) lbl.textContent = p.lat.toFixed(5) + ', ' + p.lng.toFixed(5);
+    });
+  });
+}
+
+// Lista editable de paradas en el panel
+function renderCrpStops() {
+  const cont = document.getElementById('crpStopsList');
+  document.getElementById('crpCount').textContent = _crearRutaPuntos.length;
+  const hay = _crearRutaPuntos.length > 0;
+  document.getElementById('crpUndo').disabled = !hay;
+  document.getElementById('crpSave').disabled = _crearRutaPuntos.length < 2;
+
+  if (!hay) {
+    cont.innerHTML = '<div class="crp-empty">Aún no hay paradas. Haz clic en el mapa.</div>';
+    return;
+  }
+  cont.innerHTML = _crearRutaPuntos.map((p, i) => `
+    <div class="crp-stop">
+      <div class="crp-stop-head">
+        <span class="crp-stop-num">${i + 1}</span>
+        <span class="crp-stop-coord" id="crpCoord${i}">${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</span>
+        <button class="crp-stop-del" title="Quitar esta parada" onclick="crearRutaDelPunto(${i})">🗑</button>
+      </div>
+      <div class="crp-mini">
+        <input type="text" placeholder="Nombre de la parada" value="${_crpEscapar(p.parada)}"
+          oninput="_crpUpd(${i}, 'parada', this.value)"/>
+      </div>
+      <div class="crp-row">
+        <div class="crp-mini" style="flex:1">
+          <input type="text" placeholder="HH:MM" value="${_crpEscapar(p.hora)}"
+            oninput="_crpUpd(${i}, 'hora', this.value)"/>
+        </div>
+        <div class="crp-mini" style="flex:1">
+          <input type="number" min="0" max="200" placeholder="Aforo" value="${Number(p.aforo) || 0}"
+            oninput="_crpUpd(${i}, 'aforo', this.value)"/>
+        </div>
+        <div class="crp-mini" style="flex:1.3">
+          <select onchange="_crpUpd(${i}, 'tipo', this.value)">
+            <option value="intermedia"${p.tipo === 'intermedia' ? ' selected' : ''}>Intermedia</option>
+            <option value="inicio"${p.tipo === 'inicio' ? ' selected' : ''}>Inicio</option>
+            <option value="planta"${p.tipo === 'planta' ? ' selected' : ''}>Planta</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.crearRutaDelPunto = function(idx) {
+  _crearRutaPuntos.splice(idx, 1);
+  redibujarCrearRuta();
+  renderCrpStops();
+};
+
+function crearRutaUndo() {
+  if (!_crearRutaPuntos.length) return;
+  _crearRutaPuntos.pop();
+  redibujarCrearRuta();
+  renderCrpStops();
+}
+
+async function guardarCrearRuta() {
+  if (_crearRutaPuntos.length < 2) { alert('Agrega al menos 2 paradas para guardar la ruta.'); return; }
+  let id = (document.getElementById('crpRutaId').value || '').trim();
+  if (!id) { alert('Escribe un ID / nombre para la ruta.'); document.getElementById('crpRutaId').focus(); return; }
+  if (rutas[id]) { alert('Ya existe una ruta con ese ID. Elige otro.'); document.getElementById('crpRutaId').focus(); return; }
+
+  const desc = (document.getElementById('crpRutaDesc').value || '').trim();
+  const planta = (document.getElementById('crpRutaPlanta').value || '').trim();
+  const color = document.getElementById('crpRutaColor').value || CRP_VERDE;
+
+  if (typeof pushUndo === 'function') pushUndo();
+
+  rutas[id] = {
+    puntos: [], descRuta: desc || id, planta, tipServ: '',
+    turnos: [], color, layer: L.layerGroup(), visible: true, nuevaManual: true
+  };
+  const r = rutas[id];
+
+  _crearRutaPuntos.forEach((p, i) => {
+    let aforo = parseInt(p.aforo, 10); if (isNaN(aforo) || aforo < 0) aforo = 0;
+    const tipo = p.tipo || 'intermedia';
+    r.puntos.push({
+      sec: i + 1,
+      pos: tipo === 'planta' ? 'PLANTA' : (tipo === 'inicio' ? 'INICIO' : 'INTR'),
+      tipoPos: tipo,
+      parada: (p.parada || '').trim() || ('Parada ' + (i + 1)),
+      lat: p.lat, lng: p.lng,
+      latOrig: p.lat, lngOrig: p.lng,
+      beneficiados: aforo,
+      horarios: (p.hora || '').trim() ? [(p.hora || '').trim()] : [],
+      marcadoRojo: false,
+      nuevo: true
+    });
+  });
+
+  // Turnos a partir de horarios (igual que procesarCSV)
+  try {
+    const turnos = new Set();
+    r.puntos.forEach(pp => (pp.horarios || []).forEach(h => {
+      const t = turnoDeHora(parseHoraMinutos(h));
+      if (t) turnos.add(t);
+    }));
+    r.turnos = Array.from(turnos);
+  } catch (e) { r.turnos = []; }
+
+  try { detectarPlantaDeRuta(r); } catch (e) {}
+  delete cacheCalles[id];
+
+  const total = _crearRutaPuntos.length;
+  cerrarCrearRuta(true);
+  _crearRutaPuntos = [];
+  flashToast(`✓ Ruta "${id}" creada con ${total} paradas`);
+
+  try {
+    await dibujarRuta(id);
+    r.layer.addTo(map);
+    renderLista(document.getElementById('filtro').value);
+    try { renderChipsFiltros(); } catch (e) {}
+    try { actualizarBadgeCambios(); } catch (e) {}
+    try { actualizarOcupacion(); } catch (e) {}
+  } catch (errDraw) {
+    console.error('Error al dibujar la ruta nueva:', errDraw);
+    renderLista(document.getElementById('filtro').value);
+  }
+}
+
+// Wire-up de los controles del panel de creación
+document.getElementById('btnCrearRuta').addEventListener('click', toggleCrearRuta);
+document.getElementById('crpClose').addEventListener('click', () => cerrarCrearRuta(false));
+document.getElementById('crpCancel').addEventListener('click', () => cerrarCrearRuta(false));
+document.getElementById('crpUndo').addEventListener('click', crearRutaUndo);
+document.getElementById('crpSave').addEventListener('click', guardarCrearRuta);
+document.getElementById('crpRutaColor').addEventListener('input', () => { if (modoCrearRuta) redibujarCrearRuta(); });
 
 // Estado inicial de la interfaz — vacía hasta que el usuario cargue un archivo.
 document.getElementById('counter').innerHTML =
