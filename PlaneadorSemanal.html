@@ -190,6 +190,9 @@
   .bar:hover{filter:brightness(1.15);transform:translateY(-1px);z-index:3;box-shadow:0 4px 10px rgba(0,0,0,0.18)}
   .bar.tipo-IN::before{content:'↑ ';opacity:0.85;font-size:10px}
   .bar.tipo-OUT::before{content:'↓ ';opacity:0.85;font-size:10px}
+  .peak-line{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed var(--orange);z-index:4;pointer-events:none}
+  .peak-line::after{content:'';position:absolute;top:0;bottom:0;left:-10px;width:20px;background:rgba(249,115,22,0.10)}
+  .peak-flag{position:sticky;top:2px;display:inline-block;transform:translateX(-50%);white-space:nowrap;background:var(--orange);color:white;font-size:10px;font-weight:800;padding:2px 7px;border-radius:5px;box-shadow:0 2px 6px rgba(249,115,22,0.45);margin-top:2px}
   .bar .buffer-ext{
     position:absolute;top:0;right:-1px;height:100%;
     background:repeating-linear-gradient(45deg,rgba(255,255,255,0.35),rgba(255,255,255,0.35) 3px,transparent 3px,transparent 6px);
@@ -894,6 +897,23 @@ function carrosNecesarios(filtered){
   return {cars:best, day:bd};
 }
 
+// Instante de mayor traslape de lo que se ve en el Gantt (mismo criterio que las barras).
+function peakOfDisplayed(filtered){
+  const ev=[];
+  filtered.forEach(s=>{
+    const tc = timeForCurrent(s);
+    if(!tc.st) return;
+    let a = timeVal(tc.st); let b = timeVal(tc.en);
+    if(b<0) b = a+30; if(b<a) b += 24*60;
+    b += currentBuffer;
+    ev.push([a,1]); ev.push([b,-1]);
+  });
+  ev.sort((x,y)=> (x[0]-y[0]) || (x[1]-y[1]));
+  let cur=0, mx=0, at=0;
+  for(const p of ev){ cur+=p[1]; if(cur>mx){ mx=cur; at=p[0]; } }
+  return {count:mx, min:at};
+}
+
 function renderHeaderKpis(filtered){
   const plantasC = new Set(filtered.map(x=>x.p)).size;
   const cn = carrosNecesarios(filtered);
@@ -1050,6 +1070,16 @@ function renderGantt(filtered){
     svcs.forEach(s => tRow.appendChild(makeBar(s)));
     inner.appendChild(tRow);
   });
+
+  // --- Linea vertical del pico de traslape (momento con mas carros a la vez) ---
+  const pk = peakOfDisplayed(filtered);
+  if(pk.count > 0){
+    const line = document.createElement('div');
+    line.className = 'peak-line';
+    line.style.left = ((pk.min - START_MIN) * PX_PER_MIN) + 'px';
+    line.innerHTML = `<div class="peak-flag">🚗 ${pk.count} carros · ${fmtMinutes(pk.min)}</div>`;
+    inner.appendChild(line);
+  }
 
   tracksWrap.appendChild(inner);
   gantt.appendChild(labels);
