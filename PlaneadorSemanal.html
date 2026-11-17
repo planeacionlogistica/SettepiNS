@@ -868,11 +868,41 @@ function rebuild(){
   else renderMapView(filtered);
 }
 
+// Minimo de carros = pico de viajes simultaneos (incluye el buffer de retorno).
+// Un carro puede encadenar varios viajes si no se traslapan en horario.
+// Por dia; en vista "Semana" se toma el peor dia (el que exige mas unidades).
+function carrosNecesarios(filtered){
+  function peakDay(list, dayIdx){
+    const ev=[];
+    for(const s of list){
+      if(s.d[dayIdx]!==1) continue;
+      const st = s.s[dayIdx], en = s.e[dayIdx];
+      if(!st) continue;
+      let a = timeVal(st); let b = timeVal(en);
+      if(b<0) b = a+30; if(b<a) b += 24*60;
+      b += currentBuffer;
+      ev.push([a,1]); ev.push([b,-1]);
+    }
+    ev.sort((x,y)=> (x[0]-y[0]) || (x[1]-y[1])); // una salida libera el carro antes de que entre otra en el mismo minuto
+    let cur=0, mx=0;
+    for(const p of ev){ cur+=p[1]; if(cur>mx) mx=cur; }
+    return mx;
+  }
+  if(currentDay!==null) return {cars:peakDay(filtered,currentDay), day:currentDay};
+  let best=0, bd=0;
+  for(let i=0;i<7;i++){ const c=peakDay(filtered,i); if(c>best){ best=c; bd=i; } }
+  return {cars:best, day:bd};
+}
+
 function renderHeaderKpis(filtered){
   const plantasC = new Set(filtered.map(x=>x.p)).size;
+  const cn = carrosNecesarios(filtered);
+  const diaLbl = currentDay===null ? (DAY_NAMES[DAYS[cn.day]]+' · dia pico') : DAY_NAMES[DAYS[currentDay]];
+  const bufLbl = currentBuffer>0 ? ` + buffer ${currentBuffer} min` : '';
   document.getElementById('header-kpis').innerHTML = `
     <div class="kpi-mini"><b>${filtered.length}</b> Servicios</div>
     <div class="kpi-mini"><b>${plantasC}</b> Plantas</div>
+    <div class="kpi-mini" title="Carros en el momento de mayor traslape (${diaLbl}${bufLbl}). Es el minimo de unidades para cubrir todos los viajes sin que un carro este en dos lugares a la vez." style="background:rgba(249,115,22,0.20);border-color:rgba(249,115,22,0.55)">🚗 <b>${cn.cars}</b> Carros</div>
   `;
 }
 
@@ -885,6 +915,8 @@ function renderKpis(filtered){
   const dayLabel = currentDay===null ? 'Semana' : DAY_NAMES[DAYS[currentDay]];
   const turnoLbl = currentTurno==='ALL' ? '' : ` · ${turnoInfo(currentTurno).name}`;
   const bufTxt = currentBuffer>0 ? ` <span style="color:var(--orange);font-weight:800">+${currentBuffer}min</span>` : '';
+  const cn = carrosNecesarios(filtered);
+  const cnDia = currentDay===null ? `Pico ${DAY_NAMES[DAYS[cn.day]]}` : 'Pico simultáneo';
   el.innerHTML = `
     <div class="kpi-card">
       <div class="n">${filtered.length}</div>
@@ -906,6 +938,10 @@ function renderKpis(filtered){
     <div class="kpi-card" style="border-top-color:var(--amber)">
       <div class="n" style="color:var(--amber)">${routesC}</div>
       <div class="l">Rutas únicas</div><div class="s">${currentView==='gantt'?'Filas visibles':'Rutas en mapa'}</div>
+    </div>
+    <div class="kpi-card" style="border-top-color:var(--orange)">
+      <div class="n" style="color:var(--orange)">🚗 ${cn.cars}</div>
+      <div class="l">Carros necesarios</div><div class="s">${cnDia}${bufTxt}</div>
     </div>
   `;
 }
@@ -1038,7 +1074,12 @@ function makeBar(s){
   bar.style.left = ((sMin - START_MIN) * PX_PER_MIN) + 'px';
   bar.style.width = ((dur + currentBuffer) * PX_PER_MIN) + 'px';
   bar.style.background = color;
-  if(s.t==='OUT') bar.style.filter = 'brightness(0.85)';
+  if(s.t==='OUT'){
+    // SALIDA: color mas fuerte y marcada para distinguirla de las entradas
+    bar.style.filter = 'brightness(0.72) saturate(1.35)';
+    bar.style.border = '2px solid #0f172a';
+    bar.style.boxShadow = 'inset 4px 0 0 var(--red), 0 1px 3px rgba(0,0,0,0.25)';
+  }
   const bufferPx = currentBuffer * PX_PER_MIN;
   const wCore = dur * PX_PER_MIN;
   const label = wCore > 90 ? `${st.slice(0,5)} · ${s.i.replace(/^[ES]-/,'')}` : (wCore>50 ? st.slice(0,5) : '');
