@@ -1156,12 +1156,8 @@ function makeBar(s){
   }
   const bufferPx = currentBuffer * PX_PER_MIN;
   const wCore = dur * PX_PER_MIN;
-  // "poner tambien los numeros": numero de ruta visible en TODAS las barras
-  const code = s.i.replace(/^[ES]-/,'');            // LBL-007-H1
-  const num  = (s.r.split('-').pop() || code);      // 007
-  const label = wCore > 96 ? `${st.slice(0,5)} · ${code}`
-              : (wCore > 52 ? `${st.slice(0,5)} ${num}`
-              : num);
+  // Solo la hora en la barra (sin el numero de ruta). El detalle completo esta en el tooltip.
+  const label = wCore > 34 ? st.slice(0,5) : '';
   bar.textContent = label;
   if(currentBuffer > 0){
     const ext = document.createElement('div');
