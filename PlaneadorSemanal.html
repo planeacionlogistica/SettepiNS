@@ -218,6 +218,8 @@
   .cm-cap-note{padding:9px 20px;font-size:12.5px;background:#f0fdf4;color:#166534;border-bottom:1px solid var(--border)}
   .cm-cap-note.warn{background:#fff7ed;color:#9a3412}
   .cm-h.ok{color:#16a34a}.cm-h.over{color:#dc2626}
+  .cm-dh td{background:#f8fafc;color:#64748b;font-size:11px;font-style:italic;padding:3px 12px 3px 26px}
+  .cm-ctl{flex-wrap:wrap}
   .cm-foot{padding:10px 20px;color:var(--muted);font-size:11px;border-top:1px solid var(--border)}
   .peak-line{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed var(--orange);z-index:4;pointer-events:none}
   .peak-line::after{content:'';position:absolute;top:0;bottom:0;left:-10px;width:20px;background:rgba(249,115,22,0.10)}
@@ -987,7 +989,8 @@ function renderKpis(filtered){
   const cnExtra = cn.cars - cnA.pico;
   const cnDia = (currentDay===null ? `${DAY_NAMES[DAYS[cn.day]]} · ` : '')
     + (maxHorasCarro>0 ? `máx ${maxHorasCarro} h/carro` : 'pico simultáneo')
-    + (cnExtra>0 ? ` · +${cnExtra} por límite` : '');
+    + (velTraslado>0 ? ' · con traslados' : '')
+    + (cnExtra>0 ? ` · +${cnExtra} vs pico` : '');
   el.innerHTML = `
     <div class="kpi-card">
       <div class="n">${filtered.length}</div>
@@ -1526,6 +1529,15 @@ document.getElementById('btn-share').addEventListener('click',()=>{
 // ---- Lista carro por carro (solo planeador principal) ----
 // Asigna los viajes a carros (mismo criterio que "Carros necesarios") y suma horas por carro.
 let maxHorasCarro = 8;   // limite de horas por carro (0 = sin limite)
+let velTraslado = 30;    // km/h promedio del traslado vacio entre servicios (0 = no considerar ubicacion)
+const FACTOR_RUTA = 1.3; // la calle es ~30% mas larga que la linea recta
+function kmEntre(la1,lo1,la2,lo2){
+  if(!la1||!lo1||!la2||!lo2) return 0;
+  const R=6371, r=Math.PI/180, dLa=(la2-la1)*r, dLo=(lo2-lo1)*r;
+  const x=Math.sin(dLa/2)**2 + Math.cos(la1*r)*Math.cos(la2*r)*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(x)) * FACTOR_RUTA;
+}
+function minTraslado(km){ return (velTraslado>0 && km>=1) ? Math.ceil(km/velTraslado*60) : 0; } // <1 km = mismo punto
 function asignarCarrosDia(filtered, day){
   const cap = maxHorasCarro>0 ? maxHorasCarro*60 : Infinity;
   const trips = [];
@@ -1535,19 +1547,27 @@ function asignarCarrosDia(filtered, day){
     if(!st) return;
     let a = timeVal(st), b = timeVal(en);
     if(b<0) b = a+30; if(b<a) b += 24*60;
-    trips.push({s, a, b, bb: b+currentBuffer});
+    trips.push({s, a, b, bb: b+currentBuffer, tr:0, trKm:0});
   });
   trips.sort((x,y)=> (x.a-y.a) || (x.b-y.b));
   const cars = [];
   trips.forEach(t=>{
     const dur = t.bb - t.a;
-    let best = -1;
+    let best = -1, bestTr = 0, bestKm = 0, bestSlack = Infinity;
     for(let i=0;i<cars.length;i++){
       const c = cars[i];
-      if(c.end <= t.a && c.ocup + dur <= cap && (best<0 || c.end > cars[best].end)) best = i;
+      if(c.end > t.a) continue;                         // sigue ocupado
+      const km = velTraslado>0 ? kmEntre(c.ela,c.elo,t.s.ls,t.s.gs) : 0;
+      const tr = minTraslado(km);
+      if(c.end + tr > t.a) continue;                    // no le da tiempo de llegar al origen
+      if(c.ocup + tr + dur > cap) continue;             // se pasaria del limite de horas
+      const slack = tr*1000 + (t.a - (c.end + tr)); // primero el carro mas cercano, luego el que queda mas justo
+      if(slack < bestSlack){ best=i; bestTr=tr; bestKm=km; bestSlack=slack; }
     }
-    if(best<0){ cars.push({trips:[], end:0, ocup:0}); best = cars.length-1; } // no cabe: otro camion
-    cars[best].trips.push(t); cars[best].end = t.bb; cars[best].ocup += dur;
+    if(best<0){ cars.push({trips:[], end:0, ocup:0}); best = cars.length-1; bestTr=0; bestKm=0; } // otro camion
+    const c = cars[best];
+    t.tr = bestTr; t.trKm = bestKm;
+    c.trips.push(t); c.end = t.bb; c.ocup += bestTr + dur; c.ela = t.s.le; c.elo = t.s.ge;
   });
   return cars;
 }
@@ -1568,24 +1588,27 @@ function openCarrosModal(){
   const capMin = maxHorasCarro>0 ? maxHorasCarro*60 : Infinity;
   const extra = cars.length - pico;
   const dayLbl = DAY_NAMES[DAYS[day]] + (currentDay===null ? ' (día pico)' : '');
-  cars.forEach(c=>{ c.ocup = c.trips.reduce((t,x)=>t+(x.bb-x.a),0); });
   cars.sort((x,y)=> y.ocup - x.ocup);  // de mayor a menor horas
-  let totOcup=0, totMan=0;
+  let totOcup=0, totMan=0, totTr=0, totKm=0;
   const rows = cars.map((c,i)=>{
-    const man  = c.trips.reduce((t,x)=>t+(x.b-x.a),0);
-    const ocup = c.trips.reduce((t,x)=>t+(x.bb-x.a),0);
-    totOcup+=ocup; totMan+=man;
+    const serv = c.trips.reduce((t,x)=>t+(x.b-x.a),0);
+    const tras = c.trips.reduce((t,x)=>t+x.tr,0);
+    const kms  = c.trips.reduce((t,x)=>t+x.trKm,0);
+    const man  = serv + tras;                          // manejo = servicios + traslados vacios
+    const ocup = c.ocup;                               // manejo + buffer
+    totOcup+=ocup; totMan+=man; totTr+=tras; totKm+=kms;
     const first=c.trips[0].a, last=c.trips[c.trips.length-1].bb;
-    const det = c.trips.map(x=>`
+    const det = c.trips.map((x,k)=>(x.tr>0 ? `
+      <tr class="cm-dh"><td colspan="5">↪ Traslado vacío <b>${x.trKm.toFixed(1)} km · ${x.tr} min</b> desde ${escapeHtml(c.trips[k-1].s.pe)} hasta ${escapeHtml(x.s.ps)}</td></tr>` : '') + `
       <tr><td><span class="cm-t ${x.s.t==='IN'?'in':'out'}">${x.s.t==='IN'?'Entrada':'Salida'}</span></td>
       <td>${fmtMinutes(x.a)}–${fmtMinutes(x.b)}${currentBuffer>0?` <span class="cm-id">+${currentBuffer} → ${fmtMinutes(x.bb)}</span>`:''}</td><td>${x.b-x.a}${currentBuffer>0?` + ${currentBuffer}`:''} min</td>
       <td>${escapeHtml(x.s.p)}</td><td>${escapeHtml(x.s.n||x.s.r)} <span class="cm-id">${escapeHtml(x.s.i)}</span></td></tr>`).join('');
     return `<details class="cm-car"><summary>
         <span class="cm-n"><span class="cm-arr">▸</span> Carro ${i+1}</span>
         <span class="cm-h ${ocup>capMin?'over':(maxHorasCarro>0?'ok':'')}">${fmtHrs(ocup)}${ocup>capMin?' ⚠':''}</span>
-        <span class="cm-s">${c.trips.length} viaje${c.trips.length>1?'s':''} · manejo ${fmtHrs(man)}${currentBuffer>0?` + buffer ${fmtHrs(ocup-man)} (${c.trips.length}×${currentBuffer} min)`:''} · de ${fmtMinutes(first)} a ${fmtMinutes(last)}</span>
+        <span class="cm-s">${c.trips.length} viaje${c.trips.length>1?'s':''} · servicios ${fmtHrs(serv)}${tras>0?` + traslados ${fmtHrs(tras)} (${kms.toFixed(0)} km)`:''}${currentBuffer>0?` + buffer ${fmtHrs(ocup-man)} (${c.trips.length}×${currentBuffer} min)`:''} · de ${fmtMinutes(first)} a ${fmtMinutes(last)}</span>
       </summary>
-      <table class="cm-tbl"><thead><tr><th>Tipo</th><th>Horario</th><th>Duración</th><th>Cliente</th><th>Ruta</th></tr></thead><tbody>${det}<tr class="cm-tot"><td colspan="2">Total ${c.trips.length} servicio${c.trips.length>1?'s':''}</td><td colspan="3">${fmtHrs(man)} manejo${currentBuffer>0?` + ${fmtHrs(ocup-man)} buffer`:''} = <b>${fmtHrs(ocup)}</b></td></tr></tbody></table>
+      <table class="cm-tbl"><thead><tr><th>Tipo</th><th>Horario</th><th>Duración</th><th>Cliente</th><th>Ruta</th></tr></thead><tbody>${det}<tr class="cm-tot"><td colspan="2">Total ${c.trips.length} servicio${c.trips.length>1?'s':''}</td><td colspan="3">servicios ${fmtHrs(serv)}${tras>0?` + traslados ${fmtHrs(tras)}`:''} = manejo ${fmtHrs(man)}${currentBuffer>0?` + ${fmtHrs(ocup-man)} buffer`:''} = <b>${fmtHrs(ocup)}</b></td></tr></tbody></table>
     </details>`;
   }).join('');
   const prom = cars.length ? totOcup/cars.length : 0;
@@ -1597,18 +1620,22 @@ function openCarrosModal(){
       <div class="cm-sub">${dayLbl}${currentBuffer>0?` · buffer ${currentBuffer} min incluido`:''} · ${filtered.length} servicios filtrados</div></div>
       <div class="cm-ctl"><label>Máx. horas por carro
         <select id="cm-cap">${[0,6,7,8,9,10,12].map(v=>`<option value="${v}"${v===maxHorasCarro?' selected':''}>${v?v+' h':'Sin límite'}</option>`).join('')}</select></label>
+        <label>Traslado entre servicios
+        <select id="cm-vel">${[0,20,25,30,40,50].map(v=>`<option value="${v}"${v===velTraslado?' selected':''}>${v?v+' km/h':'No considerar'}</option>`).join('')}</select></label>
         <button class="cm-close" title="Cerrar">×</button></div></div>
     ${maxHorasCarro>0?`<div class="cm-cap-note ${extra>0?'warn':''}">${extra>0
-      ? `Con el límite de <b>${maxHorasCarro} h</b> se ocupan <b>${extra} carro${extra>1?'s':''} más</b> (sin límite bastarían ${pico}, que es el pico de carros al mismo tiempo).`
+      ? `Con el límite de <b>${maxHorasCarro} h</b> se ocupan <b>${extra} carro${extra>1?'s':''} más</b> que el pico (el pico de carros al mismo tiempo es ${pico}; la diferencia viene del límite de horas${velTraslado>0?' y de los traslados entre ubicaciones':''}).`
       : `Todos los carros quedan en <b>${maxHorasCarro} h o menos</b> sin necesitar carros extra (pico: ${pico}).`}</div>`:''}
     <div class="cm-sum"><div><b>${fmtHrs(totOcup)}</b>Horas totales${currentBuffer>0?' (con buffer)':''}</div>
-      <div><b>${fmtHrs(totMan)}</b>Horas de manejo${currentBuffer>0?` + ${fmtHrs(totOcup-totMan)} buffer`:''}</div><div><b>${fmtHrs(prom)}</b>Promedio por carro</div></div>
+      <div><b>${fmtHrs(totMan)}</b>Horas de manejo (incl. ${fmtHrs(totTr)} de traslados · ${totKm.toFixed(0)} km)${currentBuffer>0?` + ${fmtHrs(totOcup-totMan)} buffer`:''}</div><div><b>${fmtHrs(prom)}</b>Promedio por carro</div></div>
     <div class="cm-list">${rows || '<div style="padding:20px;color:var(--muted)">No hay viajes con estos filtros.</div>'}</div>
-    <div class="cm-foot">Ordenados de mayor a menor horas. Clic en un carro para ver los servicios que hace. Horas = duración de cada viaje${currentBuffer>0?' + buffer de regreso':''}.</div>
+    <div class="cm-foot">Ordenados de mayor a menor horas. Clic en un carro para ver los servicios que hace. Horas = servicios + traslados vacíos${velTraslado>0?` (distancia ×${FACTOR_RUTA} a ${velTraslado} km/h)`:''}${currentBuffer>0?' + buffer de regreso':''}.</div>
   </div>`;
   ov.style.display='flex';
   const sel = document.getElementById('cm-cap');
   if(sel) sel.addEventListener('change',()=>{ maxHorasCarro = parseInt(sel.value,10)||0; rebuild(); openCarrosModal(); });
+  const vsel = document.getElementById('cm-vel');
+  if(vsel) vsel.addEventListener('change',()=>{ velTraslado = parseInt(vsel.value,10)||0; rebuild(); openCarrosModal(); });
 }
 document.getElementById('kpi-row').addEventListener('click',e=>{
   if(!window.IS_SHARED && e.target.closest('#carros-card')) openCarrosModal();
