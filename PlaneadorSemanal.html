@@ -208,6 +208,16 @@
   .cm-tbl{width:100%;border-collapse:collapse;font-size:12px}.cm-tbl th{text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;padding:6px 12px}
   .cm-tbl td{padding:5px 12px;border-top:1px solid #f1f5f9}.cm-id{color:#94a3b8;font-size:10px;margin-left:4px}
   .cm-t{font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:4px}.cm-t.in{background:#dbeafe;color:#1e40af}.cm-t.out{background:#fee2e2;color:#b91c1c}
+  .cm-arr{display:inline-block;color:var(--orange);transition:transform .15s;margin-right:3px}
+  .cm-car[open] .cm-arr{transform:rotate(90deg)}
+  .cm-car summary:hover{background:#fff7ed}
+  .cm-tot td{background:#fff7ed;font-weight:700;border-top:2px solid var(--border)}
+  .cm-ctl{display:flex;align-items:center;gap:10px}
+  .cm-ctl label{font-size:11px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .cm-ctl select{padding:5px 8px;border:1px solid var(--border-strong);border-radius:6px;font-weight:700;font-family:inherit}
+  .cm-cap-note{padding:9px 20px;font-size:12.5px;background:#f0fdf4;color:#166534;border-bottom:1px solid var(--border)}
+  .cm-cap-note.warn{background:#fff7ed;color:#9a3412}
+  .cm-h.ok{color:#16a34a}.cm-h.over{color:#dc2626}
   .cm-foot{padding:10px 20px;color:var(--muted);font-size:11px;border-top:1px solid var(--border)}
   .peak-line{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed var(--orange);z-index:4;pointer-events:none}
   .peak-line::after{content:'';position:absolute;top:0;bottom:0;left:-10px;width:20px;background:rgba(249,115,22,0.10)}
@@ -952,13 +962,14 @@ function peakOfDisplayed(filtered){
 
 function renderHeaderKpis(filtered){
   const plantasC = new Set(filtered.map(x=>x.p)).size;
-  const cn = carrosNecesarios(filtered);
+  const cnA = asignarCarros(filtered);
+  const cn = {cars: cnA.cars.length, day: cnA.day};
   const diaLbl = currentDay===null ? (DAY_NAMES[DAYS[cn.day]]+' · dia pico') : DAY_NAMES[DAYS[currentDay]];
   const bufLbl = currentBuffer>0 ? ` + buffer ${currentBuffer} min` : '';
   document.getElementById('header-kpis').innerHTML = `
     <div class="kpi-mini"><b>${filtered.length}</b> Servicios</div>
     <div class="kpi-mini"><b>${plantasC}</b> Plantas</div>
-    <div class="kpi-mini" title="Carros en el momento de mayor traslape (${diaLbl}${bufLbl}). Es el minimo de unidades para cubrir todos los viajes sin que un carro este en dos lugares a la vez." style="background:rgba(249,115,22,0.20);border-color:rgba(249,115,22,0.55)">🚗 <b>${cn.cars}</b> Carros</div>
+    <div class="kpi-mini" title="Carros necesarios (${diaLbl}${bufLbl})${maxHorasCarro>0?`, ninguno pasa de ${maxHorasCarro} h`:''}. Pico simultaneo: ${cnA.pico}." style="background:rgba(249,115,22,0.20);border-color:rgba(249,115,22,0.55)">🚗 <b>${cn.cars}</b> Carros</div>
   `;
 }
 
@@ -971,8 +982,12 @@ function renderKpis(filtered){
   const dayLabel = currentDay===null ? 'Semana' : DAY_NAMES[DAYS[currentDay]];
   const turnoLbl = currentTurno==='ALL' ? '' : ` · ${turnoInfo(currentTurno).name}`;
   const bufTxt = currentBuffer>0 ? ` <span style="color:var(--orange);font-weight:800">+${currentBuffer}min</span>` : '';
-  const cn = carrosNecesarios(filtered);
-  const cnDia = currentDay===null ? `Pico ${DAY_NAMES[DAYS[cn.day]]}` : 'Pico simultáneo';
+  const cnA = asignarCarros(filtered);
+  const cn = {cars: cnA.cars.length, day: cnA.day};
+  const cnExtra = cn.cars - cnA.pico;
+  const cnDia = (currentDay===null ? `${DAY_NAMES[DAYS[cn.day]]} · ` : '')
+    + (maxHorasCarro>0 ? `máx ${maxHorasCarro} h/carro` : 'pico simultáneo')
+    + (cnExtra>0 ? ` · +${cnExtra} por límite` : '');
   el.innerHTML = `
     <div class="kpi-card">
       <div class="n">${filtered.length}</div>
@@ -1510,9 +1525,9 @@ document.getElementById('btn-share').addEventListener('click',()=>{
 
 // ---- Lista carro por carro (solo planeador principal) ----
 // Asigna los viajes a carros (mismo criterio que "Carros necesarios") y suma horas por carro.
-function asignarCarros(filtered){
-  const cn = carrosNecesarios(filtered);
-  const day = cn.day;
+let maxHorasCarro = 8;   // limite de horas por carro (0 = sin limite)
+function asignarCarrosDia(filtered, day){
+  const cap = maxHorasCarro>0 ? maxHorasCarro*60 : Infinity;
   const trips = [];
   filtered.forEach(s=>{
     if(s.d[day]!==1) return;
@@ -1525,22 +1540,36 @@ function asignarCarros(filtered){
   trips.sort((x,y)=> (x.a-y.a) || (x.b-y.b));
   const cars = [];
   trips.forEach(t=>{
+    const dur = t.bb - t.a;
     let best = -1;
     for(let i=0;i<cars.length;i++){
-      if(cars[i].end <= t.a && (best<0 || cars[i].end > cars[best].end)) best = i;
+      const c = cars[i];
+      if(c.end <= t.a && c.ocup + dur <= cap && (best<0 || c.end > cars[best].end)) best = i;
     }
-    if(best<0){ cars.push({trips:[], end:0}); best = cars.length-1; }
-    cars[best].trips.push(t); cars[best].end = t.bb;
+    if(best<0){ cars.push({trips:[], end:0, ocup:0}); best = cars.length-1; } // no cabe: otro camion
+    cars[best].trips.push(t); cars[best].end = t.bb; cars[best].ocup += dur;
   });
-  return {day, cars};
+  return cars;
+}
+// Carros necesarios respetando el limite de horas. En "Semana" toma el dia que mas carros pide.
+function asignarCarros(filtered){
+  const pico = carrosNecesarios(filtered);
+  if(currentDay!==null) return {day:currentDay, cars:asignarCarrosDia(filtered,currentDay), pico:pico.cars};
+  let best=null, bd=0;
+  for(let i=0;i<7;i++){ const c=asignarCarrosDia(filtered,i); if(!best || c.length>best.length){ best=c; bd=i; } }
+  return {day:bd, cars:best, pico:pico.cars};
 }
 function fmtHrs(min){ const h=Math.floor(min/60), m=Math.round(min%60); return `${h} h ${String(m).padStart(2,'0')} min`; }
 
 function openCarrosModal(){
   if(window.IS_SHARED) return;
   const filtered = DATA.filter(svcMatches);
-  const {day, cars} = asignarCarros(filtered);
+  const {day, cars, pico} = asignarCarros(filtered);
+  const capMin = maxHorasCarro>0 ? maxHorasCarro*60 : Infinity;
+  const extra = cars.length - pico;
   const dayLbl = DAY_NAMES[DAYS[day]] + (currentDay===null ? ' (día pico)' : '');
+  cars.forEach(c=>{ c.ocup = c.trips.reduce((t,x)=>t+(x.bb-x.a),0); });
+  cars.sort((x,y)=> y.ocup - x.ocup);  // de mayor a menor horas
   let totOcup=0, totMan=0;
   const rows = cars.map((c,i)=>{
     const man  = c.trips.reduce((t,x)=>t+(x.b-x.a),0);
@@ -1552,11 +1581,11 @@ function openCarrosModal(){
       <td>${fmtMinutes(x.a)}–${fmtMinutes(x.b)}${currentBuffer>0?` <span class="cm-id">+${currentBuffer} → ${fmtMinutes(x.bb)}</span>`:''}</td><td>${x.b-x.a}${currentBuffer>0?` + ${currentBuffer}`:''} min</td>
       <td>${escapeHtml(x.s.p)}</td><td>${escapeHtml(x.s.n||x.s.r)} <span class="cm-id">${escapeHtml(x.s.i)}</span></td></tr>`).join('');
     return `<details class="cm-car"><summary>
-        <span class="cm-n">Carro ${i+1}</span>
-        <span class="cm-h">${fmtHrs(ocup)}</span>
+        <span class="cm-n"><span class="cm-arr">▸</span> Carro ${i+1}</span>
+        <span class="cm-h ${ocup>capMin?'over':(maxHorasCarro>0?'ok':'')}">${fmtHrs(ocup)}${ocup>capMin?' ⚠':''}</span>
         <span class="cm-s">${c.trips.length} viaje${c.trips.length>1?'s':''} · manejo ${fmtHrs(man)}${currentBuffer>0?` + buffer ${fmtHrs(ocup-man)} (${c.trips.length}×${currentBuffer} min)`:''} · de ${fmtMinutes(first)} a ${fmtMinutes(last)}</span>
       </summary>
-      <table class="cm-tbl"><thead><tr><th>Tipo</th><th>Horario</th><th>Duración</th><th>Cliente</th><th>Ruta</th></tr></thead><tbody>${det}</tbody></table>
+      <table class="cm-tbl"><thead><tr><th>Tipo</th><th>Horario</th><th>Duración</th><th>Cliente</th><th>Ruta</th></tr></thead><tbody>${det}<tr class="cm-tot"><td colspan="2">Total ${c.trips.length} servicio${c.trips.length>1?'s':''}</td><td colspan="3">${fmtHrs(man)} manejo${currentBuffer>0?` + ${fmtHrs(ocup-man)} buffer`:''} = <b>${fmtHrs(ocup)}</b></td></tr></tbody></table>
     </details>`;
   }).join('');
   const prom = cars.length ? totOcup/cars.length : 0;
@@ -1566,13 +1595,20 @@ function openCarrosModal(){
   ov.innerHTML = `<div class="cm-box">
     <div class="cm-head"><div><div class="cm-title">🚗 ${cars.length} carros · horas por carro</div>
       <div class="cm-sub">${dayLbl}${currentBuffer>0?` · buffer ${currentBuffer} min incluido`:''} · ${filtered.length} servicios filtrados</div></div>
-      <button class="cm-close" title="Cerrar">×</button></div>
+      <div class="cm-ctl"><label>Máx. horas por carro
+        <select id="cm-cap">${[0,6,7,8,9,10,12].map(v=>`<option value="${v}"${v===maxHorasCarro?' selected':''}>${v?v+' h':'Sin límite'}</option>`).join('')}</select></label>
+        <button class="cm-close" title="Cerrar">×</button></div></div>
+    ${maxHorasCarro>0?`<div class="cm-cap-note ${extra>0?'warn':''}">${extra>0
+      ? `Con el límite de <b>${maxHorasCarro} h</b> se ocupan <b>${extra} carro${extra>1?'s':''} más</b> (sin límite bastarían ${pico}, que es el pico de carros al mismo tiempo).`
+      : `Todos los carros quedan en <b>${maxHorasCarro} h o menos</b> sin necesitar carros extra (pico: ${pico}).`}</div>`:''}
     <div class="cm-sum"><div><b>${fmtHrs(totOcup)}</b>Horas totales${currentBuffer>0?' (con buffer)':''}</div>
       <div><b>${fmtHrs(totMan)}</b>Horas de manejo${currentBuffer>0?` + ${fmtHrs(totOcup-totMan)} buffer`:''}</div><div><b>${fmtHrs(prom)}</b>Promedio por carro</div></div>
     <div class="cm-list">${rows || '<div style="padding:20px;color:var(--muted)">No hay viajes con estos filtros.</div>'}</div>
-    <div class="cm-foot">Clic en un carro para ver sus viajes. Horas = duración de cada viaje${currentBuffer>0?' + buffer de regreso':''}.</div>
+    <div class="cm-foot">Ordenados de mayor a menor horas. Clic en un carro para ver los servicios que hace. Horas = duración de cada viaje${currentBuffer>0?' + buffer de regreso':''}.</div>
   </div>`;
   ov.style.display='flex';
+  const sel = document.getElementById('cm-cap');
+  if(sel) sel.addEventListener('change',()=>{ maxHorasCarro = parseInt(sel.value,10)||0; rebuild(); openCarrosModal(); });
 }
 document.getElementById('kpi-row').addEventListener('click',e=>{
   if(!window.IS_SHARED && e.target.closest('#carros-card')) openCarrosModal();
