@@ -139,6 +139,8 @@
   }
   .ms-option.ms-all-option{font-weight:700;color:var(--text-strong)}
   .ms-divider{height:1px;background:var(--border);margin:4px 0}
+  .ms-search{width:calc(100% - 12px);margin:4px 6px 6px;padding:6px 8px;border:1px solid var(--border-strong);border-radius:6px;font-size:12px;font-family:inherit;outline:none}
+  .ms-search:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(34,197,94,0.15)}
   .planta-ms-count{
     display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;
     padding:0 5px;margin-left:4px;border-radius:10px;background:var(--navy);color:white;
@@ -376,6 +378,7 @@
   <div class="buffer-panel">
     <span class="b-lbl">Buffer regreso</span>
     <button class="buffer-btn active" data-buf="0">0 min</button>
+    <button class="buffer-btn" data-buf="10">+10</button>
     <button class="buffer-btn" data-buf="20">+20</button>
     <button class="buffer-btn" data-buf="30">+30</button>
     <button class="buffer-btn" data-buf="45">+45</button>
@@ -398,6 +401,7 @@
           <span>Todas</span>
         </label>
         <div class="ms-divider"></div>
+        <input type="text" id="planta-search" class="ms-search" placeholder="Escribe un cliente..." autocomplete="off">
         <div id="planta-options"></div>
       </div>
     </div>
@@ -550,9 +554,23 @@ plantaMsBtn.addEventListener('click', (e)=>{
   e.stopPropagation();
   const isOpen = plantaMulti.classList.toggle('open');
   plantaMsBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  if(isOpen && plantaSearch){ setTimeout(()=>plantaSearch.focus(), 10); }
 });
 
 plantaMsMenu.addEventListener('click', e=>e.stopPropagation());
+
+// ---- buscador escribible dentro del filtro de cliente ----
+const plantaSearch = document.getElementById('planta-search');
+if(plantaSearch){
+  plantaSearch.addEventListener('click', e=>e.stopPropagation());
+  plantaSearch.addEventListener('keydown', e=>e.stopPropagation());
+  plantaSearch.addEventListener('input', ()=>{
+    const q = plantaSearch.value.trim().toLowerCase();
+    plantaOptions.querySelectorAll('.ms-option').forEach(lbl=>{
+      lbl.style.display = lbl.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
+}
 
 document.addEventListener('click', ()=>{
   plantaMulti.classList.remove('open');
@@ -1091,6 +1109,32 @@ function renderGantt(filtered){
   labels.addEventListener('scroll', () => { tracksWrap.scrollTop = labels.scrollTop; });
 }
 
+// Color contrario (complementario) de una planta: entrada = color de planta, salida = su opuesto.
+function hexToHsl(hex){
+  hex = hex.replace('#','');
+  if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+  const r=parseInt(hex.slice(0,2),16)/255, g=parseInt(hex.slice(2,4),16)/255, b=parseInt(hex.slice(4,6),16)/255;
+  const mx=Math.max(r,g,b), mn=Math.min(r,g,b); let h=0,sx=0,l=(mx+mn)/2;
+  if(mx!==mn){ const d=mx-mn; sx=l>0.5?d/(2-mx-mn):d/(mx+mn);
+    if(mx===r) h=(g-b)/d+(g<b?6:0); else if(mx===g) h=(b-r)/d+2; else h=(r-g)/d+4; h/=6; }
+  return [h*360, sx, l];
+}
+function hslToHex(h,s,l){
+  h=((h%360)+360)%360/360; let r,g,b;
+  if(s===0){ r=g=b=l; }
+  else{ const f=(p,q,t)=>{ if(t<0)t+=1; if(t>1)t-=1; if(t<1/6)return p+(q-p)*6*t; if(t<1/2)return q; if(t<2/3)return p+(q-p)*(2/3-t)*6; return p; };
+    const q=l<0.5?l*(1+s):l+s-l*s, p=2*l-q; r=f(p,q,h+1/3); g=f(p,q,h); b=f(p,q,h-1/3); }
+  const hx=x=>Math.round(x*255).toString(16).padStart(2,'0');
+  return '#'+hx(r)+hx(g)+hx(b);
+}
+const _oppCache={};
+function oppositeColor(hex){
+  if(_oppCache[hex]) return _oppCache[hex];
+  const [h,s,l]=hexToHsl(hex);
+  const out=hslToHex(h+180, Math.max(s,0.55), Math.min(l>0.55?0.5:l,0.5)); // opuesto, oscuro para texto blanco
+  _oppCache[hex]=out; return out;
+}
+
 function makeBar(s){
   const {st, en} = timeForCurrent(s);
   const sMin = timeVal(st);
@@ -1103,16 +1147,21 @@ function makeBar(s){
   bar.className = 'bar tipo-'+s.t;
   bar.style.left = ((sMin - START_MIN) * PX_PER_MIN) + 'px';
   bar.style.width = ((dur + currentBuffer) * PX_PER_MIN) + 'px';
-  bar.style.background = color;
+  // ENTRADA: color de la planta. SALIDA: color contrario (opuesto) de esa misma planta.
+  bar.style.background = (s.t==='OUT') ? oppositeColor(color) : color;
   if(s.t==='OUT'){
-    // SALIDA: color mas fuerte y marcada para distinguirla de las entradas
-    bar.style.filter = 'brightness(0.72) saturate(1.35)';
-    bar.style.border = '2px solid #0f172a';
-    bar.style.boxShadow = 'inset 4px 0 0 var(--red), 0 1px 3px rgba(0,0,0,0.25)';
+    bar.style.border = '2px solid rgba(15,23,42,0.5)';
+    bar.style.boxShadow = '0 1px 3px rgba(0,0,0,0.22)';
+    bar.style.textShadow = '0 1px 2px rgba(0,0,0,0.6)';
   }
   const bufferPx = currentBuffer * PX_PER_MIN;
   const wCore = dur * PX_PER_MIN;
-  const label = wCore > 90 ? `${st.slice(0,5)} · ${s.i.replace(/^[ES]-/,'')}` : (wCore>50 ? st.slice(0,5) : '');
+  // "poner tambien los numeros": numero de ruta visible en TODAS las barras
+  const code = s.i.replace(/^[ES]-/,'');            // LBL-007-H1
+  const num  = (s.r.split('-').pop() || code);      // 007
+  const label = wCore > 96 ? `${st.slice(0,5)} · ${code}`
+              : (wCore > 52 ? `${st.slice(0,5)} ${num}`
+              : num);
   bar.textContent = label;
   if(currentBuffer > 0){
     const ext = document.createElement('div');
