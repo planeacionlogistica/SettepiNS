@@ -220,6 +220,8 @@
   .cm-h.ok{color:#16a34a}.cm-h.over{color:#dc2626}
   .cm-dh td{background:#f8fafc;color:#64748b;font-size:11px;font-style:italic;padding:3px 12px 3px 26px}
   .cm-ctl{flex-wrap:wrap}
+  .cm-esp td{background:#fefce8;color:#854d0e;font-size:11px;font-style:italic;padding:3px 12px 3px 26px}
+  .cm-sum{grid-template-columns:repeat(4,1fr)}
   .cm-foot{padding:10px 20px;color:var(--muted);font-size:11px;border-top:1px solid var(--border)}
   .peak-line{position:absolute;top:0;bottom:0;width:0;border-left:2px dashed var(--orange);z-index:4;pointer-events:none}
   .peak-line::after{content:'';position:absolute;top:0;bottom:0;left:-10px;width:20px;background:rgba(249,115,22,0.10)}
@@ -1529,6 +1531,8 @@ document.getElementById('btn-share').addEventListener('click',()=>{
 // ---- Lista carro por carro (solo planeador principal) ----
 // Asigna los viajes a carros (mismo criterio que "Carros necesarios") y suma horas por carro.
 let maxHorasCarro = 8;   // limite de horas por carro (0 = sin limite)
+let esperaPlanta = 60;   // si el hueco antes de una SALIDA es de hasta X min, el carro se queda en planta y cuenta todo (0 = no contar, -1 = siempre)
+let llegaAntes = 10;     // si el hueco es mas largo, el carro se va y regresa: solo cuentan estos min de llegada anticipada para cargar
 let velTraslado = 30;    // km/h promedio del traslado vacio entre servicios (0 = no considerar ubicacion)
 const FACTOR_RUTA = 1.3; // la calle es ~30% mas larga que la linea recta
 function kmEntre(la1,lo1,la2,lo2){
@@ -1536,6 +1540,15 @@ function kmEntre(la1,lo1,la2,lo2){
   const R=6371, r=Math.PI/180, dLa=(la2-la1)*r, dLo=(lo2-lo1)*r;
   const x=Math.sin(dLa/2)**2 + Math.cos(la1*r)*Math.cos(la2*r)*Math.sin(dLo/2)**2;
   return 2*R*Math.asin(Math.sqrt(x)) * FACTOR_RUTA;
+}
+// Espera en planta: antes de una SALIDA el carro esta en la planta esperando a la gente.
+// Si el hueco es corto cuenta todo; si es largo, solo los minutos que llega antes (esperaPlanta).
+function esperaDe(t, gap){
+  if(t.s.t!=='OUT' || esperaPlanta===0) return 0;
+  if(!isFinite(gap)) return llegaAntes;                       // primer servicio del dia: llega antes a cargar
+  gap = Math.max(0, gap);
+  if(esperaPlanta<0 || gap <= esperaPlanta) return gap;       // se queda esperando en planta
+  return Math.min(gap, llegaAntes);                           // se va y regresa antes de la salida
 }
 function minTraslado(km){ return (velTraslado>0 && km>=1) ? Math.ceil(km/velTraslado*60) : 0; } // <1 km = mismo punto
 function asignarCarrosDia(filtered, day){
@@ -1547,27 +1560,29 @@ function asignarCarrosDia(filtered, day){
     if(!st) return;
     let a = timeVal(st), b = timeVal(en);
     if(b<0) b = a+30; if(b<a) b += 24*60;
-    trips.push({s, a, b, bb: b+currentBuffer, tr:0, trKm:0});
+    trips.push({s, a, b, bb: b+currentBuffer, tr:0, trKm:0, esp:0});
   });
   trips.sort((x,y)=> (x.a-y.a) || (x.b-y.b));
   const cars = [];
   trips.forEach(t=>{
     const dur = t.bb - t.a;
-    let best = -1, bestTr = 0, bestKm = 0, bestSlack = Infinity;
+    let best = -1, bestTr = 0, bestKm = 0, bestEsp = 0, bestSlack = Infinity;
     for(let i=0;i<cars.length;i++){
       const c = cars[i];
       if(c.end > t.a) continue;                         // sigue ocupado
       const km = velTraslado>0 ? kmEntre(c.ela,c.elo,t.s.ls,t.s.gs) : 0;
       const tr = minTraslado(km);
       if(c.end + tr > t.a) continue;                    // no le da tiempo de llegar al origen
-      if(c.ocup + tr + dur > cap) continue;             // se pasaria del limite de horas
-      const slack = tr*1000 + (t.a - (c.end + tr)); // primero el carro mas cercano, luego el que queda mas justo
-      if(slack < bestSlack){ best=i; bestTr=tr; bestKm=km; bestSlack=slack; }
+      const gap = t.a - (c.end + tr);                  // tiempo libre al llegar al origen
+      const esp = esperaDe(t, gap);                     // espera en planta antes de una salida
+      if(c.ocup + tr + esp + dur > cap) continue;       // se pasaria del limite de horas
+      const slack = (tr+esp)*1000 + c.ocup; // primero el que pierde menos tiempo (traslado + espera), luego el que lleva menos horas
+      if(slack < bestSlack){ best=i; bestTr=tr; bestKm=km; bestSlack=slack; bestEsp=esp; }
     }
-    if(best<0){ cars.push({trips:[], end:0, ocup:0}); best = cars.length-1; bestTr=0; bestKm=0; } // otro camion
+    if(best<0){ cars.push({trips:[], end:0, ocup:0}); best = cars.length-1; bestTr=0; bestKm=0; bestEsp=esperaDe(t, Infinity); } // otro camion
     const c = cars[best];
-    t.tr = bestTr; t.trKm = bestKm;
-    c.trips.push(t); c.end = t.bb; c.ocup += bestTr + dur; c.ela = t.s.le; c.elo = t.s.ge;
+    t.tr = bestTr; t.trKm = bestKm; t.esp = bestEsp;
+    c.trips.push(t); c.end = t.bb; c.ocup += bestTr + bestEsp + dur; c.ela = t.s.le; c.elo = t.s.ge;
   });
   return cars;
 }
@@ -1589,26 +1604,30 @@ function openCarrosModal(){
   const extra = cars.length - pico;
   const dayLbl = DAY_NAMES[DAYS[day]] + (currentDay===null ? ' (día pico)' : '');
   cars.sort((x,y)=> y.ocup - x.ocup);  // de mayor a menor horas
-  let totOcup=0, totMan=0, totTr=0, totKm=0;
+  let totOcup=0, totMan=0, totTr=0, totKm=0, totEsp=0, totBuf=0;
   const rows = cars.map((c,i)=>{
     const serv = c.trips.reduce((t,x)=>t+(x.b-x.a),0);
     const tras = c.trips.reduce((t,x)=>t+x.tr,0);
     const kms  = c.trips.reduce((t,x)=>t+x.trKm,0);
     const man  = serv + tras;                          // manejo = servicios + traslados vacios
+    const esp  = c.trips.reduce((t,x)=>t+x.esp,0);     // espera en planta antes de salidas
+    const buf  = c.trips.length*currentBuffer;
     const ocup = c.ocup;                               // manejo + buffer
-    totOcup+=ocup; totMan+=man; totTr+=tras; totKm+=kms;
+    totOcup+=ocup; totMan+=man; totTr+=tras; totKm+=kms; totEsp+=esp; totBuf+=buf;
     const first=c.trips[0].a, last=c.trips[c.trips.length-1].bb;
     const det = c.trips.map((x,k)=>(x.tr>0 ? `
-      <tr class="cm-dh"><td colspan="5">↪ Traslado vacío <b>${x.trKm.toFixed(1)} km · ${x.tr} min</b> desde ${escapeHtml(c.trips[k-1].s.pe)} hasta ${escapeHtml(x.s.ps)}</td></tr>` : '') + `
+      <tr class="cm-dh"><td colspan="5">↪ Traslado vacío <b>${x.trKm.toFixed(1)} km · ${x.tr} min</b> desde ${escapeHtml(c.trips[k-1].s.pe)} hasta ${escapeHtml(x.s.ps)}</td></tr>` : '')
+      + (x.esp>0 ? `
+      <tr class="cm-esp"><td colspan="5">⏸ ${(esperaPlanta>=0 && x.esp<=llegaAntes && (k===0 || x.a-x.esp-(c.trips[k-1].bb+x.tr) > 0)) ? 'Llega antes a planta' : 'Espera en planta'} <b>${x.esp} min</b> para sacar a la gente (de ${fmtMinutes(x.a-x.esp)} a ${fmtMinutes(x.a)}) · ${escapeHtml(x.s.ps)}</td></tr>` : '') + `
       <tr><td><span class="cm-t ${x.s.t==='IN'?'in':'out'}">${x.s.t==='IN'?'Entrada':'Salida'}</span></td>
       <td>${fmtMinutes(x.a)}–${fmtMinutes(x.b)}${currentBuffer>0?` <span class="cm-id">+${currentBuffer} → ${fmtMinutes(x.bb)}</span>`:''}</td><td>${x.b-x.a}${currentBuffer>0?` + ${currentBuffer}`:''} min</td>
       <td>${escapeHtml(x.s.p)}</td><td>${escapeHtml(x.s.n||x.s.r)} <span class="cm-id">${escapeHtml(x.s.i)}</span></td></tr>`).join('');
     return `<details class="cm-car"><summary>
         <span class="cm-n"><span class="cm-arr">▸</span> Carro ${i+1}</span>
         <span class="cm-h ${ocup>capMin?'over':(maxHorasCarro>0?'ok':'')}">${fmtHrs(ocup)}${ocup>capMin?' ⚠':''}</span>
-        <span class="cm-s">${c.trips.length} viaje${c.trips.length>1?'s':''} · servicios ${fmtHrs(serv)}${tras>0?` + traslados ${fmtHrs(tras)} (${kms.toFixed(0)} km)`:''}${currentBuffer>0?` + buffer ${fmtHrs(ocup-man)} (${c.trips.length}×${currentBuffer} min)`:''} · de ${fmtMinutes(first)} a ${fmtMinutes(last)}</span>
+        <span class="cm-s">${c.trips.length} viaje${c.trips.length>1?'s':''} · servicios ${fmtHrs(serv)}${tras>0?` + traslados ${fmtHrs(tras)} (${kms.toFixed(0)} km)`:''}${esp>0?` + espera en planta ${fmtHrs(esp)}`:''}${currentBuffer>0?` + buffer ${fmtHrs(buf)} (${c.trips.length}×${currentBuffer} min)`:''} · de ${fmtMinutes(first)} a ${fmtMinutes(last)}</span>
       </summary>
-      <table class="cm-tbl"><thead><tr><th>Tipo</th><th>Horario</th><th>Duración</th><th>Cliente</th><th>Ruta</th></tr></thead><tbody>${det}<tr class="cm-tot"><td colspan="2">Total ${c.trips.length} servicio${c.trips.length>1?'s':''}</td><td colspan="3">servicios ${fmtHrs(serv)}${tras>0?` + traslados ${fmtHrs(tras)}`:''} = manejo ${fmtHrs(man)}${currentBuffer>0?` + ${fmtHrs(ocup-man)} buffer`:''} = <b>${fmtHrs(ocup)}</b></td></tr></tbody></table>
+      <table class="cm-tbl"><thead><tr><th>Tipo</th><th>Horario</th><th>Duración</th><th>Cliente</th><th>Ruta</th></tr></thead><tbody>${det}<tr class="cm-tot"><td colspan="2">Total ${c.trips.length} servicio${c.trips.length>1?'s':''}</td><td colspan="3">servicios ${fmtHrs(serv)}${tras>0?` + traslados ${fmtHrs(tras)}`:''}${esp>0?` + espera en planta ${fmtHrs(esp)}`:''}${currentBuffer>0?` + buffer ${fmtHrs(buf)}`:''} = <b>${fmtHrs(ocup)}</b></td></tr></tbody></table>
     </details>`;
   }).join('');
   const prom = cars.length ? totOcup/cars.length : 0;
@@ -1620,20 +1639,29 @@ function openCarrosModal(){
       <div class="cm-sub">${dayLbl}${currentBuffer>0?` · buffer ${currentBuffer} min incluido`:''} · ${filtered.length} servicios filtrados</div></div>
       <div class="cm-ctl"><label>Máx. horas por carro
         <select id="cm-cap">${[0,6,7,8,9,10,12].map(v=>`<option value="${v}"${v===maxHorasCarro?' selected':''}>${v?v+' h':'Sin límite'}</option>`).join('')}</select></label>
+        <label>Espera en planta antes de salida
+        <select id="cm-esp">${[[0,'No contar'],[30,'huecos de hasta 30 min'],[45,'huecos de hasta 45 min'],[60,'huecos de hasta 60 min'],[90,'huecos de hasta 90 min'],[120,'huecos de hasta 2 h'],[-1,'Siempre (todo el hueco)']].map(([v,t])=>`<option value="${v}"${v===esperaPlanta?' selected':''}>${t}</option>`).join('')}</select></label>
+        <label>Llega antes a cargar
+        <select id="cm-ant">${[0,5,10,15,20,30].map(v=>`<option value="${v}"${v===llegaAntes?' selected':''}>${v} min</option>`).join('')}</select></label>
         <label>Traslado entre servicios
         <select id="cm-vel">${[0,20,25,30,40,50].map(v=>`<option value="${v}"${v===velTraslado?' selected':''}>${v?v+' km/h':'No considerar'}</option>`).join('')}</select></label>
         <button class="cm-close" title="Cerrar">×</button></div></div>
     ${maxHorasCarro>0?`<div class="cm-cap-note ${extra>0?'warn':''}">${extra>0
-      ? `Con el límite de <b>${maxHorasCarro} h</b> se ocupan <b>${extra} carro${extra>1?'s':''} más</b> que el pico (el pico de carros al mismo tiempo es ${pico}; la diferencia viene del límite de horas${velTraslado>0?' y de los traslados entre ubicaciones':''}).`
+      ? `Con el límite de <b>${maxHorasCarro} h</b> se ocupan <b>${extra} carro${extra>1?'s':''} más</b> que el pico (el pico de carros al mismo tiempo es ${pico}; la diferencia viene del límite de horas${velTraslado>0?', los traslados entre ubicaciones':''}${esperaPlanta!==0?' y la espera en planta':''}).`
       : `Todos los carros quedan en <b>${maxHorasCarro} h o menos</b> sin necesitar carros extra (pico: ${pico}).`}</div>`:''}
     <div class="cm-sum"><div><b>${fmtHrs(totOcup)}</b>Horas totales${currentBuffer>0?' (con buffer)':''}</div>
-      <div><b>${fmtHrs(totMan)}</b>Horas de manejo (incl. ${fmtHrs(totTr)} de traslados · ${totKm.toFixed(0)} km)${currentBuffer>0?` + ${fmtHrs(totOcup-totMan)} buffer`:''}</div><div><b>${fmtHrs(prom)}</b>Promedio por carro</div></div>
+      <div><b>${fmtHrs(totMan)}</b>Horas de manejo (incl. ${fmtHrs(totTr)} de traslados · ${totKm.toFixed(0)} km)</div>
+      <div><b>${fmtHrs(totEsp)}</b>Espera en planta${currentBuffer>0?` · + ${fmtHrs(totBuf)} buffer`:''}</div><div><b>${fmtHrs(prom)}</b>Promedio por carro</div></div>
     <div class="cm-list">${rows || '<div style="padding:20px;color:var(--muted)">No hay viajes con estos filtros.</div>'}</div>
-    <div class="cm-foot">Ordenados de mayor a menor horas. Clic en un carro para ver los servicios que hace. Horas = servicios + traslados vacíos${velTraslado>0?` (distancia ×${FACTOR_RUTA} a ${velTraslado} km/h)`:''}${currentBuffer>0?' + buffer de regreso':''}.</div>
+    <div class="cm-foot">Ordenados de mayor a menor horas. Clic en un carro para ver los servicios que hace. Horas = servicios + traslados vacíos${velTraslado>0?` (distancia ×${FACTOR_RUTA} a ${velTraslado} km/h)`:''}${esperaPlanta!==0?` + espera en planta antes de cada salida (${esperaPlanta<0?'todo el hueco':'si el hueco es de hasta '+esperaPlanta+' min se queda y cuenta todo; si es más largo se va y solo cuenta que llega '+llegaAntes+' min antes'})`:''}${currentBuffer>0?' + buffer de regreso':''}.</div>
   </div>`;
   ov.style.display='flex';
   const sel = document.getElementById('cm-cap');
   if(sel) sel.addEventListener('change',()=>{ maxHorasCarro = parseInt(sel.value,10)||0; rebuild(); openCarrosModal(); });
+  const esel = document.getElementById('cm-esp');
+  if(esel) esel.addEventListener('change',()=>{ esperaPlanta = parseInt(esel.value,10); rebuild(); openCarrosModal(); });
+  const asel = document.getElementById('cm-ant');
+  if(asel) asel.addEventListener('change',()=>{ llegaAntes = parseInt(asel.value,10)||0; rebuild(); openCarrosModal(); });
   const vsel = document.getElementById('cm-vel');
   if(vsel) vsel.addEventListener('change',()=>{ velTraslado = parseInt(vsel.value,10)||0; rebuild(); openCarrosModal(); });
 }
