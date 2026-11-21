@@ -396,7 +396,6 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
           <option value="Lipu Mty">Lipu Mty</option>
           <option value="Settepi Apodaca">Settepi Apodaca</option>
           <option value="Lipu Saltillo">Lipu Saltillo</option>
-          <option value="Settepi Saltillo">Settepi Saltillo</option>
         </select>
         <!-- Input viejo mantenido oculto por compatibilidad con el código existente -->
         <input type="hidden" id="sc-udn-input">
@@ -512,6 +511,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
     <div class="tab-bar">
       <button class="tab-btn active" onclick="switchTab('llegadas')">↓ Llegadas</button>
       <button class="tab-btn" onclick="switchTab('inicios')">↑ Inicios</button>
+      <button class="tab-btn" onclick="switchTab('incidencias')">⚠ Incidencias <span id="incTabCount" style="display:none;background:#B3261E;color:#fff;font-size:.6rem;font-weight:700;border-radius:10px;padding:1px 7px;margin-left:2px">0</span></button>
     </div>
 
     <!-- ═══════════════════ PANEL INICIOS ═══════════════════ -->
@@ -862,6 +862,64 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
         </tr></thead><tbody id="ltOperBody"></tbody></table></div>
       </div>
     </div><!-- /panel-llegadas -->
+
+    <!-- ═══════════════════ PANEL INCIDENCIAS ═══════════════════ -->
+    <div class="tab-panel" id="panel-incidencias">
+<style>
+#panel-incidencias .inc-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem}
+#panel-incidencias .inc-k{background:#fff;border-radius:12px;padding:1rem 1.15rem;box-shadow:0 2px 10px rgba(26,34,54,.07);border-top:4px solid var(--kc,#7ed321);position:relative;overflow:hidden}
+#panel-incidencias .inc-k::after{content:"";position:absolute;bottom:-18px;right:-18px;width:76px;height:76px;border-radius:50%;background:var(--kc,#7ed321);opacity:.06}
+#panel-incidencias .inc-k .l{font-size:.66rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+#panel-incidencias .inc-k .v{font-size:1.9rem;font-weight:800;color:var(--navy);line-height:1;margin:.35rem 0 .2rem;letter-spacing:-.02em}
+#panel-incidencias .inc-k .s{font-size:.7rem;color:var(--muted);line-height:1.4}
+#panel-incidencias .inc-grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+#panel-incidencias .inc-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem}
+#panel-incidencias .inc-rank{display:flex;flex-direction:column;gap:.5rem;padding:.7rem .9rem 1rem}
+#panel-incidencias .inc-rr{display:flex;align-items:center;gap:.6rem;font-size:.78rem}
+#panel-incidencias .inc-rr .n{flex:0 0 20px;height:20px;border-radius:5px;background:#eef1f6;color:var(--navy);font-weight:700;font-size:.68rem;display:flex;align-items:center;justify-content:center}
+#panel-incidencias .inc-rr .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#panel-incidencias .inc-rr .bar{flex:0 0 68px;height:7px;background:#eef1f6;border-radius:4px;overflow:hidden}
+#panel-incidencias .inc-rr .bar i{display:block;height:100%;border-radius:4px}
+#panel-incidencias .inc-rr .vv{flex:0 0 24px;text-align:right;font-weight:700;color:var(--navy)}
+#panel-incidencias .inc-tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:.66rem;font-weight:700;color:#fff;white-space:nowrap}
+#panel-incidencias .chart-wrap.sm{height:300px}
+@media(max-width:1100px){#panel-incidencias .inc-kpis{grid-template-columns:repeat(2,1fr)}#panel-incidencias .inc-grid2,#panel-incidencias .inc-grid3{grid-template-columns:1fr}}
+@media(max-width:768px){#panel-incidencias .inc-kpis{grid-template-columns:1fr 1fr}#panel-incidencias .chart-wrap.sm{height:230px}}
+</style>
+<div class="inc-kpis">
+  <div class="inc-k" style="--kc:#1a2236"><div class="l">Total de incidencias</div><div class="v" id="incKTotal">–</div><div class="s" id="incKTotalSub">con comentario</div></div>
+  <div class="inc-k" style="--kc:#F08A24"><div class="l">Causa principal</div><div class="v" id="incKTop">–</div><div class="s" id="incKTopSub"></div></div>
+  <div class="inc-k" style="--kc:#B3261E"><div class="l">Operador dormido</div><div class="v" id="incKDorm">–</div><div class="s" id="incKDormSub"></div></div>
+  <div class="inc-k" style="--kc:#d97706"><div class="l">No se presentó</div><div class="v" id="incKNoshow">–</div><div class="s" id="incKNoshowSub"></div></div>
+  <div class="inc-k" style="--kc:#7ed321"><div class="l">Prom. retraso llegada</div><div class="v" id="incKAvg">–</div><div class="s" id="incKAvgSub"></div></div>
+</div>
+<div class="chart-card cx-card">
+  <div class="chart-hdr"><div><div class="cx-title">Pareto de causas raíz</div><div class="cx-sub">Frecuencia por causa y % acumulado — regla 80/20</div></div></div>
+  <div class="chart-wrap sm"><canvas id="chart-inc-pareto"></canvas></div>
+</div>
+<div class="inc-grid2">
+  <div class="chart-card cx-card"><div class="chart-hdr"><div><div class="cx-title">Tendencia diaria de incidencias</div><div class="cx-sub">Eventos registrados por día</div></div></div><div class="chart-wrap sm"><canvas id="chart-inc-trend"></canvas></div></div>
+  <div class="chart-card cx-card"><div class="chart-hdr"><div><div class="cx-title">Por cliente / planta</div><div class="cx-sub">Top con más incidencias</div></div></div><div class="chart-wrap sm"><canvas id="chart-inc-cli"></canvas></div></div>
+</div>
+<div class="inc-grid2">
+  <div class="chart-card cx-card"><div class="chart-hdr"><div><div class="cx-title">Por gerente</div><div class="cx-sub">Responsable comercial</div></div></div><div class="chart-wrap sm"><canvas id="chart-inc-ger"></canvas></div></div>
+  <div class="chart-card cx-card"><div class="chart-hdr"><div><div class="cx-title">Por jefe de planta</div><div class="cx-sub">Responsable operativo</div></div></div><div class="chart-wrap sm"><canvas id="chart-inc-jefe"></canvas></div></div>
+</div>
+<div class="inc-grid3">
+  <div class="table-card"><div class="table-hdr"><div><div class="table-hdr-title"><span class="table-hdr-icon">😴</span>Top operadores dormidos</div><div class="table-hdr-sub">Causa: operador dormido</div></div></div><div class="inc-rank" id="incRankDorm"></div></div>
+  <div class="table-card"><div class="table-hdr"><div><div class="table-hdr-title"><span class="table-hdr-icon">🚛</span>Top operadores</div><div class="table-hdr-sub">Todas las causas</div></div></div><div class="inc-rank" id="incRankOpe"></div></div>
+  <div class="table-card"><div class="table-hdr"><div><div class="table-hdr-title"><span class="table-hdr-icon">🛣️</span>Top rutas</div><div class="table-hdr-sub">Cliente · ruta</div></div></div><div class="inc-rank" id="incRankRuta"></div></div>
+</div>
+<div class="table-card">
+  <div class="table-hdr"><div><div class="table-hdr-title"><span class="table-hdr-icon">🏢</span>Incidencias por cliente / planta</div><div class="table-hdr-sub">Causa principal y retraso promedio</div></div><div class="table-hdr-actions"><span class="table-count" id="incCliCount">0</span></div></div>
+  <div style="overflow-x:auto"><table class="data-table tbl-std"><thead><tr><th>Cliente / Planta</th><th style="text-align:right">Inc.</th><th style="text-align:right">% tot</th><th>Causa principal</th><th style="text-align:right">Dormido</th><th style="text-align:right">Prom. min lle</th></tr></thead><tbody id="incCliBody"></tbody></table></div>
+</div>
+<div class="table-card section-end">
+  <div class="table-hdr"><div><div class="table-hdr-title"><span class="table-hdr-icon">📋</span>Detalle de incidencias</div><div class="table-hdr-sub">Viajes con comentario registrado</div></div><div class="table-hdr-actions"><span class="table-count" id="incDetCount">0</span><button class="btn-capture" onclick="exportIncidencias()">⬇ Excel</button></div></div>
+  <div style="overflow-x:auto"><table class="data-table"><thead><tr><th>Fecha</th><th>Causa</th><th>Cliente</th><th>Ruta</th><th style="text-align:right">Unidad</th><th>Operador</th><th>Gerente</th><th>Jefe</th><th>Turno</th><th style="text-align:right">Min lle</th><th>Detalle</th></tr></thead><tbody id="incDetBody"></tbody></table></div>
+</div>
+
+    </div><!-- /panel-incidencias -->
   </main>
 </div>
 
@@ -1075,7 +1133,6 @@ const UDN_SHEETS = {
   'Lipu Mty':        { data: '1_wSodlXfixKxfQC8f51NU0gLtEWbAiSPotiS6TbkfyI', inputs: '1_wSodlXfixKxfQC8f51NU0gLtEWbAiSPotiS6TbkfyI' },
   'Settepi Apodaca': { data: '1QGxZNJBC9lJKeM7GosKR4EyTn41pH_tPRqfO7eC1RIw', inputs: '1QGxZNJBC9lJKeM7GosKR4EyTn41pH_tPRqfO7eC1RIw' },
   'Lipu Saltillo':   { data: '1sBrEaMlPpJtPAWHd3Io5YFbOw9icpOc1rR2ockXfd3k', inputs: '1sBrEaMlPpJtPAWHd3Io5YFbOw9icpOc1rR2ockXfd3k' },
-  'Settepi Saltillo':{ data: '1L4TjKS-DwLr9rY2nZW9b9P6Hk9dnuOeW', inputs: '1L4TjKS-DwLr9rY2nZW9b9P6Hk9dnuOeW' },
 };
 const UDN_LIST = Object.keys(UDN_SHEETS);
 // Al abrir la página, NO hay UDN activa: el usuario debe elegir una para que cargue
@@ -2737,10 +2794,13 @@ function filterRows(panelHint){
 }
 
 function switchTab(tab){
-  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===(tab==='llegadas'?0:1)));
+  const _ord={llegadas:0,inicios:1,incidencias:2};
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===_ord[tab]));
   document.getElementById('panel-inicios').classList.toggle('active',tab==='inicios');
   document.getElementById('panel-llegadas').classList.toggle('active',tab==='llegadas');
+  const _pi=document.getElementById('panel-incidencias'); if(_pi) _pi.classList.toggle('active',tab==='incidencias');
   requestAnimationFrame(rerenderSparks);
+  if(tab==='incidencias') requestAnimationFrame(()=>{ try{ renderIncidencias(INC_LAST_BASE); }catch(e){} });
 }
 
 // ── Table sort / render ───────────────────────────────────────────
@@ -3334,6 +3394,7 @@ function draw(){
   buildTable(rowsLle,C.jefe,'ljef',false);
   buildTable(rowsLle,C.coord,'lcoord',false);
   buildTable(rowsLle,C.driver,'loper',false);
+  try{ renderIncidencias(allBase); }catch(e){ console.warn('[Incidencias]',e); }
   if(window.__PERF){ window.__PERF.d_tables=(window.__PERF.d_tables||0)+(Date.now()-window.__PERF._t); window.__PERF._t=Date.now(); }
 }
 
@@ -4496,6 +4557,161 @@ document.addEventListener('DOMContentLoaded',()=>{
   updateKpiActive('ini');
   updateKpiActive('lle');
 });
+
+/* ===== INCIDENCIAS (pestaña agregada) ===== */
+// ══════════════════════════════════════════════════════════════════
+//  PESTAÑA INCIDENCIAS  (agregada · usa los mismos filtros laterales)
+//  Lee la columna Comentarios (C.comentario) de las filas ya filtradas
+//  por la barra lateral (allBase) y clasifica la causa raíz por el
+//  prefijo "Causa — detalle" del catálogo de motivos existente.
+// ══════════════════════════════════════════════════════════════════
+let INC_CHARTS   = {};
+let INC_LAST_BASE= [];
+let INC_ROWS     = [];
+const INC_CAUSAS = ['Tráfico','Operador dormido','Falla mecánica','Operador no se presentó','Accidente / incidente','Retraso del cliente','Clima','Falta de unidad','Otro'];
+const INC_COL = {
+  'Tráfico':'#F08A24','Operador dormido':'#B3261E','Falla mecánica':'#2563eb',
+  'Operador no se presentó':'#d97706','Accidente / incidente':'#1a2236',
+  'Retraso del cliente':'#7ed321','Clima':'#06b6d4','Falta de unidad':'#9333ea','Otro':'#9ca3af'
+};
+function incTxt(hex){ try{ const c=hex.replace('#','');const r=parseInt(c.slice(0,2),16),g=parseInt(c.slice(2,4),16),b=parseInt(c.slice(4,6),16);return (0.299*r+0.587*g+0.114*b)/255>0.6?'#1a2236':'#fff'; }catch(e){ return '#fff'; } }
+function incNoAcc(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function incCausa(com){
+  const c=String(com||'').trim(); if(!c) return null;
+  const base=incNoAcc(c.split(/\s*[—–]\s*/)[0].trim());
+  if(base.includes('dormido')) return 'Operador dormido';
+  if(base.includes('no se present')) return 'Operador no se presentó';
+  if(base.includes('falla')) return 'Falla mecánica';
+  if(base.includes('accidente')||base.includes('incidente')) return 'Accidente / incidente';
+  if(base.includes('trafico')) return 'Tráfico';
+  if(base.includes('clima')) return 'Clima';
+  if(base.includes('falta de unidad')||base.includes('falta unidad')) return 'Falta de unidad';
+  if(base.includes('cliente')) return 'Retraso del cliente';
+  if(base.startsWith('otro')) return 'Otro';
+  const full=incNoAcc(c);
+  if(full.includes('dormido')) return 'Operador dormido';
+  if(full.includes('trafico')) return 'Tráfico';
+  return 'Otro';
+}
+function incMk(id,cfg){ if(INC_CHARTS[id]){ try{INC_CHARTS[id].destroy();}catch(e){} } const el=document.getElementById(id); if(!el) return; try{ INC_CHARTS[id]=new Chart(el,cfg); }catch(e){ console.warn('inc chart',id,e); } }
+
+function renderIncPareto(cc){
+  const ord=Object.entries(cc).sort((a,b)=>b[1]-a[1]);
+  const labels=ord.map(x=>x[0]), vals=ord.map(x=>x[1]);
+  const tot=vals.reduce((a,b)=>a+b,0)||1; let cum=0; const cumv=vals.map(v=>Math.round((cum+=v)/tot*100));
+  incMk('chart-inc-pareto',{data:{labels,datasets:[
+    {type:'bar',label:'Incidencias',data:vals,backgroundColor:labels.map(l=>INC_COL[l]||'#9ca3af'),borderRadius:5,yAxisID:'y',order:2},
+    {type:'line',label:'% acumulado',data:cumv,borderColor:'#1a2236',backgroundColor:'#1a2236',borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#1a2236',yAxisID:'y1',order:1,tension:.3}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.dataset.yAxisID==='y1'?c.parsed.y+'% acumulado':c.parsed.y+' incidencias'}}},
+    scales:{x:{grid:{display:false},ticks:{color:'#4a5672',font:{size:10.5,family:'Inter, system-ui, sans-serif'},maxRotation:22,minRotation:0}},
+     y:{beginAtZero:true,grid:{color:'#eef1f6'},ticks:{color:'#6b7a99',precision:0}},
+     y1:{position:'right',beginAtZero:true,max:100,grid:{display:false},ticks:{color:'#6b7a99',callback:v=>v+'%'}}}}});
+}
+function renderIncTrend(inc){
+  const byd={}; inc.forEach(x=>{ if(x.fecha) byd[x.fecha]=(byd[x.fecha]||0)+1; });
+  const keys=Object.keys(byd).sort();
+  const labels=keys.map(k=>{const p=k.split('-');return (p[2]||'')+'/'+(p[1]||'');});
+  const vals=keys.map(k=>byd[k]);
+  incMk('chart-inc-trend',{type:'line',data:{labels,datasets:[{data:vals,borderColor:'#B3261E',backgroundColor:'rgba(179,38,30,.12)',fill:true,borderWidth:2.5,pointRadius:3,pointBackgroundColor:'#B3261E',tension:.3}]},
+   options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#4a5672',font:{size:10}}},y:{beginAtZero:true,grid:{color:'#eef1f6'},ticks:{color:'#6b7a99',precision:0}}}}});
+}
+function incHBar(id,obj,color){
+  const ord=Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  incMk(id,{type:'bar',data:{labels:ord.map(x=>x[0]),datasets:[{data:ord.map(x=>x[1]),backgroundColor:typeof color==='function'?ord.map(x=>color(x[0])):color,borderRadius:4}]},
+   options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.x+' incidencias'}}},
+    scales:{x:{beginAtZero:true,grid:{color:'#eef1f6'},ticks:{color:'#6b7a99',precision:0}},y:{grid:{display:false},ticks:{color:'#4a5672',font:{size:10.5,family:'Inter, system-ui, sans-serif'},callback:function(v){let l=this.getLabelForValue(v);return l.length>20?l.slice(0,19)+'…':l;}}}}}});
+}
+function incRank(elId,obj,color,sub){
+  const el=document.getElementById(elId); if(!el) return;
+  const ord=Object.entries(obj).sort((a,b)=>b[1]-a[1]).slice(0,7); const max=ord.length?ord[0][1]:1;
+  el.innerHTML=ord.length?ord.map((x,i)=>`<div class="inc-rr"><div class="n">${i+1}</div><div class="nm" title="${x[0]}">${x[0]}${sub&&sub(x[0])?' <span style="color:#9ca3af;font-weight:500">'+sub(x[0])+'</span>':''}</div><div class="bar"><i style="width:${x[1]/max*100}%;background:${color}"></i></div><div class="vv">${x[1]}</div></div>`).join(''):'<div style="padding:1.2rem;color:#9ca3af;font-size:.8rem;text-align:center">Sin incidencias</div>';
+}
+function renderIncCliTable(inc,n){
+  const g={}; inc.forEach(x=>{(g[x.cliente]=g[x.cliente]||[]).push(x);});
+  const rows=Object.entries(g).sort((a,b)=>b[1].length-a[1].length);
+  const body=document.getElementById('incCliBody'); const cnt=document.getElementById('incCliCount');
+  if(cnt) cnt.textContent=rows.length+(rows.length===1?' cliente':' clientes');
+  if(!body) return;
+  if(!rows.length){ body.innerHTML='<tr><td colspan="6" class="table-empty">Sin incidencias</td></tr>'; return; }
+  body.innerHTML=rows.map(([k,arr])=>{
+    const cc={}; arr.forEach(x=>cc[x.causa]=(cc[x.causa]||0)+1);
+    const cp=Object.entries(cc).sort((a,b)=>b[1]-a[1])[0][0];
+    const dorm=arr.filter(x=>x.causa==='Operador dormido').length;
+    const mins=arr.map(x=>x.minLle).filter(v=>v!=null); const avg=mins.length?Math.round(mins.reduce((a,b)=>a+b,0)/mins.length):'–';
+    return `<tr><td class="td-cli" title="${k}">${k}</td><td style="text-align:right;color:var(--navy);font-weight:600">${arr.length}</td><td style="text-align:right">${n?Math.round(arr.length/n*100):0}%</td><td><span class="inc-tag" style="background:${INC_COL[cp]||'#9ca3af'};color:${incTxt(INC_COL[cp]||'#9ca3af')}">${cp}</span></td><td style="text-align:right;color:#B3261E;font-weight:600">${dorm||'–'}</td><td style="text-align:right">${avg}</td></tr>`;
+  }).join('');
+}
+function renderIncDetail(inc){
+  const body=document.getElementById('incDetBody'); const cnt=document.getElementById('incDetCount');
+  if(cnt) cnt.textContent=inc.length+(inc.length===1?' incidencia':' incidencias');
+  if(!body) return;
+  if(!inc.length){ body.innerHTML='<tr><td colspan="11" class="table-empty">Sin incidencias para el filtro actual</td></tr>'; return; }
+  const sorted=[...inc].sort((a,b)=>String(b.fecha).localeCompare(String(a.fecha)));
+  body.innerHTML=sorted.map(x=>{
+    const dt=new Date(x.fecha+'T12:00:00'); const fFmt=isNaN(dt)?x.fecha:dt.toLocaleDateString('es-MX',{day:'2-digit',month:'short'});
+    const ml=x.minLle==null?'–':((x.minLle>0?'+':'')+x.minLle.toFixed(0));
+    const r=(x.ruta||'').length>24?x.ruta.slice(0,23)+'…':x.ruta;
+    return `<tr><td style="white-space:nowrap;font-variant-numeric:tabular-nums">${fFmt}</td><td><span class="inc-tag" style="background:${INC_COL[x.causa]||'#9ca3af'};color:${incTxt(INC_COL[x.causa]||'#9ca3af')}">${x.causa}</span></td><td title="${x.cliente}">${x.cliente}</td><td title="${x.ruta}">${r}</td><td style="text-align:right;font-variant-numeric:tabular-nums">${x.unidad||'–'}</td><td>${x.ope}</td><td>${x.ger}</td><td>${x.jefe}</td><td>${x.turno}</td><td style="text-align:right;color:${x.minLle>0?'#c53030':'#16a34a'};font-weight:600">${ml}</td><td style="color:#374151;max-width:260px">${x.detalle?x.detalle.replace(/</g,'&lt;'):'<span style="color:#9ca3af">—</span>'}</td></tr>`;
+  }).join('');
+}
+function renderIncidencias(base){
+  if(!document.getElementById('panel-incidencias')) return;
+  INC_LAST_BASE=base||[];
+  const inc=[];
+  INC_LAST_BASE.forEach(r=>{
+    const com=String(r[C.comentario]||'').trim(); if(!com) return;
+    const causa=incCausa(com); if(!causa) return;
+    const parts=com.split(/\s*[—–]\s*/);
+    inc.push({causa, com, detalle:parts.length>1?parts.slice(1).join(' — ').trim():'',
+      cliente:(r[C.cliente]||'').trim()||'(Sin cliente)', ger:(r[C.gerente]||'').trim()||'(Sin asignar)',
+      jefe:(r[C.jefe]||'').trim()||'(Sin asignar)', turno:(r[C.turno]||'').trim()||'—',
+      ope:(r[C.driver]||'').trim()||'(Sin operador)', unidad:(r[C.car]||'').trim(),
+      ruta:(r[C.ruta]||'').trim()||'(Sin ruta)', fecha:getFecha(r), minLle:parseMin(r[C.minLle])});
+  });
+  INC_ROWS=inc;
+  const n=inc.length;
+  const tc=document.getElementById('incTabCount'); if(tc){ tc.textContent=n; tc.style.display=n?'inline-block':'none'; }
+  const cc={}; inc.forEach(x=>cc[x.causa]=(cc[x.causa]||0)+1);
+  const ordC=Object.entries(cc).sort((a,b)=>b[1]-a[1]); const top=ordC[0]||['—',0];
+  const dorm=inc.filter(x=>x.causa==='Operador dormido').length;
+  const dormOps=new Set(inc.filter(x=>x.causa==='Operador dormido').map(x=>x.ope)).size;
+  const noshow=inc.filter(x=>x.causa==='Operador no se presentó').length;
+  const mins=inc.map(x=>x.minLle).filter(v=>v!=null);
+  const avg=mins.length?Math.round(mins.reduce((a,b)=>a+b,0)/mins.length):0;
+  const pc=v=>n?Math.round(v/n*100):0;
+  const set=(id,v)=>{const e=document.getElementById(id); if(e) e.textContent=v;};
+  const seth=(id,v)=>{const e=document.getElementById(id); if(e) e.innerHTML=v;};
+  set('incKTotal',N(n));
+  set('incKTop',n?pc(top[1])+'%':'–'); seth('incKTopSub',n?`<span class="inc-tag" style="background:${INC_COL[top[0]]||'#9ca3af'};color:${incTxt(INC_COL[top[0]]||'#9ca3af')}">${top[0]}</span> · ${top[1]} casos`:'');
+  set('incKDorm',dorm); set('incKDormSub',pc(dorm)+'% del total · '+dormOps+' operadores');
+  set('incKNoshow',noshow); set('incKNoshowSub',pc(noshow)+'% del total');
+  seth('incKAvg',avg+'<span style="font-size:.9rem;font-weight:600;color:#6b7a99"> min</span>'); set('incKAvgSub','en viajes con incidencia');
+  renderIncPareto(cc);
+  renderIncTrend(inc);
+  const byCli={}; inc.forEach(x=>byCli[x.cliente]=(byCli[x.cliente]||0)+1); incHBar('chart-inc-cli',byCli,'#2B3445');
+  const byGer={}; inc.forEach(x=>byGer[x.ger]=(byGer[x.ger]||0)+1); incHBar('chart-inc-ger',byGer,'#F08A24');
+  const byJefe={}; inc.forEach(x=>byJefe[x.jefe]=(byJefe[x.jefe]||0)+1); incHBar('chart-inc-jefe',byJefe,'#2563eb');
+  const dormObj={}; inc.filter(x=>x.causa==='Operador dormido').forEach(x=>dormObj[x.ope]=(dormObj[x.ope]||0)+1);
+  const unitOf={}; inc.forEach(x=>{ if(x.unidad) unitOf[x.ope]=x.unidad; });
+  incRank('incRankDorm',dormObj,'#B3261E',o=>unitOf[o]?('U'+unitOf[o]):'');
+  const opeObj={}; inc.forEach(x=>opeObj[x.ope]=(opeObj[x.ope]||0)+1); incRank('incRankOpe',opeObj,'#2B3445',null);
+  const rutaObj={}; inc.forEach(x=>{const k=x.cliente+' · '+x.ruta;rutaObj[k]=(rutaObj[k]||0)+1;}); incRank('incRankRuta',rutaObj,'#F08A24',null);
+  renderIncCliTable(inc,n);
+  renderIncDetail(inc);
+}
+async function exportIncidencias(){
+  if(!INC_ROWS||!INC_ROWS.length){ alert('Sin incidencias para exportar con los filtros actuales.'); return; }
+  const hdr=['Fecha','Causa','Cliente/Planta','Ruta','Unidad','Operador','Gerente','Jefe','Turno','Min llegada','Comentario'];
+  const data=[hdr,...[...INC_ROWS].sort((a,b)=>String(a.fecha).localeCompare(String(b.fecha))).map(x=>[x.fecha,x.causa,x.cliente,x.ruta,x.unidad,x.ope,x.ger,x.jefe,x.turno,x.minLle==null?'':x.minLle,x.com])];
+  try{
+    const ws=XLSX.utils.aoa_to_sheet(data);
+    ws['!cols']=[{wch:12},{wch:20},{wch:26},{wch:30},{wch:10},{wch:28},{wch:18},{wch:18},{wch:8},{wch:11},{wch:50}];
+    const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Incidencias');
+    const {fileTag}=getActivePeriod();
+    await nsSaveXLSX(wb,`Traxion_NS_Incidencias_${fileTag}.xlsx`);
+  }catch(e){ alert('No se pudo exportar: '+e.message); }
+}
+
 </script>
 </body>
 </html>
