@@ -395,6 +395,7 @@ th.sort-asc,th.sort-desc{background:#2c3a55 !important;}
           <option value="Settepi Garcia">Settepi Garcia</option>
           <option value="Lipu Mty">Lipu Mty</option>
           <option value="Settepi Apodaca">Settepi Apodaca</option>
+          <option value="Settepi Saltillo">Settepi Saltillo</option>
           <option value="Lipu Saltillo">Lipu Saltillo</option>
         </select>
         <!-- Input viejo mantenido oculto por compatibilidad con el código existente -->
@@ -1132,6 +1133,7 @@ const UDN_SHEETS = {
   'Settepi Garcia':  { data: '1YZG92UT4EI8VbNoKy0Vm0mWrujTr-8mSccJHphswKeg', inputs: '10Sejx7skzzacCLf4tNHeJGMNoSW0v6lJqTuI8up84SA' },
   'Lipu Mty':        { data: '1_wSodlXfixKxfQC8f51NU0gLtEWbAiSPotiS6TbkfyI', inputs: '1_wSodlXfixKxfQC8f51NU0gLtEWbAiSPotiS6TbkfyI' },
   'Settepi Apodaca': { data: '1QGxZNJBC9lJKeM7GosKR4EyTn41pH_tPRqfO7eC1RIw', inputs: '1QGxZNJBC9lJKeM7GosKR4EyTn41pH_tPRqfO7eC1RIw' },
+  'Settepi Saltillo':{ data: '1L4TjKS-DwLr9rY2nZW9b9P6Hk9dnuOeW', inputs: '1L4TjKS-DwLr9rY2nZW9b9P6Hk9dnuOeW' },
   'Lipu Saltillo':   { data: '1sBrEaMlPpJtPAWHd3Io5YFbOw9icpOc1rR2ockXfd3k', inputs: '1sBrEaMlPpJtPAWHd3Io5YFbOw9icpOc1rR2ockXfd3k' },
 };
 const UDN_LIST = Object.keys(UDN_SHEETS);
@@ -3534,10 +3536,10 @@ async function exportClientesConRutas(tbl, tipo){
 
   // ══ HOJA 3: Por Horario (basado en start_time real de cada viaje) ══
   const ws3=wb.addWorksheet(`${tipo} Por Horario`);
-  ws3.columns=[{width:12},{width:36},{width:36},{width:10},{width:12},{width:22},{width:22},{width:14},{width:14}];
-  addSheetHeader(ws3,ws3.columns,`${tipo} NS – Por Horario`,`Viajes agrupados por hora real de salida (start_time)`);
-  const h3=ws3.addRow(['Horario','Cliente','Ruta','Servicios','En Tiempo',soloHdr,ambosHdr,'Prom. Ini','% Cumpl.']);
-  styleHeader(h3,9);
+  ws3.columns=[{width:12},{width:14},{width:36},{width:36},{width:10},{width:12},{width:22},{width:22},{width:14},{width:14}];
+  addSheetHeader(ws3,ws3.columns,`${tipo} NS – Por Horario`,`Viajes agrupados por hora real de salida (start_time) · ruta y turno`);
+  const h3=ws3.addRow(['Horario','Turno','Cliente','Ruta','Servicios','En Tiempo',soloHdr,ambosHdr,'Prom. Ini','% Cumpl.']);
+  styleHeader(h3,10);
 
   // Helper: extraer HH:MM de start_time (acepta "06:30:00", "6:30 AM", "06:30", etc.)
   function normHora(s){
@@ -3561,9 +3563,10 @@ async function exportClientesConRutas(tbl, tipo){
     const rows=filterRows(isLlegadas?'lle':'ini').filter(r=>(r[C.cliente]||'').trim()===cli.k);
     rows.forEach(r=>{
       const ruta=(r['des']||'Sin ruta').trim()||'Sin ruta';
+      const turno=(r[C.turno]||'').trim()||'Sin turno';
       const horario=normHora(r[C.startTime]);
-      const key=`${horario}|${cli.k}|${ruta}`;
-      if(!horarioMap[key]) horarioMap[key]={horario,cliente:cli.k,ruta,t:0,enT:0,lSolo:0,lAmbos:0,sumMI:0,cMI:0};
+      const key=`${horario}|${turno}|${cli.k}|${ruta}`;
+      if(!horarioMap[key]) horarioMap[key]={horario,turno,cliente:cli.k,ruta,t:0,enT:0,lSolo:0,lAmbos:0,sumMI:0,cMI:0};
       const d=horarioMap[key];
       d.t+=countViajes(r[C.viajes]);
       const iniT=countLate(r[C.retardo])===1, lleT=countLate(r[C.llegada])===1;
@@ -3578,7 +3581,7 @@ async function exportClientesConRutas(tbl, tipo){
   });
 
   const rutasConHorario=Object.values(horarioMap).map(d=>({
-    horario:d.horario, cliente:d.cliente, ruta:d.ruta,
+    horario:d.horario, turno:d.turno, cliente:d.cliente, ruta:d.ruta,
     t:d.t, enT:d.enT, lSolo:d.lSolo, lAmbos:d.lAmbos,
     avgMI:d.cMI>0?d.sumMI/d.cMI:null,
     pct:d.t>0?d.enT/d.t*100:0
@@ -3586,17 +3589,83 @@ async function exportClientesConRutas(tbl, tipo){
   rutasConHorario.sort((a,b)=>{
     if(a.horario==='Sin hora' && b.horario!=='Sin hora') return 1;
     if(b.horario==='Sin hora' && a.horario!=='Sin hora') return -1;
-    return a.horario.localeCompare(b.horario)||a.cliente.localeCompare(b.cliente)||a.ruta.localeCompare(b.ruta);
+    return a.horario.localeCompare(b.horario)||a.turno.localeCompare(b.turno)||a.cliente.localeCompare(b.cliente)||a.ruta.localeCompare(b.ruta);
   });
 
   let prevHor3='';
   rutasConHorario.forEach((r,i)=>{
     const isNew=r.horario!==prevHor3; prevHor3=r.horario;
-    const row=ws3.addRow([r.horario,r.cliente,r.ruta,r.t,r.enT,r.lSolo,r.lAmbos,
+    const row=ws3.addRow([r.horario,r.turno,r.cliente,r.ruta,r.t,r.enT,r.lSolo,r.lAmbos,
       r.avgMI!==null?+r.avgMI.toFixed(1):'',+r.pct.toFixed(1)]);
     const bg=i%2===0?'FFFFFFFF':'FFF7F9FF';
     row.eachCell({includeEmpty:true},(cell,c)=>{
-      if(c>9)return;
+      if(c>10)return;
+      cell.font={name:'Calibri',size:10};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+      cell.alignment={vertical:'middle',horizontal:c<=4?'left':'center'};
+      cell.border={bottom:{style:'thin',color:{argb:'FFDDE3F0'}}};
+    });
+    if(isNew){
+      const hc=row.getCell(1);
+      hc.font={name:'Calibri',size:10,bold:true,color:{argb:'FF222D42'}};
+      hc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE8EDF5'}};
+    }
+    const pv=r.pct;
+    row.getCell(10).font={name:'Calibri',size:10,bold:true,
+      color:{argb:pv>=95?'FF16A34A':pv>=85?'FFD97706':'FFE53E3E'}};
+  });
+
+  // ══ HOJA 4: Por Turno (desglose turno → cliente → ruta) ══
+  const ws4=wb.addWorksheet(`${tipo} Por Turno`);
+  ws4.columns=[{width:14},{width:36},{width:40},{width:10},{width:12},{width:22},{width:22},{width:14},{width:14},{width:14}];
+  addSheetHeader(ws4,ws4.columns,`${tipo} NS – Por Turno`,`Viajes agrupados por turno y ruta`);
+  const h4=ws4.addRow(['Turno','Cliente','Ruta','Servicios','En Tiempo',soloHdr,ambosHdr,'Prom. Ini (min)','Prom. Lle (min)','% Cumpl.']);
+  styleHeader(h4,10);
+
+  // Agrupar viajes por (turno, cliente, ruta)
+  const turnoMap={};
+  clientes.forEach(cli=>{
+    const rows=filterRows(isLlegadas?'lle':'ini').filter(r=>(r[C.cliente]||'').trim()===cli.k);
+    rows.forEach(r=>{
+      const ruta=(r['des']||'Sin ruta').trim()||'Sin ruta';
+      const turno=(r[C.turno]||'').trim()||'Sin turno';
+      const key=`${turno}|${cli.k}|${ruta}`;
+      if(!turnoMap[key]) turnoMap[key]={turno,cliente:cli.k,ruta,t:0,enT:0,lSolo:0,lAmbos:0,sumMI:0,cMI:0,sumML:0,cML:0};
+      const d=turnoMap[key];
+      d.t+=countViajes(r[C.viajes]);
+      const iniT=countLate(r[C.retardo])===1, lleT=countLate(r[C.llegada])===1;
+      if(isLlegadas){
+        if(!lleT) d.enT++; else if(!iniT) d.lSolo++; else d.lAmbos++;
+      } else {
+        if(!iniT) d.enT++; else if(!lleT) d.lSolo++; else d.lAmbos++;
+      }
+      const mI=parseMin(r[C.minIni]), mL=parseMin(r[C.minLle]);
+      if(iniT&&mI!==null){ d.sumMI+=mI; d.cMI++; }
+      if(lleT&&mL!==null){ d.sumML+=mL; d.cML++; }
+    });
+  });
+
+  const rutasConTurno=Object.values(turnoMap).map(d=>({
+    turno:d.turno, cliente:d.cliente, ruta:d.ruta,
+    t:d.t, enT:d.enT, lSolo:d.lSolo, lAmbos:d.lAmbos,
+    avgMI:d.cMI>0?d.sumMI/d.cMI:null,
+    avgML:d.cML>0?d.sumML/d.cML:null,
+    pct:d.t>0?d.enT/d.t*100:0
+  }));
+  rutasConTurno.sort((a,b)=>{
+    if(a.turno==='Sin turno' && b.turno!=='Sin turno') return 1;
+    if(b.turno==='Sin turno' && a.turno!=='Sin turno') return -1;
+    return a.turno.localeCompare(b.turno)||a.cliente.localeCompare(b.cliente)||a.ruta.localeCompare(b.ruta);
+  });
+
+  let prevTur4='';
+  rutasConTurno.forEach((r,i)=>{
+    const isNew=r.turno!==prevTur4; prevTur4=r.turno;
+    const row=ws4.addRow([r.turno,r.cliente,r.ruta,r.t,r.enT,r.lSolo,r.lAmbos,
+      r.avgMI!==null?+r.avgMI.toFixed(1):'',r.avgML!==null?+r.avgML.toFixed(1):'',+r.pct.toFixed(1)]);
+    const bg=i%2===0?'FFFFFFFF':'FFF7F9FF';
+    row.eachCell({includeEmpty:true},(cell,c)=>{
+      if(c>10)return;
       cell.font={name:'Calibri',size:10};
       cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
       cell.alignment={vertical:'middle',horizontal:c<=3?'left':'center'};
@@ -3608,7 +3677,7 @@ async function exportClientesConRutas(tbl, tipo){
       hc.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE8EDF5'}};
     }
     const pv=r.pct;
-    row.getCell(9).font={name:'Calibri',size:10,bold:true,
+    row.getCell(10).font={name:'Calibri',size:10,bold:true,
       color:{argb:pv>=95?'FF16A34A':pv>=85?'FFD97706':'FFE53E3E'}};
   });
 
