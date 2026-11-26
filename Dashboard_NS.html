@@ -4035,10 +4035,83 @@ async function exportDrillModal(){
     cell.alignment={horizontal:'center',vertical:'middle'};
   });
   totRow.getCell(1).alignment={horizontal:'left',vertical:'middle'};
+
+  // ══ HOJA 2: Desglose por día (detalle viaje por viaje de TODAS las rutas) ══
+  // Replica el contenido del 3er modal (Detalle de Viajes) pero para todas
+  // las rutas del cliente, en una sola hoja agrupada por ruta y ordenada por fecha.
+  const detRows=filterRows(isL?'lle':'ini').filter(r=>(r[C.cliente]||'').trim()===cliente);
+  const lateFieldD=isL?C.llegada:C.retardo;
+  const byRutaDet={};
+  detRows.forEach(r=>{
+    const ruta=(r['des']||'Sin ruta').trim()||'Sin ruta';
+    (byRutaDet[ruta]=byRutaDet[ruta]||[]).push(r);
+  });
+  const rutasOrden=Object.keys(byRutaDet).sort((a,b)=>a.localeCompare(b));
+
+  const ws2=wb.addWorksheet(`${tipo}_Desglose_Dia`);
+  ws2.columns=[{width:34},{width:13},{width:12},{width:28},{width:13},{width:14},{width:13},{width:14},{width:9},{width:9},{width:11}];
+  if(logo64){
+    const imgId2=wb.addImage({base64:logo64,extension:'png'});
+    ws2.addImage(imgId2,{tl:{col:0,row:0},ext:{width:120,height:40}});
+  }
+  ws2.mergeCells('A1:K2');
+  const h2Cell=ws2.getCell('A1');
+  h2Cell.value=logo64?'':' SETTEPI · TRAXIÓN';
+  h2Cell.font={name:'Calibri',bold:true,size:14,color:{argb:'FFFFFFFF'}};
+  h2Cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1A2236'}};
+  h2Cell.alignment={vertical:'middle',horizontal:logo64?'left':'center'};
+  ws2.mergeCells('A3:K3');
+  const st2Cell=ws2.getCell('A3');
+  st2Cell.value=`${tipo} NS · ${cliente} · Desglose por día · ${new Date().toLocaleDateString('es-MX')}`;
+  st2Cell.font={name:'Calibri',italic:true,size:10,color:{argb:'FF6B7A99'}};
+  st2Cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F2F7'}};
+  st2Cell.alignment={horizontal:'left',vertical:'middle'};
+  ws2.getRow(3).height=18;
+  ws2.addRow([]);
+  const hdr2=ws2.addRow(['Ruta','Fecha','Unidad','Operador','Ini Prog.','Ini Real GPS','Lle Prog.','Lle Real GPS','Min Ini','Min Lle','Estado']);
+  hdr2.eachCell(cell=>{
+    cell.font={name:'Calibri',bold:true,size:10,color:{argb:'FFFFFFFF'}};
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF222D42'}};
+    cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+    cell.border={bottom:{style:'medium',color:{argb:'FF7ED321'}}};
+  });
+  hdr2.height=28;
+
+  let rutaColor=false;
+  rutasOrden.forEach(ruta=>{
+    const trips=[...byRutaDet[ruta]].sort((a,b)=>getFecha(a).localeCompare(getFecha(b)));
+    rutaColor=!rutaColor;
+    trips.forEach(r=>{
+      const tarde=countLate(r[lateFieldD])===1;
+      const row=ws2.addRow([
+        ruta,
+        getFecha(r),
+        (r[C.car]||'–').trim(),
+        (r[C.driver]||'–').trim(),
+        (C.startTime&&r[C.startTime]?r[C.startTime]:'–'),
+        (C.startEta&&r[C.startEta]?r[C.startEta]:'–'),
+        (C.endTime&&r[C.endTime]?r[C.endTime]:'–'),
+        (C.endEta&&r[C.endEta]?r[C.endEta]:'–'),
+        parseMin(r[C.minIni])!==null?+parseMin(r[C.minIni]).toFixed(1):'',
+        parseMin(r[C.minLle])!==null?+parseMin(r[C.minLle]).toFixed(1):'',
+        tarde?'Tarde':'A tiempo'
+      ]);
+      const bg=tarde?'FFFFF5F5':(rutaColor?'FFEEF4FF':'FFFFFFFF');
+      row.eachCell((cell,colNum)=>{
+        if(colNum>11) return;
+        cell.font={name:'Calibri',size:10};
+        cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+        cell.alignment={vertical:'middle',horizontal:colNum<=4?'left':'center'};
+        cell.border={bottom:{style:'thin',color:{argb:'FFDDE3F0'}}};
+      });
+      row.getCell(11).font={name:'Calibri',size:10,bold:true,color:{argb:tarde?'FFE53E3E':'FF16A34A'}};
+    });
+  });
+
   // ── Guardar ──
   const buf=await wb.xlsx.writeBuffer();
   const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-  await nsSaveBlob(blob, `Traxion_NS_${tipo}_Rutas_${cliente.slice(0,20)}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  await nsSaveBlob(blob, `Traxion_NS_${tipo}_Rutas_y_Desglose_${cliente.slice(0,20)}_${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 
 async function exportDetailModal(){
