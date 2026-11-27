@@ -207,7 +207,7 @@
       </label>
       <label class="legend-item">
         <input type="checkbox" data-layer="prioridadNavistar" checked>
-        <span class="legend-swatch ring"></span>
+        <span class="legend-swatch" style="background:#FF6A00"></span>
         <span style="color:#c2410c;font-weight:700;">Prioridad Navistar</span>
         <span class="count" id="cnt-nav">–</span>
       </label>
@@ -410,7 +410,7 @@ const COLORS = {
   rutas: "#1E40FF",
   vacantesCienega: "#EA580C",
   vacantesGarcia: "#FDBA74",
-  prioridadNavistar: "#F97316",
+  prioridadNavistar: "#FF6A00",
   asignaciones: "#38BDF8",
   sitiosCap: "#FACC15"
 };
@@ -474,7 +474,7 @@ baseLayers["Google Maps"].addTo(map);
 L.control.layers(baseLayers, null, { position: "topright", collapsed: true }).addTo(map);
 
 map.createPane("rutas-pane"); map.getPane("rutas-pane").style.zIndex = 450;
-map.createPane("nav-pane");   map.getPane("nav-pane").style.zIndex = 460;
+map.createPane("nav-pane");   map.getPane("nav-pane").style.zIndex = 495;
 map.createPane("vac-pane");   map.getPane("vac-pane").style.zIndex = 470;
 map.createPane("sit-pane");   map.getPane("sit-pane").style.zIndex = 480;
 map.createPane("asig-pane");  map.getPane("asig-pane").style.zIndex = 490;
@@ -531,13 +531,14 @@ function isNavistar(planta) {
   const n = norm(planta);
   return n.includes("navistar") || n.startsWith("nav");
 }
-function addNavistarRing(lat, lng) {
-  const c = L.circleMarker([lat, lng], {
-    pane: "nav-pane", radius: 15, color: COLORS.prioridadNavistar,
-    weight: 3, opacity: 0.95, fillColor: COLORS.prioridadNavistar, fillOpacity: 0.12,
-    interactive: false
+function addNavistarPin(lat, lng) {
+  // Pin naranja intenso encima del punto; no intercepta clics (el popup del pin
+  // original debajo sigue abriéndose al dar clic).
+  const m = L.marker([lat, lng], {
+    icon: makePin(COLORS.prioridadNavistar, 32),
+    pane: "nav-pane", interactive: false, zIndexOffset: 500
   });
-  state.layers.prioridadNavistar.addLayer(c);
+  state.layers.prioridadNavistar.addLayer(m);
 }
 
 /* ============================================================
@@ -744,7 +745,7 @@ function renderAll() {
     if (!matchesFilters(d)) return;
     const m = L.marker([lat, lng], { icon: makePin(COLORS.rutas, 22), pane: "rutas-pane" });
     m.__d = d; bindPinPopup(m); state.markerById.set(d.id, m); state.layers.rutas.addLayer(m);
-    if (isNavistar(d.planta)) addNavistarRing(lat, lng);
+    if (isNavistar(d.planta)) addNavistarPin(lat, lng);
   });
 
   // VACANTES
@@ -763,7 +764,7 @@ function renderAll() {
     const color = isCienega ? COLORS.vacantesCienega : COLORS.vacantesGarcia;
     const m = L.marker([lat, lng], { icon: makePin(color, 30), pane: "vac-pane" });
     m.__d = d; bindPinPopup(m); state.markerById.set(d.id, m); state.layers[layerKey].addLayer(m);
-    if (isNavistar(d.planta)) addNavistarRing(lat, lng);
+    if (isNavistar(d.planta)) addNavistarPin(lat, lng);
   });
 
   // ASIGNACIONES (operadores prospectos — bandera celeste)
@@ -784,7 +785,7 @@ function renderAll() {
     if (!matchesFilters(d)) return;
     const m = L.marker([lat, lng], { icon: makeFlag(COLORS.asignaciones, 28), pane: "asig-pane" });
     m.__d = d; bindPinPopup(m); state.markerById.set(d.id, m); state.layers.asignaciones.addLayer(m);
-    if (isNavistar(d.planta)) addNavistarRing(lat, lng);
+    if (isNavistar(d.planta)) addNavistarPin(lat, lng);
   });
 
   // SITIOS DE CAP (estrellas)
