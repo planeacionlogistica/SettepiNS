@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Asignaciones Eficientes</title>
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="preconnect" href="https://mt0.google.com">
+<link rel="dns-prefetch" href="https://nominatim.openstreetmap.org">
+<link rel="dns-prefetch" href="https://photon.komoot.io">
+<link rel="dns-prefetch" href="https://router.project-osrm.org">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css">
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; color: #0f172a; }
@@ -17,7 +22,8 @@
   .sb-header h1 { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; }
   .sb-header h1 .accent { color: #22c55e; }
   .sb-header .sb-logo { display: block; max-width: 150px; width: 100%; height: auto; margin: 2px 0 10px; object-fit: contain; }
-  .sb-header .status-line { font-size: 11px; opacity: 0.75; display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  .sb-header .status-line { font-size: 11px; opacity: 0.85; display: flex; align-items: center; gap: 6px; margin-top: 4px; cursor: pointer; }
+  .sb-header .status-line:hover { opacity: 1; }
   .sb-header .status-line .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e; }
   .sb-header .status-line .dot.err { background: #ef4444; box-shadow: 0 0 6px #ef4444; }
   .sb-header .status-line .dot.load { background: #fbbf24; box-shadow: 0 0 6px #fbbf24; }
@@ -29,6 +35,9 @@
   .legend-item { display: flex; align-items: center; gap: 10px; padding: 5px 0; font-size: 13px; cursor: pointer; user-select: none; }
   .legend-item input { margin: 0; cursor: pointer; accent-color: #22c55e; }
   .legend-swatch { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.25); flex-shrink: 0; }
+  .legend-swatch.star { border-radius: 0; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); border: none; box-shadow: none; }
+  .legend-swatch.flag { border-radius: 2px; }
+  .legend-swatch.ring { background: transparent !important; border: 3px solid #F97316; box-shadow: none; }
   .legend-item .count { margin-left: auto; font-size: 11px; color: #94a3b8; font-weight: 700; background: #fff; padding: 2px 7px; border-radius: 999px; border: 1px solid #e2e8f0; min-width: 26px; text-align: center; }
 
   /* BUTTONS */
@@ -38,6 +47,8 @@
   .btn-navy:hover { background: #1a2a45; }
   .btn-ghost { background: #fff; color: #0f1c30; border: 1px solid #cbd5e1; }
   .btn-ghost:hover { background: #f1f5f9; }
+  .btn-danger { background: #dc2626; }
+  .btn-danger:hover { background: #b91c1c; }
   .btn + .btn { margin-top: 6px; }
 
   /* FORMS */
@@ -72,7 +83,7 @@
   /* MAP */
   #map-container { flex: 1; position: relative; }
   #map { width: 100%; height: 100%; }
-  #add-mode-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: #22c55e; color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 700; font-size: 13px; z-index: 1000; box-shadow: 0 4px 14px rgba(0,0,0,0.25); display: none; }
+  #add-mode-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: #38BDF8; color: #fff; padding: 10px 18px; border-radius: 999px; font-weight: 700; font-size: 13px; z-index: 1000; box-shadow: 0 4px 14px rgba(0,0,0,0.25); display: none; }
 
   /* POPUPS */
   .leaflet-popup-content-wrapper { border-radius: 8px; }
@@ -82,18 +93,12 @@
   .popup-title.vacante { color: #EA580C; }
   .popup-title.asignacion { color: #0284c7; }
   .popup-title.sitio { color: #a16207; }
-  .popup-btn { display: inline-block; margin-top: 8px; padding: 6px 12px; background: #22c55e; color: #fff !important; text-decoration: none; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer; border: none; }
-  .popup-btn:hover { background: #16a34a; }
-
-  /* KM VACÍO CHIP */
-  .km-row { margin: 8px 0 2px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .km-row .lbl { color: #64748b; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
-  .km-chip { display: inline-block; padding: 3px 10px; border-radius: 6px; font-weight: 800; font-size: 12px; }
-  .km-chip.green  { background: #dcfce7; color: #166534; }
-  .km-chip.yellow { background: #fde68a; color: #78350f; }
-  .km-chip.red    { background: #fee2e2; color: #991b1b; }
-  .km-chip.empty  { background: transparent; color: #94a3b8; }
-  .km-sub { font-size: 11px; color: #64748b; }
+  .popup-actions { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 5px; }
+  .popup-btn { display: inline-block; padding: 6px 11px; background: #22c55e; color: #fff !important; text-decoration: none; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer; border: none; }
+  .popup-btn:hover { filter: brightness(0.92); }
+  .popup-btn.share { background: #0284c7; }
+  .popup-btn.edit { background: #f59e0b; }
+  .popup-btn.del { background: #dc2626; }
 
   /* HELPERS */
   .helper-text { font-size: 11px; color: #94a3b8; margin-top: 6px; line-height: 1.4; }
@@ -113,9 +118,8 @@
   .temp-tip { background: #0f1c30 !important; color: #fff !important; border: none !important; font-size: 11px !important; font-weight: 700 !important; padding: 4px 10px !important; border-radius: 6px !important; }
   .temp-tip::before { border-top-color: #0f1c30 !important; }
 
-  /* DEBUG */
+  /* DEBUG (oculto) */
   #debug { position: absolute; bottom: 8px; left: 8px; z-index: 500; background: rgba(11, 21, 36, 0.9); color: #22c55e; font-family: monospace; font-size: 10px; padding: 6px 10px; border-radius: 4px; max-width: 60vw; max-height: 30vh; overflow: auto; display: none; white-space: pre-wrap; }
-  #debug.show { display: block; }
 
   /* GEO SEARCH */
   #geo-search { position: absolute; top: 12px; right: 60px; z-index: 800; width: 300px; background: #fff; border-radius: 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.18); padding: 10px 12px; }
@@ -127,7 +131,7 @@
   #geo-search button.go { background: #22c55e; color: #fff; border: none; border-radius: 6px; padding: 8px 12px; font-weight: 700; cursor: pointer; }
   #geo-search button.go:hover { background: #16a34a; }
   #geo-search button.clear { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; cursor: pointer; font-size: 12px; margin-top: 6px; width: 100%; }
-  #geo-results { margin-top: 8px; max-height: 220px; overflow-y: auto; display: none; }
+  #geo-results { margin-top: 8px; max-height: 240px; overflow-y: auto; display: none; }
   #geo-results.show { display: block; }
   #geo-results .item { padding: 7px 9px; border-radius: 5px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #eef2f6; }
   #geo-results .item:hover { background: #ecfdf5; }
@@ -138,7 +142,7 @@
   #geo-status { font-size: 11px; color: #64748b; margin-top: 6px; display: none; }
   #geo-status.show { display: block; }
 
-  /* MODAL */
+  /* MODAL copiar (portapapeles) */
   #save-modal-bg { position: fixed; inset: 0; background: rgba(11, 21, 36, 0.65); z-index: 3000; display: none; align-items: center; justify-content: center; }
   #save-modal-bg.show { display: flex; }
   #save-modal { background: #fff; border-radius: 12px; width: min(560px, 92vw); max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
@@ -152,6 +156,20 @@
   #save-modal .steps li { margin-bottom: 6px; line-height: 1.5; }
   #save-modal .steps kbd { background: #0f1c30; color: #fff; padding: 2px 6px; border-radius: 3px; font-size: 11px; font-family: monospace; }
   #save-modal footer { padding: 12px 20px 20px; display: flex; flex-direction: column; gap: 8px; }
+
+  /* MODAL CENTRAL genérico (registro + confirmación) */
+  .cmodal-bg { position: fixed; inset: 0; background: rgba(11,21,36,0.65); z-index: 3100; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .cmodal-bg.show { display: flex; }
+  .cmodal { background: #fff; border-radius: 14px; width: min(480px, 95vw); max-height: 92vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: pop-in 0.18s ease-out; }
+  @keyframes pop-in { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .cmodal header { padding: 15px 20px; color: #fff; border-radius: 14px 14px 0 0; display: flex; align-items: center; gap: 10px; }
+  .cmodal header h3 { margin: 0; font-size: 16px; font-weight: 800; }
+  .cmodal .body { padding: 16px 20px 20px; }
+  #form-modal .cmodal-head { background: linear-gradient(135deg, #38BDF8, #0284c7); }
+  #confirm-modal .cmodal-head { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+  #confirm-modal .body p { font-size: 14px; line-height: 1.55; color: #334155; margin: 0 0 16px; }
+  #confirm-modal .cfooter { display: flex; gap: 8px; }
+  #confirm-modal .cfooter .btn { margin-top: 0; }
 </style>
 </head>
 <body>
@@ -159,7 +177,7 @@
   <aside id="sidebar">
     <div class="sb-header">
       <img src="dash-logo-blanco.png" alt="Dash" class="sb-logo">
-      <div class="status-line" id="header-status">
+      <div class="status-line" id="header-status" title="Clic para actualizar datos">
         <span class="dot load"></span>
         <span id="last-updated">Conectando con Google Sheet…</span>
       </div>
@@ -188,14 +206,20 @@
         <span class="count" id="cnt-vg">–</span>
       </label>
       <label class="legend-item">
+        <input type="checkbox" data-layer="prioridadNavistar" checked>
+        <span class="legend-swatch ring"></span>
+        <span style="color:#c2410c;font-weight:700;">Prioridad Navistar</span>
+        <span class="count" id="cnt-nav">–</span>
+      </label>
+      <label class="legend-item">
         <input type="checkbox" data-layer="asignaciones" checked>
-        <span class="legend-swatch" style="background:#38BDF8"></span>
+        <span class="legend-swatch flag" style="background:#38BDF8"></span>
         <span>Operadores prospectos</span>
         <span class="count" id="cnt-asig">–</span>
       </label>
       <label class="legend-item">
         <input type="checkbox" data-layer="sitiosCap" checked>
-        <span class="legend-swatch" style="background:#FACC15"></span>
+        <span class="legend-swatch star" style="background:#FACC15"></span>
         <span>Sitios de cap</span>
         <span class="count" id="cnt-sit">–</span>
       </label>
@@ -240,59 +264,7 @@
     <div class="sb-section">
       <h2>Agregar operador prospecto</h2>
       <button class="btn" id="btn-add-mode">📍 Elegir ubicación en el mapa</button>
-      <form id="add-form" style="display:none; margin-top: 10px;">
-        <div class="form-group">
-          <label>Nombre / Prospecto (A)</label>
-          <input type="text" id="f-nombre" required placeholder="Ej. OSCAR HERNANDEZ PEREZ">
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Col (B)</label>
-            <input type="text" id="f-col">
-          </div>
-          <div class="form-group">
-            <label>Municipio (C)</label>
-            <input type="text" id="f-municipio">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Lat (D) · auto</label>
-            <input type="text" id="f-lat" readonly>
-          </div>
-          <div class="form-group">
-            <label>Long (E) · auto</label>
-            <input type="text" id="f-long" readonly>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Asignado a JO (F)</label>
-          <select id="f-jo">
-            <option value="">-- Selecciona JO --</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Planta (G) <small style="color:#94a3b8;font-weight:500;">▼ todas del sheet</small></label>
-          <select id="f-planta"><option value="">-- Selecciona planta --</option></select>
-        </div>
-        <div class="form-group">
-          <label>Ruta (H) <small id="f-ruta-hint" style="color:#94a3b8;font-weight:500;">▼ elige planta primero</small></label>
-          <select id="f-ruta"><option value="">-- Elige planta primero --</option></select>
-        </div>
-        <div class="form-group">
-          <label>Semana (I)</label>
-          <input type="number" id="f-semana" min="1" max="53">
-        </div>
-        <button type="submit" class="btn">💾 Guardar en Google Sheet</button>
-        <button type="button" class="btn btn-ghost" id="cancel-add">Cancelar</button>
-      </form>
-    </div>
-
-    <div class="sb-section" style="padding: 10px 18px;">
-      <a href="https://planeacionlogistica.github.io/SettepiNS/Dashboard_NS.html" target="_blank" rel="noopener" class="btn" style="text-decoration:none; margin-bottom:6px; display:block; font-size:12px; padding:7px;">📊 Abrir Dashboard NS</a>
-      <button class="btn btn-navy" id="reload-data" style="font-size: 12px; padding: 7px;">🔄 Recargar datos del Sheet</button>
-      <button class="btn btn-ghost" id="test-webhook" style="font-size: 11px; padding: 6px; margin-top: 6px;">🔗 Probar webhook en nueva pestaña</button>
-      <button class="btn btn-ghost" id="toggle-debug" style="font-size: 11px; padding: 6px; margin-top: 6px;">🐛 Ver diagnóstico</button>
+      <p class="helper-text">Al dar clic en el mapa se abrirá el formulario de registro en el centro de la pantalla.</p>
     </div>
 
     <!-- Elementos ocultos que el JS necesita internamente -->
@@ -307,6 +279,81 @@
   <div id="map-container">
     <div id="map"></div>
     <div id="add-mode-banner">📍 Haz clic en el mapa donde vive el nuevo operador</div>
+
+    <!-- MODAL: formulario de registro / edición (centrado) -->
+    <div id="form-modal" class="cmodal-bg">
+      <div class="cmodal">
+        <header class="cmodal-head">
+          <span style="font-size:20px;">🚩</span>
+          <h3 id="form-modal-title">Registrar operador prospecto</h3>
+        </header>
+        <div class="body">
+          <form id="add-form">
+            <div class="form-group">
+              <label>Nombre / Prospecto (A)</label>
+              <input type="text" id="f-nombre" required placeholder="Ej. OSCAR HERNANDEZ PEREZ">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Col (B)</label>
+                <input type="text" id="f-col">
+              </div>
+              <div class="form-group">
+                <label>Municipio (C)</label>
+                <input type="text" id="f-municipio">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Lat (D) · auto</label>
+                <input type="text" id="f-lat" readonly>
+              </div>
+              <div class="form-group">
+                <label>Long (E) · auto</label>
+                <input type="text" id="f-long" readonly>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Asignado a JO (F)</label>
+              <select id="f-jo">
+                <option value="">-- Selecciona JO --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Planta (G) <small style="color:#94a3b8;font-weight:500;">▼ todas del sheet</small></label>
+              <select id="f-planta"><option value="">-- Selecciona planta --</option></select>
+            </div>
+            <div class="form-group">
+              <label>Ruta (H) <small id="f-ruta-hint" style="color:#94a3b8;font-weight:500;">▼ elige planta primero</small></label>
+              <select id="f-ruta"><option value="">-- Elige planta primero --</option></select>
+            </div>
+            <div class="form-group">
+              <label>Semana (I)</label>
+              <input type="number" id="f-semana" min="1" max="53">
+            </div>
+            <button type="submit" class="btn">💾 Guardar en Google Sheet</button>
+            <button type="button" class="btn btn-ghost" id="cancel-add">Cancelar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: confirmación -->
+    <div id="confirm-modal" class="cmodal-bg">
+      <div class="cmodal" style="width:min(400px,95vw);">
+        <header class="cmodal-head">
+          <span style="font-size:20px;">⚠️</span>
+          <h3>Confirmar</h3>
+        </header>
+        <div class="body">
+          <p id="confirm-msg">¿Seguro?</p>
+          <div class="cfooter">
+            <button class="btn btn-danger" id="confirm-yes" style="flex:1;">Sí, eliminar</button>
+            <button class="btn btn-ghost" id="confirm-no" style="flex:1;">Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div id="save-modal-bg">
       <div id="save-modal">
@@ -350,7 +397,6 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 <script>
 "use strict";
 
@@ -359,10 +405,12 @@
    ============================================================ */
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSh0OfSU2phQY6hfHFPTnxJq_R99mTP0XYyIkZurda-2-DSgk2d-J9Q-2N-kuy-DfD16hNsqfOlmFq3/pubhtml";
 const DEFAULT_WEBHOOK = "https://script.google.com/macros/s/AKfycbxBTki5XduyWyk8hLS5zNTohwdXZ9URV_az9zgeErHGeBm94lMGnphLKHEkatPXbKWXFg/exec";
+const CACHE_KEY = "asig_cache_v2";
 const COLORS = {
   rutas: "#1E40FF",
   vacantesCienega: "#EA580C",
   vacantesGarcia: "#FDBA74",
+  prioridadNavistar: "#F97316",
   asignaciones: "#38BDF8",
   sitiosCap: "#FACC15"
 };
@@ -375,6 +423,10 @@ const JO_OPTIONS = [
   "Julio Gandara",
   "Abraham Cobos"
 ];
+
+// Sesgo de búsqueda al área metropolitana de Monterrey (Nuevo León)
+const MTY_VIEWBOX = "-100.80,25.98,-99.75,25.30"; // minLon,maxLat,maxLon,minLat
+const MTY_CENTER = { lat: 25.67, lon: -100.31 };
 
 const state = {
   webhook: DEFAULT_WEBHOOK,
@@ -392,7 +444,8 @@ const state = {
   filters: { semana: "", zona: "", planta: "", search: "" },
   tempMarker: null,
   _editingRow: undefined,
-  _boundsFit: false
+  _boundsFit: false,
+  _weekUserSet: false
 };
 
 /* ============================================================
@@ -403,16 +456,13 @@ function log(msg, data) {
   console.log(line);
   state.debugLog.push(line);
   const el = document.getElementById("debug");
-  el.textContent = state.debugLog.slice(-30).join("\n");
+  if (el) el.textContent = state.debugLog.slice(-30).join("\n");
 }
-document.getElementById("toggle-debug").addEventListener("click", () => {
-  document.getElementById("debug").classList.toggle("show");
-});
 
 /* ============================================================
    MAP
    ============================================================ */
-const map = L.map("map", { zoomControl: true }).setView([25.72, -100.30], 11);
+const map = L.map("map", { zoomControl: true, preferCanvas: true }).setView([25.72, -100.30], 11);
 const baseLayers = {
   "Google Maps": L.tileLayer("https://mt{s}.google.com/vt/lyrs=m&hl=es&x={x}&y={y}&z={z}", { subdomains: ["0","1","2","3"], maxZoom: 20, attribution: "© Google" }),
   "Google Satélite": L.tileLayer("https://mt{s}.google.com/vt/lyrs=y&hl=es&x={x}&y={y}&z={z}", { subdomains: ["0","1","2","3"], maxZoom: 20, attribution: "© Google" }),
@@ -424,18 +474,20 @@ baseLayers["Google Maps"].addTo(map);
 L.control.layers(baseLayers, null, { position: "topright", collapsed: true }).addTo(map);
 
 map.createPane("rutas-pane"); map.getPane("rutas-pane").style.zIndex = 450;
+map.createPane("nav-pane");   map.getPane("nav-pane").style.zIndex = 460;
 map.createPane("vac-pane");   map.getPane("vac-pane").style.zIndex = 470;
-map.createPane("asig-pane");  map.getPane("asig-pane").style.zIndex = 490;
 map.createPane("sit-pane");   map.getPane("sit-pane").style.zIndex = 480;
+map.createPane("asig-pane");  map.getPane("asig-pane").style.zIndex = 490;
 
 state.layers.rutas             = L.layerGroup().addTo(map);
 state.layers.vacantesCienega   = L.layerGroup().addTo(map);
 state.layers.vacantesGarcia    = L.layerGroup().addTo(map);
+state.layers.prioridadNavistar = L.layerGroup().addTo(map);
 state.layers.asignaciones      = L.layerGroup().addTo(map);
 state.layers.sitiosCap         = L.layerGroup().addTo(map);
 
 /* ============================================================
-   PIN FACTORY (SVG teardrop)
+   ICON FACTORIES
    ============================================================ */
 function makePin(color, size) {
   const w = size;
@@ -449,6 +501,85 @@ function makePin(color, size) {
     html: html, className: "custom-pin",
     iconSize: [w, h], iconAnchor: [w/2, h - 1], popupAnchor: [0, -h + 5]
   });
+}
+// Estrella (sitios de cap)
+function makeStar(color, size) {
+  const w = size, h = size;
+  const html =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 24 24">' +
+      '<path d="M12 1.6 L14.95 7.9 L21.8 8.76 L16.75 13.48 L18.08 20.26 L12 16.9 L5.92 20.26 L7.25 13.48 L2.2 8.76 L9.05 7.9 Z" fill="' + color + '" stroke="#ffffff" stroke-width="1.3" stroke-linejoin="round"/>' +
+    '</svg>';
+  return L.divIcon({
+    html: html, className: "custom-pin",
+    iconSize: [w, h], iconAnchor: [w/2, h/2], popupAnchor: [0, -h/2 + 2]
+  });
+}
+// Bandera (operadores prospectos)
+function makeFlag(color, size) {
+  const w = size, h = Math.round(size * 1.25);
+  const html =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 24 30">' +
+      '<line x1="4" y1="1.5" x2="4" y2="29" stroke="#334155" stroke-width="2.2" stroke-linecap="round"/>' +
+      '<path d="M4 2.5 H19.5 L15.8 7.6 L19.5 12.8 H4 Z" fill="' + color + '" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round"/>' +
+    '</svg>';
+  return L.divIcon({
+    html: html, className: "custom-pin",
+    iconSize: [w, h], iconAnchor: [4, h - 1], popupAnchor: [7, -h + 8]
+  });
+}
+function isNavistar(planta) {
+  const n = norm(planta);
+  return n.includes("navistar") || n.startsWith("nav");
+}
+function addNavistarRing(lat, lng) {
+  const c = L.circleMarker([lat, lng], {
+    pane: "nav-pane", radius: 15, color: COLORS.prioridadNavistar,
+    weight: 3, opacity: 0.95, fillColor: COLORS.prioridadNavistar, fillOpacity: 0.12,
+    interactive: false
+  });
+  state.layers.prioridadNavistar.addLayer(c);
+}
+
+/* ============================================================
+   LAZY LOAD · Leaflet Routing Machine (acelera carga inicial)
+   ============================================================ */
+let _rmLoaded = false, _rmPromise = null;
+function ensureRouting() {
+  if (_rmLoaded) return Promise.resolve();
+  if (_rmPromise) return _rmPromise;
+  _rmPromise = new Promise((resolve, reject) => {
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css";
+    document.head.appendChild(css);
+    const s = document.createElement("script");
+    s.src = "https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js";
+    s.onload = () => { _rmLoaded = true; resolve(); };
+    s.onerror = () => reject(new Error("No se pudo cargar el ruteo"));
+    document.body.appendChild(s);
+  });
+  return _rmPromise;
+}
+
+/* ============================================================
+   CACHE local (carga instantánea en recargas)
+   ============================================================ */
+function saveCache() {
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), data: state.data })); } catch (e) {}
+}
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return false;
+    const o = JSON.parse(raw);
+    if (o && o.data && (o.data.rutas || o.data.sitiosCap)) {
+      state.data = o.data;
+      renderAll();
+      setHeaderStatus("load", "Datos guardados · actualizando…");
+      return true;
+    }
+  } catch (e) {}
+  return false;
 }
 
 /* ============================================================
@@ -472,8 +603,7 @@ function loadViaJSONP(url, timeoutMs) {
 async function tryWebhookLoad() {
   if (!state.webhook) return false;
   log("URL webhook: " + state.webhook);
-  log("cargando pestañas del sheet…");
-  setHeaderStatus("load", "Cargando (puede tardar ~30s la 1ra vez)…");
+  setHeaderStatus("load", "Sincronizando…");
   try {
     const data = await loadViaJSONP(state.webhook, 120000);
     applyAppsScriptData(data);
@@ -498,7 +628,6 @@ async function tryWebhookLoad() {
 }
 
 async function loadData() {
-  setHeaderStatus("load", "Sincronizando…");
   const ok = await tryWebhookLoad();
   if (!ok) {
     setHeaderStatus("err", "Error de conexión");
@@ -506,24 +635,18 @@ async function loadData() {
       "⚠ El Apps Script no responde a tiempo.\n\n" +
       "POSIBLES CAUSAS:\n" +
       "1) El código Apps Script actual todavía intenta leer las hojas externas (NS, Inputs) que son lentas.\n" +
-      "   → Reemplaza el código con el .gs simplificado que te mandé y REIMPLEMENTA (Gestionar implementaciones → Editar → Nueva versión).\n\n" +
-      "2) El deployment expiró o la URL cambió.\n" +
-      "   → Abre esta URL directamente en tu navegador para probar:\n" +
-      state.webhook +
-      "\n\nSi ves JSON crudo, funciona. Si ves error o tarda mucho, revisa Apps Script.",
+      "2) El deployment expiró o la URL cambió.\n\n" +
+      "Prueba abrir esta URL directamente en tu navegador:\n" +
+      state.webhook,
       "error", 0);
   }
 }
 
-// Botón para abrir el webhook directo en una pestaña nueva
-window.testWebhook = () => { window.open(state.webhook, '_blank'); };
-
 function setHeaderStatus(kind, msg) {
   const dot = document.querySelector("#header-status .dot");
-  dot.classList.remove("err", "load");
-  if (kind === "err")  dot.classList.add("err");
-  if (kind === "load") dot.classList.add("load");
-  document.getElementById("last-updated").textContent = msg;
+  if (dot) { dot.classList.remove("err", "load"); if (kind === "err") dot.classList.add("err"); if (kind === "load") dot.classList.add("load"); }
+  const lu = document.getElementById("last-updated");
+  if (lu) lu.textContent = msg;
 }
 
 /* ============================================================
@@ -545,6 +668,7 @@ function applyAppsScriptData(obj) {
     if (key.includes("asignac")) { state.data.asignaciones = toObjects(obj[k]); return; }
   });
   log("filas → rutas:" + state.data.rutas.length + " vacantes:" + state.data.vacantes.length + " asig:" + state.data.asignaciones.length + " sitios:" + state.data.sitiosCap.length);
+  saveCache();
   renderAll();
 }
 
@@ -573,23 +697,22 @@ function detectCoords(row) {
 function escapeAttr(s) { return String(s).replace(/"/g, "&quot;"); }
 function escapeHTML(s) { return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 
-function kmChip(kmValue) {
-  if (kmValue == null || kmValue === "" || isNaN(Number(kmValue))) {
-    return '<span class="km-chip empty">—</span>';
-  }
-  const v = Number(kmValue);
-  let cls = "green";
-  if (v > 15) cls = "red";
-  else if (v > 5) cls = "yellow";
-  return '<span class="km-chip ' + cls + '">' + v.toFixed(1) + ' km</span>';
-}
-
 /* ============================================================
    RENDER
    ============================================================ */
 function renderAll() {
   Object.values(state.layers).forEach(l => l.clearLayers());
   state.markerById.clear();
+
+  // Auto-selección: siempre la última semana cargada (hasta que el usuario elija otra)
+  if (!state._weekUserSet) {
+    const weeks = [];
+    [...state.data.vacantes, ...state.data.asignaciones].forEach(r => {
+      const s = num(fuzzy(r, ["Semana"]));
+      if (isFinite(s) && s > 0) weeks.push(s);
+    });
+    if (weeks.length) state.filters.semana = String(Math.max.apply(null, weeks));
+  }
 
   const F = state.filters;
   const matchesFilters = (d) => {
@@ -621,6 +744,7 @@ function renderAll() {
     if (!matchesFilters(d)) return;
     const m = L.marker([lat, lng], { icon: makePin(COLORS.rutas, 22), pane: "rutas-pane" });
     m.__d = d; bindPinPopup(m); state.markerById.set(d.id, m); state.layers.rutas.addLayer(m);
+    if (isNavistar(d.planta)) addNavistarRing(lat, lng);
   });
 
   // VACANTES
@@ -639,9 +763,10 @@ function renderAll() {
     const color = isCienega ? COLORS.vacantesCienega : COLORS.vacantesGarcia;
     const m = L.marker([lat, lng], { icon: makePin(color, 30), pane: "vac-pane" });
     m.__d = d; bindPinPopup(m); state.markerById.set(d.id, m); state.layers[layerKey].addLayer(m);
+    if (isNavistar(d.planta)) addNavistarRing(lat, lng);
   });
 
-  // ASIGNACIONES
+  // ASIGNACIONES (operadores prospectos — bandera celeste)
   state.data.asignaciones.forEach((row, idx) => {
     let lat = num(fuzzy(row, ["Lat", "latitud"]));
     let lng = num(fuzzy(row, ["Long", "Lng", "longitud"]));
@@ -657,11 +782,12 @@ function renderAll() {
       semana: fuzzy(row, ["Semana"])
     };
     if (!matchesFilters(d)) return;
-    const m = L.marker([lat, lng], { icon: makePin(COLORS.asignaciones, 26), pane: "asig-pane" });
+    const m = L.marker([lat, lng], { icon: makeFlag(COLORS.asignaciones, 28), pane: "asig-pane" });
     m.__d = d; bindPinPopup(m); state.markerById.set(d.id, m); state.layers.asignaciones.addLayer(m);
+    if (isNavistar(d.planta)) addNavistarRing(lat, lng);
   });
 
-  // SITIOS DE CAP
+  // SITIOS DE CAP (estrellas)
   state.data.sitiosCap.forEach(row => {
     let lat = num(fuzzy(row, ["lat", "Lat", "latitud"]));
     let lng = num(fuzzy(row, ["long", "Long", "Lng", "longitud"]));
@@ -672,7 +798,7 @@ function renderAll() {
       direccion: fuzzy(row, ["Direccion", "Dirección", "direccion"])
     };
     if (!matchesFilters(d)) return;
-    const m = L.marker([lat, lng], { icon: makePin(COLORS.sitiosCap, 20), pane: "sit-pane" });
+    const m = L.marker([lat, lng], { icon: makeStar(COLORS.sitiosCap, 22), pane: "sit-pane" });
     m.__d = d; bindPinPopup(m); state.markerById.set(d.id, m); state.layers.sitiosCap.addLayer(m);
   });
 
@@ -680,6 +806,7 @@ function renderAll() {
   document.getElementById("cnt-rutas").textContent = state.layers.rutas.getLayers().length;
   document.getElementById("cnt-vc").textContent = state.layers.vacantesCienega.getLayers().length;
   document.getElementById("cnt-vg").textContent = state.layers.vacantesGarcia.getLayers().length;
+  document.getElementById("cnt-nav").textContent = state.layers.prioridadNavistar.getLayers().length;
   document.getElementById("cnt-asig").textContent = state.layers.asignaciones.getLayers().length;
   document.getElementById("cnt-sit").textContent = state.layers.sitiosCap.getLayers().length;
 
@@ -707,17 +834,15 @@ function renderAll() {
     }
   });
   fillFormSelect("f-planta", Array.from(plantasForm).sort(), "-- Selecciona planta --");
-  // JO fijo
   fillFormSelect("f-jo", JO_OPTIONS.slice(), "-- Selecciona JO --");
 
   // Fit bounds solo la primera vez
   if (!state._boundsFit) {
     const all = [];
-    Object.values(state.layers).forEach(g => g.eachLayer(m => all.push(m)));
+    Object.values(state.layers).forEach(g => g.eachLayer(m => { if (m.getLatLng) all.push(m); }));
     if (all.length) {
       const fg = L.featureGroup(all);
-      map.fitBounds(fg.getBounds().pad(0.08));
-      state._boundsFit = true;
+      try { map.fitBounds(fg.getBounds().pad(0.08)); state._boundsFit = true; } catch (e) {}
     }
   }
 }
@@ -772,13 +897,14 @@ document.getElementById("f-planta").addEventListener("change", (e) => {
 function bindPinPopup(marker) {
   const d = marker.__d;
   let html = "";
+  const shareBtn = '<button class="popup-btn share" data-share="' + d.id + '">📤 Compartir</button>';
   if (d.type === "ruta") {
     html =
       '<div class="popup-title ruta">🚌 ' + escapeHTML(d.ruta) + '</div>' +
       '<b>Planta:</b> ' + escapeHTML(d.planta) + '<br>' +
       '<b>1ª parada:</b> ' + escapeHTML(d.parada) + '<br>' +
       '<b>Coords:</b> ' + d.lat.toFixed(5) + ", " + d.lng.toFixed(5) +
-      '<br><button class="popup-btn" data-select="' + d.id + '">🔗 Usar para ruta</button>';
+      '<div class="popup-actions"><button class="popup-btn" data-select="' + d.id + '">🔗 Usar para ruta</button>' + shareBtn + '</div>';
   } else if (d.type === "vacante") {
     html =
       '<div class="popup-title vacante">🎯 VACANTE · ' + escapeHTML(d.ruta) + '</div>' +
@@ -786,16 +912,16 @@ function bindPinPopup(marker) {
       '<b>Zona:</b> ' + escapeHTML(d.zona) + '<br>' +
       '<b>Semana:</b> ' + escapeHTML(d.semana) + '<br>' +
       '<b>Coords:</b> ' + d.lat.toFixed(5) + ", " + d.lng.toFixed(5) +
-      '<br><button class="popup-btn" data-select="' + d.id + '">🔗 Usar para ruta</button>';
+      '<div class="popup-actions"><button class="popup-btn" data-select="' + d.id + '">🔗 Usar para ruta</button>' + shareBtn + '</div>';
   } else if (d.type === "sitio") {
     html =
-      '<div class="popup-title sitio">📍 ' + escapeHTML(d.sitio) + '</div>' +
+      '<div class="popup-title sitio">⭐ ' + escapeHTML(d.sitio) + '</div>' +
       '<b>Dirección:</b> ' + escapeHTML(d.direccion) + '<br>' +
       '<b>Coords:</b> ' + d.lat.toFixed(5) + ", " + d.lng.toFixed(5) +
-      '<br><button class="popup-btn" data-select="' + d.id + '">🔗 Usar para ruta</button>';
+      '<div class="popup-actions"><button class="popup-btn" data-select="' + d.id + '">🔗 Usar para ruta</button>' + shareBtn + '</div>';
   } else {
     html =
-      '<div class="popup-title asignacion">👤 ' + escapeHTML(d.nombre) + '</div>' +
+      '<div class="popup-title asignacion">🚩 ' + escapeHTML(d.nombre) + '</div>' +
       '<b>Col:</b> ' + escapeHTML(d.col) + '<br>' +
       '<b>Municipio:</b> ' + escapeHTML(d.municipio) + '<br>' +
       '<b>Asignado a JO:</b> ' + escapeHTML(d.jo) + '<br>' +
@@ -803,19 +929,94 @@ function bindPinPopup(marker) {
       '<b>Ruta:</b> ' + escapeHTML(d.ruta) + '<br>' +
       '<b>Semana:</b> ' + escapeHTML(d.semana) + '<br>' +
       '<b>Coords:</b> ' + d.lat.toFixed(5) + ", " + d.lng.toFixed(5) +
-      '<br style="margin-top:6px;">' +
-      '<button class="popup-btn" data-select="' + d.id + '">🔗 Ruta</button> ' +
-      '<button class="popup-btn" data-edit="' + d.id + '" style="background:#f59e0b;">✏️ Editar</button>';
+      '<div class="popup-actions">' +
+        '<button class="popup-btn" data-select="' + d.id + '">🔗 Ruta</button>' +
+        shareBtn +
+        '<button class="popup-btn edit" data-edit="' + d.id + '">✏️ Editar</button>' +
+        '<button class="popup-btn del" data-del="' + d.id + '">🗑 Eliminar</button>' +
+      '</div>';
   }
   marker.bindPopup(html);
   marker.on("popupopen", () => {
-    const sel = document.querySelector('.leaflet-popup-content [data-select]');
-    const edt = document.querySelector('.leaflet-popup-content [data-edit]');
+    const root = document.querySelector('.leaflet-popup-content');
+    if (!root) return;
+    const sel = root.querySelector('[data-select]');
+    const edt = root.querySelector('[data-edit]');
+    const del = root.querySelector('[data-del]');
+    const shr = root.querySelector('[data-share]');
     if (sel) sel.addEventListener("click", () => { selectForRoute(marker); marker.closePopup(); });
     if (edt) edt.addEventListener("click", () => { openEditForm(marker); marker.closePopup(); });
+    if (del) del.addEventListener("click", () => { marker.closePopup(); deleteAssignment(marker); });
+    if (shr) shr.addEventListener("click", () => { shareLocation(d); });
   });
 }
 
+/* ============================================================
+   COMPARTIR DIRECCIÓN
+   ============================================================ */
+async function shareLocation(d) {
+  const label = d.nombre || labelFor(d);
+  const addr = [d.col, d.municipio].filter(Boolean).join(", ");
+  const mapsUrl = "https://www.google.com/maps/search/?api=1&query=" + d.lat + "," + d.lng;
+  const text = label + (addr ? ("\n" + addr) : "") + "\n" + mapsUrl;
+  if (navigator.share) {
+    try { await navigator.share({ title: label, text: text, url: mapsUrl }); return; }
+    catch (e) { if (e && e.name === "AbortError") return; }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    showStatus("✓ Dirección copiada (link de Google Maps listo para pegar/compartir)", "success", 4000);
+  } catch (e) {
+    openSaveModal(text, "📤 Compartir dirección", "Copia este texto para compartir la ubicación:");
+  }
+}
+
+/* ============================================================
+   ELIMINAR PROSPECTO
+   ============================================================ */
+async function deleteAssignment(marker) {
+  const d = marker.__d;
+  const ok = await confirmDialog("¿Eliminar a " + (d.nombre || "este prospecto") + "?\nSe quitará del mapa y se enviará la baja al Google Sheet. Esta acción no se puede deshacer.");
+  if (!ok) return;
+
+  state.layers.asignaciones.removeLayer(marker);
+  state.markerById.delete(d.id);
+
+  if (d.__row != null && state.data.asignaciones[d.__row]) {
+    state.data.asignaciones.splice(d.__row, 1);
+  }
+
+  if (state.webhook) {
+    submitViaForm(state.webhook, {
+      __action: "delete",
+      __row: (d.__row != null ? d.__row + 2 : undefined),
+      nombre: d.nombre || ""
+    });
+    showStatus("✓ Baja enviada al Sheet", "success", 5000);
+  } else {
+    showStatus("✓ Prospecto eliminado del mapa (sin webhook)", "warning", 5000);
+  }
+
+  saveCache();
+  renderAll();
+}
+
+function confirmDialog(msg) {
+  return new Promise((resolve) => {
+    const bg = document.getElementById("confirm-modal");
+    document.getElementById("confirm-msg").textContent = msg;
+    bg.classList.add("show");
+    const yes = document.getElementById("confirm-yes");
+    const no = document.getElementById("confirm-no");
+    const done = (v) => { bg.classList.remove("show"); yes.onclick = null; no.onclick = null; resolve(v); };
+    yes.onclick = () => done(true);
+    no.onclick = () => done(false);
+  });
+}
+
+/* ============================================================
+   SELECCIÓN / RUTA
+   ============================================================ */
 function selectForRoute(marker) {
   if (state.selection.includes(marker)) return;
   if (state.selection.length >= 2) resetSelection();
@@ -854,11 +1055,14 @@ function labelFor(d) {
   if (d.type === "sitio") return "SITIO · " + d.sitio;
   return d.nombre;
 }
-function computeRoute() {
+async function computeRoute() {
   const [a, b] = state.selection;
-  if (state.routingControl) map.removeControl(state.routingControl);
   const container = document.getElementById("route-info-container");
   container.innerHTML = '<div class="route-info"><span class="spinner"></span>&nbsp; Calculando ruta…</div>';
+  try { await ensureRouting(); }
+  catch (e) { container.innerHTML = '<div class="route-info" style="color:#b91c1c">No se pudo cargar el ruteo.</div>'; return; }
+
+  if (state.routingControl) map.removeControl(state.routingControl);
   state.routingControl = L.Routing.control({
     waypoints: [L.latLng(a.__d.lat, a.__d.lng), L.latLng(b.__d.lat, b.__d.lng)],
     router: L.Routing.osrmv1({ serviceUrl: "https://router.project-osrm.org/route/v1", profile: "driving" }),
@@ -889,6 +1093,7 @@ document.getElementById("clear-route").addEventListener("click", resetSelection)
    ============================================================ */
 ["filter-semana", "filter-zona", "filter-planta"].forEach(id => {
   document.getElementById(id).addEventListener("change", (e) => {
+    if (id === "filter-semana") state._weekUserSet = true;
     state.filters[id.replace("filter-", "")] = e.target.value;
     renderAll();
   });
@@ -898,6 +1103,7 @@ document.getElementById("filter-search").addEventListener("input", (e) => {
 });
 document.getElementById("reset-filters").addEventListener("click", () => {
   state.filters = { semana: "", zona: "", planta: "", search: "" };
+  state._weekUserSet = true; // "Todas" = elección explícita del usuario
   document.getElementById("filter-semana").value = "";
   document.getElementById("filter-zona").value = "";
   document.getElementById("filter-planta").value = "";
@@ -915,6 +1121,17 @@ document.querySelectorAll("input[data-layer]").forEach(cb => {
     else map.removeLayer(state.layers[k]);
   });
 });
+
+/* ============================================================
+   MODAL FORMULARIO (centrado)
+   ============================================================ */
+function openFormModal(isEdit) {
+  document.getElementById("form-modal-title").textContent = isEdit ? "Editar operador prospecto" : "Registrar operador prospecto";
+  document.getElementById("form-modal").classList.add("show");
+}
+function closeFormModal() {
+  document.getElementById("form-modal").classList.remove("show");
+}
 
 /* ============================================================
    ADD OPERATOR + EDIT
@@ -935,11 +1152,11 @@ map.on("click", async (e) => {
   const tempIcon = L.divIcon({
     html: '<div style="position:relative;width:34px;height:46px;">' +
       '<div style="position:absolute;top:8px;left:2px;width:30px;height:30px;border-radius:50%;background:rgba(56,189,248,0.35);animation:pulse-ring 1.4s ease-out infinite;"></div>' +
-      '<svg xmlns="http://www.w3.org/2000/svg" width="26" height="35" viewBox="0 0 24 32" style="position:absolute;top:4px;left:4px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));">' +
-        '<path d="M12 0.5 C5.65 0.5 0.5 5.65 0.5 12 C0.5 20.5 12 31.5 12 31.5 C12 31.5 23.5 20.5 23.5 12 C23.5 5.65 18.35 0.5 12 0.5 Z" fill="#38BDF8" stroke="#ffffff" stroke-width="1.5"/>' +
-        '<circle cx="12" cy="12" r="4.5" fill="#ffffff"/>' +
+      '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="38" viewBox="0 0 24 30" style="position:absolute;top:4px;left:4px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4));">' +
+        '<line x1="4" y1="1.5" x2="4" y2="29" stroke="#334155" stroke-width="2.2" stroke-linecap="round"/>' +
+        '<path d="M4 2.5 H19.5 L15.8 7.6 L19.5 12.8 H4 Z" fill="#38BDF8" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round"/>' +
       '</svg></div>',
-    className: "temp-pin", iconSize: [34, 46], iconAnchor: [17, 42], popupAnchor: [0, -42]
+    className: "temp-pin", iconSize: [34, 46], iconAnchor: [6, 42], popupAnchor: [6, -42]
   });
   state.tempMarker = L.marker([e.latlng.lat, e.latlng.lng], { icon: tempIcon, pane: "asig-pane", zIndexOffset: 2000 }).addTo(map);
   state.tempMarker.bindTooltip("📍 Nuevo prospecto — completa el formulario", { permanent: true, direction: "top", offset: [0,-30], className: "temp-tip" }).openTooltip();
@@ -948,8 +1165,9 @@ map.on("click", async (e) => {
   document.getElementById("f-lat").value = e.latlng.lat.toFixed(6);
   document.getElementById("f-long").value = e.latlng.lng.toFixed(6);
   document.getElementById("f-semana").value = getISOWeek(new Date());
-  document.getElementById("add-form").style.display = "block";
-  document.getElementById("f-nombre").focus();
+  document.querySelector('#add-form button[type="submit"]').textContent = "💾 Guardar en Google Sheet";
+  openFormModal(false);
+  setTimeout(() => document.getElementById("f-nombre").focus(), 100);
 
   try {
     const url = "https://nominatim.openstreetmap.org/reverse?format=json&zoom=16&accept-language=es&lat=" + e.latlng.lat + "&lon=" + e.latlng.lng;
@@ -977,18 +1195,16 @@ function openEditForm(marker) {
   document.getElementById("f-long").value = d.lng.toFixed(6);
   document.getElementById("f-jo").value = d.jo || "";
   document.getElementById("f-planta").value = d.planta || "";
-  // Disparar cambio para poblar rutas
   document.getElementById("f-planta").dispatchEvent(new Event("change"));
   setTimeout(() => { document.getElementById("f-ruta").value = d.ruta || ""; }, 50);
   document.getElementById("f-semana").value = d.semana || "";
-  document.getElementById("add-form").style.display = "block";
   document.querySelector('#add-form button[type="submit"]').textContent = "💾 Guardar cambios";
-  document.getElementById("add-form").scrollIntoView({ behavior: "smooth", block: "center" });
+  openFormModal(true);
 }
 
 document.getElementById("cancel-add").addEventListener("click", () => {
   document.getElementById("add-form").reset();
-  document.getElementById("add-form").style.display = "none";
+  closeFormModal();
   state._editingRow = undefined;
   document.querySelector('#add-form button[type="submit"]').textContent = "💾 Guardar en Google Sheet";
   removeTempMarker();
@@ -1021,24 +1237,16 @@ document.getElementById("add-form").addEventListener("submit", async (e) => {
     };
     renderAll();
   } else {
-    const id = state.nextId++;
-    const m = L.marker([lat, lng], { icon: makePin(COLORS.asignaciones, 26), pane: "asig-pane" });
-    m.__d = { id, type: "asignacion", lat, lng,
-      nombre: payload.nombre, col: payload.col, municipio: payload.municipio,
-      jo: payload.jo, planta: payload.planta, ruta: payload.ruta, semana: payload.semana };
-    bindPinPopup(m);
-    state.markerById.set(id, m);
-    state.layers.asignaciones.addLayer(m);
     state.data.asignaciones.push({
       "Nombre / Prospecto": payload.nombre, Col: payload.col, Municipio: payload.municipio,
       Lat: payload.lat, Long: payload.long, "Asignado a Jo": payload.jo,
       Planta: payload.planta, Ruta: payload.ruta, Semana: payload.semana
     });
-    document.getElementById("cnt-asig").textContent = state.layers.asignaciones.getLayers().length;
+    renderAll();
     map.setView([lat, lng], Math.max(map.getZoom(), 14));
-    setTimeout(() => { const el = m.getElement(); if (el) el.classList.add("pin-new"); m.openPopup(); }, 150);
   }
   state._editingRow = undefined;
+  saveCache();
 
   const tsv = [payload.nombre, payload.col, payload.municipio, payload.lat, payload.long, payload.jo, payload.planta, payload.ruta, payload.semana].join("\t");
   const isUpdate = payload.__action === "update";
@@ -1052,7 +1260,7 @@ document.getElementById("add-form").addEventListener("submit", async (e) => {
   }
 
   document.getElementById("add-form").reset();
-  document.getElementById("add-form").style.display = "none";
+  closeFormModal();
   document.querySelector('#add-form button[type="submit"]').textContent = "💾 Guardar en Google Sheet";
 });
 
@@ -1085,7 +1293,7 @@ function getISOWeek(d) {
 }
 
 /* ============================================================
-   MODAL
+   MODAL (copiar portapapeles / compartir fallback)
    ============================================================ */
 function openSaveModal(tsv, title, msg) {
   document.getElementById("sm-title").textContent = title;
@@ -1100,36 +1308,85 @@ document.getElementById("sm-copy").addEventListener("click", () => { try { navig
 document.getElementById("save-modal-bg").addEventListener("click", (e) => { if (e.target.id === "save-modal-bg") document.getElementById("save-modal-bg").classList.remove("show"); });
 
 /* ============================================================
-   GEO SEARCH
+   GEO SEARCH (buscador mejorado · cascada Nominatim + Photon)
    ============================================================ */
 let geoLayer = null;
+
+async function nominatimSearch(q) {
+  const url = "https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=8&countrycodes=mx&viewbox=" +
+    MTY_VIEWBOX + "&bounded=0&accept-language=es&q=" + encodeURIComponent(q);
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return await r.json();
+}
+async function photonSearch(q) {
+  const url = "https://photon.komoot.io/api/?lang=es&limit=8&lat=" + MTY_CENTER.lat + "&lon=" + MTY_CENTER.lon +
+    "&q=" + encodeURIComponent(q);
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  const j = await r.json();
+  return (j.features || []).map(f => {
+    const p = f.properties || {};
+    const c = (f.geometry && f.geometry.coordinates) || [];
+    let bb = null;
+    if (p.extent && p.extent.length === 4) {
+      // extent = [west, north, east, south] → boundingbox [south, north, west, east]
+      bb = [String(p.extent[3]), String(p.extent[1]), String(p.extent[0]), String(p.extent[2])];
+    }
+    return {
+      lat: String(c[1]), lon: String(c[0]),
+      display_name: [p.name, p.district, p.city, p.state].filter(Boolean).join(", "),
+      name: p.name,
+      address: { suburb: p.district || p.name, city: p.city || p.county, state: p.state },
+      boundingbox: bb,
+      _mx: norm(p.state).includes("nuevoleon") || norm(p.country).includes("mexico")
+    };
+  }).filter(x => x.lat && x.lon);
+}
+
 async function geoSearch() {
   const col = document.getElementById("geo-col").value.trim();
   const mun = document.getElementById("geo-mun").value.trim();
   if (!col && !mun) { showGeoStatus("Escribe colonia y/o municipio", true); return; }
-  const q = [col, mun, "Nuevo Leon", "Mexico"].filter(Boolean).join(", ");
+
   showGeoStatus('<span class="spinner" style="border-top-color:#22c55e"></span>&nbsp; Buscando…');
   document.getElementById("geo-results").classList.remove("show");
-  try {
-    const url = "https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=6&countrycodes=mx&q=" + encodeURIComponent(q);
-    const r = await fetch(url);
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    const results = await r.json();
-    hideGeoStatus();
-    if (!results.length) { showGeoStatus("Sin resultados", true); return; }
-    renderGeoResults(results);
-  } catch (err) { showGeoStatus("Error: " + err.message, true); }
+
+  // Cascada de intentos: del más específico al más flexible
+  const tries = [];
+  if (col && mun) tries.push(() => nominatimSearch(col + ", " + mun + ", Nuevo León, México"));
+  if (col)       tries.push(() => nominatimSearch(col + ", Nuevo León, México"));
+  if (col && mun) tries.push(() => photonSearch(col + " " + mun + " Nuevo León"));
+  if (col)       tries.push(() => photonSearch(col + " Nuevo León México"));
+  if (col)       tries.push(() => nominatimSearch(col + ", Monterrey, Nuevo León, México"));
+  if (!col && mun) { tries.push(() => nominatimSearch(mun + ", Nuevo León, México")); tries.push(() => photonSearch(mun + " Nuevo León")); }
+
+  let results = [];
+  for (const t of tries) {
+    try {
+      const r = await t();
+      if (r && r.length) { results = r; break; }
+    } catch (e) { /* intenta la siguiente estrategia */ }
+  }
+
+  hideGeoStatus();
+  if (!results.length) {
+    showGeoStatus("Sin resultados. Prueba solo la colonia, revisa el acento/ortografía, o agrega el municipio.", true);
+    return;
+  }
+  renderGeoResults(results);
 }
+
 function renderGeoResults(results) {
   const list = document.getElementById("geo-results");
   list.innerHTML = "";
-  results.forEach((r, idx) => {
+  results.forEach((r) => {
     const item = document.createElement("div");
     item.className = "item";
     const a = r.address || {};
-    const primary = a.suburb || a.neighbourhood || a.hamlet || a.quarter || r.name || r.display_name.split(",")[0];
-    const secondary = [a.city || a.town || a.municipality, a.state].filter(Boolean).join(" · ");
-    item.innerHTML = "<strong>" + escapeHTML(primary) + "</strong><span>" + escapeHTML(secondary || r.display_name) + "</span>";
+    const primary = a.suburb || a.neighbourhood || a.hamlet || a.quarter || r.name || (r.display_name ? r.display_name.split(",")[0] : "Resultado");
+    const secondary = [a.city || a.town || a.municipality || a.county, a.state].filter(Boolean).join(" · ");
+    item.innerHTML = "<strong>" + escapeHTML(primary) + "</strong><span>" + escapeHTML(secondary || r.display_name || "") + "</span>";
     item.addEventListener("click", () => {
       list.querySelectorAll(".item").forEach(el => el.classList.remove("selected"));
       item.classList.add("selected");
@@ -1144,13 +1401,14 @@ function selectGeoResult(r) {
   const lat = parseFloat(r.lat), lon = parseFloat(r.lon);
   const bb = r.boundingbox && r.boundingbox.map(Number);
   let bounds;
-  if (bb && bb.length === 4) bounds = L.latLngBounds([bb[0], bb[2]], [bb[1], bb[3]]);
+  if (bb && bb.length === 4 && bb.every(isFinite)) bounds = L.latLngBounds([bb[0], bb[2]], [bb[1], bb[3]]);
   else { const d = 0.008; bounds = L.latLngBounds([lat-d, lon-d], [lat+d, lon+d]); }
   if (geoLayer) { map.removeLayer(geoLayer); geoLayer = null; }
   const rect = L.rectangle(bounds, { color: "#22c55e", weight: 3, fillColor: "#22c55e", fillOpacity: 0.12, dashArray: "6 4" });
   const ping = L.circleMarker([lat, lon], { radius: 8, color: "#16a34a", weight: 2, fillColor: "#22c55e", fillOpacity: 0.9 });
+  const name = (r.address && (r.address.suburb || r.address.neighbourhood)) || r.name || (r.display_name ? r.display_name.split(",")[0] : "Zona");
   const label = L.marker([lat, lon], {
-    icon: L.divIcon({ className: "geo-label", html: '<div style="background:#0f1c30;color:#fff;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.3);">📍 ' + escapeHTML((r.address && (r.address.suburb || r.address.neighbourhood)) || r.display_name.split(",")[0]) + '</div>', iconSize: null, iconAnchor: [0, -8] })
+    icon: L.divIcon({ className: "geo-label", html: '<div style="background:#0f1c30;color:#fff;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.3);">📍 ' + escapeHTML(name) + '</div>', iconSize: null, iconAnchor: [0, -8] })
   });
   geoLayer = L.layerGroup([rect, ping, label]).addTo(map);
   map.fitBounds(bounds, { padding: [40, 40], maxZoom: 16 });
@@ -1181,8 +1439,8 @@ document.getElementById("geo-clear").addEventListener("click", clearGeoSearch);
 /* ============================================================
    MISC
    ============================================================ */
-document.getElementById("reload-data").addEventListener("click", loadData);
-document.getElementById("test-webhook").addEventListener("click", () => window.open(state.webhook, '_blank'));
+// Clic en la línea de estado del encabezado → recarga datos (reemplaza el botón quitado)
+document.getElementById("header-status").addEventListener("click", loadData);
 
 let statusTimer = null;
 function showStatus(msg, type, autoHideMs) {
@@ -1194,7 +1452,8 @@ function showStatus(msg, type, autoHideMs) {
 
 /* GO */
 document.getElementById("webhook-url").value = DEFAULT_WEBHOOK;
-loadData();
+loadCache();   // pinta al instante lo guardado (si hay)
+loadData();    // trae datos frescos en segundo plano
 </script>
 </body>
 </html>
