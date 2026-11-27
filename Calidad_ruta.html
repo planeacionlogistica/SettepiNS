@@ -565,7 +565,7 @@ function gvizToRows(response) {
   });
 }
 
-function processRows(rows) {
+function processRows(rows, opts) {
   if (rows.length === 0) throw new Error('El Sheet no devolvió filas');
   const sample = rows[0];
   const kPlanta   = pickField(sample, ['Planta']);
@@ -618,19 +618,57 @@ function processRows(rows) {
     (semanas.length ? semanas.length + ' semanas' : 'sin col. Semana');
 
   applySemanaFilter();
-  render();
+  if (!(opts && opts.skipRender)) render();
 }
 
-function loadSheet(attempt) {
+/* ===================== CACHE LOCAL (localStorage) ===================== */
+/* Guarda la última carga buena. Si Google falla, el tablero sigue
+   mostrando los últimos datos en lugar de quedarse bloqueado. */
+const CACHE_KEY = 'maeCalidadCache_v1';
+let DATA_TS = null;
+let DATA_FROM_CACHE = false;
+
+function saveCache(rows) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), rows }));
+  } catch (e) { /* sin espacio o no disponible: se ignora, no es crítico */ }
+}
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || !Array.isArray(obj.rows) || obj.rows.length === 0) return null;
+    return obj;
+  } catch (e) { return null; }
+}
+function markFreshness() {
+  const el = document.getElementById('statusBadge');
+  if (!el || !DATA_TS) return;
+  const d = new Date(DATA_TS);
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  el.textContent += (DATA_FROM_CACHE ? ' · caché ' : ' · actualizado ') + hh + ':' + mm;
+}
+
+/* ===================== DATA LOAD (JSONP) ===================== */
+function loadSheet(attempt, opts) {
   attempt = attempt || 1;
-  const MAX_ATTEMPTS = 6;   // reintentos automáticos antes de mostrar el error
+  opts = opts || {};
+  const background = !!opts.background;   // refresco silencioso: no bloquea la UI
+  const force = !!opts.force;             // "Actualizar": fuerza recálculo en Google
+  const MAX_ATTEMPTS = 4;                 // reintentos automáticos antes de rendirse
+  const TIMEOUT_MS = 45000;               // la hoja es grande (~109k filas): más margen
   const overlay = document.getElementById('loadingOverlay');
   const txt = document.getElementById('loadingText');
-  overlay.classList.remove('hidden');
-  txt.textContent = attempt === 1
-    ? 'Cargando datos desde Google Sheets…'
-    : 'Reintentando carga… (' + attempt + '/' + MAX_ATTEMPTS + ')';
-  document.querySelector('.loading-error')?.remove();
+
+  if (!background) {
+    overlay.classList.remove('hidden');
+    txt.textContent = attempt === 1
+      ? 'Cargando datos desde Google Sheets…'
+      : 'Reintentando carga… (' + attempt + '/' + MAX_ATTEMPTS + ')';
+    document.querySelector('.loading-error')?.remove();
+  }
 
   const cb = 'gvizCB_' + Math.random().toString(36).slice(2).replace(/[^a-z0-9]/g,'');
   // Pedimos SOLO las columnas que el tablero usa y SOLO las filas tipo "E".
@@ -639,28 +677,52 @@ function loadSheet(attempt) {
   // Columnas: A Planta, B Tip.Ser, C Desc Ruta, D ID Ruta, E Sec, F Pos,
   //           G Parada, H Lat, I Lng, J H1, T Cal Rt, U Cal Pd, W Semana.
   const TQ = encodeURIComponent("select A,B,C,D,E,F,G,H,I,J,T,U,W where B='E'");
+  // SIN cache-buster en la carga normal: así Google puede devolver una respuesta
+  // ya calculada (mucho más rápido y estable). Solo forzamos recálculo con "Actualizar".
+  const buster = force ? ('&_=' + Date.now()) : '';
   const url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
               '/gviz/tq?tqx=out:json;responseHandler:' + cb +
               '&tq=' + TQ +
-              '&gid=' + SHEET_GID +
-              '&_=' + Date.now();
+              '&gid=' + SHEET_GID + buster;
 
   let timeoutId = null;
   const cleanup = () => {
     try { delete window[cb]; } catch(e) { window[cb] = undefined; }
-    const s = document.getElementById('gvizScriptTag');
+    const s = document.getElementById(cb);   // id único por carga (evita choques entre cargas simultáneas)
     if (s) s.remove();
     if (timeoutId) clearTimeout(timeoutId);
   };
 
-  const showError = (msg) => {
+  const haveUsableData = () => RECORDS_ALL.length > 0 || !!loadCache();
+  const renderFromCacheIfNeeded = () => {
+    if (RECORDS_ALL.length > 0) return;    // ya hay algo pintado
+    const c = loadCache();
+    if (!c) return;
+    DATA_TS = c.ts; DATA_FROM_CACHE = true;
+    try { processRows(c.rows); markFreshness(); } catch (e) {}
+  };
+
+  const fail = (msg) => {
     // Reintento automático: muchos de estos fallos son cortes pasajeros de red/JSONP
     if (attempt < MAX_ATTEMPTS) {
-      const wait = Math.min(3000, 900 * attempt);   // backoff espaciado (evita que Google lo frene)
-      txt.textContent = 'Conectando con Google Sheets… (intento ' + (attempt + 1) + ' de ' + MAX_ATTEMPTS + ')';
-      setTimeout(() => loadSheet(attempt + 1), wait);
+      const wait = Math.min(8000, 2000 * attempt);   // backoff 2s,4s,6s,8s (no satura a Google)
+      if (!background) {
+        txt.textContent = 'Conectando con Google Sheets… (intento ' + (attempt + 1) + ' de ' + MAX_ATTEMPTS + ')';
+      }
+      setTimeout(() => loadSheet(attempt + 1, opts), wait);
       return;
     }
+    // Falla definitiva. Si ya hay datos (en memoria o en caché), NO bloqueamos:
+    // mostramos lo último bueno y avisamos discretamente.
+    if (background || haveUsableData()) {
+      renderFromCacheIfNeeded();
+      overlay.classList.add('hidden');
+      toast('No se pudo actualizar desde Google Sheets. Mostrando los últimos datos.', 3500);
+      const sb = document.getElementById('statusBadge');
+      if (sb) sb.textContent += ' · sin conexión';
+      return;
+    }
+    // Primera carga y sin caché: error bloqueante con opción de reintentar.
     txt.textContent = 'No se pudo cargar el Sheet.';
     document.querySelector('.loading-error')?.remove();
     const errBox = document.createElement('div');
@@ -669,7 +731,7 @@ function loadSheet(attempt) {
       'Error: ' + escapeHtml(msg) +
       '<br><br>Verifica que el Sheet siga siendo público (Cualquier persona con el enlace).' +
       '<br><a href="https://docs.google.com/spreadsheets/d/' + SHEET_ID + '" target="_blank">Abrir el Sheet</a>' +
-      '<br><br><button onclick="loadSheet()" style="margin-top:8px;padding:6px 14px;background:#22c55e;color:#0d1421;border:none;border-radius:6px;font-weight:700;cursor:pointer;">Reintentar</button>';
+      '<br><br><button onclick="loadSheet(1,{force:true})" style="margin-top:8px;padding:6px 14px;background:#22c55e;color:#0d1421;border:none;border-radius:6px;font-weight:700;cursor:pointer;">Reintentar</button>';
     overlay.appendChild(errBox);
     document.getElementById('statusBadge').textContent = 'Error al cargar';
   };
@@ -678,25 +740,47 @@ function loadSheet(attempt) {
     cleanup();
     try {
       const rows = gvizToRows(response);
-      processRows(rows);
+      DATA_TS = Date.now(); DATA_FROM_CACHE = false;
+      // Si el usuario ya navegó a rutas/paradas, actualizamos datos sin re-render
+      // para no interrumpir (no recargar el mapa debajo de sus pies).
+      processRows(rows, { skipRender: background && STATE.view !== 'plants' });
+      markFreshness();
+      saveCache(rows);
       overlay.classList.add('hidden');
     } catch(err) {
-      showError(err.message || String(err));
+      fail(err.message || String(err));
     }
   };
 
   const script = document.createElement('script');
-  script.id = 'gvizScriptTag';
+  script.id = cb;
   script.src = url;
   script.onerror = () => {
     cleanup();
-    showError('El navegador no pudo cargar la respuesta del Sheet. Revisa que sea público con acceso "Cualquier persona con el enlace".');
+    fail('El navegador no pudo cargar la respuesta del Sheet. Revisa que sea público con acceso "Cualquier persona con el enlace".');
   };
   timeoutId = setTimeout(() => {
     cleanup();
-    showError('Timeout esperando la respuesta del Sheet.');
-  }, 20000);
+    fail('Timeout esperando la respuesta del Sheet.');
+  }, TIMEOUT_MS);
   document.body.appendChild(script);
+}
+
+/* Arranque: pinta primero desde caché (si existe) y refresca en segundo plano.
+   Así el tablero abre al instante y, aunque Google falle, siempre hay datos. */
+function init() {
+  const cached = loadCache();
+  if (cached) {
+    DATA_TS = cached.ts; DATA_FROM_CACHE = true;
+    try {
+      processRows(cached.rows);
+      markFreshness();
+      document.getElementById('loadingOverlay').classList.add('hidden');
+    } catch (e) {}
+    loadSheet(1, { background: true });
+  } else {
+    loadSheet(1, { background: false });
+  }
 }
 
 function applySemanaFilter() {
@@ -1369,7 +1453,7 @@ document.getElementById('semanaFilter').addEventListener('change', (e) => {
   applySemanaFilter();
   render();
 });
-document.getElementById('refreshBtn').addEventListener('click', () => loadSheet());
+document.getElementById('refreshBtn').addEventListener('click', () => loadSheet(1, {force:true}));
 document.getElementById('exportBtn').addEventListener('click', () => exportCurrentView());
 
 // Keyboard: Alt+← as back shortcut
@@ -1381,7 +1465,7 @@ document.addEventListener('keydown', (e) => {
 });
 
 /* ===================== INIT ===================== */
-loadSheet();
+init();
 </script>
 </body>
 </html>
